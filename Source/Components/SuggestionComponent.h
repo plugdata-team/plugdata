@@ -670,6 +670,23 @@ public:
         return layoutMode == LayoutMode::ListWithDetail || layoutMode == LayoutMode::DetailOnly;
     }
 
+    bool shouldKeepEditorOpen(TextEditor* editor) const
+    {
+        if (Component::getCurrentlyFocusedComponent() == editor || hasKeyboardFocus(true))
+            return true;
+
+        // On Linux, mouse-down on this temporary desktop window can make the
+        // edited TextEditor lose native focus before JUCE assigns keyboard
+        // focus to the popup/resizer. Treat an active click inside the popup as
+        // part of the editor interaction so resizing does not commit the edit.
+        if (isVisible() && ModifierKeys::currentModifiers.isAnyMouseButtonDown()) {
+            auto const mousePos = Desktop::getInstance().getMainMouseSource().getScreenPosition();
+            return getScreenBounds().toFloat().contains(mousePos);
+        }
+
+        return false;
+    }
+
 private:
     SuggestionQueryResult queryActive(String const& text) const
     {

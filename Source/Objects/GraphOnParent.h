@@ -250,7 +250,7 @@ public:
                 cnv->grabKeyboardFocus();
             };
             editor->onFocusLost = [this] {
-                if (cnv->suggestor->hasKeyboardFocus(true) || Component::getCurrentlyFocusedComponent() == editor.get()) {
+                if (cnv->suggestor->shouldKeepEditorOpen(editor.get())) {
                     editor->grabKeyboardFocus();
                     return;
                 }
