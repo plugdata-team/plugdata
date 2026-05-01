@@ -65,5 +65,9 @@ public:
 
 private:
     void setIsItemDragged(bool isActive);
+    Colour getBackgroundColour() const;
+    void updateTextColour();
+    void showColourPicker();
+
     bool isItemDragged = false;
 };

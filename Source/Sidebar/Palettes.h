@@ -757,6 +757,15 @@ private:
                         ValueTree itemTree("Item");
                         itemTree.setProperty("Name", itemObj->getProperty("name"), nullptr);
                         itemTree.setProperty("Patch", itemObj->getProperty("patch"), nullptr);
+                        if (itemObj->hasProperty("bg_color")) {
+                            auto colourString = itemObj->getProperty("bg_color").toString();
+                            if (colourString.startsWithChar('#')) {
+                                colourString = colourString.substring(1);
+                                if (colourString.length() == 6)
+                                    colourString = "ff" + colourString;
+                            }
+                            itemTree.setProperty("BgColor", Colour::fromString(colourString).toString(), nullptr);
+                        }
 
                         result.appendChild(itemTree, nullptr);
                     }
@@ -779,6 +788,8 @@ private:
             DynamicObject::Ptr itemObj = new DynamicObject();
             itemObj->setProperty("name", item.getProperty("Name"));
             itemObj->setProperty("patch", item.getProperty("Patch"));
+            if (item.hasProperty("BgColor"))
+                itemObj->setProperty("bg_color", "#" + Colour::fromString(item.getProperty("BgColor").toString()).toDisplayString(false));
 
             items.add(var(itemObj.get()));
         }

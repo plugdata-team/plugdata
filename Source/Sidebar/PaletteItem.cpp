@@ -2,6 +2,134 @@
 #include "Palettes.h"
 #include "Constants.h"
 #include "Utility/StackShadow.h"
+#include "Components/ColourPicker.h"
+
+#include <array>
+
+namespace {
+std::array<Colour, 9> getPaletteItemColours()
+{
+    return {
+        Colour::fromRGB(255, 222, 222),
+        Colour::fromRGB(255, 232, 194),
+        Colour::fromRGB(255, 247, 191),
+        Colour::fromRGB(219, 242, 198),
+        Colour::fromRGB(198, 238, 223),
+        Colour::fromRGB(203, 232, 255),
+        Colour::fromRGB(217, 220, 255),
+        Colour::fromRGB(235, 215, 255),
+        Colour::fromRGB(255, 216, 238)
+    };
+}
+
+class PaletteItemColourPicker final : public Component {
+public:
+    PaletteItemColourPicker(PluginEditor* e, Component* topLevel, ValueTree item, Rectangle<int> colourPickerBounds, std::function<void()> colourChanged)
+        : itemTree(item)
+        , editor(e)
+        , topLevelComponent(topLevel)
+        , pickerBounds(colourPickerBounds)
+        , onColourChanged(std::move(colourChanged))
+    {
+        setSize(168, 76);
+    }
+
+    void paint(Graphics& g) override
+    {
+        auto const colours = getPaletteItemColours();
+        auto const selectedColour = itemTree.hasProperty("BgColor")
+            ? Colour::fromString(itemTree.getProperty("BgColor").toString())
+            : Colours::transparentBlack;
+        auto const tick = getLookAndFeel().getTickShape(0.6f);
+
+        for (int i = 0; i < static_cast<int>(colours.size()); i++) {
+            auto const circleBounds = getCircleBounds(i);
+            auto const colour = colours[static_cast<size_t>(i)];
+
+            g.setColour(colour);
+            g.fillEllipse(circleBounds);
+
+            g.setColour(PlugDataColours::outlineColour);
+            g.drawEllipse(circleBounds, 1.0f);
+
+            if (itemTree.hasProperty("BgColor") && selectedColour.toString() == colour.toString()) {
+                auto const tickBounds = circleBounds.getSmallestIntegerContainer().reduced(6);
+                g.setColour(colour.contrasting(0.8f));
+                g.fillPath(tick, tick.getTransformToScaleToFit(tickBounds.toFloat(), false));
+            }
+        }
+
+        auto const buttonBounds = getPickerButtonBounds();
+        g.setColour(PlugDataColours::sidebarActiveBackgroundColour);
+        g.fillEllipse(buttonBounds);
+        g.setColour(PlugDataColours::outlineColour);
+        g.drawEllipse(buttonBounds, 1.0f);
+        Fonts::drawIcon(g, Icons::Eyedropper, buttonBounds.getSmallestIntegerContainer(), PlugDataColours::sidebarTextColour, 12);
+    }
+
+    void mouseUp(MouseEvent const& e) override
+    {
+        auto const colours = getPaletteItemColours();
+        for (int i = 0; i < static_cast<int>(colours.size()); i++) {
+            if (getCircleBounds(i).contains(e.position)) {
+                itemTree.setProperty("BgColor", colours[static_cast<size_t>(i)].toString(), nullptr);
+                onColourChanged();
+                closeCalloutBox();
+                return;
+            }
+        }
+
+        if (getPickerButtonBounds().contains(e.position)) {
+            auto const colour = itemTree.hasProperty("BgColor")
+                ? Colour::fromString(itemTree.getProperty("BgColor").toString())
+                : PlugDataColours::textObjectBackgroundColour;
+            auto* editorToUse = editor;
+            auto* topLevelToUse = topLevelComponent.getComponent();
+            auto const bounds = pickerBounds;
+            auto item = itemTree;
+            auto colourChanged = onColourChanged;
+            closeCalloutBox();
+            MessageManager::callAsync([editorToUse, topLevelToUse, bounds, item, colour, colourChanged]() mutable {
+                ColourPicker::getInstance()->show(editorToUse, topLevelToUse, false, colour, bounds, [item, colourChanged](Colour const c) mutable {
+                    item.setProperty("BgColor", c.toString(), nullptr);
+                    colourChanged();
+                });
+            });
+        }
+    }
+
+private:
+    Rectangle<float> getCircleBounds(int const index) const
+    {
+        constexpr int columns = 5;
+        constexpr float diameter = 24.0f;
+        constexpr float gap = 8.0f;
+        constexpr float left = 12.0f;
+        constexpr float top = 10.0f;
+
+        auto const row = index / columns;
+        auto const column = index % columns;
+        return { left + column * (diameter + gap), top + row * (diameter + gap), diameter, diameter };
+    }
+
+    Rectangle<float> getPickerButtonBounds() const
+    {
+        return getCircleBounds(static_cast<int>(getPaletteItemColours().size()));
+    }
+
+    void closeCalloutBox()
+    {
+        if (auto* callout = findParentComponentOfClass<CallOutBox>())
+            callout->dismiss();
+    }
+
+    ValueTree itemTree;
+    PluginEditor* editor;
+    SafePointer<Component> topLevelComponent;
+    Rectangle<int> pickerBounds;
+    std::function<void()> onColourChanged;
+};
+}
 
 PaletteItem::PaletteItem(PluginEditor* e, PaletteList* parent, ValueTree tree)
     : itemTree(tree)
@@ -56,6 +184,7 @@ PaletteItem::PaletteItem(PluginEditor* e, PaletteList* parent, ValueTree tree)
 
     updater.addAnimator(animator);
     lookAndFeelChanged();
+    updateTextColour();
 }
 
 PaletteItem::~PaletteItem()
@@ -67,6 +196,36 @@ PaletteItem::~PaletteItem()
 void PaletteItem::lookAndFeelChanged()
 {
     nameLabel.setFont(Fonts::getCurrentFont());
+    updateTextColour();
+}
+
+Colour PaletteItem::getBackgroundColour() const
+{
+    if (itemTree.hasProperty("BgColor"))
+        return Colour::fromString(itemTree.getProperty("BgColor").toString());
+
+    return PlugDataColours::textObjectBackgroundColour;
+}
+
+void PaletteItem::updateTextColour()
+{
+    auto const textColour = getBackgroundColour().contrasting(0.8f);
+    nameLabel.setColour(Label::textColourId, textColour);
+    nameLabel.setColour(Label::textWhenEditingColourId, textColour);
+}
+
+void PaletteItem::showColourPicker()
+{
+    if (editor) {
+        auto const pickerBounds = getScreenBounds();
+        auto colourPicker = std::make_unique<PaletteItemColourPicker>(editor, getTopLevelComponent(), itemTree, pickerBounds, [_this = SafePointer(this)] {
+            if (_this) {
+                _this->updateTextColour();
+                _this->repaint();
+            }
+        });
+        editor->showCalloutBox(std::move(colourPicker), pickerBounds);
+    }
 }
 
 bool PaletteItem::hitTest(int const x, int const y)
@@ -92,6 +251,7 @@ void PaletteItem::setIsItemDragged(bool const isActive)
 void PaletteItem::paint(Graphics& g)
 {
     auto bounds = getLocalBounds().reduced(16.0f, 4.0f).toFloat();
+    auto const backgroundColour = getBackgroundColour();
 
     if (isItemDragged) {
         Path dropShadowPath;
@@ -112,7 +272,7 @@ void PaletteItem::paint(Graphics& g)
         PathStrokeType dashedStroke(0.5f);
         dashedStroke.createDashedStroke(dashedRect, dashedRect, dashLength.data(), 2);
 
-        g.setColour(PlugDataColours::textObjectBackgroundColour);
+        g.setColour(backgroundColour);
         g.fillRoundedRectangle(lineBounds, 5.0f);
 
         g.setColour(outlineColour);
@@ -211,7 +371,7 @@ void PaletteItem::paint(Graphics& g)
     p.quadraticTo(lineBounds.getTopLeft(), lineBounds.getTopLeft().translated(cornerRadius, 0));
     p.closeSubPath();
 
-    g.setColour(PlugDataColours::textObjectBackgroundColour);
+    g.setColour(backgroundColour);
     g.fillPath(p);
 
     g.setColour(outlineColour);
@@ -226,6 +386,11 @@ void PaletteItem::paint(Graphics& g)
 
 void PaletteItem::mouseDown(MouseEvent const& e)
 {
+    if (e.mods.isRightButtonDown()) {
+        showColourPicker();
+        return;
+    }
+    
     if (!isRealClickEvent(e))
         return;
 
