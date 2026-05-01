@@ -9,6 +9,7 @@
 #include "Constants.h"
 #include "LookAndFeel.h"
 #include "Utility/Fonts.h"
+#include "Utility/OSUtils.h"
 #include "Utility/SettingsFile.h"
 #include "Dialogs/Dialogs.h"
 
@@ -734,10 +735,10 @@ private:
 
     OnboardingKeymapCard pdCard {
         "Pure Data style",
-        { "New object | " + shortcutModifier(ModifierKeys::commandModifier) + " + 1",
-          "New message | " + shortcutModifier(ModifierKeys::commandModifier) + " + 2",
-          "New number | " + shortcutModifier(ModifierKeys::commandModifier) + " + 3",
-          "New slider | " + shortcutModifier(ModifierKeys::commandModifier) + " + "+ shortcutModifier(ModifierKeys::shiftModifier) + " + V"}
+        { "New object | " + shortcutModifier(ModifierKeys::commandModifier) + " + " + numberShortcut(1),
+          "New message | " + shortcutModifier(ModifierKeys::commandModifier) + " + " + numberShortcut(2),
+          "New number | " + shortcutModifier(ModifierKeys::commandModifier) + " + " + numberShortcut(3),
+          "New slider | " + shortcutModifier(ModifierKeys::commandModifier) + " + " + shortcutModifier(ModifierKeys::shiftModifier) + " + V" }
     };
 
     OnboardingKeymapCard maxCard {
@@ -745,7 +746,7 @@ private:
         { "New object | N",
           "New message | M",
           "New number | I",
-          "New slider | S"}
+          "New slider | S" }
     };
 
     String selected = "pd";
@@ -764,6 +765,20 @@ private:
             return "shift";
 
         return {};
+    }
+
+    static String numberShortcut(int number)
+    {
+        if (OSUtils::getKeyboardLayout() == OSUtils::KeyboardLayout::AZERTY) {
+            if (number == 1)
+                return "&";
+            if (number == 2)
+                return String::fromUTF8("é");
+            if (number == 3)
+                return "\"";
+        }
+
+        return String(number);
     }
 };
 
