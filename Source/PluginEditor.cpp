@@ -641,7 +641,7 @@ void PluginEditor::resized()
     bool const floatingPanels = usesFloatingPanels();
 
 #if JUCE_LINUX || JUCE_BSD
-    nvgSurface.setRoundedBottomCorners(!floatingPanels && (welcomePanel->isVisible() || leftSidebar->isHidden()), !floatingPanels && (welcomePanel->isVisible() || rightSidebar->isHidden()));
+    nvgSurface.setRoundedBottomCorners(floatingPanels && (welcomePanel->isVisible() || leftSidebar->isHidden()), floatingPanels && (welcomePanel->isVisible() || rightSidebar->isHidden()));
 #endif
 
     bool const touchMode = SettingsFile::getInstance()->isUsingTouchMode();
