@@ -578,8 +578,8 @@ void PluginEditor::showWelcomePanel(bool const shouldShow)
     addObjectMenuButton.setVisible(!shouldShow);
     undoButton.setVisible(!shouldShow);
     redoButton.setVisible(!shouldShow);
-    leftSidebar->setVisible(!shouldShow);
-    rightSidebar->setVisible(!shouldShow);
+    leftSidebar->setVisible(!shouldShow && leftSidebar->hasAnyPanel());
+    rightSidebar->setVisible(!shouldShow && rightSidebar->hasAnyPanel());
     statusbar->setVisible(!shouldShow);
 
     sidebarToggleButton.setVisible(shouldShow);
@@ -755,20 +755,6 @@ void PluginEditor::resized()
     welcomePanelSearchButton.setBounds(sidebarToggleButton.getX() - buttonSize - 2, 0, buttonSize, buttonSize);
 
     welcomePanelSearchInput.setBounds(libraryPanelSelector.getRight() + 10, 4, welcomePanelSearchButton.getX() - libraryPanelSelector.getRight() - 20, toolbarHeight - 4);
-
-    for (auto* button : SmallArray<Component*> {
-             &mainMenuButton,
-             &undoButton,
-             &redoButton,
-             &addObjectMenuButton,
-             &welcomePanelSearchButton,
-             &sidebarToggleButton,
-             &recentlyOpenedPanelSelector,
-             &libraryPanelSelector,
-             &welcomePanelSearchInput }) {
-        button->toFront(false);
-    }
-
     repaint(); // Some outlines are dependent on whether or not the sidebars are expanded, or whether or not a patch is opened
 }
 
