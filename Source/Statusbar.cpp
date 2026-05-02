@@ -374,15 +374,6 @@ void Statusbar::paint(Graphics& g)
         g.drawRoundedRectangle(b.toFloat(), Corners::largeCornerRadius, 1.0f);
     }
     else {
-        auto b = getLocalBounds();
-        auto baseColour = PlugDataColours::toolbarBackgroundColour;
-        if (ProjectInfo::isStandalone && !editor->isActiveWindow()) {
-            baseColour = baseColour.brighter(baseColour.getBrightness() / 2.5f);
-        }
-        g.setColour(baseColour);
-        g.fillRoundedRectangle(b.removeFromBottom(Corners::windowCornerRadius).toFloat(), Corners::windowCornerRadius);
-        g.fillRect(b);
-
         g.setColour(PlugDataColours::toolbarOutlineColour);
         auto outlineLeft = editor->leftSidebar->isHidden() ? editor->leftSidebar->getRight() - 1.0f : 0.0f;
         auto outlineRight = editor->rightSidebar->isHidden() ? editor->rightSidebar->getX() + 1.0f : getWidth();
