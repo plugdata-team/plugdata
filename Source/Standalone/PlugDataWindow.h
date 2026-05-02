@@ -502,7 +502,10 @@ public:
 
     bool isMaximised() const
     {
-#if JUCE_LINUX
+#if JUCE_LINUX || JUCE_BSD
+        if (hasPendingLinuxMaximisedState)
+            return pendingLinuxMaximisedState;
+
         if (auto* peer = getPeer()) {
             return OSUtils::isLinuxWindowMaximised(peer);
         } else {
@@ -523,11 +526,12 @@ public:
 #if JUCE_LINUX || JUCE_BSD
         if (auto* b = getMaximiseButton()) {
             if (auto* peer = getPeer()) {
-                bool shouldBeMaximised = OSUtils::isLinuxWindowMaximised(peer);
-                b->setToggleState(!shouldBeMaximised, dontSendNotification);
+                bool shouldBeMaximised = !isMaximised();
+                setPendingLinuxMaximisedState(shouldBeMaximised);
+                b->setToggleState(shouldBeMaximised, dontSendNotification);
 
                 if (!useNativeTitlebar()) {
-                    OSUtils::maximiseLinuxWindow(peer, !shouldBeMaximised);
+                    OSUtils::maximiseLinuxWindow(peer, shouldBeMaximised);
                 }
             } else {
                 b->setToggleState(false, dontSendNotification);
@@ -619,6 +623,31 @@ public:
     }
 
 private:
+#if JUCE_LINUX || JUCE_BSD
+    void setPendingLinuxMaximisedState(bool shouldBeMaximised)
+    {
+        hasPendingLinuxMaximisedState = true;
+        pendingLinuxMaximisedState = shouldBeMaximised;
+        auto const pendingStateSerial = ++pendingLinuxMaximisedStateSerial;
+
+        Timer::callAfterDelay(250, [_this = SafePointer(this), pendingStateSerial] {
+            if (!_this)
+                return;
+
+            if (_this->pendingLinuxMaximisedStateSerial != pendingStateSerial)
+                return;
+
+            _this->hasPendingLinuxMaximisedState = false;
+
+            if (auto* b = _this->getMaximiseButton())
+                b->setToggleState(_this->isMaximised(), dontSendNotification);
+
+            _this->resized();
+            _this->repaint();
+        });
+    }
+#endif
+
     class MainContentComponent final : public Component
         , private ComponentListener
         , public MenuBarModel {
@@ -784,5 +813,13 @@ private:
 public:
     MainContentComponent* mainComponent = nullptr;
 
+private:
+#if JUCE_LINUX || JUCE_BSD
+    bool hasPendingLinuxMaximisedState = false;
+    bool pendingLinuxMaximisedState = false;
+    int pendingLinuxMaximisedStateSerial = 0;
+#endif
+
+public:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataWindow)
 };

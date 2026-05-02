@@ -286,7 +286,7 @@ bool OSUtils::isLinuxWindowMaximised(ComponentPeer* peer)
         XFree(states);
     }
 
-    return state & WINDOW_STATE_MAXIMIZED;
+    return (state & WINDOW_STATE_MAXIMIZED) != 0;
 }
 
 void OSUtils::maximiseLinuxWindow(ComponentPeer* peer, bool shouldBeMaximised)
