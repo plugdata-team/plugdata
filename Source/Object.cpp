@@ -1406,7 +1406,7 @@ void Object::openNewObjectEditor()
         editor->grabKeyboardFocus();
 
         editor->onFocusLost = [this, editor] {
-            if (cnv->suggestor->hasKeyboardFocus(true) || Component::getCurrentlyFocusedComponent() == editor) {
+            if (cnv->suggestor->shouldKeepEditorOpen(editor) || Component::getCurrentlyFocusedComponent() == editor) {
                 editor->grabKeyboardFocus();
                 return;
             }
