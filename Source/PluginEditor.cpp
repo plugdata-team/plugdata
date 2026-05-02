@@ -643,9 +643,11 @@ void PluginEditor::resized()
     bool const floatingPanels = usesFloatingPanels();
 
 #if JUCE_LINUX || JUCE_BSD
-    nvgSurface.setRoundedBottomCorners(floatingPanels && (welcomePanel->isVisible() || leftSidebar->isHidden()), floatingPanels && (welcomePanel->isVisible() || rightSidebar->isHidden()));
+    auto roundedLeft = floatingPanels && (welcomePanel->isVisible() || leftSidebar->isHidden() || !leftSidebar->hasAnyPanel());
+    auto roundedRight = floatingPanels && (welcomePanel->isVisible() || rightSidebar->isHidden() || !rightSidebar->hasAnyPanel());
+    nvgSurface.setRoundedBottomCorners(roundedLeft, roundedRight);
 #endif
-
+    
     bool const touchMode = SettingsFile::getInstance()->isUsingTouchMode();
     auto const leftHasSelectors = leftSidebar && leftSidebar->isVisible() && leftSidebar->hasAnyPanel();
     auto const rightHasSelectors = rightSidebar && rightSidebar->isVisible() && rightSidebar->hasAnyPanel();
