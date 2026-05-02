@@ -207,35 +207,6 @@ protected:
     PlugDataWindow* mainWindow = nullptr;
 };
 
-void PlugDataWindow::closeAllPatches()
-{
-    // Show an ask to save dialog for each patch that is dirty
-    // Because save dialog uses an asynchronous callback, we can't loop over them (so have to chain them)
-    if (auto* editor = dynamic_cast<PluginEditor*>(mainComponent->getEditor())) {
-        auto* processor = ProjectInfo::getStandalonePluginHolder()->processor.get();
-        auto const* mainEditor = dynamic_cast<PluginEditor*>(processor->getActiveEditor());
-        auto& openedEditors = editor->pd->openedEditors;
-
-        if (editor == mainEditor) {
-            processor->editorBeingDeleted(editor);
-        }
-
-        if (openedEditors.size() == 1) {
-            editor->getTabComponent().closeAllTabs(true, nullptr, [this, editor, &openedEditors] {
-                editor->nvgSurface.detachContext();
-                removeFromDesktop();
-                openedEditors.removeObject(editor);
-            });
-        } else {
-            editor->getTabComponent().closeAllTabs(false, nullptr, [this, editor, &openedEditors] {
-                editor->nvgSurface.detachContext();
-                removeFromDesktop();
-                openedEditors.removeObject(editor);
-            });
-        }
-    }
-}
-
 StandalonePluginHolder* StandalonePluginHolder::getInstance()
 {
     if (PluginHostType::getPluginLoadedAs() == AudioProcessor::wrapperType_Standalone) {

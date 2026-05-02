@@ -497,8 +497,34 @@ public:
         closeAllPatches();
     }
 
-    // implemented in PlugDataApp.cpp
-    void closeAllPatches();
+    void closeAllPatches()
+    {
+        // Show an ask-to-save dialog for each dirty patch. Because the save
+        // dialog uses an asynchronous callback, these closes have to be chained.
+        if (auto* editor = dynamic_cast<PluginEditor*>(mainComponent->getEditor())) {
+            auto* processor = ProjectInfo::getStandalonePluginHolder()->processor.get();
+            auto const* mainEditor = dynamic_cast<PluginEditor*>(processor->getActiveEditor());
+            auto& openedEditors = editor->pd->openedEditors;
+
+            if (editor == mainEditor) {
+                processor->editorBeingDeleted(editor);
+            }
+
+            if (openedEditors.size() == 1) {
+                editor->getTabComponent().closeAllTabs(true, nullptr, [this, editor, &openedEditors] {
+                    editor->nvgSurface.detachContext();
+                    removeFromDesktop();
+                    openedEditors.removeObject(editor);
+                });
+            } else {
+                editor->getTabComponent().closeAllTabs(false, nullptr, [this, editor, &openedEditors] {
+                    editor->nvgSurface.detachContext();
+                    removeFromDesktop();
+                    openedEditors.removeObject(editor);
+                });
+            }
+        }
+    }
 
     bool isMaximised() const
     {
