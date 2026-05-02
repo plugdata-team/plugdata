@@ -1674,7 +1674,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
     }
     case CommandIDs::ToggleRightSidebar: {
         if (rightSidebar)
-            rightSidebar->showSidebar(leftSidebar->isHidden());
+            rightSidebar->showSidebar(rightSidebar->isHidden());
         return true;
     }
     case CommandIDs::Search: {
