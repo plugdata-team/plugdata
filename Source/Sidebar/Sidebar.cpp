@@ -302,6 +302,7 @@ void Sidebar::paint(Graphics& g)
         if (ProjectInfo::isStandalone && !editor->isActiveWindow())
             baseColour = baseColour.brighter(baseColour.getBrightness() / 2.5f);
 
+        g.setColour(baseColour);
         g.fillRect(0, 30, getWidth(), getHeight() - 42);
         g.fillRoundedRectangle(0.0f, 30.0f, getWidth(), getHeight() - 30.0f, Corners::windowCornerRadius);
         
