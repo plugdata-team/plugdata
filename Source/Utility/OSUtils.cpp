@@ -45,67 +45,95 @@ namespace fs = ghc::filesystem;
 
 bool OSUtils::createJunction(std::string from, std::string to)
 {
-
-    typedef struct {
-        DWORD ReparseTag;
-        DWORD ReparseDataLength;
-        WORD Reserved;
-        WORD ReparseTargetLength;
-        WORD ReparseTargetMaximumLength;
-        WORD Reserved1;
-        WCHAR ReparseTarget[1];
-    } REPARSE_MOUNTPOINT_DATA_BUFFER, *PREPARSE_MOUNTPOINT_DATA_BUFFER;
-
-    auto szJunction = (LPCTSTR)from.c_str();
-    auto szPath = (LPCTSTR)to.c_str();
-
-    BYTE buf[sizeof(REPARSE_MOUNTPOINT_DATA_BUFFER) + MAX_PATH * sizeof(WCHAR)];
-    REPARSE_MOUNTPOINT_DATA_BUFFER& ReparseBuffer = (REPARSE_MOUNTPOINT_DATA_BUFFER&)buf;
-    char szTarget[MAX_PATH] = "\\??\\";
-
-    strcat(szTarget, szPath);
-    strcat(szTarget, "\\");
-
-    if (!::CreateDirectory(szJunction, nullptr))
+    auto const linkPath = std::wstring(juce::String::fromUTF8(from.c_str(), static_cast<int>(from.size())).toWideCharPointer());
+    auto const targetPath = std::wstring(juce::String::fromUTF8(to.c_str(), static_cast<int>(to.size())).toWideCharPointer());
+    if (linkPath.empty() || targetPath.empty())
         return false;
 
-    // Obtain SE_RESTORE_NAME privilege (required for opening a directory)
-    HANDLE hToken = nullptr;
-    TOKEN_PRIVILEGES tp;
-    try {
-        if (!::OpenProcessToken(::GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken))
-            throw ::GetLastError();
-        if (!::LookupPrivilegeValue(nullptr, SE_RESTORE_NAME, &tp.Privileges[0].Luid))
-            throw ::GetLastError();
-        tp.PrivilegeCount = 1;
-        tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
-        if (!::AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(TOKEN_PRIVILEGES), nullptr, nullptr))
+    auto const requiredLength = GetFullPathNameW(targetPath.c_str(), 0, nullptr, nullptr);
+    if (requiredLength == 0)
+        return false;
+
+    std::wstring absTarget(requiredLength, L'\0');
+    auto const length = GetFullPathNameW(targetPath.c_str(), requiredLength, absTarget.data(), nullptr);
+    if (length == 0 || length >= requiredLength)
+        return false;
+
+    absTarget.resize(length);
+
+    auto substName = std::wstring();
+    if (absTarget.compare(0, 8, L"\\\\?\\UNC\\") == 0) {
+        substName = L"\\??\\UNC\\" + absTarget.substr(8);
+    } else if (absTarget.compare(0, 4, L"\\\\?\\") == 0) {
+        substName = L"\\??\\" + absTarget.substr(4);
+    } else if (absTarget.compare(0, 2, L"\\\\") == 0) {
+        substName = L"\\??\\UNC\\" + absTarget.substr(2);
+    } else {
+        substName = L"\\??\\" + absTarget;
+    }
+
+    auto const printName = absTarget;
+
+    auto createdDirectory = false;
+    if (!CreateDirectoryW(linkPath.c_str(), nullptr)) {
+        if (GetLastError() != ERROR_ALREADY_EXISTS)
             return false;
-    } catch (DWORD) {
-    } // Ignore errors
-    if (hToken)
-        ::CloseHandle(hToken);
+    } else {
+        createdDirectory = true;
+    }
 
-    HANDLE hDir = ::CreateFile(szJunction, GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS, nullptr);
-    if (hDir == INVALID_HANDLE_VALUE)
-        return false;
-
-    memset(buf, 0, sizeof(buf));
-    ReparseBuffer.ReparseTag = IO_REPARSE_TAG_MOUNT_POINT;
-    int len = ::MultiByteToWideChar(CP_ACP, 0, szTarget, -1, ReparseBuffer.ReparseTarget, MAX_PATH);
-    ReparseBuffer.ReparseTargetMaximumLength = (len--) * sizeof(WCHAR);
-    ReparseBuffer.ReparseTargetLength = len * sizeof(WCHAR);
-    ReparseBuffer.ReparseDataLength = ReparseBuffer.ReparseTargetLength + 12;
-
-    DWORD dwRet;
-    if (!::DeviceIoControl(hDir, FSCTL_SET_REPARSE_POINT, &ReparseBuffer, ReparseBuffer.ReparseDataLength + REPARSE_MOUNTPOINT_HEADER_SIZE, nullptr, 0, &dwRet, nullptr)) {
-        DWORD dr = ::GetLastError();
-        ::CloseHandle(hDir);
-        ::RemoveDirectory(szJunction);
+    auto* hDir = CreateFileW(linkPath.c_str(), GENERIC_WRITE, 0, nullptr,
+        OPEN_EXISTING, FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS, nullptr);
+    if (hDir == INVALID_HANDLE_VALUE) {
+        if (createdDirectory)
+            RemoveDirectoryW(linkPath.c_str());
         return false;
     }
 
-    ::CloseHandle(hDir);
+    auto const substBytes = substName.size() * sizeof(wchar_t);
+    auto const printBytes = printName.size() * sizeof(wchar_t);
+    auto const pathBufferBytes = substBytes + sizeof(wchar_t) + printBytes + sizeof(wchar_t);
+    auto const reparseDataBytes = 8 + pathBufferBytes;
+
+    if (substBytes > 0xffff || printBytes > 0xffff || pathBufferBytes > 0xffff || reparseDataBytes > 0xffff) {
+        CloseHandle(hDir);
+        if (createdDirectory)
+            RemoveDirectoryW(linkPath.c_str());
+        return false;
+    }
+
+    auto const reparseDataLength = static_cast<USHORT>(reparseDataBytes);
+    auto const totalBytes = static_cast<DWORD>(REPARSE_MOUNTPOINT_HEADER_SIZE + reparseDataLength);
+
+    std::vector<BYTE> buf(totalBytes, 0);
+    auto* const buffer = buf.data();
+
+    *reinterpret_cast<ULONG*>(buffer + 0) = IO_REPARSE_TAG_MOUNT_POINT;
+    *reinterpret_cast<USHORT*>(buffer + 4) = reparseDataLength;
+    *reinterpret_cast<USHORT*>(buffer + 6) = 0;
+    *reinterpret_cast<USHORT*>(buffer + 8) = 0;
+    *reinterpret_cast<USHORT*>(buffer + 10) = static_cast<USHORT>(substBytes);
+    *reinterpret_cast<USHORT*>(buffer + 12) = static_cast<USHORT>(substBytes + sizeof(wchar_t));
+    *reinterpret_cast<USHORT*>(buffer + 14) = static_cast<USHORT>(printBytes);
+
+    auto* const pathBuffer = reinterpret_cast<wchar_t*>(buffer + 16);
+    memcpy(pathBuffer, substName.data(), substBytes);
+    pathBuffer[substName.size()] = L'\0';
+    memcpy(pathBuffer + substName.size() + 1, printName.data(), printBytes);
+    pathBuffer[substName.size() + 1 + printName.size()] = L'\0';
+
+    DWORD dwRet = 0;
+    BOOL ok = DeviceIoControl(hDir, FSCTL_SET_REPARSE_POINT,
+        buf.data(), totalBytes,
+        nullptr, 0, &dwRet, nullptr);
+    CloseHandle(hDir);
+
+    if (!ok) {
+        if (createdDirectory)
+            RemoveDirectoryW(linkPath.c_str());
+        return false;
+    }
+
     return true;
 }
 
