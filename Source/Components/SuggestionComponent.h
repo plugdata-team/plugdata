@@ -1635,7 +1635,7 @@ private:
     std::unique_ptr<BouncingViewport> detailViewport;
     OwnedArray<Row> rows;
     ResizerLookAndFeel resizerLookAndFeel;
-    ResizableCornerComponent resizer;
+    MouseRateReducedComponent<ResizableCornerComponent> resizer;
     ComponentBoundsConstrainer constrainer;
 
     LayoutMode layoutMode = LayoutMode::ListWithDetail;
