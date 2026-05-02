@@ -252,20 +252,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: Ubuntu-22.04-x64
-            os: ubuntu:22.04
-            pacman: apt
           - name: Ubuntu-24.04-x64
             os: ubuntu:24.04
+            pacman: apt
+          - name: Ubuntu-26.04-x64
+            os: ubuntu:26.04
             pacman: apt
           - name: Debian-x64
             os: debian
             pacman: apt
-          - name: Fedora-41-x64
-            os: fedora:41
+          - name: Fedora-43-x64
+            os: fedora:43
             pacman: dnf
-          - name: Fedora-42-x64
-            os: fedora:42
+          - name: Fedora-44-x64
+            os: fedora:44
             pacman: dnf
           - name: OpenSUSE-Tumbleweed-x64
             os: opensuse/tumbleweed
@@ -350,20 +350,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: Ubuntu-22.04-aarch64
-            os: ubuntu:22.04
-            pacman: apt
           - name: Ubuntu-24.04-aarch64
             os: ubuntu:24.04
+            pacman: apt
+          - name: Ubuntu-26.04-aarch64
+            os: ubuntu:26.04
             pacman: apt
           - name: Debian-aarch64
             os: debian
             pacman: apt
-          - name: Fedora-41-aarch64
-            os: fedora:41
+          - name: Fedora-43-aarch64
+            os: fedora:43
             pacman: dnf
-          - name: Fedora-42-aarch64
-            os: fedora:42
+          - name: Fedora-44-aarch64
+            os: fedora:44
             pacman: dnf
           - name: OpenSUSE-Tumbleweed-aarch64
             os: opensuse/tumbleweed
