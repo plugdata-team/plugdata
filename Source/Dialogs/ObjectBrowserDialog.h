@@ -403,7 +403,7 @@ public:
         }
 
         {
-            g.setFont(Fonts::getMonospaceFont().withHeight(18.f));
+            g.setFont(Fonts::getSemiBoldFont().withHeight(18.f));
             g.setColour(colour);
             g.drawText(objectName, layout.titleBounds.translated(2, 0), Justification::centredLeft);
         }

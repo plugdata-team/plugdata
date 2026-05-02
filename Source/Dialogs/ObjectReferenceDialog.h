@@ -197,7 +197,7 @@ private:
 
         void paint(Graphics& g) override
         {
-            g.setFont(Fonts::getMonospaceFont().withHeight(38.0f));
+            g.setFont(Fonts::getSemiBoldFont().withHeight(38.0f));
             g.setColour(PlugDataColours::panelTextColour);
 
             int w = static_cast<int>(Fonts::getStringWidthInt(name, g.getCurrentFont()));
@@ -501,7 +501,7 @@ private:
                     String text = i < row.size() ? row[i] : "";
 
                     Font f = columns[i].mono
-                        ? Fonts::getMonospaceFont().withHeight(12.5f)
+                        ? Fonts::getMonospaceFont().withHeight(13.5f)
                         : Fonts::getDefaultFont().withHeight(13.5f);
 
                     AttributedString s;
