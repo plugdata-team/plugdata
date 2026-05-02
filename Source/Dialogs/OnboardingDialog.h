@@ -1131,9 +1131,11 @@ public:
 
         styleButton(skipButton, "Skip & use defaults");
         skipButton.onClick = [this] { close(); };
+        addAndMakeVisible(skipButton);
 
         styleButton(backButton, "Back");
         backButton.onClick = [this] { goTo(currentPage - 1); };
+        addAndMakeVisible(backButton);
 
         styleButton(nextButton, "Next");
         nextButton.onClick = [this] {
@@ -1149,6 +1151,7 @@ public:
                 goTo(currentPage + 1);
             }
         };
+        addAndMakeVisible(nextButton);
 
         goTo(0);
     }
@@ -1200,14 +1203,21 @@ public:
     }
 
 private:
-    void styleButton(TextButton& b, String const& text)
+
+    void lookAndFeelChanged() override
+    {
+        styleButton(skipButton);
+        styleButton(backButton);
+        styleButton(nextButton);
+    }
+
+    void styleButton(TextButton& b, String const& text = "")
     {
         auto const backgroundColour = PlugDataColours::panelBackgroundColour;
         b.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
         b.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.10f));
         b.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-        b.setButtonText(text);
-        addAndMakeVisible(b);
+        if(text.isNotEmpty()) b.setButtonText(text);
     }
 
     void goTo(int newPage)
