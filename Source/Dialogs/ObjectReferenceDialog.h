@@ -655,12 +655,12 @@ private:
             for (auto const& il : info.inlets) {
                 if (il.repeating)
                     unknownLayout = true;
-                inletsSig.add(il.tooltip.contains("(signal)"));
+                inletsSig.add(il.tooltip.upToFirstOccurrenceOf(":", false, false).contains("signal"));
             }
             for (auto const& ol : info.outlets) {
                 if (ol.repeating)
                     unknownLayout = true;
-                outletsSig.add(ol.tooltip.contains("(signal)"));
+                outletsSig.add(ol.tooltip.upToFirstOccurrenceOf(":", false, false).contains("signal"));
             }
             objectPreview.setData(name, inletsSig, outletsSig, unknownLayout);
 

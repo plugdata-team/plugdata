@@ -258,6 +258,7 @@ public:
     HeapArray<std::pair<SmallString, SmallString>> objects;
     std::function<void(String const&)> changeCallback;
 };
+
 class ObjectViewerDragArea final : public Component {
 public:
     ObjectViewerDragArea(PluginEditor* editor, std::function<void(bool shouldFade)> const& dismissMenu)
@@ -548,12 +549,12 @@ public:
         for (auto& inlet : objectInfo.inlets) {
             if (inlet.repeating)
                 unknownInletLayout = true;
-            inlets.add(inlet.tooltip.contains("(signal)"));
+            inlets.add(inlet.tooltip.upToFirstOccurrenceOf(":", false, false).contains("signal"));
         }
         for (auto& outlet : objectInfo.outlets) {
             if (outlet.repeating)
                 unknownOutletLayout = true;
-            outlets.add(outlet.tooltip.contains("(signal)"));
+            outlets.add(outlet.tooltip.upToFirstOccurrenceOf(":", false, false).contains("signal"));
         }
 
         objectName = name;
