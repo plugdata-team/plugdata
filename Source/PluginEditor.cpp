@@ -383,10 +383,12 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     pd->lnf->setMainComponent(this);
 #endif
 
-    if(!pd->findPatchInPluginMode(editorIndex)) {
-        if (!settingsFile->getProperty<bool>("onboarding_completed") || SystemStats::getEnvironmentVariable("PLUGDATA_ONBOARDING", {}).isNotEmpty())
-            Dialogs::showOnboardingDialog(&openedDialog, this);
-    }
+    MessageManager::callAsync([_this = SafePointer(this)](){
+      if(_this && !_this->pd->findPatchInPluginMode(_this->editorIndex)) {
+          if (!SettingsFile::getInstance()->getProperty<bool>("onboarding_completed") || SystemStats::getEnvironmentVariable("PLUGDATA_ONBOARDING", {}).isNotEmpty())
+              Dialogs::showOnboardingDialog(&_this->openedDialog, _this.get());
+      }
+    });
 
     addModifierKeyListener(&pd->keyHandler);
     startTimerHz(90);
