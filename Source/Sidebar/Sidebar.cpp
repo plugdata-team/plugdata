@@ -302,7 +302,9 @@ void Sidebar::paint(Graphics& g)
         if (ProjectInfo::isStandalone && !editor->isActiveWindow())
             baseColour = baseColour.brighter(baseColour.getBrightness() / 2.5f);
 
-        g.fillAll(baseColour);
+        g.fillRect(0, 30, getWidth(), getHeight() - 42);
+        g.fillRoundedRectangle(0.0f, 30.0f, getWidth(), getHeight() - 30.0f, Corners::windowCornerRadius);
+        
         g.setColour(PlugDataColours::toolbarOutlineColour);
         if (side == Side::Right)
             g.drawLine(0.5f, 30.5f, 0.5f, static_cast<float>(getHeight()));
@@ -315,7 +317,7 @@ void Sidebar::paint(Graphics& g)
         return;
 
     g.setColour(PlugDataColours::sidebarBackgroundColour);
-    g.fillRect(0, 30, getWidth(), getHeight() - 12);
+    g.fillRect(0, 30, getWidth(), getHeight() - 42);
     g.fillRoundedRectangle(0.0f, 30.0f, getWidth(), getHeight() - 30.0f, Corners::windowCornerRadius);
 
     String panelName = hasCurrentPanel && currentPanel < panelDisplayNames.size()
