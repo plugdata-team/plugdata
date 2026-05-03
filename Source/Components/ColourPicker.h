@@ -530,6 +530,7 @@ private:
         void paint(Graphics& g) override
         {
             // draw the image
+            g.setOpacity(1.0f);
             g.drawImageAt(colourWheelHSV, margin, margin);
 
             g.setColour(PlugDataColours::outlineColour);
