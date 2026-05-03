@@ -29,9 +29,14 @@ struct SuggestionEntry {
     String displayName;
     String description;
     IconType icon = IconType::None;
-    bool clickable = true;
+    String displayOverride;
     String detailLookupName;
     String completionOverride;
+
+    String const& getDisplayText() const
+    {
+        return displayOverride.isNotEmpty() ? displayOverride : displayName;
+    }
 
     String const& getCompletionText() const
     {
@@ -43,8 +48,10 @@ struct SuggestionQueryResult {
     HeapArray<SuggestionEntry> entries;
     String topAutocompleteText;
     bool autocompleteSupported : 1 = false;
+    bool autocompleteRequiresNavigation : 1 = false;
     bool detailLookupSupported : 1 = false;
     bool detailPanelFillsPopup : 1 = false;
+    bool shrinkHeightToFitEntries : 1 = false;
     String detailLookupTarget;
 };
 
@@ -201,7 +208,7 @@ class SuggestionComponent final
         {
             current = entry;
             setButtonText(entry.displayName);
-            setInterceptsMouseClicks(entry.clickable, false);
+            setInterceptsMouseClicks(true, false);
             repaint();
         }
 
@@ -235,12 +242,7 @@ class SuggestionComponent final
             constexpr auto rightIndent = 14;
             auto textWidth = getWidth() - leftIndent - rightIndent;
 
-            // Send/receive rows are stored as e.g. "send foo" so we can reuse
-            // the displayName as completion text. The visible label drops the prefix.
-            auto displayed = current.displayName;
-            if (displayed.startsWith("s ") || displayed.startsWith("send ")
-                || displayed.startsWith("r ") || displayed.startsWith("receive "))
-                displayed = displayed.fromFirstOccurrenceOf(" ", false, false);
+            auto const& displayed = current.getDisplayText();
 
             if (textWidth > 0) {
                 Fonts::drawStyledText(g, displayed, leftIndent, yIndent, textWidth,
@@ -615,7 +617,11 @@ public:
         lastQueriedText = "<unset>";
 
         currentResultSupportsAutocomplete = false;
+        currentResultAutocompleteRequiresNavigation = false;
         currentResultSupportsDetail = false;
+        autocompleteActivatedByNavigation = false;
+        currentResultShouldShrinkHeightToFitEntries = false;
+        autocompleteNavigationBaseText.clear();
     }
 
     void updateBounds()
@@ -631,10 +637,7 @@ public:
 
         setTopLeftPosition(objectPos.translated(-getMargin(), 5 - getMargin()));
 
-        if (cnv->viewport) {
-            setVisible(cnv->viewport->getBounds().contains(
-                cnv->viewport->getLocalArea(currentObject, currentObject->getLocalBounds())));
-        }
+        updatePopupVisibility();
     }
 
     String getText() const
@@ -662,6 +665,8 @@ public:
         }
 
         lastQueriedText = currentText;
+        autocompleteActivatedByNavigation = false;
+        autocompleteNavigationBaseText = currentText;
         applyQueryResult(queryActive(currentText));
     }
 
@@ -736,7 +741,6 @@ private:
             e.detailLookupName = name;
             e.description = library->getObjectInfo(name).description;
             e.icon = iconForName(name);
-            e.clickable = true;
             result.entries.add(std::move(e));
 
             if (result.entries.size() >= numRowsAllocated)
@@ -771,17 +775,18 @@ private:
     {
         SuggestionQueryResult result;
         result.autocompleteSupported = true;
+        result.autocompleteRequiresNavigation = true;
+        result.shrinkHeightToFitEntries = true;
 
-        auto methods = findNearbyMethods(text);
-        for (auto const& [objectName, methodName, description] : methods) {
+        auto methods = findNearbyMessages(text);
+        for (auto const& [objectName, messageName, description] : methods) {
             SuggestionEntry e;
-            e.displayName = methodName;
+            e.displayName = messageName;
             e.description = "(" + objectName + ") " + description;
             e.icon = SuggestionEntry::IconType::None;
-            e.clickable = false;
 
-            auto const nameOnly = methodName.upToFirstOccurrenceOf(" ", false, false);
-            if (nameOnly != methodName)
+            auto const nameOnly = messageName.upToFirstOccurrenceOf(" ", false, false);
+            if (nameOnly != messageName)
                 e.completionOverride = nameOnly;
 
             result.entries.add(std::move(e));
@@ -810,6 +815,8 @@ private:
     {
         SuggestionQueryResult result;
         result.autocompleteSupported = true;
+        result.autocompleteRequiresNavigation = true;
+        result.shrinkHeightToFitEntries = true;
 
         auto const prefix = text.upToFirstOccurrenceOf(" ", false, false);
         auto const searchSymbol = text.fromFirstOccurrenceOf(" ", false, false).upToFirstOccurrenceOf(" ", false, false);
@@ -821,9 +828,9 @@ private:
             SuggestionEntry e;
             auto const symbol = isSend ? sr.receiveSymbol : sr.sendSymbol;
             e.displayName = prefix + " " + symbol;
+            e.displayOverride = symbol;
             e.description = sr.name;
             e.icon = SuggestionEntry::IconType::None;
-            e.clickable = false;
             result.entries.add(std::move(e));
 
             if (result.entries.size() >= numRowsAllocated)
@@ -844,8 +851,11 @@ private:
     // Apply a query result to the UI
     void applyQueryResult(SuggestionQueryResult const& result)
     {
-        currentResultSupportsAutocomplete = result.autocompleteSupported;
+        currentResultAutocompleteRequiresNavigation = result.autocompleteRequiresNavigation;
+        currentResultSupportsAutocomplete = result.autocompleteSupported
+            && (!result.autocompleteRequiresNavigation || autocompleteActivatedByNavigation);
         currentResultSupportsDetail = result.detailLookupSupported;
+        currentResultShouldShrinkHeightToFitEntries = result.shrinkHeightToFitEntries;
 
         // Argument mode: detail panel fills the popup
         if (result.detailPanelFillsPopup) {
@@ -867,8 +877,7 @@ private:
             applyLayoutMode(LayoutMode::DetailOnly);
 
             // Only show the popup if we actually found something useful.
-            bool const editorHasText = openedEditor && openedEditor->getText().isNotEmpty();
-            setVisible(editorHasText && detailPanel->hasContent());
+            updatePopupVisibility();
             currentSelection = -1;
             return;
         }
@@ -886,18 +895,16 @@ private:
         }
 
         bool const editorHasText = openedEditor && openedEditor->getText().isNotEmpty();
-        setVisible(editorHasText && numOptions > 0);
-
         if (autoCompleteComponent) {
-            autoCompleteComponent->setEnabled(result.autocompleteSupported);
-            if (result.autocompleteSupported && result.topAutocompleteText.isNotEmpty()) {
+            autoCompleteComponent->setEnabled(currentResultSupportsAutocomplete && editorHasText);
+            if (currentResultSupportsAutocomplete && editorHasText && result.topAutocompleteText.isNotEmpty()) {
                 autoCompleteComponent->setSuggestion(result.topAutocompleteText);
             } else {
                 autoCompleteComponent->clear();
             }
         }
 
-        if (result.autocompleteSupported && result.topAutocompleteText.isNotEmpty()) {
+        if (currentResultSupportsAutocomplete && editorHasText && result.topAutocompleteText.isNotEmpty() && numOptions > 0) {
             currentSelection = 0;
             rows[0]->setToggleState(true, dontSendNotification);
         } else {
@@ -905,7 +912,36 @@ private:
         }
 
         applyLayoutMode(currentResultSupportsDetail ? LayoutMode::ListWithDetail : LayoutMode::ListOnly);
+        shrinkHeightToFitEntriesIfNeeded();
         updateDetailPanel();
+        updatePopupVisibility();
+    }
+
+    void shrinkHeightToFitEntriesIfNeeded()
+    {
+        if (!currentResultShouldShrinkHeightToFitEntries || layoutMode == LayoutMode::DetailOnly || numOptions <= 0)
+            return;
+
+        auto const margins = getMargin() * 2;
+        int const numVisibleRows = std::min(numOptions, numRowsAllocated);
+        int const targetHeight = numVisibleRows * rowHeight + 12 + margins;
+        if (targetHeight < getHeight())
+            setSize(getWidth(), targetHeight);
+    }
+
+    void updatePopupVisibility()
+    {
+        bool const editorHasText = openedEditor && openedEditor->getText().isNotEmpty();
+        bool const hasContent = layoutMode == LayoutMode::DetailOnly ? detailPanel->hasContent() : numOptions > 0;
+
+        bool isInViewport = true;
+        if (currentObject && currentObject->cnv->viewport) {
+            auto* viewport = currentObject->cnv->viewport.get();
+            isInViewport = viewport->getBounds().contains(
+                viewport->getLocalArea(currentObject, currentObject->getLocalBounds()));
+        }
+
+        setVisible(editorHasText && hasContent && isInViewport);
     }
 
     // Layout switching
@@ -916,7 +952,7 @@ private:
 
         if (requestedMode == LayoutMode::DetailOnly || requestedMode == LayoutMode::ListOnly) {
             layoutMode = requestedMode;
-            setSize(340 + margins, jmax(getHeight(), 200 + margins));
+            setSize(340 + margins, 160 + margins);
         } else {
             int const targetWidth = wasSmallPanel ? savedListSize.x : getWidth();
             int const targetHeight = wasSmallPanel ? savedListSize.y : getHeight();
@@ -975,7 +1011,39 @@ private:
 
         auto const& fullText = row->getEntry().getCompletionText();
 
-        if (inCompletedState && currentResultSupportsAutocomplete && fullText.isNotEmpty()) {
+        if (currentResultAutocompleteRequiresNavigation && fullText.isNotEmpty()) {
+            autocompleteActivatedByNavigation = true;
+            currentResultSupportsAutocomplete = true;
+            lastQueriedText = fullText;
+            openedEditor->setText(fullText, sendNotification);
+            openedEditor->moveCaretToEnd();
+            if (autoCompleteComponent) {
+                autoCompleteComponent->setEnabled(true);
+                autoCompleteComponent->clear();
+            }
+            currentObject->updateBounds();
+        } else if (!currentResultAutocompleteRequiresNavigation && currentResultSupportsAutocomplete
+            && autoCompleteComponent && fullText.isNotEmpty()) {
+            auto const& baseText = autocompleteNavigationBaseText;
+            if (baseText.isNotEmpty() && fullText.startsWith(baseText)) {
+                if (openedEditor->getText() != baseText) {
+                    lastQueriedText = baseText;
+                    openedEditor->setText(baseText, sendNotification);
+                    openedEditor->moveCaretToEnd();
+                }
+
+                autoCompleteComponent->setEnabled(true);
+                autoCompleteComponent->setSuggestion(fullText);
+            } else {
+                lastQueriedText = fullText;
+                openedEditor->setText(fullText, sendNotification);
+                openedEditor->moveCaretToEnd();
+                autoCompleteComponent->setEnabled(true);
+                autoCompleteComponent->clear();
+            }
+
+            currentObject->updateBounds();
+        } else if (inCompletedState && currentResultSupportsAutocomplete && fullText.isNotEmpty()) {
             lastQueriedText = fullText;
             openedEditor->setText(fullText, sendNotification);
             openedEditor->moveCaretToEnd();
@@ -1247,10 +1315,7 @@ private:
 
     void mouseUp(MouseEvent const& e) override
     {
-        // Persist the popup size when the user releases the resize corner.
-        // Detail-only mode is transient and uses its own sizing; we don't
-        // overwrite the user's preferred list-mode size from there.
-        if (e.eventComponent == &resizer && layoutMode != LayoutMode::DetailOnly)
+        if (e.eventComponent == &resizer && layoutMode != LayoutMode::DetailOnly && currentResultSupportsDetail)
             saveCurrentSize();
     }
 
@@ -1329,69 +1394,126 @@ private:
             rows[0]->setToggleState(true, dontSendNotification);
     }
 
-    SmallArray<std::tuple<String, String, String>> findNearbyMethods(String const& toSearch) const
+    SmallArray<std::tuple<String, String, String>> findNearbyMessages(String const& toSearch) const
     {
-        SmallArray<std::tuple<String, HeapArray<pd::Library::ObjectReferenceTable::ReferenceItem>, int>> objects;
+        struct NearbyObject {
+            Object* object = nullptr;
+            String objectName;
+            int distance = 0;
+        };
+
+        struct MessageCandidate {
+            String objectName;
+            String messageName;
+            String description;
+            int distance = 0;
+            int relevance = 0;
+            bool directAutocomplete = false;
+        };
+
+        SmallArray<NearbyObject> objects;
         auto* cnv = currentObject->cnv;
+
+        auto isInsideViewport = [cnv](Object* object) {
+            if (!cnv->viewport)
+                return true;
+
+            auto* viewport = cnv->viewport.get();
+            return viewport->getBounds().intersects(
+                viewport->getLocalArea(object, object->getLocalBounds()));
+        };
+
+        UnorderedSet<Object*> connectedObjects;
+        for (auto* connection : currentObject->getConnections()) {
+            if (connection && connection->outobj == currentObject && connection->inobj)
+                connectedObjects.insert(connection->inobj.get());
+        }
+
         for (auto* obj : cnv->objects) {
             int distance = currentObject->getPosition().getDistanceFrom(obj->getPosition());
-            if (!obj->getPointer() || obj == currentObject || distance > 300)
+            if (!obj->getPointer() || obj == currentObject || distance > 200 || !isInsideViewport(obj))
+                continue;
+
+            if (!connectedObjects.empty() && !connectedObjects.contains(obj))
                 continue;
 
             auto objectName = obj->getType();
             auto alreadyExists = std::ranges::find_if(objects, [objectName](auto const& toCompare) {
-                return std::get<0>(toCompare) == objectName;
+                return toCompare.objectName == objectName;
             }) != objects.end();
 
             if (alreadyExists)
                 continue;
 
-            auto const& info = cnv->pd->objectLibrary->getObjectInfo(objectName);
-            objects.add({ objectName, info.methods, distance });
+            objects.add({ obj, objectName, distance });
         }
 
         objects.sort([](auto const& a, auto const& b) {
-            return std::get<2>(a) > std::get<2>(b);
+            return a.distance < b.distance;
         });
 
-        SmallArray<std::tuple<String, String, String>> nearbyMethods;
+        SmallArray<MessageCandidate> candidates;
 
-        for (auto& [objectName, methods, distance] : objects) {
-            for (auto method : methods) {
-                if (objectName.contains(toSearch)) {
-                    nearbyMethods.add({ objectName, method.type, method.description });
+        auto addCandidate = [&candidates, &toSearch](String const& objectName,
+                                pd::Library::ObjectReferenceTable::ReferenceItem const& item,
+                                String const& descriptionPrefix, int const distance) {
+            int relevance = -1;
+            if (objectName.contains(toSearch))
+                relevance = 0;
+            else if (item.type.upToFirstOccurrenceOf(" ", false, false).contains(toSearch))
+                relevance = 1;
+            else if (item.description.contains(toSearch))
+                relevance = 2;
+
+            if (relevance < 0)
+                return;
+
+            auto const completionText = item.type.upToFirstOccurrenceOf(" ", false, false);
+            bool const directAutocomplete = toSearch.isNotEmpty() && completionText.startsWith(toSearch);
+            candidates.add({ objectName, item.type, descriptionPrefix + item.description, distance, relevance, directAutocomplete });
+        };
+
+        for (auto& object : objects) {
+            auto const& info = cnv->pd->objectLibrary->getObjectInfo(object.objectName);
+
+            for (auto const& method : info.methods)
+                addCandidate(object.objectName, method, "", object.distance);
+
+            for (int i = 0; i < info.inlets.size(); i++) {
+                auto const descriptionPrefix = "inlet " + String(i + 1) + ": ";
+                for (auto const& message : info.inlets[i].messages) {
+                    if(message.type.contains("signal")) continue;
+
+                    addCandidate(object.objectName, message, descriptionPrefix, object.distance);
                 }
             }
         }
 
-        for (auto& [objectName, methods, distance] : objects) {
-            for (auto method : methods) {
-                if (method.type.contains(toSearch)) {
-                    nearbyMethods.add({ objectName, method.type, method.description });
-                }
-            }
-        }
+        candidates.sort([](auto const& a, auto const& b) {
+            if (a.distance != b.distance)
+                return a.distance < b.distance;
+            if (a.directAutocomplete != b.directAutocomplete)
+                return a.directAutocomplete;
+            return a.relevance < b.relevance;
+        });
 
-        for (auto& [objectName, methods, distance] : objects) {
-            for (auto method : methods) {
-                if (method.description.contains(toSearch)) {
-                    nearbyMethods.add({ objectName, method.type, method.description });
-                }
-            }
-        }
-
-        for (int i = nearbyMethods.size() - 1; i >= 0; i--) {
-            auto& [objectName1, method1, distance1] = nearbyMethods[i];
-            for (int j = nearbyMethods.size() - 1; j >= 0; j--) {
-                auto& [objectName2, method2, distance2] = nearbyMethods[j];
-                if (objectName1 == objectName2 && method1 == method2 && i != j) {
-                    nearbyMethods.remove_at(i);
+        for (int i = candidates.size() - 1; i >= 0; i--) {
+            for (int j = candidates.size() - 1; j >= 0; j--) {
+                if (i != j
+                    && candidates[i].objectName == candidates[j].objectName
+                    && candidates[i].messageName == candidates[j].messageName
+                    && candidates[i].description == candidates[j].description) {
+                    candidates.remove_at(i);
                     break;
                 }
             }
         }
 
-        return nearbyMethods;
+        SmallArray<std::tuple<String, String, String>> nearbyMessages;
+        for (auto const& candidate : candidates)
+            nearbyMessages.add({ candidate.objectName, candidate.messageName, candidate.description });
+
+        return nearbyMessages;
     }
 
     struct SendReceiveEntry {
@@ -1644,9 +1766,13 @@ private:
     int numOptions = 0;
     int currentSelection = -1;
     bool currentResultSupportsAutocomplete = false;
+    bool currentResultAutocompleteRequiresNavigation = false;
     bool currentResultSupportsDetail = false;
+    bool autocompleteActivatedByNavigation = false;
+    bool currentResultShouldShrinkHeightToFitEntries = false;
 
     String lastQueriedText;
+    String autocompleteNavigationBaseText;
     SafePointer<TextEditor> openedEditor = nullptr;
     SafePointer<Object> currentObject = nullptr;
     SmallArray<SendReceiveEntry> sendReceiveDatabase;
