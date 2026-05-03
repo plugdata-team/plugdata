@@ -820,7 +820,7 @@ public:
 
         auto const clearBounds = bounds.removeFromRight(30).removeFromBottom(inputHeight);
         clearButton.setBounds(clearBounds);
-        commandInput.setBounds(bounds.withTrimmedLeft(consoleTargetLength + 4));
+        commandInput.setBounds(bounds.withTrimmedLeft(consoleTargetLength + 4).removeFromBottom(inputHeight));
     }
 
     void setConsoleTargetName(String const& target)
