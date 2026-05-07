@@ -14,6 +14,7 @@
 #include <utility>
 
 #include "Utility/Config.h"
+#include "Utility/SettingsFile.h"
 #include "Constants.h"
 
 struct LuaTokeniserFunctions {
@@ -1317,6 +1318,7 @@ public:
     std::pair<int, int> getCurrentSearchSelection() { return document.getCurrentSearchSelection(); }
 
     float getScale() { return viewScaleFactor; }
+    std::function<void(float)> onScaleChanged = [](float) { };
 
     void setSearchText(String const& searchText);
     void searchNext();
@@ -2435,6 +2437,7 @@ bool PlugDataTextEditor::scaleView(float const scaleFactor, float const vertical
         updateViewTransform();
         document.setMaximumLineWidth(getWidth(), viewScaleFactor);
         updateSelections();
+        onScaleChanged(viewScaleFactor);
         return true;
     }
 
@@ -3076,6 +3079,13 @@ struct TextEditorDialog final : public Component
         searchInput.onReturnKey = [this] {
             editor.searchNext();
         };
+
+        editor.onScaleChanged = [](float const scale) {
+            SettingsFile::getInstance()->setProperty("text_editor_zoom", scale * 100.0f);
+        };
+
+        auto const savedScale = std::clamp(SettingsFile::getInstance()->getProperty<float>("text_editor_zoom") / 100.0f, 0.75f, 1.5f);
+        editor.scaleView(savedScale, 0.0f, true);
 
         editor.grabKeyboardFocus();
         editor.setEnableSyntaxHighlighting(enableSyntaxHighlighting);
