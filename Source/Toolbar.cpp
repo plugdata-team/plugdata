@@ -1475,6 +1475,7 @@ public:
         toggle.setToggleState(pd_getdspstate(), dontSendNotification);
         toggle.onClick = [this] { toggle.getToggleState() ? pd->startDSP() : pd->releaseDSP(); };
 
+        chevron.setTooltip("DSP options");
         chevron.setButtonText(Icons::ThinDown);
         chevron.onClick = [this] {
             showCallout();
