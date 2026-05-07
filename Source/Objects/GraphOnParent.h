@@ -6,11 +6,14 @@
 #pragma once
 
 // Also used by garray
-class GraphTicks {
+class GraphTicks final : public ObjectLabel {
     int xTicksPerBig = 0, yTicksPerBig = 0;
     float xTickPoint = 0, yTickPoint = 0;
     float xTickInc = 0, yTickInc = 0;
+    float xLabelY = 0, yLabelX = 0;
     float gl_x1 = 0.f, gl_x2 = 1.f, gl_y1 = 100.f, gl_y2 = 0.f;
+    Rectangle<int> graphBounds;
+    StringArray xLabels, yLabels;
 
 public:
     void update(t_glist const* glist)
@@ -25,13 +28,85 @@ public:
         gl_y1 = glist->gl_y1;
         gl_x2 = glist->gl_x2;
         gl_y2 = glist->gl_y2;
+
+        xLabelY = glist->gl_xlabely;
+        yLabelX = glist->gl_ylabelx;
+        xLabels.clear();
+        yLabels.clear();
+
+        for (int i = 0; i < glist->gl_nxlabels; i++)
+            xLabels.add(String::fromUTF8(glist->gl_xlabel[i]->s_name));
+
+        for (int i = 0; i < glist->gl_nylabels; i++)
+            yLabels.add(String::fromUTF8(glist->gl_ylabel[i]->s_name));
+    }
+
+    int getSizeOfTicksAndLabels() const
+    {
+        int size = (xTicksPerBig || yTicksPerBig) ? 4 : 0;
+
+        if (xLabels.size() > 0)
+            size = std::max(size, 14);
+
+        if (yLabels.size() > 0) {
+            auto const font = Font(FontOptions(10.0f));
+            int labelWidth = 0;
+            for (auto const& label : yLabels)
+                labelWidth = std::max(labelWidth, Fonts::getStringWidthInt(label, font));
+
+            size = std::max(size, labelWidth + 4);
+        }
+
+        return size;
+    }
+
+    void updateLabel(Object* object)
+    {
+        graphBounds = object->getBounds().reduced(Object::margin);
+        setBounds(graphBounds.expanded(getSizeOfTicksAndLabels()));
+        setVisible(xLabels.size() > 0 || yLabels.size() > 0);
+        setLabelColour(PlugDataColours::canvasTextColour);
+    }
+
+    void renderLabel(NVGcontext* nvg, float const scale) override
+    {
+        ignoreUnused(scale);
+
+        if (!isVisible())
+            return;
+
+        auto const localGraphBounds = graphBounds.translated(-getX(), -getY());
+        auto const y1 = static_cast<float>(localGraphBounds.getY());
+        auto const y2 = static_cast<float>(localGraphBounds.getBottom());
+        auto const x1 = static_cast<float>(localGraphBounds.getX());
+        auto const x2 = static_cast<float>(localGraphBounds.getRight());
+
+        nvgFontFace(nvg, "Inter-Regular");
+        nvgFontSize(nvg, 10.0f);
+        nvgFillColor(nvg, nvgColour(PlugDataColours::canvasTextColour));
+
+        for (auto const& text : xLabels) {
+            auto const xpos = jmap<float>(text.getFloatValue(), gl_x1, gl_x2, x1, x2);
+            auto const ypos = jmap<float>(xLabelY, gl_y1, gl_y2, y1, y2);
+            auto const align = xLabelY > 0.5f * (gl_y1 + gl_y2) ? NVG_ALIGN_BOTTOM : NVG_ALIGN_TOP;
+            nvgTextAlign(nvg, NVG_ALIGN_CENTER | align);
+            nvgText(nvg, xpos, ypos, text.toRawUTF8(), nullptr);
+        }
+
+        for (auto const& text : yLabels) {
+            auto const xpos = jmap<float>(yLabelX, gl_x1, gl_x2, x1, x2);
+            auto const ypos = jmap<float>(text.getFloatValue(), gl_y1, gl_y2, y1, y2);
+            auto const align = yLabelX > 0.5f * (gl_x1 + gl_x2) ? NVG_ALIGN_LEFT : NVG_ALIGN_RIGHT;
+            nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | align);
+            nvgText(nvg, xpos, ypos, text.toRawUTF8(), nullptr);
+        }
     }
 
     void render(NVGcontext* nvg, Rectangle<float> const b) const
     {
-        if (xTicksPerBig) {
-            t_float const y1 = b.getY(), y2 = b.getBottom(), x1 = b.getX(), x2 = b.getRight();
+        t_float const y1 = b.getY(), y2 = b.getBottom(), x1 = b.getX(), x2 = b.getRight();
 
+        if (xTicksPerBig) {
             t_float f = xTickPoint;
             for (int i = 0; f < 0.99f * gl_x2 + 0.01f * gl_x1; i++, f += xTickInc) {
                 auto const xpos = jmap<float>(f, gl_x2, gl_x1, x1, x2);
@@ -64,7 +139,6 @@ public:
         }
 
         if (yTicksPerBig) {
-            t_float const y1 = b.getY(), y2 = b.getBottom(), x1 = b.getX(), x2 = b.getRight();
             t_float f = yTickPoint;
             for (int i = 0; f < 0.99f * gl_y1 + 0.01f * gl_y2; i++, f += yTickInc) {
                 auto const ypos = jmap<float>(f, gl_y2, gl_y1, y1, y2);
@@ -117,8 +191,6 @@ class GraphOnParent final : public ObjectBase {
     bool isLocked : 1 = false;
     bool isOpenedInSplitView : 1 = false;
 
-    GraphTicks ticks;
-
 public:
     // Graph On Parent
     GraphOnParent(pd::WeakReference obj, Object* object)
@@ -162,20 +234,37 @@ public:
             xRange = VarArray { var(glist->gl_x1), var(glist->gl_x2) };
             yRange = VarArray { var(glist->gl_y2), var(glist->gl_y1) };
             sizeProperty = VarArray { var(glist->gl_pixwidth), var(glist->gl_pixheight) };
-            ticks.update(glist.get());
+            getTicks()->update(glist.get());
         }
 
+        getTicks()->updateLabel(object);
         updateCanvas();
+    }
+
+    GraphTicks* getTicks()
+    {
+        if (labels.isEmpty()) {
+            auto* ticks = new GraphTicks();
+            labels.add(ticks);
+            object->cnv->addChildComponent(ticks);
+            return ticks;
+        }
+
+        return reinterpret_cast<GraphTicks*>(labels[0]);
     }
 
     void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
+        case hash("redraw"):
         case hash("yticks"):
-        case hash("xticks"): {
+        case hash("xticks"):
+        case hash("ylabel"):
+        case hash("xlabel"): {
             if (auto glist = ptr.get<t_canvas>()) {
-                ticks.update(glist.get());
+                getTicks()->update(glist.get());
             }
+            getTicks()->updateLabel(object);
             repaint();
             break;
         }
@@ -476,7 +565,7 @@ public:
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(0, 0, 0, 0), nvgColour(object->isSelected() ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour), Corners::objectCornerRadius);
 
         nvgStrokeColor(nvg, nvgColour(PlugDataColours::guiObjectInternalOutlineColour));
-        ticks.render(nvg, b);
+        getTicks()->render(nvg, b);
     }
 
     std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override

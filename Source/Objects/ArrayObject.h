@@ -297,11 +297,10 @@ public:
             updateArrayPath();
             break;
         }
-        case hash("xticks"): {
-            repaint();
-            break;
-        }
-        case hash("yticks"): {
+        case hash("xticks"):
+        case hash("yticks"):
+        case hash("xlabel"):
+        case hash("ylabel"): {
             repaint();
             break;
         }
@@ -1151,8 +1150,6 @@ public:
     SafePointer<ArrayPropertiesPanel> propertiesPanel = nullptr;
     Value sizeProperty = SynchronousValue();
 
-    GraphTicks ticks;
-
     // Array component
     ArrayObject(pd::WeakReference obj, Object* object)
         : ObjectBase(obj, object)
@@ -1260,7 +1257,7 @@ public:
         }
 
         nvgStrokeColor(nvg, nvgColour(PlugDataColours::guiObjectInternalOutlineColour));
-        ticks.render(nvg, b);
+        getTicks()->render(nvg, b);
     }
 
     bool isTransparent() override { return true; }
@@ -1285,15 +1282,16 @@ public:
             title += graph->getUnexpandedName() + (graph != graphs.getLast() ? "," : "");
         }
 
+        ObjectLabel* label;
+        if (labels.isEmpty()) {
+            label = labels.add(new ObjectLabel());
+            object->cnv->addChildComponent(label);
+        } else {
+            label = labels[0];
+        }
+
         if (title.isNotEmpty()) {
             int constexpr fontHeight = 14.0f;
-            ObjectLabel* label;
-            if (labels.isEmpty()) {
-                label = labels.add(new ObjectLabel());
-            } else {
-                label = labels[0];
-            }
-
             auto font = Font(FontOptions(fontHeight));
             auto bounds = object->getBounds().reduced(Object::margin).removeFromTop(fontHeight + 2).withWidth(Fonts::getStringWidthInt(title, font));
 
@@ -1303,11 +1301,14 @@ public:
             label->setBounds(bounds);
             label->setText(title, dontSendNotification);
             label->setLabelColour(PlugDataColours::canvasTextColour);
+            label->setVisible(true);
 
             object->cnv->addAndMakeVisible(label);
         } else {
-            labels.clear();
+            label->setVisible(false);
         }
+
+        getTicks()->updateLabel(object);
     }
 
     Rectangle<int> getPdBounds() override
@@ -1348,8 +1349,9 @@ public:
         }
         if (auto glist = ptr.get<t_glist>()) {
             sizeProperty = VarArray { var(glist->gl_pixwidth), var(glist->gl_pixheight) };
-            ticks.update(glist.get());
+            getTicks()->update(glist.get());
         }
+        updateLabel();
     }
 
     void updateSizeProperty() override
@@ -1430,6 +1432,10 @@ public:
     {
         switch (symbol) {
         case hash("redraw"): {
+            if (auto glist = ptr.get<t_canvas>()) {
+                getTicks()->update(glist.get());
+            }
+            updateLabel();
             updateGraphs();
             if (dialog) {
                 dialog->updateGraphs();
@@ -1437,10 +1443,13 @@ public:
             break;
         }
         case hash("yticks"):
-        case hash("xticks"): {
+        case hash("xticks"):
+        case hash("ylabel"):
+        case hash("xlabel"): {
             if (auto glist = ptr.get<t_canvas>()) {
-                ticks.update(glist.get());
+                getTicks()->update(glist.get());
             }
+            updateLabel();
             repaint();
             break;
         }
@@ -1452,6 +1461,24 @@ public:
 private:
     OwnedArray<GraphicalArray> graphs;
     std::unique_ptr<ArrayEditorDialog> dialog = nullptr;
+
+    GraphTicks* getTicks()
+    {
+        while (labels.size() < 1) {
+            auto* label = labels.add(new ObjectLabel());
+            object->cnv->addChildComponent(label);
+            label->setVisible(false);
+        }
+
+        if (labels.size() < 2) {
+            auto* ticks = new GraphTicks();
+            labels.add(ticks);
+            object->cnv->addChildComponent(ticks);
+            return ticks;
+        }
+
+        return reinterpret_cast<GraphTicks*>(labels[1]);
+    }
 };
 
 class ArrayDefineObject final : public TextObjectBase {
