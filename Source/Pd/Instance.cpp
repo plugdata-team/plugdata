@@ -512,13 +512,15 @@ void Instance::initialisePd(String& pdlua_version)
                 pd_typedmess(reinterpret_cast<t_pd*>(ptr), gensym("clear"), 0, nullptr);
 
                 // remove repeating spaces
-                text = text.replace("\r ", "\r");
-                text = text.replace(";\r", ";");
-                text = text.replace("\r;", ";");
+                text = text.replace("\r\n", "\n");
+                text = text.replace("\r", "\n");
+                text = text.replace("\n ", "\n");
+                text = text.replace(";\n", ";");
+                text = text.replace("\n;", ";");
                 text = text.replace(" ;", ";");
                 text = text.replace("; ", ";");
                 text = text.replace(",", " , ");
-                text = text.replaceCharacters("\r", " ");
+                text = text.replaceCharacters("\n", " ");
 
                 while (text.contains("  ")) {
                     text = text.replace("  ", " ");
@@ -598,13 +600,15 @@ void Instance::initialisePd(String& pdlua_version)
                 pd_typedmess(reinterpret_cast<t_pd*>(ptr), gensym("clear"), 0, nullptr);
 
                 // remove repeating spaces
-                text = text.replace("\r ", "\r");
-                text = text.replace(";\r", ";");
-                text = text.replace("\r;", ";");
+                text = text.replace("\r\n", "\n");
+                text = text.replace("\r", "\n");
+                text = text.replace("\n ", "\n");
+                text = text.replace(";\n", ";");
+                text = text.replace("\n;", ";");
                 text = text.replace(" ;", ";");
                 text = text.replace("; ", ";");
                 text = text.replace(",", " , ");
-                text = text.replaceCharacters("\r", " ");
+                text = text.replaceCharacters("\n", " ");
 
                 while (text.contains("  ")) {
                     text = text.replace("  ", " ");
