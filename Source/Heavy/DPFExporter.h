@@ -19,6 +19,7 @@ public:
     Value jackEnableValue = Value(var(0));
 
     Value exportTypeValue = Value(var(1));
+    Value guiTypeValue = Value(var(1));
     Value pluginTypeValue = Value(var(1));
 
     Value disableSIMD = Value(var(0));
@@ -32,7 +33,8 @@ public:
         PropertiesArray properties;
         properties.add(new PropertiesPanel::EditableComponent<String>("Maker Name (optional)", makerNameValue));
         properties.add(new PropertiesPanel::EditableComponent<String>("Project License (optional)", projectLicenseValue));
-        properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Binary", "Binary + GUI", "Source code", "Source + GUI code" }));
+        properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Binary", "Source code" }));
+        properties.add(new PropertiesPanel::ComboComponent("Gui type", guiTypeValue, { "None", "ImGui", "NanoVG" }));
         properties.add(new PropertiesPanel::ComboComponent("Plugin type", pluginTypeValue, { "Effect", "Instrument", "Custom" }));
 
         midiinProperty = new PropertiesPanel::BoolComponent("Midi Input", midiinEnableValue, { "No", "yes" });
@@ -88,6 +90,7 @@ public:
         state->setProperty("clap_enable_value", getValue<int>(clapEnableValue));
         state->setProperty("jack_enable_value", getValue<int>(jackEnableValue));
         state->setProperty("export_type_value", getValue<int>(exportTypeValue));
+        state->setProperty("gui_type_value", getValue<int>(guiTypeValue));
         state->setProperty("plugin_type_value", getValue<int>(pluginTypeValue));
         state->setProperty("disable_simd", getValue<int>(disableSIMD));
         globalState->setProperty("dpf", state);
@@ -110,6 +113,7 @@ public:
         clapEnableValue = state->getProperty("clap_enable_value");
         jackEnableValue = state->getProperty("jack_enable_value");
         exportTypeValue = state->getProperty("export_type_value");
+        guiTypeValue = state->getProperty("gui_type_value");
         pluginTypeValue = state->getProperty("plugin_type_value");
         disableSIMD = state->getProperty("disable_simd");
     }
@@ -149,6 +153,7 @@ public:
         auto const projectLicense = getValue<String>(projectLicenseValue);
 
         auto const exportType = getValue<int>(exportTypeValue);
+        auto const guiType = getValue<int>(guiTypeValue);
         auto const midiin = getValue<int>(midiinEnableValue);
         auto const midiout = getValue<int>(midioutEnableValue);
 
@@ -197,8 +202,11 @@ public:
         metaDPF.getDynamicObject()->setProperty("midi_output", midiout);
         metaDPF.getDynamicObject()->setProperty("plugin_formats", formats);
 
-        if (exportType == 2 || exportType == 4) {
-            metaDPF.getDynamicObject()->setProperty("enable_ui", true);
+        if (guiType == 2) {
+            metaDPF.getDynamicObject()->setProperty("enable_ui", 1);
+        } else if (guiType == 3) {
+            metaDPF.getDynamicObject()->setProperty("enable_ui", 2);
+            args.add("--gui");
         }
 
         metaJson->setProperty("dpf", metaDPF);
@@ -235,12 +243,15 @@ public:
         auto const DPF = toolchainDir.getChildFile("lib").getChildFile("dpf");
         DPF.copyDirectoryTo(outputFile.getChildFile("dpf"));
 
-        if (exportType == 2 || exportType == 4) {
+        if (guiType == 2) {
             auto const DPFGui = toolchainDir.getChildFile("lib").getChildFile("dpf-widgets");
             DPFGui.copyDirectoryTo(outputFile.getChildFile("dpf-widgets"));
+        } else if (guiType == 3) {
+            auto const DPFGui = toolchainDir.getChildFile("lib").getChildFile("pdvg");
+            DPFGui.copyDirectoryTo(outputFile.getChildFile("pdvg"));
         }
 
-        if (exportType == 3 || exportType == 4) {
+        if (exportType == 2) {
             metaJsonFile.copyFileTo(outputFile.getChildFile("meta.json"));
         }
 
@@ -249,7 +260,7 @@ public:
 
         bool const generationExitCode = getExitCode();
         // Check if we need to compile
-        if (!generationExitCode && (exportType == 1 || exportType == 2)) {
+        if (!generationExitCode && (exportType == 1)) {
             auto const workingDir = File::getCurrentWorkingDirectory();
 
             outputFile.setAsCurrentWorkingDirectory();
@@ -304,7 +315,7 @@ public:
                 OSUtils::moveFileTo(outputFile.getChildFile("bin").getChildFile(name + ".clap"), outputFile.getChildFile(name + ".clap"));
             if (jack) {
 #if JUCE_MAC
-                if (exportType == 2) {
+                if (guiType == 2 || guiType == 3){
                     OSUtils::moveFileTo(outputFile.getChildFile("bin").getChildFile(name + ".app"), outputFile.getChildFile(name + ".app"));
                 } else {
                     OSUtils::moveFileTo(outputFile.getChildFile("bin").getChildFile(name), outputFile.getChildFile(name));
