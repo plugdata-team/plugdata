@@ -333,6 +333,7 @@ public:
             if (!compilationExitCode) {
                 outputFile.getChildFile("dpf").deleteRecursively();
                 outputFile.getChildFile("dpf-widgets").deleteRecursively();
+                outputFile.getChildFile("pdvg").deleteRecursively();
                 outputFile.getChildFile("build").deleteRecursively();
                 outputFile.getChildFile("plugin").deleteRecursively();
                 outputFile.getChildFile("bin").deleteRecursively();
