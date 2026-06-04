@@ -202,11 +202,24 @@ public:
         metaDPF.getDynamicObject()->setProperty("midi_output", midiout);
         metaDPF.getDynamicObject()->setProperty("plugin_formats", formats);
 
+        File themeJsonFile;
+
         if (guiType == 2) {
             metaDPF.getDynamicObject()->setProperty("enable_ui", 1);
         } else if (guiType == 3) {
             metaDPF.getDynamicObject()->setProperty("enable_ui", 2);
             args.add("--gui");
+
+            DynamicObject::Ptr const themeJson(new DynamicObject());
+
+            themeJson->setProperty("cnv_color", "#" + PlugDataColours::canvasBackgroundColour.toDisplayString(false));
+            // themeJson->setProperty("text_color", PlugDataColours::canvasTextColour.toDisplayString(false));
+            // themeJson->setProperty("io_color", PlugDataColours::ioletAreaColour.toDisplayString(false));
+            // themeJson->setProperty("bg_color", PlugdataColours::);
+            // themeJson->setProperty("sel_color", PlugdataColours::);
+            // themeJson->setProperty("out_color", PlugdataColours::);
+
+            themeJsonFile = createThemeJson(themeJson);
         }
 
         metaJson->setProperty("dpf", metaDPF);
@@ -253,6 +266,10 @@ public:
 
         if (exportType == 2) {
             metaJsonFile.copyFileTo(outputFile.getChildFile("meta.json"));
+            if (guiType == 3) {
+                // themeJsonFile.copyFileTo(outputFile.getChildFile(pdPatch.quoted() + "-theme.json"));
+                themeJsonFile.copyFileTo(outputFile.getChildFile(String("bladie") + String("-theme.json")));
+            }
         }
 
         // Delay to get correct exit code
