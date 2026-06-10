@@ -60,7 +60,7 @@ You can also download a recent experimental build from our [website](https://plu
 git clone --recursive https://github.com/plugdata-team/plugdata.git
 cd plugdata
 mkdir build && cd build
-cmake .. (the generator can be specified using -G"Unix Makefiles", -G"XCode" or -G"Visual Studio 16 2019" -A x64)
+cmake .. (the generator can be specified using -G"Unix Makefiles", -G"Xcode" or -G"Visual Studio 16 2019" -A x64)
 cmake --build .
 ```
 
