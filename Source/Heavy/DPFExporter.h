@@ -20,10 +20,12 @@ public:
 
     Value exportTypeValue = Value(var(1));
     Value guiTypeValue = Value(var(1));
+    Value useThemeValue = Value(var(1));
     Value pluginTypeValue = Value(var(1));
 
     Value disableSIMD = Value(var(0));
 
+    PropertiesPanelProperty* useThemeProperty;
     PropertiesPanelProperty* midiinProperty;
     PropertiesPanelProperty* midioutProperty;
 
@@ -35,6 +37,8 @@ public:
         properties.add(new PropertiesPanel::EditableComponent<String>("Project License (optional)", projectLicenseValue));
         properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Binary", "Source code" }));
         properties.add(new PropertiesPanel::ComboComponent("Gui type", guiTypeValue, { "None", "ImGui", "NanoVG" }));
+        useThemeProperty = new PropertiesPanel::BoolComponent("Use theme", useThemeValue, { "No", "Yes" });
+        properties.add(useThemeProperty);
         properties.add(new PropertiesPanel::ComboComponent("Plugin type", pluginTypeValue, { "Effect", "Instrument", "Custom" }));
 
         midiinProperty = new PropertiesPanel::BoolComponent("Midi Input", midiinEnableValue, { "No", "yes" });
@@ -66,6 +70,7 @@ public:
             property->setPreferredHeight(28);
         }
 
+        guiTypeValue.addListener(this);
         pluginTypeValue.addListener(this);
         midiinEnableValue.addListener(this);
         midioutEnableValue.addListener(this);
@@ -91,6 +96,7 @@ public:
         state->setProperty("jack_enable_value", getValue<int>(jackEnableValue));
         state->setProperty("export_type_value", getValue<int>(exportTypeValue));
         state->setProperty("gui_type_value", getValue<int>(guiTypeValue));
+        state->setProperty("use_theme_value", getValue<int>(useThemeValue));
         state->setProperty("plugin_type_value", getValue<int>(pluginTypeValue));
         state->setProperty("disable_simd", getValue<int>(disableSIMD));
         globalState->setProperty("dpf", state);
@@ -114,6 +120,7 @@ public:
         jackEnableValue = state->getProperty("jack_enable_value");
         exportTypeValue = state->getProperty("export_type_value");
         guiTypeValue = state->getProperty("gui_type_value");
+        useThemeValue = state->getProperty("use_theme_value");
         pluginTypeValue = state->getProperty("plugin_type_value");
         disableSIMD = state->getProperty("disable_simd");
     }
@@ -121,6 +128,9 @@ public:
     void valueChanged(Value& v) override
     {
         ExporterBase::valueChanged(v);
+
+        int const guiType = getValue<int>(guiTypeValue);
+        useThemeProperty->setEnabled(guiType == 3);
 
         int const pluginType = getValue<int>(pluginTypeValue);
         midiinProperty->setEnabled(pluginType == 3);
@@ -154,6 +164,7 @@ public:
 
         auto const exportType = getValue<int>(exportTypeValue);
         auto const guiType = getValue<int>(guiTypeValue);
+        auto const useTheme = getValue<int>(useThemeValue);
         auto const midiin = getValue<int>(midiinEnableValue);
         auto const midiout = getValue<int>(midioutEnableValue);
 
@@ -202,24 +213,29 @@ public:
         metaDPF.getDynamicObject()->setProperty("midi_output", midiout);
         metaDPF.getDynamicObject()->setProperty("plugin_formats", formats);
 
-        File themeJsonFile;
-
         if (guiType == 2) {
             metaDPF.getDynamicObject()->setProperty("enable_ui", 1);
         } else if (guiType == 3) {
             metaDPF.getDynamicObject()->setProperty("enable_ui", 2);
             args.add("--gui");
 
-            DynamicObject::Ptr const themeJson(new DynamicObject());
+            if (useTheme) {
+                var const metaTheme(new DynamicObject());
+                metaTheme.getDynamicObject()->setProperty("obj_corner_radius", Corners::objectCornerRadius);
+                metaTheme.getDynamicObject()->setProperty("cnv_color", "#" + PlugDataColours::canvasBackgroundColour.toDisplayString(false));
+                metaTheme.getDynamicObject()->setProperty("cnv_txt_color", "#" + PlugDataColours::canvasTextColour.toDisplayString(false));
+                metaTheme.getDynamicObject()->setProperty("io_color", "#" + PlugDataColours::guiObjectInternalOutlineColour.toDisplayString(false));
+                metaTheme.getDynamicObject()->setProperty("bg_color", "#" + PlugDataColours::guiObjectBackgroundColour.toDisplayString(false));
+                metaTheme.getDynamicObject()->setProperty("sel_color", "#" + PlugDataColours::objectSelectedOutlineColour.toDisplayString(false));
+                metaTheme.getDynamicObject()->setProperty("com_txt_color", "#" + PlugDataColours::commentTextColour.toDisplayString(false));
+                metaTheme.getDynamicObject()->setProperty("out_color", "#" + PlugDataColours::outlineColour.toDisplayString(false));
 
-            themeJson->setProperty("cnv_color", "#" + PlugDataColours::canvasBackgroundColour.toDisplayString(false));
-            // themeJson->setProperty("text_color", PlugDataColours::canvasTextColour.toDisplayString(false));
-            // themeJson->setProperty("io_color", PlugDataColours::ioletAreaColour.toDisplayString(false));
-            // themeJson->setProperty("bg_color", PlugdataColours::);
-            // themeJson->setProperty("sel_color", PlugdataColours::);
-            // themeJson->setProperty("out_color", PlugdataColours::);
+                metaDPF.getDynamicObject()->setProperty("ui_theme", "default");
 
-            themeJsonFile = createThemeJson(themeJson);
+                var const metaThemes(new DynamicObject());
+                metaThemes.getDynamicObject()->setProperty("default", metaTheme);
+                metaDPF.getDynamicObject()->setProperty("ui_themes", metaThemes);
+            }
         }
 
         metaJson->setProperty("dpf", metaDPF);
@@ -266,10 +282,6 @@ public:
 
         if (exportType == 2) {
             metaJsonFile.copyFileTo(outputFile.getChildFile("meta.json"));
-            if (guiType == 3) {
-                // themeJsonFile.copyFileTo(outputFile.getChildFile(pdPatch.quoted() + "-theme.json"));
-                themeJsonFile.copyFileTo(outputFile.getChildFile(String("bladie") + String("-theme.json")));
-            }
         }
 
         // Delay to get correct exit code
