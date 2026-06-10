@@ -216,7 +216,7 @@ HeavyExportDialog::HeavyExportDialog(Dialog* dialog)
         };
     }; */
     infoButton->onClick = [] {
-        URL("https://wasted-audio.github.io/hvcc/docs/01.introduction.html#what-is-heavy").launchInDefaultBrowser();
+        URL("https://wasted-audio.github.io/hvcc/latest/getting-started/#what-is-heavy").launchInDefaultBrowser();
     };
     addAndMakeVisible(*infoButton);
 
