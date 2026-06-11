@@ -393,7 +393,7 @@ void NVGGraphicsContext::drawGlyphs(Span<uint16_t const> glyphs, Span<Point<floa
         if (!cacheHit) {
             Path p;
             auto f = getFont();
-            f.getTypefacePtr()->getOutlineForGlyph(f.getMetricsKind(), glyph, p);
+            f.getTypefacePtr()->getOutlineForGlyph(glyph, p);
 
             setPath(p, AffineTransform());
             nvgFill(nvg);
