@@ -23,7 +23,7 @@ public:
     Value useThemeValue = Value(var(1));
     Value pluginTypeValue = Value(var(1));
 
-    Value disableSIMD = Value(var(0));
+    Value disableSIMD = Value(var(2));
 
     PropertiesPanelProperty* useThemeProperty;
     PropertiesPanelProperty* midiinProperty;
@@ -219,23 +219,24 @@ public:
             metaDPF.getDynamicObject()->setProperty("enable_ui", 2);
             args.add("--gui");
 
+            var const metaTheme(new DynamicObject());
+            metaTheme.getDynamicObject()->setProperty("obj_corner_radius", Corners::objectCornerRadius);
+            metaTheme.getDynamicObject()->setProperty("cnv_txt_color", "#" + PlugDataColours::canvasTextColour.toDisplayString(false));
+
             if (useTheme) {
-                var const metaTheme(new DynamicObject());
-                metaTheme.getDynamicObject()->setProperty("obj_corner_radius", Corners::objectCornerRadius);
                 metaTheme.getDynamicObject()->setProperty("cnv_color", "#" + PlugDataColours::canvasBackgroundColour.toDisplayString(false));
-                metaTheme.getDynamicObject()->setProperty("cnv_txt_color", "#" + PlugDataColours::canvasTextColour.toDisplayString(false));
                 metaTheme.getDynamicObject()->setProperty("io_color", "#" + PlugDataColours::guiObjectInternalOutlineColour.toDisplayString(false));
                 metaTheme.getDynamicObject()->setProperty("bg_color", "#" + PlugDataColours::guiObjectBackgroundColour.toDisplayString(false));
                 metaTheme.getDynamicObject()->setProperty("sel_color", "#" + PlugDataColours::objectSelectedOutlineColour.toDisplayString(false));
                 metaTheme.getDynamicObject()->setProperty("com_txt_color", "#" + PlugDataColours::commentTextColour.toDisplayString(false));
                 metaTheme.getDynamicObject()->setProperty("out_color", "#" + PlugDataColours::outlineColour.toDisplayString(false));
 
-                metaDPF.getDynamicObject()->setProperty("ui_theme", "default");
-
-                var const metaThemes(new DynamicObject());
-                metaThemes.getDynamicObject()->setProperty("default", metaTheme);
-                metaDPF.getDynamicObject()->setProperty("ui_themes", metaThemes);
             }
+            metaDPF.getDynamicObject()->setProperty("ui_theme", "default");
+
+            var const metaThemes(new DynamicObject());
+            metaThemes.getDynamicObject()->setProperty("default", metaTheme);
+            metaDPF.getDynamicObject()->setProperty("ui_themes", metaThemes);
         }
 
         metaJson->setProperty("dpf", metaDPF);
