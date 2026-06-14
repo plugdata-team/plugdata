@@ -217,9 +217,46 @@ class HeavyCompatibleObjects {
         "hv.vline~"
     };
 
-    static inline StringArray const elseObjects = {
-        "knob"
+    static inline StringArray const cycloneObjects = {
+        "acosh~",
+        "acos~",
+        "asinh~",
+        "asin~",
+        "atan2~",
+        "atanh~",
+        "atan~",
+        "bitand~",
+        "bitor~",
+        "bitnot~",
+        "bitsafe~",
+        "bitxor~",
+        "cartopol~",
+        "cosh~",
+        "cosx~",
+        "equals~",
+        "==~",
+        "greaterthaneq~",
+        ">=~",
+        "greaterthan~",
+        ">~",
+        "lessthaneq~",
+        "<=~",
+        "lessthan~",
+        "<~",
+        "notequals~",
+        "!=~",
+        "poltocar~",
+        "sinh~",
+        "sinx~",
+        "tanh~",
+        "tanx~",
     };
+
+    static inline StringArray const otherObjects = {
+        "pdnam~",
+        "knob" // from ELSE library
+    };
+
 
     static inline StringArray const elseAbstractions = {
         "above",
@@ -258,7 +295,8 @@ class HeavyCompatibleObjects {
         StringArray allObjects;
         allObjects.addArray(heavyObjects);
         allObjects.addArray(heavyAbstractions);
-        allObjects.addArray(elseObjects);
+        allObjects.addArray(cycloneObjects);
+        allObjects.addArray(otherObjects);
         allObjects.addArray(elseAbstractions);
         allObjects.addArray(pdAbstractions);
         allObjects.addArray(extra);

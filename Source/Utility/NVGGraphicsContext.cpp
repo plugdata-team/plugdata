@@ -374,7 +374,7 @@ Font const& NVGGraphicsContext::getFont()
 void NVGGraphicsContext::drawGlyphs(Span<uint16_t const> glyphs, Span<Point<float> const> positions, AffineTransform const& t)
 {
     for (auto const [i, glyph] : enumerate(glyphs, size_t { })) {
-        auto const scale = font.getHeight();
+        auto const scale = font.getHeightInPoints();
         auto tx = AffineTransform::scale(scale * font.getHorizontalScale(), scale).translated(positions[i]).followedBy(t);
 
         nvgSave(nvg);
@@ -392,8 +392,7 @@ void NVGGraphicsContext::drawGlyphs(Span<uint16_t const> glyphs, Span<Point<floa
         auto cacheHit = pathCache[pathHash].fill();
         if (!cacheHit) {
             Path p;
-            auto f = getFont();
-            f.getTypefacePtr()->getOutlineForGlyph(f.getMetricsKind(), glyph, p);
+            font.getTypefacePtr()->getOutlineForGlyph(glyph, p);
 
             setPath(p, AffineTransform());
             nvgFill(nvg);
