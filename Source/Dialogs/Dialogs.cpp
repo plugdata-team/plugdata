@@ -937,6 +937,9 @@ void Dialogs::dismissFileDialog()
 
 void Dialogs::showOpenDialog(std::function<void(URL)> const& callback, bool const canSelectFiles, bool const canSelectDirectories, String const& extension, String const& lastFileId, Component* parentComponent)
 {
+#if ENABLE_TESTING
+    return; // Don't open file dialogs during testing
+#endif
     bool nativeDialog = SettingsFile::getInstance()->wantsNativeDialog();
     auto initialFile = lastFileId.isNotEmpty() ? SettingsFile::getInstance()->getLastBrowserPathForId(lastFileId) : ProjectInfo::appDataDir;
     if (!initialFile.exists())
@@ -980,6 +983,9 @@ void Dialogs::showOpenDialog(std::function<void(URL)> const& callback, bool cons
 
 void Dialogs::showSaveDialog(std::function<void(URL)> const& callback, String const& extension, String const& lastFileId, Component* parentComponent, bool const directoryMode, String const& defaultFileName)
 {
+#if ENABLE_TESTING
+    return; // Don't open file dialogs during testing
+#endif
     bool nativeDialog = SettingsFile::getInstance()->wantsNativeDialog();
     auto initialFile = lastFileId.isNotEmpty() ? SettingsFile::getInstance()->getLastBrowserPathForId(lastFileId) : ProjectInfo::appDataDir;
     if (!initialFile.exists())

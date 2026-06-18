@@ -2173,7 +2173,16 @@ Object* PluginEditor::highlightSearchTarget(void* target, bool const openNewTabI
             return nullptr;
         }
 
-        auto calculateDimensionsAndProcess = [cnv, found, viewport] {
+        auto calculateDimensionsAndProcess = [_cnv = Component::SafePointer<Canvas>(cnv), _found = Component::SafePointer<Object>(found)] {
+            auto* cnv = _cnv.getComponent();
+            auto* found = _found.getComponent();
+            if (!cnv || !found)
+                return;
+
+            auto* viewport = cnv->viewport.get();
+            if (!viewport)
+                return;
+
             auto const scale = getValue<float>(cnv->zoomScale);
 
             if (!viewport->getBoundsInParent().contains(found->getBounds())) {
@@ -2203,9 +2212,6 @@ Object* PluginEditor::highlightSearchTarget(void* target, bool const openNewTabI
             }
         };
 
-        // FIXME: We have to wait for the viewport to call internally resized before the size is correct!
-        // So we check if the bounds are 0,0,0,0, and if so, post the calculations to the message thread
-        // which _should_ place this event after the resize 🙏
         if (viewport->getBoundsInParent().isEmpty())
             MessageManager::callAsync(calculateDimensionsAndProcess);
         else

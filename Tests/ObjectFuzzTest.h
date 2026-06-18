@@ -165,7 +165,7 @@ private:
 
         if(cnv->objects.size() > 10)
         {
-            cnv->editor->sidebar->clearConsole();
+            cnv->editor->getSidebarForPanel(Sidebar::ConsolePanel)->clearConsole();
             cnv->editor->pd->sendDirectMessage(cnv->patch.getRawPointer(), SmallString("clear"), {});
             lastY = 0;
         }
