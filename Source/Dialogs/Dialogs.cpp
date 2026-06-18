@@ -766,8 +766,14 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
     popupMenu.addSeparator();
     popupMenu.addItem(Properties, "Properties", (originalComponent == cnv || (object && params.getParameters().not_empty())) && !locked);
-    // showObjectReferenceDialog
-    auto callback = [cnv, editor, object, originalComponent, selectedObjects](int const result) mutable {
+    
+    auto callback = [cnvPtr = Component::SafePointer<Canvas>(cnv), editor, objectPtr = Component::SafePointer<Object>(object), originalPtr = Component::SafePointer<Component>(originalComponent), selectedObjects](int const result) mutable {
+        auto* cnv = cnvPtr.getComponent();
+        if (!cnv)
+            return;
+        auto* object = objectPtr.getComponent();
+        auto* originalComponent = originalPtr.getComponent();
+
         cnv->grabKeyboardFocus();
         editor->showCalloutArea(false);
 
