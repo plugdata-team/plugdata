@@ -28,6 +28,8 @@ inline void simulateClick(Component* c)
 
 inline void collectComponents(Component* c, HeapArray<Component::SafePointer<Component>>& targets)
 {
+    if (!c)
+        return;
     for (auto* child : c->getChildren()) {
         if (!child->isShowing())
             continue;
@@ -52,6 +54,8 @@ inline void clickThrough(Component* root)
 
 inline Button* findButtonWithText(Component* root, String const& text)
 {
+    if (!root)
+        return nullptr;
     for (auto* child : root->getChildren()) {
         if (auto* button = dynamic_cast<Button*>(child)) {
             if (button->getButtonText() == text)
@@ -65,6 +69,8 @@ inline Button* findButtonWithText(Component* root, String const& text)
 
 inline Label* findLabelContaining(Component* root, String const& text)
 {
+    if (!root)
+        return nullptr;
     for (auto* child : root->getChildren()) {
         if (auto* label = dynamic_cast<Label*>(child)) {
             if (label->getText().contains(text))
@@ -79,6 +85,8 @@ inline Label* findLabelContaining(Component* root, String const& text)
 template<typename ComponentType>
 inline ComponentType* findChildOfType(Component* root)
 {
+    if (!root)
+        return nullptr;
     for (auto* child : root->getChildren()) {
         if (auto* typed = dynamic_cast<ComponentType*>(child))
             return typed;
