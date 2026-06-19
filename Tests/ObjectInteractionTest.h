@@ -85,21 +85,11 @@ private:
             auto* obj = objects[0].getComponent();
             positionBeforeDrag = obj->getPosition();
             dragStart = obj->getLocalBounds().getCentre().toFloat();
+            auto const dragEnd = dragStart + Point<float>(80.0f, 8.0f);
             obj->mouseDown(makeEvent(obj, dragStart, dragStart, false));
-        });
-        for (int step = 1; step <= 4; step++) {
-            steps.add([this, step] {
-                if (auto* obj = objects[0].getComponent()) {
-                    auto const offset = Point<float>(20.0f * step, 2.0f * step);
-                    obj->mouseDrag(makeEvent(obj, dragStart + offset, dragStart, true));
-                }
-            });
-        }
-        steps.add([this] {
-            if (auto* obj = objects[0].getComponent()) {
-                obj->mouseUp(makeEvent(obj, dragStart + Point<float>(80.0f, 8.0f), dragStart, true));
-                expect(obj->getPosition() != positionBeforeDrag, "the drag must have moved the object");
-            }
+            obj->mouseDrag(makeEvent(obj, dragEnd, dragStart, true));
+            obj->mouseUp(makeEvent(obj, dragEnd, dragStart, true));
+            expect(obj->getPosition() != positionBeforeDrag, "the drag must have moved the object");
         });
 
         // --- Resize the [cnv] object by its bottom-right corner ---
@@ -118,20 +108,12 @@ private:
             widthBeforeResize = obj->getWidth();
             // mouseMove sets the resize zone; only works on selected objects
             dragStart = Point<float>(obj->getWidth() - Object::margin, obj->getHeight() - Object::margin);
+            auto const dragEnd = dragStart + Point<float>(30.0f, 21.0f);
             obj->mouseMove(makeEvent(obj, dragStart, dragStart, false));
             obj->mouseDown(makeEvent(obj, dragStart, dragStart, false));
-        });
-        for (int step = 1; step <= 3; step++) {
-            steps.add([this, step] {
-                if (auto* obj = objects[4].getComponent())
-                    obj->mouseDrag(makeEvent(obj, dragStart + Point<float>(10.0f * step, 7.0f * step), dragStart, true));
-            });
-        }
-        steps.add([this] {
-            if (auto* obj = objects[4].getComponent()) {
-                obj->mouseUp(makeEvent(obj, dragStart + Point<float>(30.0f, 21.0f), dragStart, true));
-                expect(obj->getWidth() > widthBeforeResize, "the resize must have grown the object");
-            }
+            obj->mouseDrag(makeEvent(obj, dragEnd, dragStart, true));
+            obj->mouseUp(makeEvent(obj, dragEnd, dragStart, true));
+            expect(obj->getWidth() > widthBeforeResize, "the resize must have grown the object");
         });
 
         // --- Connect [osc~] to [dac~] by clicking outlet, then inlet ---

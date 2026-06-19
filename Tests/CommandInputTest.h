@@ -149,34 +149,36 @@ private:
         auto* object = cnv->objects.add(cnv, "", Point<int>(100, 100));
         cnv->setSelected(object, true);
 
-        Timer::callAfterDelay(50, [this, cnv, object] {
-            auto* suggestor = cnv->suggestor.get();
-            auto* textEditor = TestHelpers::findChildOfType<TextEditor>(object);
-            if (!suggestor || !textEditor) {
-                expect(false, "the empty object must open an editor with a suggestion popup");
-                finishSuggestions(cnv);
-                return;
-            }
-
-            // A prefix that matches many objects: should populate suggestions
-            // and offer an autocompletion
-            suggestor->updateSuggestions("osc");
-            expect(suggestor->getText().isEmpty() || suggestor->getText().startsWith("osc"),
-                "autocomplete text must extend the typed prefix");
-
-            // Different queries exercise the query/ranking and detail paths
-            suggestor->updateSuggestions("metro");
-            suggestor->createComponentSnapshot(suggestor->getLocalBounds());
-
-            // A query that matches nothing: empty result set
-            suggestor->updateSuggestions("zzzz_no_such_object_qwerty");
-
-            // A query matching a known object, then the detail panel state
-            suggestor->updateSuggestions("print");
-            suggestor->isShowingDetailPanel();
-
+        // The Object constructor opens the text editor and suggestion popup
+        // synchronously, so check for them right away. We can't wait on a timer:
+        // running headless there is no real keyboard focus, so the editor would
+        // fire onFocusLost and close itself again before a delayed callback ran.
+        auto* suggestor = cnv->suggestor.get();
+        auto* textEditor = TestHelpers::findChildOfType<TextEditor>(object);
+        if (!suggestor || !textEditor) {
+            expect(false, "the empty object must open an editor with a suggestion popup");
             finishSuggestions(cnv);
-        });
+            return;
+        }
+
+        // A prefix that matches many objects: should populate suggestions
+        // and offer an autocompletion
+        suggestor->updateSuggestions("osc");
+        expect(suggestor->getText().isEmpty() || suggestor->getText().startsWith("osc"),
+            "autocomplete text must extend the typed prefix");
+
+        // Different queries exercise the query/ranking and detail paths
+        suggestor->updateSuggestions("metro");
+        suggestor->createComponentSnapshot(suggestor->getLocalBounds());
+
+        // A query that matches nothing: empty result set
+        suggestor->updateSuggestions("zzzz_no_such_object_qwerty");
+
+        // A query matching a known object, then the detail panel state
+        suggestor->updateSuggestions("print");
+        suggestor->isShowingDetailPanel();
+
+        finishSuggestions(cnv);
     }
 
     void finishSuggestions(Canvas* cnv)

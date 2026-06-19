@@ -41,7 +41,7 @@ private:
         expect(dir.getChildFile("plugdata_test_props.pd_lua").replaceWithText(propertiesScript),
             "properties fixture must be written");
         dir.getChildFile("examples").createDirectory();
-        expect(examples.getChildFile("examples/pdlogo.gif").copyFileTo(dir.getChildFile("examples/pdlogo.gif")),
+        expect(ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("else").getChildFile("pdlogo.gif").copyFileTo(dir.getChildFile("examples/pdlogo.gif")),
             "hello-gui image fixture must be copied");
 
         // A well-behaved graphical object with mouse handlers
