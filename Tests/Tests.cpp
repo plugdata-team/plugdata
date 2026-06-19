@@ -83,6 +83,14 @@ void runTests(PluginEditor* editor)
                           &helpfileFuzzer,
                           &objectFuzzer,
                           &helpfileErrorTest }, 23);
+
+        // The suite has finished (whether tests passed or failed). Quit the app
+        // so the process exits instead of idling forever - the CI harness waits
+        // for the process to terminate and parses stdout for pass/fail.
+        MessageManager::callAsync([] {
+            if (auto* app = JUCEApplicationBase::getInstance())
+                app->quit();
+        });
     });
     testRunnerThread.detach();
 }
