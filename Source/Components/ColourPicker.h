@@ -132,7 +132,8 @@ public:
         callback = [](Colour) { };
         colourDisplayer.hide();
         stopTimer();
-        topLevel->removeMouseListener(this);
+        if (topLevel)
+            topLevel->removeMouseListener(this);
         topLevel = nullptr;
     }
 
@@ -144,6 +145,11 @@ private:
 
     void timerCallback() override
     {
+        if (!topLevel) {
+            stopTimer();
+            return;
+        }
+
         auto const position = topLevel->getMouseXYRelative();
         auto const surfaceMousePosition = editor->nvgSurface.getLocalPoint(topLevel, position);
         auto const mouseOverSurface = editor->nvgSurface.getLocalBounds().contains(surfaceMousePosition);
@@ -165,7 +171,7 @@ private:
 
     std::function<void(Colour)> callback;
     int timerCount = 0;
-    Component* topLevel = nullptr;
+    Component::SafePointer<Component> topLevel = nullptr;
 
     EyedropperDisplayComponnent colourDisplayer;
     Image componentImage;
