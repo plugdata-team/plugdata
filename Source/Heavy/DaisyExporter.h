@@ -90,8 +90,9 @@ public:
                 exportingView->showState(result ? ExportingProgressView::BootloaderFlashFailure : ExportingProgressView::BootloaderFlashSuccess);
                 exportingView->stopMonitoring();
 
-                MessageManager::callAsync([this] {
-                    repaint();
+                MessageManager::callAsync([_this = SafePointer(this)] {
+                    if (_this)
+                        _this->repaint();
                 });
             });
         };

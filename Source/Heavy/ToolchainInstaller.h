@@ -196,11 +196,13 @@ public:
         auto success = Decompress::extractTarXz((uint8_t const*)toolchainData.getData(), toolchainData.getSize(), toolchainDir.getParentDirectory(), expectedSize);
 
         if (!success || statusCode >= 400) {
-            MessageManager::callAsync([this] {
-                installButton.topText = "Try Again";
-                errorMessage = "Error: Could not extract downloaded package";
-                repaint();
-                stopTimer();
+            MessageManager::callAsync([_this = SafePointer(this)] {
+                if (!_this)
+                    return;
+                _this->installButton.topText = "Try Again";
+                _this->errorMessage = "Error: Could not extract downloaded package";
+                _this->repaint();
+                _this->stopTimer();
             });
             return;
         }
@@ -210,8 +212,9 @@ public:
         File driverSpec = toolchainDir.getChildFile("etc").getChildFile("usb_driver").getChildFile("DFU_in_FS_Mode.inf");
 
         // Since we interact with ComponentPeer, better call it from the message thread
-        MessageManager::callAsync([this, usbDriverInstaller, driverSpec]() mutable {
-            OSUtils::runAsAdmin(usbDriverInstaller.getFullPathName().toStdString(), ("install --inf=" + driverSpec.getFullPathName()).toStdString(), editor->getPeer());
+        MessageManager::callAsync([_this = SafePointer(this), usbDriverInstaller, driverSpec]() mutable {
+            if (_this)
+                OSUtils::runAsAdmin(usbDriverInstaller.getFullPathName().toStdString(), ("install --inf=" + driverSpec.getFullPathName()).toStdString(), _this->editor->getPeer());
         });
 #endif
 
@@ -239,9 +242,11 @@ public:
         installProgress = 0.0f;
         stopTimer();
 
-        MessageManager::callAsync([this] {
-            dialog->setBlockFromClosing(false);
-            toolchainInstalledCallback();
+        MessageManager::callAsync([_this = SafePointer(this)] {
+            if (!_this)
+                return;
+            _this->dialog->setBlockFromClosing(false);
+            _this->toolchainInstalledCallback();
         });
     }
 

@@ -1590,8 +1590,6 @@ void Canvas::deselectAll(bool const broadcastChange)
         s->hideParameters();
 
     if (!broadcastChange) {
-        // Add back the listener, but make sure it's added back 'after' the last event on the message queue.
-        // Guard with a SafePointer: the canvas may be deleted (e.g. its tab closed) before this runs.
         MessageManager::callAsync([_this = SafePointer(this)] {
             if (_this)
                 _this->selectedComponents.addChangeListener(_this);
@@ -2563,8 +2561,6 @@ void Canvas::setSelected(Component* component, bool const shouldNowBeSelected, b
     }
 
     if (!broadcastChange) {
-        // Add back the listener, but make sure it's added back 'after' the last event on the message queue.
-        // Guard with a SafePointer: the canvas may be deleted (e.g. its tab closed) before this runs.
         MessageManager::callAsync([_this = SafePointer(this)] {
             if (_this)
                 _this->selectedComponents.addChangeListener(_this);
