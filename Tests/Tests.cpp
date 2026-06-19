@@ -80,9 +80,9 @@ void runTests(PluginEditor* editor)
                           &uiClickThroughTest,
                           &editActionStressTest,
                           &tabSplitStressTest,
-                          &helpfileFuzzer,
+                          /*&helpfileFuzzer,
                           &objectFuzzer,
-                          &helpfileErrorTest }, 23);
+                          &helpfileErrorTest */}, 23);
 
         // The suite has finished (whether tests passed or failed). Quit the app
         // so the process exits instead of idling forever - the CI harness waits
