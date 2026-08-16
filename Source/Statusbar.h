@@ -16,6 +16,7 @@ class PluginProcessor;
 class LatencyDisplayButton;
 class ZoomLabel;
 class StatusbarButtonGroup;
+class EditModeButton;
 
 class Statusbar;
 
@@ -35,8 +36,6 @@ public:
     float currentZoomLevel = 100.0f;
 
 private:
-    void updateCachedRenderingMode();
-
     void handleAsyncUpdate() override;
 
     void paint(Graphics& g) override;
@@ -49,9 +48,7 @@ private:
     std::unique_ptr<ZoomLabel> zoomSelector;
     std::unique_ptr<StatusbarButtonGroup> gridGroup;
     std::unique_ptr<StatusbarButtonGroup> overlayGroup;
-    std::unique_ptr<StatusbarButtonGroup> editModeGroup;
-
-    bool cachedRenderingEnabled = false;
+    std::unique_ptr<EditModeButton> editModeGroup;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Statusbar)
 };

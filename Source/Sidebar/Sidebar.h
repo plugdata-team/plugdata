@@ -169,8 +169,6 @@ public:
 
     void setCommandTarget(String const& text);
 
-    void renderButtonsOnCanvas(NVGcontext* ctx);
-
     void updateCommandInputVisibility();
 
     static constexpr int dragbarWidth = 6;

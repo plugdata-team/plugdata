@@ -297,7 +297,7 @@ void Sidebar::showButtonContextMenu(SidebarSelectorButton* button, SidePanel pan
 
 void Sidebar::paint(Graphics& g)
 {
-    if (sidebarHidden && !editor->usesFloatingPanels()) {
+    if (sidebarHidden) {
         auto baseColour = PlugDataColours::toolbarBackgroundColour;
         if (ProjectInfo::isStandalone && !editor->isActiveWindow())
             baseColour = baseColour.brighter(baseColour.getBrightness() / 2.5f);
@@ -338,7 +338,7 @@ void Sidebar::paintOverChildren(Graphics& g)
     if (!hasAnyPanel())
         return;
 
-    if (sidebarHidden && !editor->usesFloatingPanels())
+    if (sidebarHidden)
         return;
 
     g.setColour(PlugDataColours::toolbarOutlineColour);
@@ -371,35 +371,27 @@ void Sidebar::resized()
     if (bounds.getWidth() == 0)
         return;
 
-    int totalH = 0;
-    for (auto const& _ : panelTable)
-        totalH += 30 + 8;
-
-    bool const floatingPanels = editor->usesFloatingPanels();
-    if (sidebarHidden && !floatingPanels)
+    if (sidebarHidden)
         setCachedComponentImage(nullptr);
 
-    auto buttonBarBounds = Rectangle<int>();
-    if (floatingPanels) {
-        buttonBarBounds = (side == Side::Right)
-            ? bounds.removeFromRight(42).reduced(0, 1).translated(-6, 0)
-            : bounds.removeFromLeft(42).reduced(0, 1).translated(6, 0);
+    auto buttonColumn = (side == Side::Right)
+        ? bounds.removeFromRight(34).reduced(2, 0)
+        : bounds.removeFromLeft(34).reduced(2, 0);
 
-        buttonBarBounds.translate(side == Side::Right ? -sidebarSelectorOffset : sidebarSelectorOffset, 0);
-        buttonBarBounds = buttonBarBounds.withSizeKeepingCentre(30, totalH);
-    } else {
-        buttonBarBounds = (side == Side::Right)
-            ? bounds.removeFromRight(34).reduced(2, 0)
-            : bounds.removeFromLeft(34).reduced(2, 0);
-
-        buttonBarBounds = buttonBarBounds.withSizeKeepingCentre(30, totalH);
+    // All panel selectors sit at the top of the column, except the Inspector,
+    // which is pinned to the very bottom. Start below the 30px title row so the
+    // selectors don't overlap the sidebar's title.
+    auto topBounds = buttonColumn.withTrimmedTop(34);
+    for (auto const& entry : panelTable) {
+        if (!entry.button || entry.id == InspectorPanel)
+            continue;
+        entry.button->setBounds(topBounds.removeFromTop(30));
+        topBounds.removeFromTop(8);
     }
 
-    for (auto const& entry : panelTable) {
-        if (entry.button) {
-            entry.button->setBounds(buttonBarBounds.removeFromTop(30));
-            buttonBarBounds.removeFromTop(8);
-        }
+    if (auto* inspectorButton = getSelectorButton(InspectorPanel)) {
+        auto bottomBounds = buttonColumn.withTrimmedBottom(4);
+        inspectorButton->setBounds(bottomBounds.removeFromBottom(30));
     }
 
     auto extraButtonBounds = side == Side::Right ? Rectangle<int>(0, 0, 30, 30) : Rectangle<int>(getWidth() - 30, 0, 30, 30);
@@ -741,7 +733,7 @@ void Sidebar::showSidebar(bool const show)
 
     if (!show) {
         lastWidth = getWidth();
-        int const newWidth = editor->usesFloatingPanels() ? 48 : 34;
+        int const newWidth = 34;
         if (side == Side::Right)
             setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());
         else
@@ -755,10 +747,7 @@ void Sidebar::showSidebar(bool const show)
             inspectorPtr->setVisible(false);
         inspectorManuallyShown = false;
         updateSelectorButtonStates();
-        if (editor->usesFloatingPanels())
-            setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this));
-        else
-            setCachedComponentImage(nullptr);
+        setCachedComponentImage(nullptr);
     } else {
         setCachedComponentImage(nullptr);
         int const newWidth = lastWidth;
@@ -844,45 +833,6 @@ void Sidebar::hideParameters()
     updateExtraSettingsButton();
     resized();
     repaint();
-}
-
-void Sidebar::renderButtonsOnCanvas(NVGcontext* nvg)
-{
-    if (!hasAnyPanel())
-        return;
-
-    if (!editor->usesFloatingPanels())
-        return;
-
-    Graphics g(*editor->getNanoLLGC());
-
-    auto totalHeight = 0;
-    for (auto const& _ : panelTable) {
-        totalHeight += 38;
-    }
-
-    auto b = editor->nvgSurface.getLocalArea(this, getLocalBounds()).withSizeKeepingCentre(36, totalHeight).translated(side == Side::Right ? -8 : 8, -4);
-
-    StackShadow::drawShadowForRect(g, b.reduced(3.0f), 10, Corners::largeCornerRadius, 0.4f, 1);
-
-    g.setColour(PlugDataColours::toolbarBackgroundColour);
-    g.fillRoundedRectangle(b.toFloat(), Corners::largeCornerRadius);
-
-    g.setColour(PlugDataColours::toolbarOutlineColour);
-    g.drawRoundedRectangle(b.toFloat(), Corners::largeCornerRadius, 1.0f);
-
-    auto drawButton = [&](Component* button) {
-        auto pos = editor->nvgSurface.getLocalPoint(button, Point<int>(0, 0));
-        g.saveState();
-        g.addTransform(AffineTransform::translation(pos));
-        button->paintEntireComponent(g, true);
-        g.restoreState();
-    };
-
-    for (auto const& entry : panelTable) {
-        if (entry.button)
-            drawButton(entry.button);
-    }
 }
 
 void Sidebar::updateSearch(bool const resetInspector)

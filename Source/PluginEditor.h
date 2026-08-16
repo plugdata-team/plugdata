@@ -123,7 +123,6 @@ public:
     bool perform(InvocationInfo const& info) override;
 
     bool wantsRoundedCorners() const;
-    bool usesFloatingPanels() const;
 
     bool keyPressed(KeyPress const& key) override;
 

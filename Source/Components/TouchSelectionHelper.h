@@ -26,8 +26,6 @@ public:
         addAndMakeVisible(actionButtons.add(new MainToolbarButton(Icons::Trash)));
         addAndMakeVisible(actionButtons.add(new MainToolbarButton(Icons::More)));
 
-        updateCachedRenderingMode();
-
         actionButtons[0]->onClick = [this] {
             auto* cnv = editor->getCurrentCanvas();
             auto selection = cnv->getSelectionOfType<Object>();
@@ -246,9 +244,7 @@ public:
 
     void resized() override
     {
-        updateCachedRenderingMode();
-
-        auto b = editor->usesFloatingPanels() ? getLocalBounds().reduced(5) : getLocalBounds();
+        auto b = getLocalBounds();
 
         for (auto* button : actionButtons) {
             button->setBounds(b.removeFromLeft(48));
@@ -256,35 +252,14 @@ public:
     }
 
 private:
-    void updateCachedRenderingMode()
-    {
-        bool const shouldUseCachedRendering = editor->usesFloatingPanels();
-        if (cachedRenderingEnabled == shouldUseCachedRendering)
-            return;
-
-        cachedRenderingEnabled = shouldUseCachedRendering;
-        setCachedComponentImage(shouldUseCachedRendering ? new NVGSurface::InvalidationListener(editor->nvgSurface, this) : nullptr);
-    }
-
     void paint(Graphics& g) override
     {
-        bool const floatingPanels = editor->usesFloatingPanels();
-        auto const b = floatingPanels ? getLocalBounds().reduced(5) : getLocalBounds();
+        auto const b = getLocalBounds();
 
         g.setColour(PlugDataColours::toolbarBackgroundColour);
-        if (floatingPanels) {
-            StackShadow::drawShadowForRect(g, b.reduced(3.0f), 10, Corners::largeCornerRadius, 0.4f, 1);
-            g.fillRoundedRectangle(b.toFloat(), Corners::largeCornerRadius);
-        } else {
-            g.fillRect(b);
-        }
-
-        g.setColour(PlugDataColours::toolbarOutlineColour);
-        if (floatingPanels)
-            g.drawRoundedRectangle(b.toFloat(), Corners::largeCornerRadius, 1.0f);
+        g.fillRect(b);
     }
 
     PluginEditor* editor;
     OwnedArray<MainToolbarButton> actionButtons;
-    bool cachedRenderingEnabled = false;
 };

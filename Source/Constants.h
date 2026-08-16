@@ -43,6 +43,8 @@ struct Icons {
     static inline String const Message = "D";
     static inline String const Parameters = "E";
     static inline String const Presentation = "F";
+    // TODO: placeholder (reuses the Lock glyph) until a dedicated play glyph is added to the icon font
+    static inline String const Play = "m";
     static inline String const Externals = "G";
     static inline String const Refresh = "H";
     static inline String const Up = "I";
