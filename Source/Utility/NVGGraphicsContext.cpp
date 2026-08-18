@@ -11,6 +11,7 @@
 #endif
 
 static constexpr int maxImageCacheSize = 256;
+static Rectangle<int> const maxClipBounds { 0, 0, 1'000'000, 1'000'000 };
 
 static NVGcolor nvgColour(Colour const& c)
 {
@@ -23,6 +24,22 @@ static uint64_t getImageHash(Image const& image)
     return reinterpret_cast<uint64_t>(src.data);
 }
 
+static bool isIntegerTranslation(AffineTransform const& transform)
+{
+    if (!transform.isOnlyTranslation())
+        return false;
+
+    auto const x = transform.getTranslationX();
+    auto const y = transform.getTranslationY();
+    return approximatelyEqual(x, static_cast<float>(roundToInt(x)))
+        && approximatelyEqual(y, static_cast<float>(roundToInt(y)));
+}
+
+static uint8 alphaToByte(float const alpha)
+{
+    return static_cast<uint8>(roundToInt(jlimit(0.0f, 1.0f, alpha) * 255.0f));
+}
+
 //==============================================================================
 
 int const NVGGraphicsContext::imageCacheSize = 256;
@@ -33,6 +50,7 @@ NVGGraphicsContext::NVGGraphicsContext(NVGcontext* nativeHandle)
     : nvg(nativeHandle)
 {
     jassert(nvg);
+    resetClipRegion();
 }
 
 NVGGraphicsContext::~NVGGraphicsContext()
@@ -46,12 +64,12 @@ bool NVGGraphicsContext::isVectorDevice() const { return false; }
 
 void NVGGraphicsContext::setOrigin(Point<int> const origin)
 {
-    nvgTranslate(nvg, origin.getX(), origin.getY());
+    nanovg::nvgTranslate(nvg, origin.getX(), origin.getY());
 }
 
 void NVGGraphicsContext::addTransform(AffineTransform const& t)
 {
-    nvgTransform(nvg, t.mat00, t.mat10, t.mat01, t.mat11, t.mat02, t.mat12);
+    nanovg::nvgTransform(nvg, t.mat00, t.mat10, t.mat01, t.mat11, t.mat02, t.mat12);
 }
 
 float NVGGraphicsContext::getPhysicalPixelScaleFactor() const { return scale; }
@@ -60,34 +78,44 @@ void NVGGraphicsContext::setPhysicalPixelScaleFactor(float const newScale) { sca
 
 bool NVGGraphicsContext::clipToRectangle(Rectangle<int> const& rect)
 {
-    nvgIntersectScissor(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
-    return !getClipBounds().isEmpty();
+    clipRegion.clipTo(getTransformedClipBounds(rect.toFloat(), getCurrentTransform()));
+    nanovg::nvgIntersectScissor(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
+    return !clipRegion.isEmpty();
 }
 
 bool NVGGraphicsContext::clipToRectangleList(RectangleList<int> const& rects)
 {
     auto const rect = rects.getBounds();
-    nvgIntersectScissor(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
-    return !getClipBounds().isEmpty();
+    clipRegion.clipTo(getTransformedClipRegion(rects, getCurrentTransform()));
+    nanovg::nvgIntersectScissor(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
+    return !clipRegion.isEmpty();
 }
 
 void NVGGraphicsContext::excludeClipRectangle(Rectangle<int> const& rectangle)
 {
-    RectangleList<int> rectangles;
-    rectangles.add(getClipBounds());
-    rectangles.subtract(rectangle);
+    clipRegion.subtract(getTransformedClipBounds(rectangle.toFloat(), getCurrentTransform()));
 
-    clipToRectangleList(rectangles);
+    auto const rect = getClipBounds();
+    nanovg::nvgIntersectScissor(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
 }
 
 void NVGGraphicsContext::clipToPath(Path const& path, AffineTransform const& t)
 {
     auto const rect = path.getBoundsTransformed(t);
-    nvgIntersectScissor(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
+    clipRegion.clipTo(getTransformedClipBounds(rect, getCurrentTransform()));
+    nanovg::nvgIntersectScissor(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
 }
 
 void NVGGraphicsContext::clipToImageAlpha(Image const& sourceImage, AffineTransform const& transform)
 {
+    if (transform.isSingularity()) {
+        clipRegion.clear();
+        return;
+    }
+
+    auto const totalTransform = transform.followedBy(getCurrentTransform());
+    clipRegion.clipTo(getTransformedClipBounds(sourceImage.getBounds().toFloat(), totalTransform));
+
     if (!transform.isSingularity()) {
         // Convert the image to a single-channel image if necessary
         Image singleChannelImage(sourceImage);
@@ -101,59 +129,120 @@ void NVGGraphicsContext::clipToImageAlpha(Image const& sourceImage, AffineTransf
         // Create a new Nanovg image from the bitmap data
         int const width = singleChannelImage.getWidth();
         int const height = singleChannelImage.getHeight();
-        auto const image = nvgCreateImageARGB_sRGB(nvg, width, height, 0, pixelData);
-        auto const paint = nvgImagePattern(nvg, 0, 0, width, height, 0, image, 1);
+        auto const image = nanovg::nvgCreateImageARGB_sRGB(nvg, width, height, 0, pixelData);
+        auto const paint = nanovg::nvgImagePattern(nvg, 0, 0, width, height, 0, image, 1);
 
-        nvgSave(nvg);
-        nvgTransform(nvg, transform.mat00, transform.mat10, transform.mat01, transform.mat11, transform.mat02, transform.mat12);
-        nvgScale(nvg, 1.0f, -1.0f);
+        nanovg::nvgSave(nvg);
+        nanovg::nvgTransform(nvg, transform.mat00, transform.mat10, transform.mat01, transform.mat11, transform.mat02, transform.mat12);
+        nanovg::nvgScale(nvg, 1.0f, -1.0f);
 
         // Clip the graphics context to the alpha mask of the Nanovg image
-        nvgBeginPath(nvg);
-        nvgRect(nvg, 0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height));
-        nvgPathWinding(nvg, NVG_HOLE);
-        nvgFillPaint(nvg, paint);
-        nvgFill(nvg);
+        nanovg::nvgBeginPath(nvg);
+        nanovg::nvgRect(nvg, 0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height));
+        nanovg::nvgPathWinding(nvg, NVG_HOLE);
+        nanovg::nvgFillPaint(nvg, paint);
+        nanovg::nvgFill(nvg);
 
         // Restore the original transformations
-        nvgRestore(nvg);
-        nvgDeleteImage(nvg, image);
+        nanovg::nvgRestore(nvg);
+        nanovg::nvgDeleteImage(nvg, image);
     }
 }
 
 bool NVGGraphicsContext::clipRegionIntersects(Rectangle<int> const& rect)
 {
-    auto const clip = getClipBounds();
-    return clip.intersects(rect);
+    if (clipRegion.isEmpty())
+        return false;
+
+    auto const transform = getCurrentTransform();
+
+    if (transform.isSingularity())
+        return false;
+
+    if (isIntegerTranslation(transform)) {
+        return clipRegion.intersectsRectangle(rect.translated(
+            roundToInt(transform.getTranslationX()),
+            roundToInt(transform.getTranslationY())));
+    }
+
+    return clipRegion.intersectsRectangle(getTransformedClipBounds(rect.toFloat(), transform));
 }
 
 Rectangle<int> NVGGraphicsContext::getClipBounds() const
 {
-    // auto scissorBounds = nvgCurrentScissor(nvg); TODO: fix this!
-    return Rectangle<int>(0, 0, 999999, 999999);
+    if (clipRegion.isEmpty())
+        return {};
+
+    auto const transform = getCurrentTransform();
+
+    if (transform.isSingularity())
+        return {};
+
+    auto const bounds = clipRegion.getBounds();
+
+    if (isIntegerTranslation(transform)) {
+        return bounds.translated(
+            -roundToInt(transform.getTranslationX()),
+            -roundToInt(transform.getTranslationY()));
+    }
+
+    return bounds.toFloat().transformedBy(transform.inverted()).getSmallestIntegerContainer();
 }
 
 bool NVGGraphicsContext::isClipEmpty() const
 {
-    float x, y, w, h;
-    nvgCurrentScissor(nvg, &x, &y, &w, &h);
-    return w <= 0 || h <= 0;
+    return clipRegion.isEmpty();
 }
+
+void NVGGraphicsContext::setImageBlendMode(BlendMode newMode)
+{
+    switch (newMode)
+    {
+        case BlendMode::sourceOver:
+            nanovg::nvgGlobalCompositeOperation(nvg, NVG_SOURCE_OVER);
+            break;
+
+        case BlendMode::source:
+            nanovg::nvgGlobalCompositeOperation(nvg, NVG_COPY);
+            break;
+
+        case BlendMode::destinationIn:
+            nanovg::nvgGlobalCompositeOperation(nvg, NVG_DESTINATION_IN);
+            break;
+
+        case BlendMode::destinationOut:
+            nanovg::nvgGlobalCompositeOperation(nvg, NVG_DESTINATION_OUT);
+            break;
+    }
+}
+
 
 void NVGGraphicsContext::saveState()
 {
-    nvgSave(nvg);
+    stateStack.push_back({ clipRegion, opacity, lastColour });
+    nanovg::nvgSave(nvg);
 }
 
 void NVGGraphicsContext::restoreState()
 {
-    nvgRestore(nvg);
+    nanovg::nvgRestore(nvg);
+
+    if (!stateStack.empty()) {
+        auto state = std::move(stateStack.back());
+        stateStack.pop_back();
+        clipRegion = std::move(state.clipRegion);
+        opacity = state.opacity;
+        lastColour = state.lastColour;
+    } else {
+        jassertfalse;
+        resetClipRegion();
+    }
 }
 
 void NVGGraphicsContext::beginTransparencyLayer(float const op)
 {
     saveState();
-    nvgGlobalAlpha(nvg, op);
+    nanovg::nvgGlobalAlpha(nvg, op);
 }
 
 void NVGGraphicsContext::endTransparencyLayer()
@@ -163,10 +252,12 @@ void NVGGraphicsContext::endTransparencyLayer()
 
 void NVGGraphicsContext::setFill(FillType const& fillType)
 {
+    opacity = fillType.getOpacity();
+
     if (fillType.isColour()) {
         auto c = nvgColour(fillType.colour);
-        nvgFillColor(nvg, c);
-        nvgStrokeColor(nvg, c);
+        nanovg::nvgFillColor(nvg, c);
+        nanovg::nvgStrokeColor(nvg, c);
         lastColour = c;
     } else if (fillType.isGradient()) {
         if (ColourGradient* gradient = fillType.gradient.get()) {
@@ -174,23 +265,28 @@ void NVGGraphicsContext::setFill(FillType const& fillType)
 
             if (numColours == 1) {
                 // Just a solid fill
-                nvgFillColor(nvg, nvgColour(gradient->getColour(0)));
+                auto c = nvgColour(gradient->getColour(0).withMultipliedAlpha(opacity));
+                nanovg::nvgFillColor(nvg, c);
+                nanovg::nvgStrokeColor(nvg, c);
+                lastColour = c;
             } else if (numColours > 1) {
                 NVGpaint p;
+                auto const startColour = nvgColour(gradient->getColour(0).withMultipliedAlpha(opacity));
+                auto const endColour = nvgColour(gradient->getColour(numColours - 1).withMultipliedAlpha(opacity));
 
                 if (gradient->isRadial) {
-                    p = nvgRadialGradient(nvg,
+                    p = nanovg::nvgRadialGradient(nvg,
                         gradient->point1.getX(), gradient->point1.getY(),
                         gradient->point2.getX(), gradient->point2.getY(),
-                        nvgColour(gradient->getColour(0)), nvgColour(gradient->getColour(numColours - 1)));
+                        startColour, endColour);
                 } else {
-                    p = nvgLinearGradient(nvg,
+                    p = nanovg::nvgLinearGradient(nvg,
                         gradient->point1.getX(), gradient->point1.getY(),
                         gradient->point2.getX(), gradient->point2.getY(),
-                        nvgColour(gradient->getColour(0)), nvgColour(gradient->getColour(numColours - 1)));
+                        startColour, endColour);
                 }
 
-                nvgFillPaint(nvg, p);
+                nanovg::nvgFillPaint(nvg, p);
             }
         }
     }
@@ -198,12 +294,12 @@ void NVGGraphicsContext::setFill(FillType const& fillType)
 
 void NVGGraphicsContext::setOpacity(float op)
 {
+    opacity = jlimit(0.0f, 1.0f, op);
     auto c = lastColour;
-    nvgRGBA(c.r, c.g, c.b, op);
-    nvgFillColor(nvg, c);
-    nvgStrokeColor(nvg, c);
+    c.a = alphaToByte(opacity);
+    nanovg::nvgFillColor(nvg, c);
+    nanovg::nvgStrokeColor(nvg, c);
     lastColour = c;
-    opacity = op;
 }
 
 void NVGGraphicsContext::setInterpolationQuality(Graphics::ResamplingQuality)
@@ -213,16 +309,16 @@ void NVGGraphicsContext::setInterpolationQuality(Graphics::ResamplingQuality)
 
 void NVGGraphicsContext::fillRect(Rectangle<int> const& rect, bool /* replaceExistingContents */)
 {
-    nvgBeginPath(nvg);
-    nvgRect(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
-    nvgFill(nvg);
+    nanovg::nvgBeginPath(nvg);
+    nanovg::nvgRect(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
+    nanovg::nvgFill(nvg);
 }
 
 void NVGGraphicsContext::fillRect(Rectangle<float> const& rect)
 {
-    nvgBeginPath(nvg);
-    nvgRect(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
-    nvgFill(nvg);
+    nanovg::nvgBeginPath(nvg);
+    nanovg::nvgRect(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
+    nanovg::nvgFill(nvg);
 }
 
 void NVGGraphicsContext::fillRectList(RectangleList<float> const& rects)
@@ -236,32 +332,32 @@ void NVGGraphicsContext::strokePath(Path const& path, PathStrokeType const& stro
     // First set options
     switch (strokeType.getEndStyle()) {
     case PathStrokeType::EndCapStyle::butt:
-        nvgLineCap(nvg, NVG_BUTT);
+        nanovg::nvgLineCap(nvg, NVG_BUTT);
         break;
     case PathStrokeType::EndCapStyle::rounded:
-        nvgLineCap(nvg, NVG_ROUND);
+        nanovg::nvgLineCap(nvg, NVG_ROUND);
         break;
     case PathStrokeType::EndCapStyle::square:
-        nvgLineCap(nvg, NVG_SQUARE);
+        nanovg::nvgLineCap(nvg, NVG_SQUARE);
         break;
     }
 
     switch (strokeType.getJointStyle()) {
     case PathStrokeType::JointStyle::mitered:
-        nvgLineJoin(nvg, NVG_MITER);
+        nanovg::nvgLineJoin(nvg, NVG_MITER);
         break;
     case PathStrokeType::JointStyle::curved:
-        nvgLineJoin(nvg, NVG_ROUND);
+        nanovg::nvgLineJoin(nvg, NVG_ROUND);
         break;
     case PathStrokeType::JointStyle::beveled:
-        nvgLineJoin(nvg, NVG_BEVEL);
+        nanovg::nvgLineJoin(nvg, NVG_BEVEL);
         break;
     }
 
-    nvgStrokeWidth(nvg, strokeType.getStrokeThickness());
-    nvgPathWinding(nvg, NVG_SOLID);
+    nanovg::nvgStrokeWidth(nvg, strokeType.getStrokeThickness());
+    nanovg::nvgPathWinding(nvg, NVG_SOLID);
     setPath(path, transform);
-    nvgStroke(nvg);
+    nanovg::nvgStroke(nvg);
 }
 
 void NVGGraphicsContext::setPath(Path const& path, AffineTransform const& transform)
@@ -269,27 +365,27 @@ void NVGGraphicsContext::setPath(Path const& path, AffineTransform const& transf
     Path p(path);
     p.applyTransform(transform);
 
-    nvgBeginPath(nvg);
+    nanovg::nvgBeginPath(nvg);
 
     Path::Iterator i(p);
 
     while (i.next()) {
         switch (i.elementType) {
         case Path::Iterator::startNewSubPath:
-            nvgMoveTo(nvg, i.x1, i.y1);
-            nvgPathWinding(nvg, NVG_NONZERO);
+            nanovg::nvgMoveTo(nvg, i.x1, i.y1);
+            nanovg::nvgPathWinding(nvg, NVG_NONZERO);
             break;
         case Path::Iterator::lineTo:
-            nvgLineTo(nvg, i.x1, i.y1);
+            nanovg::nvgLineTo(nvg, i.x1, i.y1);
             break;
         case Path::Iterator::quadraticTo:
-            nvgQuadTo(nvg, i.x1, i.y1, i.x2, i.y2);
+            nanovg::nvgQuadTo(nvg, i.x1, i.y1, i.x2, i.y2);
             break;
         case Path::Iterator::cubicTo:
-            nvgBezierTo(nvg, i.x1, i.y1, i.x2, i.y2, i.x3, i.y3);
+            nanovg::nvgBezierTo(nvg, i.x1, i.y1, i.x2, i.y2, i.x3, i.y3);
             break;
         case Path::Iterator::closePath:
-            nvgClosePath(nvg);
+            nanovg::nvgClosePath(nvg);
             break;
         default:
             break;
@@ -300,7 +396,7 @@ void NVGGraphicsContext::setPath(Path const& path, AffineTransform const& transf
 void NVGGraphicsContext::fillPath(Path const& path, AffineTransform const& transform)
 {
     setPath(path, transform);
-    nvgFill(nvg);
+    nanovg::nvgFill(nvg);
 }
 
 void NVGGraphicsContext::drawImage(Image const& image, AffineTransform const& t)
@@ -315,15 +411,15 @@ void NVGGraphicsContext::drawImage(Image const& image, AffineTransform const& t)
 
         Rectangle<float> const rect(0.0f, 0.0f, image.getWidth(), image.getHeight());
 
-        NVGpaint const imgPaint = nvgImagePattern(nvg, 0, 0, rect.getWidth(), rect.getHeight(), 0.0f, id, opacity);
+        NVGpaint const imgPaint = nanovg::nvgImagePattern(nvg, 0, 0, rect.getWidth(), rect.getHeight(), 0.0f, id, opacity);
 
-        nvgSave(nvg);
-        nvgTransform(nvg, t.mat00, t.mat10, t.mat01, t.mat11, t.mat02, t.mat12);
-        nvgBeginPath(nvg);
-        nvgRect(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
-        nvgFillPaint(nvg, imgPaint);
-        nvgFill(nvg);
-        nvgRestore(nvg);
+        nanovg::nvgSave(nvg);
+        nanovg::nvgTransform(nvg, t.mat00, t.mat10, t.mat01, t.mat11, t.mat02, t.mat12);
+        nanovg::nvgBeginPath(nvg);
+        nanovg::nvgRect(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
+        nanovg::nvgFillPaint(nvg, imgPaint);
+        nanovg::nvgFill(nvg);
+        nanovg::nvgRestore(nvg);
     } else if (image.isRGB()) {
         auto argbImage = Image(Image::ARGB, image.getWidth(), image.getHeight(), true);
         for (int y = 0; y < image.getHeight(); ++y) {
@@ -341,24 +437,24 @@ void NVGGraphicsContext::drawImage(Image const& image, AffineTransform const& t)
             return; // invalid image.
 
         Rectangle<float> const rect(0.0f, 0.0f, image.getWidth(), image.getHeight());
-        NVGpaint const imgPaint = nvgImageAlphaPattern(nvg, 0, 0, rect.getWidth(), rect.getHeight(), 0.0f, id, lastColour);
+        NVGpaint const imgPaint = nanovg::nvgImageAlphaPattern(nvg, 0, 0, rect.getWidth(), rect.getHeight(), 0.0f, id, lastColour);
 
-        nvgSave(nvg);
-        nvgTransform(nvg, t.mat00, t.mat10, t.mat01, t.mat11, t.mat02, t.mat12);
-        nvgBeginPath(nvg);
-        nvgRect(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
-        nvgFillPaint(nvg, imgPaint);
-        nvgFill(nvg);
-        nvgRestore(nvg);
+        nanovg::nvgSave(nvg);
+        nanovg::nvgTransform(nvg, t.mat00, t.mat10, t.mat01, t.mat11, t.mat02, t.mat12);
+        nanovg::nvgBeginPath(nvg);
+        nanovg::nvgRect(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
+        nanovg::nvgFillPaint(nvg, imgPaint);
+        nanovg::nvgFill(nvg);
+        nanovg::nvgRestore(nvg);
     }
 }
 
 void NVGGraphicsContext::drawLine(Line<float> const& line)
 {
-    nvgBeginPath(nvg);
-    nvgMoveTo(nvg, line.getStartX(), line.getStartY());
-    nvgLineTo(nvg, line.getEndX(), line.getEndY());
-    nvgStroke(nvg);
+    nanovg::nvgBeginPath(nvg);
+    nanovg::nvgMoveTo(nvg, line.getStartX(), line.getStartY());
+    nanovg::nvgLineTo(nvg, line.getEndX(), line.getEndY());
+    nanovg::nvgStroke(nvg);
 }
 
 void NVGGraphicsContext::setFont(Font const& f)
@@ -377,11 +473,11 @@ void NVGGraphicsContext::drawGlyphs(Span<uint16_t const> glyphs, Span<Point<floa
         auto const scale = font.getHeightInPoints();
         auto tx = AffineTransform::scale(scale * font.getHorizontalScale(), scale).translated(positions[i]).followedBy(t);
 
-        nvgSave(nvg);
-        nvgTransform(nvg, tx.mat00, tx.mat10, tx.mat01, tx.mat11, tx.mat02, tx.mat12);
+        nanovg::nvgSave(nvg);
+        nanovg::nvgTransform(nvg, tx.mat00, tx.mat10, tx.mat01, tx.mat11, tx.mat02, tx.mat12);
 
         float xform[6];
-        nvgCurrentTransform(nvg, xform);
+        nanovg::nvgCurrentTransform(nvg, xform);
 
         // NOTE: currently, path hashing assumes uniform and non-negative scaling. This is always true for plugdata
         uint64_t pathHash = (uint64_t)font.getTypefacePtr().get();
@@ -395,19 +491,69 @@ void NVGGraphicsContext::drawGlyphs(Span<uint16_t const> glyphs, Span<Point<floa
             font.getTypefacePtr()->getOutlineForGlyph(glyph, p);
 
             setPath(p, AffineTransform());
-            nvgFill(nvg);
+            nanovg::nvgFill(nvg);
             pathCache[pathHash].save(nvg);
         }
-        nvgRestore(nvg);
+        
+        nanovg::nvgRestore(nvg);
     }
 }
 
 void NVGGraphicsContext::removeCachedImages()
 {
     for (auto it = images.begin(); it != images.end(); ++it)
-        nvgDeleteImage(nvg, it->second.id);
+        nanovg::nvgDeleteImage(nvg, it->second.id);
 
     images.clear();
+}
+
+void NVGGraphicsContext::resetClipRegion()
+{
+    clipRegion.clear();
+    clipRegion.add(maxClipBounds);
+    stateStack.clear();
+    opacity = 1.0f;
+    lastColour = nanovg::nvgRGBA(0, 0, 0, 255);
+}
+
+AffineTransform NVGGraphicsContext::getCurrentTransform() const
+{
+    float xform[6];
+    nanovg::nvgCurrentTransform(nvg, xform);
+    return { xform[0], xform[2], xform[4], xform[1], xform[3], xform[5] };
+}
+
+Rectangle<int> NVGGraphicsContext::getTransformedClipBounds(Rectangle<float> const& bounds, AffineTransform const& transform) const
+{
+    if (bounds.isEmpty() || transform.isSingularity())
+        return {};
+
+    if (isIntegerTranslation(transform)) {
+        return bounds.getSmallestIntegerContainer().translated(
+            roundToInt(transform.getTranslationX()),
+            roundToInt(transform.getTranslationY()));
+    }
+
+    return bounds.transformedBy(transform).getSmallestIntegerContainer();
+}
+
+RectangleList<int> NVGGraphicsContext::getTransformedClipRegion(RectangleList<int> const& region, AffineTransform const& transform) const
+{
+    RectangleList<int> transformed;
+
+    if (region.isEmpty() || transform.isSingularity())
+        return transformed;
+
+    if (isIntegerTranslation(transform)) {
+        transformed = region;
+        transformed.offsetAll(roundToInt(transform.getTranslationX()), roundToInt(transform.getTranslationY()));
+        return transformed;
+    }
+
+    for (auto const& rect : region)
+        transformed.add(getTransformedClipBounds(rect.toFloat(), transform));
+
+    return transformed;
 }
 
 int NVGGraphicsContext::getNvgImageId(Image const& image)
@@ -418,7 +564,7 @@ int NVGGraphicsContext::getNvgImageId(Image const& image)
     if (it == images.end()) {
         if (image.isSingleChannel()) {
             Image::BitmapData const bitmap(image, Image::BitmapData::readOnly);
-            id = nvgCreateImageAlpha(nvg, image.getWidth(), image.getHeight(), 0, bitmap.data);
+            id = nanovg::nvgCreateImageAlpha(nvg, image.getWidth(), image.getHeight(), 0, bitmap.data);
             if (images.size() >= maxImageCacheSize)
                 reduceImageCache();
 
@@ -430,7 +576,7 @@ int NVGGraphicsContext::getNvgImageId(Image const& image)
             argbImage = argbImage.convertedToFormat(Image::PixelFormat::ARGB);
             Image::BitmapData const bitmap(argbImage, Image::BitmapData::readOnly);
 
-            id = nvgCreateImageARGB(nvg, argbImage.getWidth(), argbImage.getHeight(), 0, bitmap.data);
+            id = nanovg::nvgCreateImageARGB(nvg, argbImage.getWidth(), argbImage.getHeight(), 0, bitmap.data);
 
             if (images.size() >= maxImageCacheSize)
                 reduceImageCache();
@@ -458,7 +604,7 @@ void NVGGraphicsContext::reduceImageCache()
 
     while (it != images.end()) {
         if (it->second.accessCounter == minAccessCounter) {
-            nvgDeleteImage(nvg, it->second.id);
+            nanovg::nvgDeleteImage(nvg, it->second.id);
             it = images.erase(it);
         } else {
             it->second.accessCounter -= minAccessCounter;

@@ -166,7 +166,7 @@ public:
         auto const sb = b.reduced(0.5f);
 
         // Draw background
-        nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
+        nanovg::nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
             nvgColour(PlugDataColours::guiObjectBackgroundColour), nvgColour(PlugDataColours::guiObjectBackgroundColour), nvgColour(PlugDataColours::guiObjectBackgroundColour),
             Corners::objectCornerRadius, ObjectFlagType::FlagTopBottom, PlugDataLook::getUseFlagOutline());
 
@@ -178,8 +178,8 @@ public:
         auto const outlineCol = nvgColour(object->isSelected() || editorActive ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
 
         // Fill the internal of the shape with transparent colour, draw outline & flag with shader
-        nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),
-            nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
+        nanovg::nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),
+            nanovg::nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
             Corners::objectCornerRadius, ObjectFlagType::FlagTopBottom, PlugDataLook::getUseFlagOutline());
     }
 

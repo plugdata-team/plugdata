@@ -66,12 +66,12 @@ public:
             lastScale = scale;
             updateColour = false;
         } else {
-            nvgSave(nvg);
+            nanovg::nvgSave(nvg);
             // Need to invert scale to make it render on a pixel grid correctly
-            nvgScale(nvg, 1.0f / scale, 1.0f / scale);
+            nanovg::nvgScale(nvg, 1.0f / scale, 1.0f / scale);
 
             image.render(nvg, Rectangle<int>(w, h), true);
-            nvgRestore(nvg);
+            nanovg::nvgRestore(nvg);
         }
     }
     void updateImage(NVGcontext* nvg, float const scale)

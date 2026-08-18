@@ -125,51 +125,51 @@ public:
 
         auto const outlineColour = nvgColour(object->isSelected() ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgColour(Colour::fromString(secondaryColour.toString())), outlineColour, Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgColour(Colour::fromString(secondaryColour.toString())), outlineColour, Corners::objectCornerRadius);
 
         auto const dx = getWidth() * 0.125f;
         auto const dy = getHeight() * 0.25f;
 
-        nvgBeginPath(nvg);
-        nvgStrokeColor(nvg, nvgColour(Colour::fromString(gridColour.toString())));
-        nvgStrokeWidth(nvg, 1.0f);
+        nanovg::nvgBeginPath(nvg);
+        nanovg::nvgStrokeColor(nvg, nvgColour(Colour::fromString(gridColour.toString())));
+        nanovg::nvgStrokeWidth(nvg, 1.0f);
 
         auto xx = dx;
         for (int i = 0; i < 7; i++) {
-            nvgMoveTo(nvg, xx, 1.0f);
-            nvgLineTo(nvg, xx, getHeight() - 1.0f);
+            nanovg::nvgMoveTo(nvg, xx, 1.0f);
+            nanovg::nvgLineTo(nvg, xx, getHeight() - 1.0f);
             xx += dx;
         }
 
         auto yy = dy;
         for (int i = 0; i < 3; i++) {
-            nvgMoveTo(nvg, 1.0f, yy);
-            nvgLineTo(nvg, getWidth() - 1.0f, yy);
+            nanovg::nvgMoveTo(nvg, 1.0f, yy);
+            nanovg::nvgLineTo(nvg, getWidth() - 1.0f, yy);
             yy += dy;
         }
 
-        nvgStroke(nvg);
+        nanovg::nvgStroke(nvg);
 
         NVGScopedState scopedState(nvg);
-        nvgIntersectScissor(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight());
+        nanovg::nvgIntersectScissor(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight());
         if (!(y_buffer.empty() || x_buffer.empty())) {
-            nvgBeginPath(nvg);
-            nvgStrokeColor(nvg, nvgColour(Colour::fromString(primaryColour.toString())));
-            nvgStrokeWidth(nvg, 2.0f);
-            nvgLineJoin(nvg, NVG_ROUND);
-            nvgLineCap(nvg, NVG_ROUND);
+            nanovg::nvgBeginPath(nvg);
+            nanovg::nvgStrokeColor(nvg, nvgColour(Colour::fromString(primaryColour.toString())));
+            nanovg::nvgStrokeWidth(nvg, 2.0f);
+            nanovg::nvgLineJoin(nvg, NVG_ROUND);
+            nanovg::nvgLineCap(nvg, NVG_ROUND);
 
             constexpr float offset = 2.0f;
 
             float const w = getWidth() - 4;
             float const h = getHeight() - 4;
 
-            nvgMoveTo(nvg, x_buffer[0] * w + offset, y_buffer[0] * h + offset);
+            nanovg::nvgMoveTo(nvg, x_buffer[0] * w + offset, y_buffer[0] * h + offset);
 
             for (size_t i = 1; i < y_buffer.size(); i++) {
-                nvgLineTo(nvg, x_buffer[i] * w + offset, y_buffer[i] * h + offset);
+                nanovg::nvgLineTo(nvg, x_buffer[i] * w + offset, y_buffer[i] * h + offset);
             }
-            nvgStroke(nvg);
+            nanovg::nvgStroke(nvg);
         }
     }
 

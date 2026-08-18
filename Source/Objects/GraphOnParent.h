@@ -81,24 +81,24 @@ public:
         auto const x1 = static_cast<float>(localGraphBounds.getX());
         auto const x2 = static_cast<float>(localGraphBounds.getRight());
 
-        nvgFontFace(nvg, "Inter-Regular");
-        nvgFontSize(nvg, 10.0f);
-        nvgFillColor(nvg, nvgColour(PlugDataColours::canvasTextColour));
+        nanovg::nvgFontFace(nvg, "Inter-Regular");
+        nanovg::nvgFontSize(nvg, 10.0f);
+        nanovg::nvgFillColor(nvg, nvgColour(PlugDataColours::canvasTextColour));
 
         for (auto const& text : xLabels) {
             auto const xpos = jmap<float>(text.getFloatValue(), gl_x1, gl_x2, x1, x2);
             auto const ypos = jmap<float>(xLabelY, gl_y1, gl_y2, y1, y2);
             auto const align = xLabelY > 0.5f * (gl_y1 + gl_y2) ? NVG_ALIGN_BOTTOM : NVG_ALIGN_TOP;
-            nvgTextAlign(nvg, NVG_ALIGN_CENTER | align);
-            nvgText(nvg, xpos, ypos, text.toRawUTF8(), nullptr);
+            nanovg::nvgTextAlign(nvg, NVG_ALIGN_CENTER | align);
+            nanovg::nvgText(nvg, xpos, ypos, text.toRawUTF8(), nullptr);
         }
 
         for (auto const& text : yLabels) {
             auto const xpos = jmap<float>(yLabelX, gl_x1, gl_x2, x1, x2);
             auto const ypos = jmap<float>(text.getFloatValue(), gl_y1, gl_y2, y1, y2);
             auto const align = yLabelX > 0.5f * (gl_x1 + gl_x2) ? NVG_ALIGN_LEFT : NVG_ALIGN_RIGHT;
-            nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | align);
-            nvgText(nvg, xpos, ypos, text.toRawUTF8(), nullptr);
+            nanovg::nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | align);
+            nanovg::nvgText(nvg, xpos, ypos, text.toRawUTF8(), nullptr);
         }
     }
 
@@ -111,30 +111,30 @@ public:
             for (int i = 0; f < 0.99f * gl_x2 + 0.01f * gl_x1; i++, f += xTickInc) {
                 auto const xpos = jmap<float>(f, gl_x2, gl_x1, x1, x2);
                 int const tickpix = i % xTicksPerBig ? 2 : 4;
-                nvgBeginPath(nvg);
-                nvgMoveTo(nvg, xpos, y2);
-                nvgLineTo(nvg, xpos, y2 - tickpix);
-                nvgStroke(nvg);
+                nanovg::nvgBeginPath(nvg);
+                nanovg::nvgMoveTo(nvg, xpos, y2);
+                nanovg::nvgLineTo(nvg, xpos, y2 - tickpix);
+                nanovg::nvgStroke(nvg);
 
-                nvgBeginPath(nvg);
-                nvgMoveTo(nvg, xpos, y1);
-                nvgLineTo(nvg, xpos, y1 + tickpix);
-                nvgStroke(nvg);
+                nanovg::nvgBeginPath(nvg);
+                nanovg::nvgMoveTo(nvg, xpos, y1);
+                nanovg::nvgLineTo(nvg, xpos, y1 + tickpix);
+                nanovg::nvgStroke(nvg);
             }
 
             f = xTickPoint - xTickInc;
             for (int i = 1; f > 0.99f * gl_x1 + 0.01f * gl_x2; i++, f -= xTickInc) {
                 auto const xpos = jmap<float>(f, gl_x2, gl_x1, x1, x2);
                 int const tickpix = i % xTicksPerBig ? 2 : 4;
-                nvgBeginPath(nvg);
-                nvgMoveTo(nvg, xpos, y2);
-                nvgLineTo(nvg, xpos, y2 - tickpix);
-                nvgStroke(nvg);
+                nanovg::nvgBeginPath(nvg);
+                nanovg::nvgMoveTo(nvg, xpos, y2);
+                nanovg::nvgLineTo(nvg, xpos, y2 - tickpix);
+                nanovg::nvgStroke(nvg);
 
-                nvgBeginPath(nvg);
-                nvgMoveTo(nvg, xpos, y1);
-                nvgLineTo(nvg, xpos, y1 + tickpix);
-                nvgStroke(nvg);
+                nanovg::nvgBeginPath(nvg);
+                nanovg::nvgMoveTo(nvg, xpos, y1);
+                nanovg::nvgLineTo(nvg, xpos, y1 + tickpix);
+                nanovg::nvgStroke(nvg);
             }
         }
 
@@ -143,30 +143,30 @@ public:
             for (int i = 0; f < 0.99f * gl_y1 + 0.01f * gl_y2; i++, f += yTickInc) {
                 auto const ypos = jmap<float>(f, gl_y2, gl_y1, y1, y2);
                 int const tickpix = i % yTicksPerBig ? 2 : 4;
-                nvgBeginPath(nvg);
-                nvgMoveTo(nvg, x1, ypos);
-                nvgLineTo(nvg, x1 + tickpix, ypos);
-                nvgStroke(nvg);
+                nanovg::nvgBeginPath(nvg);
+                nanovg::nvgMoveTo(nvg, x1, ypos);
+                nanovg::nvgLineTo(nvg, x1 + tickpix, ypos);
+                nanovg::nvgStroke(nvg);
 
-                nvgBeginPath(nvg);
-                nvgMoveTo(nvg, x2, ypos);
-                nvgLineTo(nvg, x2 - tickpix, ypos);
-                nvgStroke(nvg);
+                nanovg::nvgBeginPath(nvg);
+                nanovg::nvgMoveTo(nvg, x2, ypos);
+                nanovg::nvgLineTo(nvg, x2 - tickpix, ypos);
+                nanovg::nvgStroke(nvg);
             }
 
             f = yTickPoint - yTickInc;
             for (int i = 1; f > 0.99f * gl_y2 + 0.01f * gl_y1; i++, f -= yTickInc) {
                 auto const ypos = jmap<float>(f, gl_y2, gl_y1, y1, y2);
                 int const tickpix = i % yTicksPerBig ? 2 : 4;
-                nvgBeginPath(nvg);
-                nvgMoveTo(nvg, x1, ypos);
-                nvgLineTo(nvg, x1 + tickpix, ypos);
-                nvgStroke(nvg);
+                nanovg::nvgBeginPath(nvg);
+                nanovg::nvgMoveTo(nvg, x1, ypos);
+                nanovg::nvgLineTo(nvg, x1 + tickpix, ypos);
+                nanovg::nvgStroke(nvg);
 
-                nvgBeginPath(nvg);
-                nvgMoveTo(nvg, x2, ypos);
-                nvgLineTo(nvg, x2 - tickpix, ypos);
-                nvgStroke(nvg);
+                nanovg::nvgBeginPath(nvg);
+                nanovg::nvgMoveTo(nvg, x2, ypos);
+                nanovg::nvgLineTo(nvg, x2 - tickpix, ypos);
+                nanovg::nvgStroke(nvg);
             }
         }
     }
@@ -517,8 +517,8 @@ public:
             invalidArea = canvas->getLocalArea(cnv, invalidArea).expanded(1);
 
             NVGScopedState scopedState(nvg);
-            nvgIntersectRoundedScissor(nvg, b.getX() + 0.75f, b.getY() + 0.75f, b.getWidth() - 1.5f, b.getHeight() - 1.5f, Corners::objectCornerRadius);
-            nvgTranslate(nvg, canvas->getX(), canvas->getY());
+            nanovg::nvgIntersectRoundedScissor(nvg, b.getX() + 0.75f, b.getY() + 0.75f, b.getWidth() - 1.5f, b.getHeight() - 1.5f, Corners::objectCornerRadius);
+            nanovg::nvgTranslate(nvg, canvas->getX(), canvas->getY());
             canvas->performRender(nvg, invalidArea);
         }
 
@@ -543,28 +543,28 @@ public:
                     g.addTransform(rotate.inverted());
                 });
             }
-            auto const imagePaint = nvgImagePattern(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), 0.0f, openInGopBackground.getImageId(), 1.0f);
-            nvgBeginPath(nvg);
-            nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
-            nvgFillPaint(nvg, imagePaint);
-            nvgFill(nvg);
+            auto const imagePaint = nanovg::nvgImagePattern(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), 0.0f, openInGopBackground.getImageId(), 1.0f);
+            nanovg::nvgBeginPath(nvg);
+            nanovg::nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+            nanovg::nvgFillPaint(nvg, imagePaint);
+            nanovg::nvgFill(nvg);
 
             auto const errorText = String("Graph open in split view");
 
             auto const stringLength = Fonts::getStringWidth(errorText, 12);
             if (stringLength < getWidth() - Object::doubleMargin - 20 /* 20 is a hack for now */ && getHeight() > 12) {
-                nvgBeginPath(nvg);
-                nvgFontFace(nvg, "Inter-Regular");
-                nvgFontSize(nvg, 12.0f);
-                nvgFillColor(nvg, nvgColour(PlugDataColours::commentTextColour)); // why comment colour?
-                nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_CENTER);
-                nvgText(nvg, b.getCentreX(), b.getCentreY(), errorText.toRawUTF8(), nullptr);
+                nanovg::nvgBeginPath(nvg);
+                nanovg::nvgFontFace(nvg, "Inter-Regular");
+                nanovg::nvgFontSize(nvg, 12.0f);
+                nanovg::nvgFillColor(nvg, nvgColour(PlugDataColours::commentTextColour)); // why comment colour?
+                nanovg::nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_CENTER);
+                nanovg::nvgText(nvg, b.getCentreX(), b.getCentreY(), errorText.toRawUTF8(), nullptr);
             }
         }
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(0, 0, 0, 0), nvgColour(object->isSelected() ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour), Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nanovg::nvgRGBA(0, 0, 0, 0), nvgColour(object->isSelected() ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour), Corners::objectCornerRadius);
 
-        nvgStrokeColor(nvg, nvgColour(PlugDataColours::guiObjectInternalOutlineColour));
+        nanovg::nvgStrokeColor(nvg, nvgColour(PlugDataColours::guiObjectInternalOutlineColour));
         getTicks()->render(nvg, b);
     }
 

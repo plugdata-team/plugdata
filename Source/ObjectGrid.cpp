@@ -455,22 +455,22 @@ void ObjectGrid::setIndicator(int const idx, Line<int> const line)
 void ObjectGrid::render(NVGcontext* nvg)
 {
     if (lines[0].getLength() != 0) {
-        nvgStrokeColor(nvg, nvgColour(PlugDataColours::gridLineColour.withAlpha(lineAlpha[0])));
-        nvgStrokeWidth(nvg, 1.0f);
+        nanovg::nvgStrokeColor(nvg, nvgColour(PlugDataColours::gridLineColour.withAlpha(lineAlpha[0])));
+        nanovg::nvgStrokeWidth(nvg, 1.0f);
 
-        nvgBeginPath(nvg);
-        nvgMoveTo(nvg, lines[0].getStartX(), lines[0].getStartY());
-        nvgLineTo(nvg, lines[0].getEndX(), lines[0].getEndY());
-        nvgStroke(nvg);
+        nanovg::nvgBeginPath(nvg);
+        nanovg::nvgMoveTo(nvg, lines[0].getStartX(), lines[0].getStartY());
+        nanovg::nvgLineTo(nvg, lines[0].getEndX(), lines[0].getEndY());
+        nanovg::nvgStroke(nvg);
     }
 
     if (lines[1].getLength() != 0) {
-        nvgStrokeColor(nvg, nvgColour(PlugDataColours::gridLineColour.withAlpha(lineAlpha[1])));
-        nvgStrokeWidth(nvg, 1.0f);
+        nanovg::nvgStrokeColor(nvg, nvgColour(PlugDataColours::gridLineColour.withAlpha(lineAlpha[1])));
+        nanovg::nvgStrokeWidth(nvg, 1.0f);
 
-        nvgBeginPath(nvg);
-        nvgMoveTo(nvg, lines[1].getStartX(), lines[1].getStartY());
-        nvgLineTo(nvg, lines[1].getEndX(), lines[1].getEndY());
-        nvgStroke(nvg);
+        nanovg::nvgBeginPath(nvg);
+        nanovg::nvgMoveTo(nvg, lines[1].getStartX(), lines[1].getStartY());
+        nanovg::nvgLineTo(nvg, lines[1].getEndX(), lines[1].getEndY());
+        nanovg::nvgStroke(nvg);
     }
 }

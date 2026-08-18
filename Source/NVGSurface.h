@@ -7,13 +7,18 @@
 #pragma once
 
 #include <juce_gui_basics/juce_gui_basics.h>
-#include <juce_opengl/juce_opengl.h>
+#if NANOVG_METAL_IMPLEMENTATION && (JUCE_MAC || JUCE_IOS)
+#    include <juce_gui_extra/juce_gui_extra.h>
+#else
+#    include <juce_opengl/juce_opengl.h>
 using namespace juce::gl;
+#endif
 
 #include "Utility/Config.h"
 #include "Utility/SettingsFile.h"
 
-#include <nanovg.h>
+#include <atomic>
+#include <nanovg_async.h>
 #ifdef NANOVG_GL_IMPLEMENTATION
 #    undef NANOVG_GL_IMPLEMENTATION
 #    include <nanovg_gl_utils.h>
@@ -25,11 +30,11 @@ class PluginEditor;
 class NVGComponent;
 class NVGSurface final :
 #if NANOVG_METAL_IMPLEMENTATION && JUCE_MAC
-    public NSViewComponent
+    public NSViewComponent, public Thread
 #elif NANOVG_METAL_IMPLEMENTATION && JUCE_IOS
-    public UIViewComponent
+    public UIViewComponent, public Thread
 #else
-    public Component
+    public Component, public OpenGLRenderer
 #endif
 {
 public:
@@ -41,8 +46,6 @@ public:
 
     void renderAll();
     void render();
-
-    void blitToScreen();
 
     bool makeContextActive();
 
@@ -58,14 +61,15 @@ public:
 
     class InvalidationListener final : public CachedComponentImage {
     public:
-        InvalidationListener(NVGSurface& s, Component* origin, std::function<bool()> canRepaintCheck = [] { return true; })
+        InvalidationListener(NVGSurface& s, Component* origin, bool performNvgRepaint = false, std::function<bool()> canRepaintCheck = [] { return true; })
             : surface(s)
             , originComponent(origin)
             , canRepaint(canRepaintCheck)
+            , nvgRepaint(performNvgRepaint)
         {
         }
 
-        void paint(Graphics& g) override { }
+        void paint(Graphics& g) override;
 
         bool invalidate(Rectangle<int> const& rect) override
         {
@@ -77,15 +81,16 @@ public:
                 surface.invalidateArea(invalidatedBounds);
             }
 
-            return surface.renderThroughImage;
+            return false;
         }
 
         bool invalidateAll() override
         {
             if (originComponent->isVisible() && canRepaint()) {
-                surface.invalidateArea(originComponent->getLocalBounds());
+                auto invalidatedBounds = surface.getLocalArea(originComponent, originComponent->getLocalBounds());
+                surface.invalidateArea(invalidatedBounds);
             }
-            return surface.renderThroughImage;
+            return false;
         }
 
         void releaseResources() override { }
@@ -93,6 +98,7 @@ public:
         NVGSurface& surface;
         Component* originComponent;
         std::function<bool()> canRepaint;
+        bool nvgRepaint = false;
     };
 
     void invalidateArea(Rectangle<int> area);
@@ -101,8 +107,6 @@ public:
     void setRenderThroughImage(bool renderThroughImage);
 
     static NVGSurface* getSurfaceForContext(NVGcontext*);
-
-    void renderFrameToImage(Image& image, Rectangle<int> area);
 
     void resized() override;
 
@@ -116,55 +120,65 @@ public:
 
     void handleCommandMessage(int commandID) override;
 
-    // Sets the surface context to render through floating window, or inside editor as image
-    void updateWindowContextVisibility();
-
 private:
     float calculateRenderScale() const;
+    void scheduleRender();
+    void recordFrame();
+    void createRenderContext();
+    void destroyRenderContext();
+    void renderBackendFrame();
+    void presentFramebuffer(int viewWidth, int viewHeight);
+    void requestBackendRender();
+
+#if NANOVG_METAL_IMPLEMENTATION && (JUCE_MAC || JUCE_IOS)
+    void run() override;
+#endif
+
+#if NANOVG_GL_IMPLEMENTATION
+    void newOpenGLContextCreated() override;
+    void renderOpenGL() override;
+    void openGLContextClosing() override;
+#endif
 
     PluginEditor* editor;
-    NVGcontext* nvg = nullptr;
-    bool needsBufferSwap = false;
-    std::unique_ptr<VBlankAttachment> vBlankAttachment;
+    InvalidationListener editorPaintTracker;
 
-    Rectangle<int> invalidArea;
+    std::atomic<NVGcontext*> nvg { nullptr };      // async command-recording wrapper (used for all drawing)
+    NVGcontext* baseNvg = nullptr;  // real backend context (framebuffers, blit, teardown)
+
+    Rectangle<int> invalidArea;          // damage accumulated since the last recorded frame (message thread)
+    Rectangle<int> inFlightDamage;       // damage of the last recorded frame, re-folded if it gets coalesced
     Rectangle<int> currentBounds;
-    NVGframebuffer* invalidFBO = nullptr;
-    int fbWidth = 0, fbHeight = 0;
+    std::atomic<bool> renderScheduled { false };
+    std::atomic<bool> frameReadyForReplay { false };
+    std::atomic<int> recordedFramebufferWidth { 0 };
+    std::atomic<int> recordedFramebufferHeight { 0 };
+    std::atomic<bool> recordedFrameIsFullRepaint { false };
+
+    // Persistent main/damage framebuffer: last-drawn content lives here so we only
+    // redraw the damaged region each frame, then blit the whole thing to the screen.
+    // Owned ENTIRELY by the render thread: the real backend framebuffer is created,
+    // sized, and destroyed there. The message thread never touches it; recordFrame
+    // just records nanovg::bindMainFramebuffer().
+    void* mainFramebuffer = nullptr;        // real backend framebuffer (render thread only)
+    int mainFramebufferWidth = 0;
+    int mainFramebufferHeight = 0;
 
     static inline UnorderedMap<NVGcontext*, NVGSurface*> surfaces;
 
-    juce::Image backupRenderImage;
     bool renderThroughImage = false;
-    bool isRenderingThroughImage = false;
-
-    // To fix rounded corners on Linux/BSD
-    class ClippedImageComponent : public ImageComponent {
-#if JUCE_LINUX || JUCE_BSD
-    public:
-        void paint(Graphics& g)
-        {
-            g.reduceClipRegion(clipPath);
-            ImageComponent::paint(g);
-        }
-        void setClipPath(Path const& p) { clipPath = p; }
-
-    private:
-        Path clipPath;
-#endif
-    };
-    ClippedImageComponent backupImageComponent;
 
     UnorderedSegmentedSet<WeakReference<NVGComponent>> bufferedObjects;
 
     float lastRenderScale = 0.0f;
-    uint32 lastRenderTime;
-#if JUCE_LINUX
-    bool skipFrame = false;
-#endif
 
 #if NANOVG_GL_IMPLEMENTATION
     std::unique_ptr<OpenGLContext> glContext;
+#endif
+
+#if NANOVG_METAL_IMPLEMENTATION && (JUCE_MAC || JUCE_IOS)
+    void* metalView = nullptr;
+    std::atomic<bool> backendRenderRequested { false };
 #endif
 
     std::unique_ptr<FrameTimer> frameTimer;

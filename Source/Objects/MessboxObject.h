@@ -126,7 +126,7 @@ public:
     {
         bool const selected = object->isSelected() && !cnv->isGraph;
         auto const outlineColour = selected ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour;
-        nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), nvgColour(Colour::fromString(secondaryColour.toString())), nvgColour(outlineColour), Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), nvgColour(Colour::fromString(secondaryColour.toString())), nvgColour(outlineColour), Corners::objectCornerRadius);
 
         auto const scale = getImageScale();
 
@@ -135,7 +135,7 @@ public:
             needsRepaint = false;
         } else {
             NVGScopedState state(nvg);
-            nvgScale(nvg, 1.0f / scale, 1.0f / scale);
+            nanovg::nvgScale(nvg, 1.0f / scale, 1.0f / scale);
             auto w = roundToInt(scale * static_cast<float>(editor.getWidth()));
             auto h = roundToInt(scale * static_cast<float>(editor.getHeight()));
             imageRenderer.render(nvg, { 0, 0, w, h }, true);

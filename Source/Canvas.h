@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <nanovg.h>
+#include <nanovg_async.h>
 #ifdef NANOVG_GL_IMPLEMENTATION
 #    include <juce_opengl/juce_opengl.h>
 using namespace juce::gl;
@@ -95,6 +95,7 @@ public:
     void focusLost(FocusChangeType cause) override;
 
     void updateFramebuffers(NVGcontext* nvg) override;
+    void render(NVGcontext* nvg) override;
     void performRender(NVGcontext* nvg, Rectangle<int> invalidRegion);
 
     void resized() override;

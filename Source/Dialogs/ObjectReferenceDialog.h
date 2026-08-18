@@ -15,7 +15,6 @@ public:
     ObjectReferenceDialog(PluginEditor const* editor, bool const showBackButton)
         : library(*editor->pd->objectLibrary)
     {
-        setBufferedToImage(true);
 
         if (showBackButton) {
             addAndMakeVisible(backButton);

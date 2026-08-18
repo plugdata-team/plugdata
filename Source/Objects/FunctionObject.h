@@ -112,38 +112,38 @@ public:
         auto const selectedOutlineColour = nvgColour(PlugDataColours::objectSelectedOutlineColour);
         auto const outlineColour = nvgColour(PlugDataColours::objectOutlineColour);
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, selected ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, selected ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
-        nvgStrokeColor(nvg, foregroundColour);
+        nanovg::nvgStrokeColor(nvg, foregroundColour);
 
         auto realPoints = getRealPoints();
         auto lastPoint = realPoints[0];
         for (int i = 1; i < realPoints.size(); i++) {
             auto newPoint = realPoints[i];
-            nvgBeginPath(nvg);
-            nvgMoveTo(nvg, lastPoint.getX(), lastPoint.getY());
-            nvgLineTo(nvg, newPoint.getX(), newPoint.getY());
-            nvgStroke(nvg);
+            nanovg::nvgBeginPath(nvg);
+            nanovg::nvgMoveTo(nvg, lastPoint.getX(), lastPoint.getY());
+            nanovg::nvgLineTo(nvg, newPoint.getX(), newPoint.getY());
+            nanovg::nvgStroke(nvg);
             lastPoint = newPoint;
         }
 
         for (int i = 0; i < realPoints.size(); i++) {
             auto point = realPoints[i];
             // Make sure line isn't visible through the hole
-            nvgBeginPath(nvg);
-            nvgFillColor(nvg, backgroundColour);
-            nvgCircle(nvg, point.getX(), point.getY(), 2.5f);
-            nvgFill(nvg);
+            nanovg::nvgBeginPath(nvg);
+            nanovg::nvgFillColor(nvg, backgroundColour);
+            nanovg::nvgCircle(nvg, point.getX(), point.getY(), 2.5f);
+            nanovg::nvgFill(nvg);
 
-            nvgFillColor(nvg, foregroundColour);
-            nvgStrokeColor(nvg, hoverIdx == i && editing ? outlineColour : foregroundColour);
-            nvgBeginPath(nvg);
-            nvgCircle(nvg, point.getX(), point.getY(), 2.5f);
+            nanovg::nvgFillColor(nvg, foregroundColour);
+            nanovg::nvgStrokeColor(nvg, hoverIdx == i && editing ? outlineColour : foregroundColour);
+            nanovg::nvgBeginPath(nvg);
+            nanovg::nvgCircle(nvg, point.getX(), point.getY(), 2.5f);
             if (selectedIdx == i) {
-                nvgFill(nvg);
+                nanovg::nvgFill(nvg);
             }
-            nvgStrokeWidth(nvg, 1.5f);
-            nvgStroke(nvg);
+            nanovg::nvgStrokeWidth(nvg, 1.5f);
+            nanovg::nvgStroke(nvg);
         }
     }
 

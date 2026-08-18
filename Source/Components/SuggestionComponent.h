@@ -142,7 +142,7 @@ public:
     void render(NVGcontext* nvg) override
     {
         NVGScopedState scopedState(nvg);
-        nvgTranslate(nvg, getX(), getY());
+        nanovg::nvgTranslate(nvg, getX(), getY());
         Graphics g(*cnv->editor->getNanoLLGC());
         paintEntireComponent(g, true);
     }
@@ -515,7 +515,8 @@ public:
         : resizer(this, &constrainer)
     {
         resizer.setLookAndFeel(&resizerLookAndFeel);
-        resizer.setAllowHostManagedResize(false);
+        // TODO: check this
+        //resizer.setAllowHostManagedResize(false);
         resizer.addMouseListener(this, true);
 
         detailPanel = std::make_unique<ObjectDetailPanel>();

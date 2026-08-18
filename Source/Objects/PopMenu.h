@@ -211,7 +211,7 @@ public:
     {
         auto b = getLocalBounds().toFloat();
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), bgCol, nvgColour(object->isSelected() ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour), Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), bgCol, nvgColour(object->isSelected() ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour), Corners::objectCornerRadius);
 
         auto textBounds = getLocalBounds().reduced(2).translated(2, 0);
         if (!textBounds.isEmpty()) {
@@ -220,18 +220,18 @@ public:
 
         auto const triangleBounds = b.removeFromRight(20).withSizeKeepingCentre(20, std::min(getHeight(), 12));
 
-        nvgStrokeColor(nvg, fgCol);
-        nvgBeginPath(nvg);
-        nvgMoveTo(nvg, triangleBounds.getCentreX() - 3, triangleBounds.getY() + 3);
-        nvgLineTo(nvg, triangleBounds.getCentreX(), triangleBounds.getY());
-        nvgLineTo(nvg, triangleBounds.getCentreX() + 3, triangleBounds.getY() + 3);
-        nvgStroke(nvg);
+        nanovg::nvgStrokeColor(nvg, fgCol);
+        nanovg::nvgBeginPath(nvg);
+        nanovg::nvgMoveTo(nvg, triangleBounds.getCentreX() - 3, triangleBounds.getY() + 3);
+        nanovg::nvgLineTo(nvg, triangleBounds.getCentreX(), triangleBounds.getY());
+        nanovg::nvgLineTo(nvg, triangleBounds.getCentreX() + 3, triangleBounds.getY() + 3);
+        nanovg::nvgStroke(nvg);
 
-        nvgBeginPath(nvg);
-        nvgMoveTo(nvg, triangleBounds.getCentreX() - 3, triangleBounds.getBottom() - 3);
-        nvgLineTo(nvg, triangleBounds.getCentreX(), triangleBounds.getBottom());
-        nvgLineTo(nvg, triangleBounds.getCentreX() + 3, triangleBounds.getBottom() - 3);
-        nvgStroke(nvg);
+        nanovg::nvgBeginPath(nvg);
+        nanovg::nvgMoveTo(nvg, triangleBounds.getCentreX() - 3, triangleBounds.getBottom() - 3);
+        nanovg::nvgLineTo(nvg, triangleBounds.getCentreX(), triangleBounds.getBottom());
+        nanovg::nvgLineTo(nvg, triangleBounds.getCentreX() + 3, triangleBounds.getBottom() - 3);
+        nanovg::nvgStroke(nvg);
     }
 
     void propertyChanged(Value& value) override

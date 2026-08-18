@@ -246,11 +246,11 @@ public:
         bool const selected = object->isSelected() && !cnv->isGraph;
         auto const outlineColour = selected ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour;
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgColour(backgroundColour), nvgColour(outlineColour), Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgColour(backgroundColour), nvgColour(outlineColour), Corners::objectCornerRadius);
 
         {
             NVGScopedState scopedState(nvg);
-            nvgTranslate(nvg, input.getX(), input.getY());
+            nanovg::nvgTranslate(nvg, input.getX(), input.getY());
             input.render(nvg, cnv->editor->getNanoLLGC());
         }
     }

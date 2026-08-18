@@ -129,13 +129,13 @@ public:
     void render(NVGcontext* nvg) override
     {
         if (getValue<bool>(fillBackground) || getValue<bool>(outline)) {
-            auto const fillColour = getValue<bool>(fillBackground) ? nvgColour(Colour::fromString(secondaryColour.toString())) : nvgRGBA(0, 0, 0, 0);
-            auto outlineColour = nvgRGBA(0, 0, 0, 0);
+            auto const fillColour = getValue<bool>(fillBackground) ? nvgColour(Colour::fromString(secondaryColour.toString())) : nanovg::nvgRGBA(0, 0, 0, 0);
+            auto outlineColour = nanovg::nvgRGBA(0, 0, 0, 0);
             if (getValue<bool>(outline)) {
                 bool const selected = object->isSelected() && !cnv->isGraph;
                 outlineColour = nvgColour(selected ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
             }
-            nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), fillColour, outlineColour, Corners::objectCornerRadius);
+            nanovg::nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), fillColour, outlineColour, Corners::objectCornerRadius);
         }
 
         auto const scale = getImageScale();
@@ -144,7 +144,7 @@ public:
             needsRepaint = false;
         } else {
             NVGScopedState state(nvg);
-            nvgScale(nvg, 1.0f / scale, 1.0f / scale);
+            nanovg::nvgScale(nvg, 1.0f / scale, 1.0f / scale);
             auto w = roundToInt(scale * static_cast<float>(noteEditor.getWidth()));
             auto h = roundToInt(scale * static_cast<float>(noteEditor.getHeight()));
             imageRenderer.render(nvg, { 0, 0, w, h }, true);

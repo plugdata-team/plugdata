@@ -146,7 +146,7 @@ public:
         auto const bgCol = nvgColour(isDown ? PlugDataColours::guiObjectInternalOutlineColour : PlugDataColours::guiObjectBackgroundColour);
 
         // Draw background
-        nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
+        nanovg::nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
             bgCol, bgCol, bgCol,
             Corners::objectCornerRadius, ObjectFlagType::FlagMessage, PlugDataLook::getUseFlagOutline());
 
@@ -157,12 +157,12 @@ public:
         // We do this by drawing an inner area that is bright, while changing the background colour darker
         if (isDown) {
             auto const dB = bounds.reduced(5);
-            nvgDrawRoundedRect(nvg, dB.getX(), dB.getY(), dB.getWidth(), dB.getHeight(), nvgColour(PlugDataColours::guiObjectBackgroundColour), nvgColour(PlugDataColours::guiObjectBackgroundColour), 0);
+            nanovg::nvgDrawRoundedRect(nvg, dB.getX(), dB.getY(), dB.getWidth(), dB.getHeight(), nvgColour(PlugDataColours::guiObjectBackgroundColour), nvgColour(PlugDataColours::guiObjectBackgroundColour), 0);
         }
 
         // Draw outline & flag with shader
-        nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),
-            nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
+        nanovg::nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),
+            nanovg::nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
             Corners::objectCornerRadius, ObjectFlagType::FlagMessage, PlugDataLook::getUseFlagOutline());
 
         if (editor) {

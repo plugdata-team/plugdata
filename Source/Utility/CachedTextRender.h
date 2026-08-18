@@ -16,20 +16,20 @@ public:
 
         NVGScopedState scopedState(nvg);
 
-        nvgScale(nvg, 1.0f / scale, 1.0f / scale);
-        nvgTranslate(nvg, roundToInt(bounds.getX() * scale), roundToInt(bounds.getY() * scale));
+        nanovg::nvgScale(nvg, 1.0f / scale, 1.0f / scale);
+        nanovg::nvgTranslate(nvg, roundToInt(bounds.getX() * scale), roundToInt(bounds.getY() * scale));
 
         // Since JUCE text was calculated on a pixel grid, we need to make sure that we also display the text on a whole pixel grid
-        nvgTransformQuantize(nvg);
+        nanovg::nvgTransformQuantize(nvg);
 
         int const imageW = roundToInt(bounds.getWidth() * scale);
         int const imageH = roundToInt(bounds.getHeight() * scale);
 
-        nvgIntersectScissor(nvg, 0, 0, imageW, imageH);
-        auto const imagePattern = isSyntaxHighlighted ? nvgImagePattern(nvg, 0, 0, imageW, imageH, 0, image.getImageId(), 1.0f) : nvgImageAlphaPattern(nvg, 0, 0, imageW, imageH, 0, image.getImageId(), nvgColour(lastColour));
+        nanovg::nvgIntersectScissor(nvg, 0, 0, imageW, imageH);
+        auto const imagePattern = isSyntaxHighlighted ? nanovg::nvgImagePattern(nvg, 0, 0, imageW, imageH, 0, image.getImageId(), 1.0f) : nanovg::nvgImageAlphaPattern(nvg, 0, 0, imageW, imageH, 0, image.getImageId(), nvgColour(lastColour));
 
-        nvgFillPaint(nvg, imagePattern);
-        nvgFillRect(nvg, 0, 0, imageW, imageH);
+        nanovg::nvgFillPaint(nvg, imagePattern);
+        nanovg::nvgFillRect(nvg, 0, 0, imageW, imageH);
     }
 
     static AttributedString getSyntaxHighlightedString(String const& text, Font const& font, Colour const& colour, Colour const& nameColour)
@@ -122,9 +122,9 @@ public:
         {
             NVGScopedState scopedState(nvg);
 
-            nvgScale(nvg, 1.0f / scale, 1.0f / scale);
-            nvgTranslate(nvg, roundToInt(bounds.getX() * scale), roundToInt(bounds.getY() * scale));
-            nvgTransformGetSubpixelOffset(nvg, &offset.x, &offset.y);
+            nanovg::nvgScale(nvg, 1.0f / scale, 1.0f / scale);
+            nanovg::nvgTranslate(nvg, roundToInt(bounds.getX() * scale), roundToInt(bounds.getY() * scale));
+            nanovg::nvgTransformGetSubpixelOffset(nvg, &offset.x, &offset.y);
         }
 
         image = NVGImage(nvg, width, height, [this, bounds, scale, offset](Graphics& g) {

@@ -195,6 +195,8 @@ public:
         return nvgCtx.get();
     }
 
+    NVGGraphicsContext& getOrCreateNanoLLGC(NVGcontext* nvg, float renderScale);
+
 private:
     TabComponent tabComponent;
 

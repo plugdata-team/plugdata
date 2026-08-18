@@ -51,7 +51,7 @@ public:
         }
 
         editor->nvgSurface.invalidateAll();
-        cnv->setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, cnv.get()));
+        cnv->setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, cnv.get(), true));
         patch->openInPluginMode = true;
 
         // Titlebar
@@ -226,11 +226,11 @@ public:
 #if !JUCE_IOS
         if (isWindowFullscreen())
 #endif
-            nvgScissor(nvg, (getWidth() - (width * scale)) / 2, (getHeight() - height * scale) / 2, width * scale, height * scale);
+            nanovg::nvgScissor(nvg, (getWidth() - (width * scale)) / 2, (getHeight() - height * scale) / 2, width * scale, height * scale);
 
-        nvgTranslate(nvg, 0, isWindowFullscreen() ? 0 : -titlebarHeight);
-        nvgScale(nvg, scale, scale);
-        nvgTranslate(nvg, cnv->getX(), cnv->getY());
+        nanovg::nvgTranslate(nvg, 0, isWindowFullscreen() ? 0 : -titlebarHeight);
+        nanovg::nvgScale(nvg, scale, scale);
+        nanovg::nvgTranslate(nvg, cnv->getX(), cnv->getY());
 
         cnv->performRender(nvg, cnv->getLocalArea(this, area.translated(0, 40)));
     }
@@ -296,6 +296,7 @@ public:
 
         // TitleBar text
         g.setColour(PlugDataColours::panelTextColour);
+        g.setFont(Fonts::getSemiBoldFont().withHeight(15));
         g.drawText(cnv->patch.getTitle().upToLastOccurrenceOf(".pd", false, true), titleBar.getBounds(), Justification::centred);
     }
 

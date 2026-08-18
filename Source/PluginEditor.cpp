@@ -37,6 +37,7 @@
 #include "PluginMode.h"
 #include "Components/TouchSelectionHelper.h"
 #include "NVGSurface.h"
+#include "Utility/NVGGraphicsContext.h"
 
 #include "Sidebar/Console.h"
 #include "Sidebar/Inspector.h"
@@ -53,7 +54,7 @@ void runTests(PluginEditor* editor);
 #include <juce_opengl/juce_opengl.h>
 using namespace juce::gl;
 
-#include <nanovg.h>
+#include <nanovg_async.h>
 
 class CalloutArea final : public Component
     , public Timer {
@@ -386,7 +387,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     MessageManager::callAsync([_this = SafePointer(this)](){
       if(_this && !_this->pd->findPatchInPluginMode(_this->editorIndex)) {
           if (!SettingsFile::getInstance()->getProperty<bool>("onboarding_completed") || SystemStats::getEnvironmentVariable("PLUGDATA_ONBOARDING", {}).isNotEmpty())
-              Dialogs::showOnboardingDialog(&_this->openedDialog, _this.get());
+              Dialogs::showOnboardingDialog(&_this->openedDialog, _this.getComponent());
       }
     });
 
@@ -461,9 +462,6 @@ void PluginEditor::paint(Graphics& g)
 #else
     g.fillAll(baseColour);
 #endif
-
-    // Update dialog background visibility, synced with repaint for smoothness
-    nvgSurface.updateWindowContextVisibility();
 }
 
 // Paint file drop outline
@@ -493,14 +491,10 @@ void PluginEditor::paintOverChildren(Graphics& g)
 
 void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> const area)
 {
-    auto renderScale = nvgSurface.getRenderScale();
-    if (!nvgCtx || nvgCtx->getContext() != nvg || !approximatelyEqual(nvgCtx->getPhysicalPixelScaleFactor(), renderScale)) {
-        nvgCtx = std::make_unique<NVGGraphicsContext>(nvg);
-        nvgCtx->setPhysicalPixelScaleFactor(renderScale);
-    }
+    getOrCreateNanoLLGC(nvg, nvgSurface.getRenderScale());
 
     if (isInPluginMode()) {
-        nvgDrawRoundedRect(nvg, 0, -Corners::windowCornerRadius, getWidth(), getHeight() + Corners::windowCornerRadius, nvgColour(PlugDataColours::canvasBackgroundColour), nvgColour(PlugDataColours::canvasBackgroundColour), Corners::windowCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, 0, -Corners::windowCornerRadius, getWidth(), getHeight() + Corners::windowCornerRadius, nvgColour(PlugDataColours::canvasBackgroundColour), nvgColour(PlugDataColours::canvasBackgroundColour), Corners::windowCornerRadius);
 
         pluginMode->render(nvg, area);
     } else {
@@ -508,6 +502,7 @@ void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> const area)
             NVGScopedState scopedState(nvg);
             welcomePanel->render(nvg);
         } else {
+            NVGScopedState scopedState(nvg);
             tabComponent.renderArea(nvg, area);
 
             Graphics g(*getNanoLLGC());
@@ -518,19 +513,19 @@ void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> const area)
                     rightSidebar->renderButtonsOnCanvas(nvg);
 
                 NVGScopedState scopedState(nvg);
-                nvgTranslate(nvg, statusbar->getX() - nvgSurface.getX(), statusbar->getY() - nvgSurface.getY());
+                nanovg::nvgTranslate(nvg, statusbar->getX() - nvgSurface.getX(), statusbar->getY() - nvgSurface.getY());
                 statusbar->paintEntireComponent(g, false);
             }
 
             if (usesFloatingPanels() && touchSelectionHelper && touchSelectionHelper->getParentComponent() && touchSelectionHelper->isVisible() && area.intersects(touchSelectionHelper->getBounds() - nvgSurface.getPosition())) {
                 NVGScopedState scopedState(nvg);
-                nvgTranslate(nvg, touchSelectionHelper->getX() - nvgSurface.getX(), touchSelectionHelper->getY() - nvgSurface.getY());
+                nanovg::nvgTranslate(nvg, touchSelectionHelper->getX() - nvgSurface.getX(), touchSelectionHelper->getY() - nvgSurface.getY());
                 touchSelectionHelper->paintEntireComponent(g, false);
             }
 
             if (consoleMessageDisplay->isVisible()) {
                 NVGScopedState scopedState(nvg);
-                nvgTranslate(nvg, consoleMessageDisplay->getX() - nvgSurface.getX(), consoleMessageDisplay->getY() - nvgSurface.getY());
+                nanovg::nvgTranslate(nvg, consoleMessageDisplay->getX() - nvgSurface.getX(), consoleMessageDisplay->getY() - nvgSurface.getY());
                 consoleMessageDisplay->paintEntireComponent(g, false);
             }
         }
@@ -538,12 +533,22 @@ void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> const area)
 
     if (isDraggingFile) {
         auto toolbarHeight = welcomePanel->isVisible() ? 42 : 67;
-        nvgBeginPath(nvg);
-        nvgRoundedRect(nvg, 1, -toolbarHeight, getWidth() - 2, getHeight() + 3, Corners::windowCornerRadius - 3);
-        nvgStrokeColor(nvg, nvgColour(PlugDataColours::dataColour));
-        nvgStrokeWidth(nvg, 2.0f);
-        nvgStroke(nvg);
+        nanovg::nvgBeginPath(nvg);
+        nanovg::nvgRoundedRect(nvg, 1, -toolbarHeight, getWidth() - 2, getHeight() + 3, Corners::windowCornerRadius - 3);
+        nanovg::nvgStrokeColor(nvg, nvgColour(PlugDataColours::dataColour));
+        nanovg::nvgStrokeWidth(nvg, 2.0f);
+        nanovg::nvgStroke(nvg);
     }
+}
+
+NVGGraphicsContext& PluginEditor::getOrCreateNanoLLGC(NVGcontext* nvg, float const renderScale)
+{
+    if (!nvgCtx || nvgCtx->getContext() != nvg || !approximatelyEqual(nvgCtx->getPhysicalPixelScaleFactor(), renderScale)) {
+        nvgCtx = std::make_unique<NVGGraphicsContext>(nvg);
+        nvgCtx->setPhysicalPixelScaleFactor(renderScale);
+    }
+
+    return *nvgCtx;
 }
 
 CallOutBox& PluginEditor::showCalloutBox(std::unique_ptr<Component> content, Rectangle<int> const screenBounds)
@@ -636,7 +641,7 @@ void PluginEditor::resized()
 #if JUCE_LINUX || JUCE_BSD
         nvgSurface.setRoundedBottomCorners(true, true);
 #endif
-        nvgSurface.updateBounds(getLocalBounds().withTrimmedTop(pluginMode->isWindowFullscreen() ? 0 : 40));
+        nvgSurface.updateBounds(getLocalBounds());
         return;
     }
 
@@ -708,8 +713,8 @@ void PluginEditor::resized()
         consoleMessageDisplay->setBounds(statusbarBounds.removeFromRight(consoleMessageDisplay->getDesiredWidth() + 2).translated(-8, 0));
     }
 
-    nvgSurface.updateBounds(welcomePanel->isVisible() ? bounds.withTrimmedTop(6) : bounds.withTrimmedTop(31));
-    welcomePanel->setBounds(bounds);
+    nvgSurface.updateBounds(getLocalBounds());
+    welcomePanel->setBounds(bounds.withTrimmedTop(6));
     tabComponent.setBounds(bounds);
 
 #if JUCE_MAC
@@ -1994,8 +1999,8 @@ bool PluginEditor::perform(InvocationInfo const& info)
                 auto outobj = cnv->getSelectionOfType<Connection>().front()->outobj;
                 auto pos = Point<int>(
                     // place beneath outlet object + Object::margin
-                    cnv->lastSelectedConnection->getX() + cnv->lastSelectedConnection->getWidth() / 2 - 12,
-                    cnv->lastSelectedConnection->getY() + cnv->lastSelectedConnection->getHeight() / 2 - 12);
+                    cnv->lastSelectedConnection->getX() + cnv->lastSelectedConnection->Component::getWidth() / 2 - 12,
+                    cnv->lastSelectedConnection->getY() + cnv->lastSelectedConnection->Component::getHeight() / 2 - 12);
                 cnv->objects.add(cnv, objectNames.at(ID), pos);
                 cnv->patch.endUndoSequence("ObjectInConnection");
             } else {

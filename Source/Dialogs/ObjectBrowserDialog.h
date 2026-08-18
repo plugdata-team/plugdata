@@ -265,7 +265,6 @@ public:
         : editor(editor)
         , dismissMenu(dismissMenu)
     {
-        setBufferedToImage(true);
     }
 
     ~ObjectViewerDragArea() override { }
@@ -360,8 +359,6 @@ public:
             button->setColour(TextButton::buttonColourId, PlugDataColours::panelBackgroundColour);
             button->setColour(TextButton::buttonOnColourId, PlugDataColours::panelActiveBackgroundColour);
         }
-
-        setBufferedToImage(true);
     }
 
     void resized() override

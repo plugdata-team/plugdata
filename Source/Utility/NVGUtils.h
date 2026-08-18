@@ -5,7 +5,7 @@
  */
 
 #pragma once
-#include <nanovg.h>
+#include <nanovg_async.h>
 #ifdef NANOVG_GL_IMPLEMENTATION
 #    include <juce_opengl/juce_opengl.h>
 using namespace juce::gl;
@@ -96,7 +96,7 @@ public:
 
     void bind(NVGcontext* ctx, int width, int height);
 
-    static void unbind();
+    static void unbind(NVGcontext* nvg);
 
     void renderToFramebuffer(NVGcontext* nvg, int width, int height, std::function<void(NVGcontext*)> renderCallback);
 
@@ -108,8 +108,9 @@ private:
     static inline UnorderedSet<NVGFramebuffer*> allFramebuffers;
 
     NVGcontext* nvg;
-    NVGframebuffer* fb = nullptr;
-    int fbWidth, fbHeight;
+    void* fb = nullptr;
+    int fbImage = -1;
+    int fbWidth = 0, fbHeight = 0;
     bool fbDirty = false;
 };
 

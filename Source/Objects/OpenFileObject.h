@@ -122,7 +122,7 @@ public:
 
         auto const b = getLocalBounds();
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgColour(PlugDataColours::textObjectBackgroundColour), nvgRGBA(0, 0, 0, 0), Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgColour(PlugDataColours::textObjectBackgroundColour), nanovg::nvgRGBA(0, 0, 0, 0), Corners::objectCornerRadius);
 
         if (editor && editor->isVisible()) {
             Graphics g(*cnv->editor->getNanoLLGC());

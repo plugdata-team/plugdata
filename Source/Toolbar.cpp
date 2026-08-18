@@ -100,6 +100,7 @@ class VolumeComponent final : public Slider
         {
             g.fillAll(PlugDataColours::levelMeterBackgroundColour);
             g.setColour(PlugDataColours::toolbarTextColour.withAlpha(0.666f));
+            g.setFont(Fonts::getCurrentFont().withHeight(13.5f));
             g.drawText(String(decibelValue) + "dB", getLocalBounds(), textJustification);
         }
 

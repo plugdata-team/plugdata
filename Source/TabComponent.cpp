@@ -960,30 +960,49 @@ void TabComponent::renderArea(NVGcontext* nvg, Rectangle<int> area)
 {
     if (splits[0]) {
         NVGScopedState scopedState(nvg);
-        nvgScissor(nvg, 0, 0, splits[1] ? splitSize - 3 : getWidth(), getHeight());
+        nanovg::nvgScissor(nvg, 0, 0, splits[1] ? splitSize - 3 : getWidth(), getHeight());
         splits[0]->performRender(nvg, area);
     }
     if (splits[1]) {
         NVGScopedState scopedState(nvg);
-        nvgTranslate(nvg, splitSize + 3, 0);
-        nvgScissor(nvg, 0, 0, getWidth() - (splitSize + 3), getHeight());
+        nanovg::nvgTranslate(nvg, splitSize + 3, 0);
+        nanovg::nvgScissor(nvg, 0, 0, getWidth() - (splitSize + 3), getHeight());
         splits[1]->performRender(nvg, area.translated(-(splitSize + 3), 0));
     }
 
     if (!splitDropBounds.isEmpty()) {
-        nvgFillColor(nvg, nvgColour(PlugDataColours::dataColour.withAlpha(0.1f)));
-        nvgFillRect(nvg, splitDropBounds.getX(), splitDropBounds.getY(), splitDropBounds.getWidth(), splitDropBounds.getHeight());
+        nanovg::nvgFillColor(nvg, nvgColour(PlugDataColours::dataColour.withAlpha(0.1f)));
+        nanovg::nvgFillRect(nvg, splitDropBounds.getX(), splitDropBounds.getY(), splitDropBounds.getWidth(), splitDropBounds.getHeight());
     }
 
     if (splits[1]) {
-        nvgFillColor(nvg, nvgColour(PlugDataColours::canvasBackgroundColour));
-        nvgFillRect(nvg, splitSize - 3, 0, 6, getHeight());
+        nanovg::nvgFillColor(nvg, nvgColour(PlugDataColours::canvasBackgroundColour));
+        nanovg::nvgFillRect(nvg, splitSize - 3, 0, 6, getHeight());
 
         auto const activeSplitBounds = activeSplitIndex ? Rectangle<int>(splitSize, 0, getWidth() - splitSize, getHeight() - 31) : Rectangle<int>(0, 0, splitSize, getHeight() - 31);
 
-        nvgStrokeWidth(nvg, 3.0f);
-        nvgStrokeColor(nvg, nvgColour(PlugDataColours::objectSelectedOutlineColour.withAlpha(0.25f)));
-        nvgStrokeRect(nvg, activeSplitBounds.getX(), activeSplitBounds.getY(), activeSplitBounds.getWidth(), activeSplitBounds.getHeight());
+        nanovg::nvgStrokeWidth(nvg, 3.0f);
+        nanovg::nvgStrokeColor(nvg, nvgColour(PlugDataColours::objectSelectedOutlineColour.withAlpha(0.25f)));
+        nanovg::nvgStrokeRect(nvg, activeSplitBounds.getX(), activeSplitBounds.getY(), activeSplitBounds.getWidth(), activeSplitBounds.getHeight());
+    }
+}
+
+void TabComponent::paintOverChildren(Graphics& g)
+{
+    if (!splitDropBounds.isEmpty()) {
+        g.setColour(PlugDataColours::dataColour.withAlpha(0.1f));
+        g.fillRect(splitDropBounds);
+    }
+
+    if (splits[1]) {
+        g.setColour(PlugDataColours::canvasBackgroundColour);
+        g.fillRect(splitSize - 3, 0, 6, getHeight());
+
+        auto const activeSplitBounds = activeSplitIndex ? Rectangle<int>(splitSize, 0, getWidth() - splitSize, getHeight() - 31)
+                                                        : Rectangle<int>(0, 0, splitSize, getHeight() - 31);
+
+        g.setColour(PlugDataColours::objectSelectedOutlineColour.withAlpha(0.25f));
+        g.drawRect(activeSplitBounds, 3);
     }
 }
 
@@ -1281,9 +1300,9 @@ Canvas* TabComponent::getCanvasAtScreenPosition(Point<int> const screenPosition)
 TabComponent::VisibleCanvasArray TabComponent::getVisibleCanvases()
 {
     VisibleCanvasArray result;
-    if (auto* split = splits[0].get())
+    if (auto* split = splits[0].getComponent())
         result.add(reinterpret_cast<Canvas*>(split));
-    if (auto* split = splits[1].get())
+    if (auto* split = splits[1].getComponent())
         result.add(reinterpret_cast<Canvas*>(split));
     return result;
 }

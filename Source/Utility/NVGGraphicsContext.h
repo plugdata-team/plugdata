@@ -11,7 +11,8 @@ using namespace gl;
 #include "Utility/Containers.h"
 #include "Utility/NVGUtils.h"
 #include "Utility/Hash.h"
-#include <nanovg.h>
+#include <nanovg_async.h>
+#include <vector>
 /**
     JUCE low level graphics context backed by nanovg.
 
@@ -39,6 +40,8 @@ public:
     bool clipRegionIntersects(Rectangle<int> const&) override;
     Rectangle<int> getClipBounds() const override;
     bool isClipEmpty() const override;
+
+    void setImageBlendMode(BlendMode newMode) override;
 
     void saveState() override;
     void restoreState() override;
@@ -76,6 +79,7 @@ public:
     void removeCachedImages();
 
     NVGcontext* getContext() const { return nvg; }
+    void resetClipRegion();
 
     static String const defaultTypefaceName;
     static int const imageCacheSize;
@@ -83,6 +87,9 @@ public:
 private:
     int getNvgImageId(Image const& image);
     void reduceImageCache();
+    AffineTransform getCurrentTransform() const;
+    Rectangle<int> getTransformedClipBounds(Rectangle<float> const& bounds, AffineTransform const& transform) const;
+    RectangleList<int> getTransformedClipRegion(RectangleList<int> const& region, AffineTransform const& transform) const;
 
     NVGcontext* nvg;
 
@@ -95,8 +102,16 @@ private:
         int accessCounter { 0 }; ///< Usage counter.
     };
 
+    struct SavedState {
+        RectangleList<int> clipRegion;
+        float opacity = 1.0f;
+        NVGcolor lastColour {};
+    };
+
     float opacity = 1.0f;
-    NVGcolor lastColour;
-    UnorderedMap<uint64, NvgImage> images;
-    UnorderedMap<uint64_t, NVGCachedPath> pathCache;
+    NVGcolor lastColour {};
+    RectangleList<int> clipRegion;
+    std::vector<SavedState> stateStack;
+    UnorderedSegmentedMap<uint64, NvgImage> images;
+    UnorderedSegmentedMap<uint64_t, NVGCachedPath> pathCache;
 };

@@ -7,7 +7,7 @@
 #pragma once
 
 #include <bit>
-#include <nanovg.h>
+#include <nanovg_async.h>
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
 #include "Utility/SettingsFile.h"

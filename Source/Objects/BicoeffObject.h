@@ -258,29 +258,29 @@ public:
         auto const selectedOutlineColour = nvgColour(PlugDataColours::objectSelectedOutlineColour);
         auto const outlineColour = nvgColour(PlugDataColours::objectOutlineColour);
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
-        nvgStrokeColor(nvg, nvgColour(PlugDataColours::guiObjectInternalOutlineColour));
-        nvgBeginPath(nvg);
-        nvgMoveTo(nvg, filterX1 * getWidth(), 0.0f);
-        nvgLineTo(nvg, filterX1 * getWidth(), getHeight());
-        nvgStroke(nvg);
+        nanovg::nvgStrokeColor(nvg, nvgColour(PlugDataColours::guiObjectInternalOutlineColour));
+        nanovg::nvgBeginPath(nvg);
+        nanovg::nvgMoveTo(nvg, filterX1 * getWidth(), 0.0f);
+        nanovg::nvgLineTo(nvg, filterX1 * getWidth(), getHeight());
+        nanovg::nvgStroke(nvg);
 
-        nvgBeginPath(nvg);
-        nvgMoveTo(nvg, filterX2 * getWidth(), 0.0f);
-        nvgLineTo(nvg, filterX2 * getWidth(), getHeight());
-        nvgStroke(nvg);
+        nanovg::nvgBeginPath(nvg);
+        nanovg::nvgMoveTo(nvg, filterX2 * getWidth(), 0.0f);
+        nanovg::nvgLineTo(nvg, filterX2 * getWidth(), getHeight());
+        nanovg::nvgStroke(nvg);
 
-        nvgBeginPath(nvg);
-        nvgMoveTo(nvg, 0.0f, getHeight() / 2.0f);
-        nvgLineTo(nvg, getWidth(), getHeight() / 2.0f);
-        nvgStroke(nvg);
+        nanovg::nvgBeginPath(nvg);
+        nanovg::nvgMoveTo(nvg, 0.0f, getHeight() / 2.0f);
+        nanovg::nvgLineTo(nvg, getWidth(), getHeight() / 2.0f);
+        nanovg::nvgStroke(nvg);
 
-        nvgStrokeWidth(nvg, 1.0f);
-        nvgLineStyle(nvg, NVG_BUTT);
+        nanovg::nvgStrokeWidth(nvg, 1.0f);
+        nanovg::nvgLineStyle(nvg, NVG_BUTT);
         setJUCEPath(nvg, magnitudePath);
-        nvgStrokeColor(nvg, nvgColour(PlugDataColours::canvasTextColour));
-        nvgStroke(nvg);
+        nanovg::nvgStrokeColor(nvg, nvgColour(PlugDataColours::canvasTextColour));
+        nanovg::nvgStroke(nvg);
     }
 
     void changeBandWidth(float const x, float const y, float const previousX, float const previousY)

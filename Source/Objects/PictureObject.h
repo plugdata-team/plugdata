@@ -177,17 +177,17 @@ public:
         auto const b = getLocalBounds().toFloat();
 
         NVGScopedState scopedState(nvg);
-        nvgIntersectScissor(nvg, 0, 0, getWidth(), getHeight());
+        nanovg::nvgIntersectScissor(nvg, 0, 0, getWidth(), getHeight());
 
         if (!imageBuffer.isValid()) {
-            nvgFontSize(nvg, 20);
-            nvgFontFace(nvg, "Inter-Regular");
-            nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-            nvgFillColor(nvg, nvgColour(PlugDataColours::canvasTextColour));
-            nvgText(nvg, b.getCentreX(), b.getCentreY(), "?", nullptr);
+            nanovg::nvgFontSize(nvg, 20);
+            nanovg::nvgFontFace(nvg, "Inter-Regular");
+            nanovg::nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+            nanovg::nvgFillColor(nvg, nvgColour(PlugDataColours::canvasTextColour));
+            nanovg::nvgText(nvg, b.getCentreX(), b.getCentreY(), "?", nullptr);
         } else {
             NVGScopedState scopedState(nvg);
-            nvgTranslate(nvg, offsetX, offsetY);
+            nanovg::nvgTranslate(nvg, offsetX, offsetY);
             imageBuffer.render(nvg, getLocalBounds());
         }
 
@@ -195,7 +195,7 @@ public:
         auto const outlineColour = selected ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour;
 
         if (getValue<bool>(outline)) {
-            nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(0, 0, 0, 0), nvgColour(outlineColour), Corners::objectCornerRadius);
+            nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nanovg::nvgRGBA(0, 0, 0, 0), nvgColour(outlineColour), Corners::objectCornerRadius);
         }
     }
 

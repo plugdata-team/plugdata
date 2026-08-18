@@ -62,6 +62,7 @@ private:
     void sendTabUpdateToVisibleCanvases() const;
 
     void resized() override;
+    void paintOverChildren(Graphics& g) override;
 
     void moveToLeftSplit(TabComponent::TabBarButtonComponent const* tab);
     void moveToRightSplit(TabComponent::TabBarButtonComponent const* tab);

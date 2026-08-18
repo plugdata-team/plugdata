@@ -270,8 +270,8 @@ public:
     {
         auto const b = getLocalBounds().toFloat();
 
-        auto fillColour = getValue<bool>(transparent) ? nvgRGBA(0, 0, 0, 0) : bgCol;
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), fillColour, object->isSelected() ? nvgColour(PlugDataColours::objectSelectedOutlineColour) : nvgColour(PlugDataColours::objectOutlineColour), Corners::objectCornerRadius);
+        auto fillColour = getValue<bool>(transparent) ? nanovg::nvgRGBA(0, 0, 0, 0) : bgCol;
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), fillColour, object->isSelected() ? nvgColour(PlugDataColours::objectSelectedOutlineColour) : nvgColour(PlugDataColours::objectOutlineColour), Corners::objectCornerRadius);
 
         auto radius = getValue<bool>(oval) ? getWidth() : Corners::objectCornerRadius;
         if (!getValue<bool>(transparent)) {
@@ -282,15 +282,15 @@ public:
 
             if (b.getWidth() >= 25 && b.getHeight() >= 25) {
                 spaceToShowRect = true;
-                nvgDrawRoundedRect(nvg, outerBounds.getX(), outerBounds.getY(), outerBounds.getWidth(), outerBounds.getHeight(), nvgColour(PlugDataColours::guiObjectInternalOutlineColour), nvgColour(PlugDataColours::guiObjectInternalOutlineColour), radius);
-                nvgDrawRoundedRect(nvg, innerRectBounds.getX(), innerRectBounds.getY(), innerRectBounds.getWidth(), innerRectBounds.getHeight(), bgCol, bgCol, radius - 1.0f);
+                nanovg::nvgDrawRoundedRect(nvg, outerBounds.getX(), outerBounds.getY(), outerBounds.getWidth(), outerBounds.getHeight(), nvgColour(PlugDataColours::guiObjectInternalOutlineColour), nvgColour(PlugDataColours::guiObjectInternalOutlineColour), radius);
+                nanovg::nvgDrawRoundedRect(nvg, innerRectBounds.getX(), innerRectBounds.getY(), innerRectBounds.getWidth(), innerRectBounds.getHeight(), bgCol, bgCol, radius - 1.0f);
             }
 
             // Fill ellipse if bangState is true
             if (state) {
                 auto const innerBounds = spaceToShowRect ? innerRectBounds.reduced(1) : guiBounds;
                 auto const cornerRadius = spaceToShowRect ? radius - 1.5f : radius - 1;
-                nvgDrawRoundedRect(nvg, innerBounds.getX(), innerBounds.getY(), innerBounds.getWidth(), innerBounds.getHeight(), fgCol, fgCol, cornerRadius);
+                nanovg::nvgDrawRoundedRect(nvg, innerBounds.getX(), innerBounds.getY(), innerBounds.getWidth(), innerBounds.getHeight(), fgCol, fgCol, cornerRadius);
             }
         }
     }

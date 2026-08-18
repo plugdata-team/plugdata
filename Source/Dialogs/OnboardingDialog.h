@@ -750,7 +750,7 @@ private:
     };
 
     String selected = "pd";
-    WeakReference<KeyPressMappingSet> mappings;
+    KeyPressMappingSet* mappings;
 
     static String shortcutModifier(ModifierKeys mod)
     {

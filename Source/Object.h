@@ -15,7 +15,7 @@
 #include "Pd/WeakReference.h"
 #include "Iolet.h"
 
-#include <nanovg.h>
+#include <nanovg_async.h>
 #ifdef NANOVG_GL_IMPLEMENTATION
 #    include <juce_opengl/juce_opengl.h>
 using namespace juce::gl;

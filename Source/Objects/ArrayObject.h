@@ -229,16 +229,16 @@ public:
         }
         NVGScopedState scopedState(nvg);
         auto const arrB = getLocalBounds().reduced(1);
-        nvgIntersectRoundedScissor(nvg, arrB.getX(), arrB.getY(), arrB.getWidth(), arrB.getHeight(), Corners::objectCornerRadius);
+        nanovg::nvgIntersectRoundedScissor(nvg, arrB.getX(), arrB.getY(), arrB.getWidth(), arrB.getHeight(), Corners::objectCornerRadius);
 
         if (cachedPath.isValid()) {
             auto const contentColour = getContentColour();
             if (arrDrawMode == Points) {
-                nvgFillColor(nvg, nvgRGBA(contentColour.getRed(), contentColour.getGreen(), contentColour.getBlue(), contentColour.getAlpha()));
+                nanovg::nvgFillColor(nvg, nanovg::nvgRGBA(contentColour.getRed(), contentColour.getGreen(), contentColour.getBlue(), contentColour.getAlpha()));
                 cachedPath.fill();
             } else {
-                nvgStrokeColor(nvg, nvgRGBA(contentColour.getRed(), contentColour.getGreen(), contentColour.getBlue(), contentColour.getAlpha()));
-                nvgStrokeWidth(nvg, getLineWidth());
+                nanovg::nvgStrokeColor(nvg, nanovg::nvgRGBA(contentColour.getRed(), contentColour.getGreen(), contentColour.getBlue(), contentColour.getAlpha()));
+                nanovg::nvgStrokeWidth(nvg, getLineWidth());
                 cachedPath.stroke();
             }
             return;
@@ -249,13 +249,13 @@ public:
 
             auto const contentColour = getContentColour();
             if (arrDrawMode == Points) {
-                nvgFillColor(nvg, nvgRGBA(contentColour.getRed(), contentColour.getGreen(), contentColour.getBlue(), contentColour.getAlpha()));
-                nvgFill(nvg);
+                nanovg::nvgFillColor(nvg, nanovg::nvgRGBA(contentColour.getRed(), contentColour.getGreen(), contentColour.getBlue(), contentColour.getAlpha()));
+                nanovg::nvgFill(nvg);
                 cachedPath.save(nvg);
             } else {
-                nvgStrokeColor(nvg, nvgRGBA(contentColour.getRed(), contentColour.getGreen(), contentColour.getBlue(), contentColour.getAlpha()));
-                nvgStrokeWidth(nvg, getLineWidth());
-                nvgStroke(nvg);
+                nanovg::nvgStrokeColor(nvg, nanovg::nvgRGBA(contentColour.getRed(), contentColour.getGreen(), contentColour.getBlue(), contentColour.getAlpha()));
+                nanovg::nvgStrokeWidth(nvg, getLineWidth());
+                nanovg::nvgStroke(nvg);
                 cachedPath.save(nvg);
             }
         }
@@ -325,18 +325,18 @@ public:
         if (error) {
             auto const position = getLocalBounds().getCentre();
             auto const errorText = "array " + getUnexpandedName() + " is invalid";
-            nvgFontSize(nvg, 11);
-            nvgFontFace(nvg, "Inter-Regular");
-            nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-            nvgFillColor(nvg, nvgColour(PlugDataColours::canvasTextColour));
-            nvgText(nvg, position.x, position.y, errorText.toRawUTF8(), nullptr);
+            nanovg::nvgFontSize(nvg, 11);
+            nanovg::nvgFontFace(nvg, "Inter-Regular");
+            nanovg::nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+            nanovg::nvgFillColor(nvg, nvgColour(PlugDataColours::canvasTextColour));
+            nanovg::nvgText(nvg, position.x, position.y, errorText.toRawUTF8(), nullptr);
             error = false;
         } else if (visible) {
             paintGraph(nvg);
         }
 
         if (isDraggingFile) {
-            nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), nvgRGBA(0, 0, 0, 0), nvgColour(PlugDataColours::dataColour), Corners::objectCornerRadius);
+            nanovg::nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), nanovg::nvgRGBA(0, 0, 0, 0), nvgColour(PlugDataColours::dataColour), Corners::objectCornerRadius);
         }
     }
 
@@ -1049,7 +1049,8 @@ public:
         addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowHasDropShadow);
         setVisible(true);
 
-        resizer.setAllowHostManagedResize(false);
+        // TODO: JUCE9, fix this
+        //resizer.setAllowHostManagedResize(false);
 
         // Position in centre of screen
         setBounds(Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea.withSizeKeepingCentre(600, 400));
@@ -1246,17 +1247,17 @@ public:
     void render(NVGcontext* nvg) override
     {
         auto const b = getLocalBounds().toFloat();
-        auto const backgroundColour = nvgRGBA(0, 0, 0, 0);
+        auto const backgroundColour = nanovg::nvgRGBA(0, 0, 0, 0);
         auto const selectedOutlineColour = nvgColour(PlugDataColours::objectSelectedOutlineColour);
         auto const outlineColour = nvgColour(PlugDataColours::objectOutlineColour);
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
         for (auto* graph : graphs) {
             graph->render(nvg);
         }
 
-        nvgStrokeColor(nvg, nvgColour(PlugDataColours::guiObjectInternalOutlineColour));
+        nanovg::nvgStrokeColor(nvg, nvgColour(PlugDataColours::guiObjectInternalOutlineColour));
         getTicks()->render(nvg, b);
     }
 
