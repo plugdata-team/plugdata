@@ -117,6 +117,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 {
     keyboardLayout = OSUtils::getKeyboardLayout();
 
+    setCachedComponentImage(new NVGSurface::InvalidationListener(nvgSurface, this));
+
 #if !JUCE_IOS
     // if we are inside a DAW / host set up the border resizer now
     if (!ProjectInfo::isStandalone) {

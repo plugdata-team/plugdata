@@ -141,7 +141,6 @@ private:
 #endif
 
     PluginEditor* editor;
-    InvalidationListener editorPaintTracker;
 
     std::atomic<NVGcontext*> nvg { nullptr };      // async command-recording wrapper (used for all drawing)
     NVGcontext* baseNvg = nullptr;  // real backend context (framebuffers, blit, teardown)

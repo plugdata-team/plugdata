@@ -93,7 +93,7 @@ NVGSurface::NVGSurface(PluginEditor* e)
 #if NANOVG_METAL_IMPLEMENTATION && (JUCE_MAC || JUCE_IOS)
     Thread("NVGSurface Metal Renderer"),
 #endif
-    editor(e), editorPaintTracker(*this, editor)
+    editor(e)
 {
 #ifdef NANOVG_GL_IMPLEMENTATION
     glContext = std::make_unique<OpenGLContext>();
@@ -108,8 +108,6 @@ NVGSurface::NVGSurface(PluginEditor* e)
     glContext->setSwapInterval(0);
     glContext->setContinuousRepainting(false);
 #endif
-
-    editor->setCachedComponentImage(&editorPaintTracker);
 
 #if ENABLE_FPS_COUNT
     frameTimer = std::make_unique<FrameTimer>();

@@ -29,7 +29,7 @@
     auto isInset = win.titleVisibility == NSWindowTitleVisible;
     if(isPopup || isFullscreen || isInset)
         return [self FrameView__closeButtonOrigin];
-    return {15, self.bounds.size.height - 28};
+    return {15, self.bounds.size.height - 26};
 }
 - (CGFloat)FrameView__titlebarHeight {
     auto* win = static_cast<NSWindow*>(self.window);
