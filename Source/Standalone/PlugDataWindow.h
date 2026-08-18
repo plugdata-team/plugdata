@@ -479,7 +479,7 @@ public:
         SettingsFile::getInstance()->setProperty("audio_setup", var());
 
         pluginHolder->createPlugin();
-        setContentOwned(new MainContentComponent(*this, pluginHolder->processor->createEditorIfNeeded()), true);
+        setContentOwned(new MainContentComponent(*this, pluginHolder->processor->createEditorAndMakeActive()), true);
         pluginHolder->startPlaying();
     }
 

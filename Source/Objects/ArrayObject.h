@@ -1049,11 +1049,10 @@ public:
         addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowHasDropShadow);
         setVisible(true);
 
-        // TODO: JUCE9, fix this
-        //resizer.setAllowHostManagedResize(false);
+        resizer.setAllowHostManagedResize(false);
 
         // Position in centre of screen
-        setBounds(Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea.withSizeKeepingCentre(600, 400));
+        setBounds(Desktop::getInstance().getDisplays().getPrimaryDisplay()->userBounds.getSmallestIntegerContainer().withSizeKeepingCentre(600, 400));
 
         addAndMakeVisible(resizer);
         updateGraphs();

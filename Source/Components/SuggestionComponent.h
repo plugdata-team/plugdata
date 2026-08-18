@@ -515,8 +515,7 @@ public:
         : resizer(this, &constrainer)
     {
         resizer.setLookAndFeel(&resizerLookAndFeel);
-        // TODO: check this
-        //resizer.setAllowHostManagedResize(false);
+        resizer.setAllowHostManagedResize(false);
         resizer.addMouseListener(this, true);
 
         detailPanel = std::make_unique<ObjectDetailPanel>();

@@ -724,7 +724,7 @@ Canvas* TabComponent::createNewWindow(Canvas* cnv)
 
     if (SettingsFile::getInstance()->getProperty<bool>("open_patches_in_window")) {
         auto const patchBounds = newCanvas->patch.getBounds() * (SettingsFile::getInstance()->getProperty<float>("default_zoom") / 100.0f);
-        auto const screenBounds = Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea;
+        auto const screenBounds = Desktop::getInstance().getDisplays().getPrimaryDisplay()->userBounds.getSmallestIntegerContainer();
         auto const windowBounds = screenBounds.withSizeKeepingCentre(patchBounds.getWidth() + newEditor->rightSidebar->getWidth() + 30, patchBounds.getHeight() + 94);
         newEditor->getTopLevelComponent()->setBounds(windowBounds);
     }

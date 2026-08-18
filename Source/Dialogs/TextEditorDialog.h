@@ -3006,7 +3006,7 @@ struct TextEditorDialog final : public Component
         setVisible(true);
 
         // Position in centre of screen
-        setBounds((Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea / desktopScale).withSizeKeepingCentre(700, 500));
+        setBounds((Desktop::getInstance().getDisplays().getPrimaryDisplay()->userBounds / desktopScale).withSizeKeepingCentre(700, 500).getSmallestIntegerContainer());
 
         addAndMakeVisible(saveButton);
         addAndMakeVisible(undoButton);
@@ -3063,7 +3063,7 @@ struct TextEditorDialog final : public Component
         addAndMakeVisible(editor);
         addAndMakeVisible(resizer);
         resizer.setAlwaysOnTop(true);
-        //resizer.setAllowHostManagedResize(false);
+        resizer.setAllowHostManagedResize(false);
 
         addChildComponent(searchInput);
         searchInput.setTextToShowWhenEmpty("Type to search", findColour(TextEditor::textColourId).withAlpha(0.5f));
