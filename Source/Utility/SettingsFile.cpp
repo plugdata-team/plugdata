@@ -715,7 +715,7 @@ void SettingsFile::saveSettings()
 
             if (!themesToWrite.isEmpty())
                 properties->setProperty("themes", themesToWrite);
-        } else if (!defaultSettings.at(name).equalsWithSameType(value)) {
+        } else if (defaultSettings.contains(name) && !defaultSettings.at(name).equalsWithSameType(value)) {
             properties->setProperty(name, value);
         }
     }

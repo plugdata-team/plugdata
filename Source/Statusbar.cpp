@@ -20,6 +20,7 @@
 
 #include "Dialogs/OverlayDisplaySettings.h"
 #include "Dialogs/SnapSettings.h"
+#include "Components/TouchSelectionHelper.h"
 
 class StatusbarButtonGroup final : public Component {
 public:
@@ -54,6 +55,128 @@ public:
 
     SmallIconButton mainButton;
     SmallIconButton chevron = SmallIconButton(Icons::ThinDown);
+};
+
+class EditModeButton final : public Component {
+public:
+    enum Mode {
+        Edit = 0,
+        Run,
+        Present
+    };
+
+    // Draws a combined icon + label built as a single AttributedString
+    struct MainButton final : public TextButton {
+        AttributedString attributedText;
+
+        void paint(Graphics& g) override
+        {
+            if (attributedText.getText().isEmpty())
+                return;
+
+            TextLayout layout;
+            layout.createLayout(attributedText, static_cast<float>(getWidth()));
+            auto const yOffset = (getHeight() - layout.getHeight()) * 0.5f;
+            layout.draw(g, Rectangle<float>(0.0f, yOffset, static_cast<float>(getWidth()), layout.getHeight()));
+        }
+    };
+
+    explicit EditModeButton()
+    {
+        mainButton.setClickingTogglesState(false);
+        addAndMakeVisible(mainButton);
+        addAndMakeVisible(chevron);
+        updateText();
+    }
+
+    void resized() override
+    {
+        auto b = getLocalBounds();
+        chevron.setBounds(b.removeFromRight(22));
+        mainButton.setBounds(b);
+    }
+
+    void setMode(Mode const newMode)
+    {
+        if (mode == newMode)
+            return;
+        mode = newMode;
+        updateText();
+    }
+
+    Mode getMode() const { return mode; }
+
+    void setTooltip(String const& tooltip, String const& chevronTooltip)
+    {
+        mainButton.setTooltip(tooltip);
+        chevron.setTooltip(chevronTooltip);
+    }
+
+    void setEnabled(bool const shouldBeEnabled)
+    {
+        Component::setEnabled(shouldBeEnabled);
+        mainButton.setEnabled(shouldBeEnabled);
+        chevron.setEnabled(shouldBeEnabled);
+    }
+
+    void lookAndFeelChanged() override
+    {
+        updateText();
+    }
+
+    void mouseEnter(MouseEvent const& e) override
+    {
+        updateText();
+    }
+
+    void mouseExit(MouseEvent const& e) override
+    {
+        updateText();
+    }
+
+    MainButton mainButton;
+    SmallIconButton chevron = SmallIconButton(Icons::ThinDown);
+
+private:
+    void updateText()
+    {
+        String icon;
+        String text;
+        bool active = false;
+
+        switch (mode) {
+        case Run:
+            icon = Icons::Play;
+            text = "Run";
+            active = true;
+            break;
+        case Present:
+            icon = Icons::Presentation;
+            text = "Present";
+            active = true;
+            break;
+        case Edit:
+        default:
+            icon = Icons::Edit;
+            text = "Edit";
+            active = false;
+            break;
+        }
+
+        // The icon and label share the mode's colour; the chevron keeps the regular colour
+        auto colour = active ? PlugDataColours::toolbarActiveColour : PlugDataColours::toolbarTextColour;
+        if(isMouseOver()) colour = colour.brighter(0.8f);
+
+        AttributedString attr;
+        attr.setJustification(Justification::centredRight);
+        attr.append(icon, Fonts::getIconFont().withHeight(13.0f), colour);
+        attr.append("  " + text, Fonts::getSemiBoldFont().withHeight(14.0f), colour);
+
+        mainButton.attributedText = attr;
+        mainButton.repaint();
+    }
+
+    Mode mode = Edit;
 };
 
 class ZoomLabel final : public Component
@@ -259,8 +382,6 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
     , pd(processor)
     , editor(e)
 {
-    updateCachedRenderingMode();
-
     zoomSelector = std::make_unique<ZoomLabel>(this);
     addAndMakeVisible(*zoomSelector);
 
@@ -295,18 +416,16 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
         OverlayDisplaySettings::show(editor, overlayGroup->chevron.getScreenBounds());
     };
 
-    editModeGroup = std::make_unique<StatusbarButtonGroup>(Icons::Edit);
-    editModeGroup->mainButton.setClickingTogglesState(false);
+    editModeGroup = std::make_unique<EditModeButton>();
     addAndMakeVisible(*editModeGroup);
 
     editModeGroup->mainButton.onClick = [this] {
         if (auto* cnv = editor->getCurrentCanvas()) {
             if (getValue<bool>(cnv->presentationMode)) {
-                editModeGroup->mainButton.setButtonText(Icons::Edit);
                 cnv->presentationMode = false;
             }
             cnv->locked = !getValue<bool>(cnv->locked);
-            editModeGroup->mainButton.setButtonText(getValue<bool>(cnv->locked) ? Icons::Lock : Icons::Edit);
+            editModeGroup->setMode(getValue<bool>(cnv->locked) ? EditModeButton::Run : EditModeButton::Edit);
         }
     };
 
@@ -314,11 +433,11 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
         auto modePicker = std::make_unique<CanvasModePicker>(editor);
         modePicker->updateModeIcon = [this](int mode) {
             if (mode == 2) {
-                editModeGroup->mainButton.setButtonText(Icons::Presentation);
+                editModeGroup->setMode(EditModeButton::Present);
             } else if (mode == 1) {
-                editModeGroup->mainButton.setButtonText(Icons::Lock);
+                editModeGroup->setMode(EditModeButton::Run);
             } else {
-                editModeGroup->mainButton.setButtonText(Icons::Edit);
+                editModeGroup->setMode(EditModeButton::Edit);
             }
         };
         editor->showCalloutBox(std::move(modePicker), editModeGroup->chevron.getScreenBounds());
@@ -330,20 +449,14 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
     overlayGroup->setTooltip("Toggle overlay alt-mode", "Overlay settings");
     editModeGroup->setTooltip("Toggle edit/run mode", "Other canvas modes");
 
+    // Only shown while in touch mode; visibility is driven by showTouchSelectionHelper
+    touchSelectionHelper = std::make_unique<TouchSelectionHelper>(editor);
+    addChildComponent(*touchSelectionHelper);
+
     setSize(getWidth(), statusbarHeight);
 }
 
 Statusbar::~Statusbar() = default;
-
-void Statusbar::updateCachedRenderingMode()
-{
-    bool const shouldUseCachedRendering = SettingsFile::getInstance()->getProperty<bool>("floating_panels");
-    if (cachedRenderingEnabled == shouldUseCachedRendering)
-        return;
-
-    cachedRenderingEnabled = shouldUseCachedRendering;
-    setCachedComponentImage(shouldUseCachedRendering ? new NVGSurface::InvalidationListener(editor->nvgSurface, this) : nullptr);
-}
 
 void Statusbar::handleAsyncUpdate()
 {
@@ -357,47 +470,37 @@ void Statusbar::handleAsyncUpdate()
 void Statusbar::setEditButtonState(bool locked, bool present)
 {
     if (present) {
-        editModeGroup->mainButton.setButtonText(Icons::Presentation);
+        editModeGroup->setMode(EditModeButton::Present);
     } else {
-        editModeGroup->mainButton.setButtonText(locked ? Icons::Lock : Icons::Edit);
+        editModeGroup->setMode(locked ? EditModeButton::Run : EditModeButton::Edit);
     }
+}
+
+void Statusbar::showTouchSelectionHelper(bool const shouldShow)
+{
+    if (shouldShow)
+        touchSelectionHelper->show();
+    else
+        touchSelectionHelper->setVisible(false);
 }
 
 void Statusbar::paint(Graphics& g)
 {
-    if (editor->usesFloatingPanels()) {
-        auto const b = getLocalBounds().reduced(5);
-        StackShadow::drawShadowForRect(g, b.reduced(3.0f), 10, Corners::largeCornerRadius, 0.4f, 1);
-        g.setColour(PlugDataColours::toolbarBackgroundColour);
-        g.fillRoundedRectangle(b.toFloat(), Corners::largeCornerRadius);
-        g.setColour(PlugDataColours::toolbarOutlineColour);
-        g.drawRoundedRectangle(b.toFloat(), Corners::largeCornerRadius, 1.0f);
-    }
-    else {
-        g.setColour(PlugDataColours::toolbarOutlineColour);
-        auto outlineLeft = editor->leftSidebar->isHidden() ? editor->leftSidebar->getRight() - 1.0f : 0.0f;
-        auto outlineRight = editor->rightSidebar->isHidden() ? editor->rightSidebar->getX() + 1.0f : getWidth();
-        g.drawLine(outlineLeft, 0.5f, outlineRight, 0.5f);
-    }
+    g.setColour(PlugDataColours::toolbarOutlineColour);
+    auto outlineLeft = editor->leftSidebar->isHidden() ? editor->leftSidebar->getRight() - 1.0f : 0.0f;
+    auto outlineRight = editor->rightSidebar->isHidden() ? editor->rightSidebar->getX() + 1.0f : getWidth();
+    g.drawLine(outlineLeft, 0.5f, outlineRight, 0.5f);
 
     g.setColour(PlugDataColours::toolbarOutlineColour);
 
-    // Separators between groups
-    auto drawSep = [&](Component const& left) {
-        auto const x = static_cast<float>(left.getRight() + 3);
-        g.drawLine(x, 9.0f, x, getHeight() - 9.0f);
-    };
-
-    drawSep(*zoomSelector);
-    drawSep(*overlayGroup);
+    // Separator
+    auto const x = static_cast<float>(zoomSelector->getRight() + 3);
+    g.drawLine(x, 9.0f, x, getHeight() - 9.0f);
 }
 
 void Statusbar::resized()
 {
-    updateCachedRenderingMode();
-
-    bool const floatingPanels = SettingsFile::getInstance()->getProperty<bool>("floating_panels");
-    auto b = floatingPanels ? getLocalBounds().reduced(6, 0) : getLocalBounds().withTrimmedLeft(6);
+    auto b = getLocalBounds().withTrimmedLeft(6);
     constexpr int spacing = 10;
 
     zoomSelector->setBounds(b.removeFromLeft(55));
@@ -409,5 +512,7 @@ void Statusbar::resized()
     overlayGroup->setBounds(b.removeFromLeft(34));
     b.removeFromLeft(spacing);
 
-    editModeGroup->setBounds(b.removeFromLeft(34));
+    editModeGroup->setBounds(b.removeFromRight(84));
+
+    touchSelectionHelper->setBounds(getLocalBounds().withSizeKeepingCentre(touchSelectionHelper->getIdealWidth(), getHeight()));
 }
