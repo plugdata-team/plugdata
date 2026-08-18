@@ -41,7 +41,7 @@ public:
         g.setColour(findColour(TextButton::buttonColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat(), getHeight() / 2.0f);
 
-        g.setColour(PlugDataColours::levelMeterActiveColour);
+        g.setColour(PlugDataColours::dataColour);
         g.fillRoundedRectangle(getLocalBounds().toFloat().withWidth(levelWidth), getHeight() / 2.0f);
     }
 

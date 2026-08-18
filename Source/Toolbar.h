@@ -163,7 +163,6 @@ public:
 
     void lookAndFeelChanged() override;
     void resized() override;
-    void paint(Graphics& g) override;
 
 private:
     PluginProcessor* pd;

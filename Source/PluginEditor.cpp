@@ -27,7 +27,6 @@
 #include "Canvas.h"
 #include "Connection.h"
 #include "Components/ConnectionMessageDisplay.h"
-#include "Components/ConsoleMessageDisplay.h"
 #include "Dialogs/Dialogs.h"
 #include "Statusbar.h"
 #include "Toolbar.h"
@@ -35,7 +34,6 @@
 #include "Sidebar/Sidebar.h"
 #include "Object.h"
 #include "PluginMode.h"
-#include "Components/TouchSelectionHelper.h"
 #include "NVGSurface.h"
 
 #include "Sidebar/Console.h"
@@ -113,8 +111,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         return true; })
     , tabComponent(this)
     , pluginMode(nullptr)
-    , consoleMessageDisplay(std::make_unique<ConsoleMessageDisplay>(this))
-    , touchSelectionHelper(std::make_unique<TouchSelectionHelper>(this))
     , recentlyOpenedPanelSelector(Icons::Home, "Home")
     , libraryPanelSelector(Icons::ItemGrid, "Library")
 {
@@ -317,16 +313,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     editorIndex = ProjectInfo::isStandalone ? numEditors++ : 0;
 
-    if (SettingsFile::getInstance()->isUsingTouchMode()) {
-        addAndMakeVisible(touchSelectionHelper.get());
-    }
-    touchSelectionHelper->setAlwaysOnTop(true);
-
     statusbar->setAlwaysOnTop(true);
     addAndMakeVisible(statusbar.get());
-
-    consoleMessageDisplay->setAlwaysOnTop(true);
-    addChildComponent(consoleMessageDisplay.get());
 
     audioToolbar = std::make_unique<AudioToolbar>(pd, this);
     audioToolbar->setAlwaysOnTop(true);
@@ -509,13 +497,6 @@ void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> const area)
             welcomePanel->render(nvg);
         } else {
             tabComponent.renderArea(nvg, area);
-
-            Graphics g(*getNanoLLGC());
-            if (consoleMessageDisplay->isVisible()) {
-                NVGScopedState scopedState(nvg);
-                nvgTranslate(nvg, consoleMessageDisplay->getX() - nvgSurface.getX(), consoleMessageDisplay->getY() - nvgSurface.getY());
-                consoleMessageDisplay->paintEntireComponent(g, false);
-            }
         }
     }
 
@@ -627,7 +608,6 @@ void PluginEditor::resized()
     nvgSurface.setRoundedBottomCorners(welcomePanel->isVisible(), welcomePanel->isVisible());
 #endif
 
-    bool const touchMode = SettingsFile::getInstance()->isUsingTouchMode();
     auto const leftHasSelectors = leftSidebar && leftSidebar->isVisible() && leftSidebar->hasAnyPanel();
     auto const rightHasSelectors = rightSidebar && rightSidebar->isVisible() && rightSidebar->hasAnyPanel();
     auto const leftExpanded = leftHasSelectors && !leftSidebar->isHidden();
@@ -637,8 +617,6 @@ void PluginEditor::resized()
     bounds.removeFromTop(toolbarHeight);
 
     {
-        auto statusbarBounds = bounds.removeFromBottom(welcomePanel->isVisible() ? 0 : Statusbar::statusbarHeight);
-
         if (leftHasSelectors) {
             if (leftExpanded) {
                 leftSidebar->setBounds(bounds.removeFromLeft(leftSidebar->getWidth()));
@@ -656,10 +634,7 @@ void PluginEditor::resized()
             }
         }
 
-        if (touchMode)
-            touchSelectionHelper->setBounds(statusbarBounds.withSizeKeepingCentre(208, Statusbar::statusbarHeight));
-        statusbar->setBounds(statusbarBounds);
-        consoleMessageDisplay->setBounds(statusbarBounds.removeFromRight(consoleMessageDisplay->getDesiredWidth() + 2).translated(-8, 0));
+        statusbar->setBounds(bounds.removeFromBottom(Statusbar::statusbarHeight));
     }
 
     nvgSurface.updateBounds(welcomePanel->isVisible() ? bounds.withTrimmedTop(6) : bounds.withTrimmedTop(31));
@@ -1010,8 +985,6 @@ void PluginEditor::updateConsole(SmallString const& message, bool messageIsWarni
 {
     if (auto* s = getSidebarForPanel(Sidebar::ConsolePanel)) {
         s->updateConsole(numMessages, newWarning);
-        if (s->isHidden())
-            consoleMessageDisplay->showMessage(message, messageIsWarning);
     }
 }
 
@@ -1053,11 +1026,7 @@ void PluginEditor::valueChanged(Value& v)
 void PluginEditor::settingsChanged(String const& name, var const& value)
 {
     if (name == "touch_mode") {
-        if (static_cast<bool>(value)) {
-            addChildComponent(touchSelectionHelper.get());
-        } else {
-            removeChildComponent(touchSelectionHelper.get());
-        }
+        // The statusbar owns the touch selection helper; refresh its visibility
         triggerAsyncUpdate();
         resized();
     }
@@ -1082,6 +1051,8 @@ void PluginEditor::handleAsyncUpdate()
 {
     tabComponent.repaint(); // So tab dirty titles can be reflected
 
+    bool const touchMode = SettingsFile::getInstance()->isUsingTouchMode();
+
     if (auto const* cnv = getCurrentCanvas()) {
         bool locked = getValue<bool>(cnv->locked);
         bool const commandLocked = getValue<bool>(cnv->commandLocked);
@@ -1105,22 +1076,13 @@ void PluginEditor::handleAsyncUpdate()
         commandManager.commandStatusChanged();
         addObjectMenuButton.setEnabled(true);
 
-        if (touchSelectionHelper) {
-            if (!locked) {
-                touchSelectionHelper->show();
-            } else {
-                touchSelectionHelper->setVisible(false);
-            }
-        }
+        statusbar->showTouchSelectionHelper(touchMode && !locked);
     } else {
         undoButton.setEnabled(false);
         redoButton.setEnabled(false);
         addObjectMenuButton.setEnabled(false);
-        if (touchSelectionHelper)
-            touchSelectionHelper->setVisible(false);
+        statusbar->showTouchSelectionHelper(false);
     }
-    if (touchSelectionHelper)
-        touchSelectionHelper->repaint();
 }
 
 void PluginEditor::updateSelection(Canvas* cnv)

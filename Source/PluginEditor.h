@@ -34,11 +34,9 @@ class TabComponent;
 class PluginProcessor;
 class Autosave;
 class PluginMode;
-class TouchSelectionHelper;
 class WelcomePanel;
 class CalloutArea;
 class NVGGraphicsContext;
-class ConsoleMessageDisplay;
 class Console;
 class DocumentationBrowser;
 class AutomationPanel;
@@ -199,11 +197,8 @@ private:
 
 public:
     std::unique_ptr<PluginMode> pluginMode;
-    std::unique_ptr<ConsoleMessageDisplay> consoleMessageDisplay;
 
 private:
-    std::unique_ptr<TouchSelectionHelper> touchSelectionHelper;
-
     // Used by standalone to handle dragging the window
     WindowDragger windowDragger;
 

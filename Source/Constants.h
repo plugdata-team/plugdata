@@ -321,10 +321,6 @@ enum PlugDataColour {
     sidebarTextColourId,
     sidebarActiveBackgroundColourId,
 
-    levelMeterActiveColourId,
-    levelMeterBackgroundColourId,
-    levelMeterThumbColourId,
-
     panelBackgroundColourId,
     panelForegroundColourId,
     panelTextColourId,

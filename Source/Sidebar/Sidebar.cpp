@@ -307,10 +307,12 @@ void Sidebar::paint(Graphics& g)
         g.fillRoundedRectangle(0.0f, 30.0f, getWidth(), getHeight() - 30.0f, Corners::windowCornerRadius);
         
         g.setColour(PlugDataColours::toolbarOutlineColour);
+
+        auto lineBottom = static_cast<float>(sidebarHidden ? getHeight() - 30 : getHeight());
         if (side == Side::Right)
-            g.drawLine(0.5f, 30.5f, 0.5f, static_cast<float>(getHeight()));
+            g.drawVerticalLine(0.5f, 30.5f, lineBottom);
         else
-            g.drawLine(getWidth() - 0.5f, 30.5f, getWidth() - 0.5f, static_cast<float>(getHeight()));
+            g.drawVerticalLine(getWidth() - 0.5f, 30.5f, lineBottom);
         return;
     }
 
@@ -318,8 +320,8 @@ void Sidebar::paint(Graphics& g)
         return;
 
     g.setColour(PlugDataColours::sidebarBackgroundColour);
-    g.fillRect(0, 30, getWidth(), getHeight() - 42);
-    g.fillRoundedRectangle(0.0f, 30.0f, getWidth(), getHeight() - 30.0f, Corners::windowCornerRadius);
+    g.fillRect(0, 30, getWidth(), getHeight());
+    g.fillRoundedRectangle(0.0f, 30.0f, getWidth(), getHeight(), Corners::windowCornerRadius);
 
     String panelName = hasCurrentPanel && currentPanel < panelDisplayNames.size()
         ? panelDisplayNames[currentPanel]
@@ -361,7 +363,7 @@ void Sidebar::paintOverChildren(Graphics& g)
 int Sidebar::getCommandInputHeight()
 {
     return commandInputPtr && commandInputPtr->isVisible() && commandInputPtr->getParentComponent() == this
-        ? commandInputPtr->getHeight() + 16
+        ? commandInputPtr->getHeight()
         : 0;
 }
 
@@ -378,9 +380,6 @@ void Sidebar::resized()
         ? bounds.removeFromRight(34).reduced(2, 0)
         : bounds.removeFromLeft(34).reduced(2, 0);
 
-    // All panel selectors sit at the top of the column, except the Inspector,
-    // which is pinned to the very bottom. Start below the 30px title row so the
-    // selectors don't overlap the sidebar's title.
     auto topBounds = buttonColumn.withTrimmedTop(34);
     for (auto const& entry : panelTable) {
         if (!entry.button || entry.id == InspectorPanel)
@@ -390,8 +389,9 @@ void Sidebar::resized()
     }
 
     if (auto* inspectorButton = getSelectorButton(InspectorPanel)) {
-        auto bottomBounds = buttonColumn.withTrimmedBottom(4);
-        inspectorButton->setBounds(bottomBounds.removeFromBottom(30));
+        auto bottomBounds = buttonColumn.withTrimmedBottom(34);
+        auto commandInputOffset = commandInputPtr ? commandInputPtr->getInputHeight() : 30;
+        inspectorButton->setBounds(bottomBounds.removeFromBottom(commandInputOffset));
     }
 
     auto extraButtonBounds = side == Side::Right ? Rectangle<int>(0, 0, 30, 30) : Rectangle<int>(getWidth() - 30, 0, 30, 30);
@@ -401,18 +401,13 @@ void Sidebar::resized()
     if (resetInspectorButton)
         resetInspectorButton->setBounds(extraButtonBounds);
 
+    bounds.removeFromTop(30);
+
     if (commandInputPtr && commandInputPtr->isVisible()
         && commandInputPtr->getParentComponent() == this) {
         auto commandInputHeight = getCommandInputHeight();
-        commandInputPtr->setBounds(getLocalBounds()
-                .removeFromBottom(commandInputHeight)
-                .reduced(8)
-                .withTrimmedLeft(side == Side::Left ? 30 : 0)
-                .withTrimmedRight(side == Side::Right ? 30 : 0));
-        bounds.removeFromBottom(commandInputHeight);
+        commandInputPtr->setBounds(bounds.removeFromBottom(commandInputHeight).getUnion(buttonColumn.removeFromBottom(commandInputHeight)));
     }
-
-    bounds.removeFromTop(30);
 
     if (inspectorPtr && inspectorPtr->getParentComponent() == this && inspectorPtr->isVisible())
         inspectorPtr->setBounds(bounds);
@@ -551,16 +546,16 @@ bool Sidebar::refreshInspectorVisibility(bool const allowManualShow)
 
 void Sidebar::updateCommandInputVisibility()
 {
-    auto const wantsCmd = (currentPanel == ConsolePanel) || (hasPanel(ConsolePanel) && inspectorAutoShow && currentPanel == InspectorPanel);
+    auto const wantsCmd = hasPanel(InspectorPanel);
+
     if (commandInputPtr) {
-        if (wantsCmd && hasPanel(currentPanel)) {
+        if (wantsCmd) {
             if (commandInputPtr->getParentComponent() != this) {
                 if (commandInputPtr->getParentComponent())
                     commandInputPtr->getParentComponent()->removeChildComponent(commandInputPtr);
                 addAndMakeVisible(commandInputPtr);
-            } else {
-                commandInputPtr->setVisible(true);
             }
+            commandInputPtr->setVisible(!sidebarHidden);
         } else if (commandInputPtr->getParentComponent() == this) {
             commandInputPtr->setVisible(false);
         }
@@ -581,6 +576,7 @@ void Sidebar::showPanel(SidePanel const panelToShow)
             inspectorPtr->setVisible(false);
         inspectorManuallyShown = false;
         showSidebar(false);
+        updateCommandInputVisibility();
         return;
     }
 

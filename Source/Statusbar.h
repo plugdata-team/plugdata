@@ -17,6 +17,7 @@ class LatencyDisplayButton;
 class ZoomLabel;
 class StatusbarButtonGroup;
 class EditModeButton;
+class TouchSelectionHelper;
 
 class Statusbar;
 
@@ -31,6 +32,9 @@ public:
     void updateZoomLevel() { triggerAsyncUpdate(); }
 
     void setEditButtonState(bool locked, bool present = false);
+
+    // Shows/hides the touch selection helper in the centre of the statusbar
+    void showTouchSelectionHelper(bool shouldShow);
 
     static constexpr int statusbarHeight = 30;
     float currentZoomLevel = 100.0f;
@@ -49,6 +53,7 @@ private:
     std::unique_ptr<StatusbarButtonGroup> gridGroup;
     std::unique_ptr<StatusbarButtonGroup> overlayGroup;
     std::unique_ptr<EditModeButton> editModeGroup;
+    std::unique_ptr<TouchSelectionHelper> touchSelectionHelper;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Statusbar)
 };

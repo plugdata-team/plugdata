@@ -20,6 +20,7 @@
 
 #include "Dialogs/OverlayDisplaySettings.h"
 #include "Dialogs/SnapSettings.h"
+#include "Components/TouchSelectionHelper.h"
 
 class StatusbarButtonGroup final : public Component {
 public:
@@ -93,7 +94,6 @@ public:
         auto b = getLocalBounds();
         chevron.setBounds(b.removeFromRight(22));
         mainButton.setBounds(b);
-
     }
 
     void setMode(Mode const newMode)
@@ -449,6 +449,10 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
     overlayGroup->setTooltip("Toggle overlay alt-mode", "Overlay settings");
     editModeGroup->setTooltip("Toggle edit/run mode", "Other canvas modes");
 
+    // Only shown while in touch mode; visibility is driven by showTouchSelectionHelper
+    touchSelectionHelper = std::make_unique<TouchSelectionHelper>(editor);
+    addChildComponent(*touchSelectionHelper);
+
     setSize(getWidth(), statusbarHeight);
 }
 
@@ -472,6 +476,14 @@ void Statusbar::setEditButtonState(bool locked, bool present)
     }
 }
 
+void Statusbar::showTouchSelectionHelper(bool const shouldShow)
+{
+    if (shouldShow)
+        touchSelectionHelper->show();
+    else
+        touchSelectionHelper->setVisible(false);
+}
+
 void Statusbar::paint(Graphics& g)
 {
     g.setColour(PlugDataColours::toolbarOutlineColour);
@@ -481,13 +493,9 @@ void Statusbar::paint(Graphics& g)
 
     g.setColour(PlugDataColours::toolbarOutlineColour);
 
-    // Separators between groups
-    auto drawSep = [&](Component const& left) {
-        auto const x = static_cast<float>(left.getRight() + 3);
-        g.drawLine(x, 9.0f, x, getHeight() - 9.0f);
-    };
-
-    drawSep(*zoomSelector);
+    // Separator
+    auto const x = static_cast<float>(zoomSelector->getRight() + 3);
+    g.drawLine(x, 9.0f, x, getHeight() - 9.0f);
 }
 
 void Statusbar::resized()
@@ -504,6 +512,7 @@ void Statusbar::resized()
     overlayGroup->setBounds(b.removeFromLeft(34));
     b.removeFromLeft(spacing);
 
-    auto editButtonPos = editor->getRightSidebar() ? editor->getRightSidebar()->getWidth() : 0;
-    editModeGroup->setBounds(b.removeFromRight(84).translated(-editButtonPos, 0));
+    editModeGroup->setBounds(b.removeFromRight(84));
+
+    touchSelectionHelper->setBounds(getLocalBounds().withSizeKeepingCentre(touchSelectionHelper->getIdealWidth(), getHeight()));
 }
