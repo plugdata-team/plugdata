@@ -262,8 +262,8 @@ public:
 
         iemHelper.update();
 
-        backgroundColour = nvgColour(Colour::fromString(iemHelper.secondaryColour.toString()));
-        slider.setTrackColour(Colour::fromString(iemHelper.primaryColour.toString()));
+        backgroundColour = nvgColour(::getValue<Colour>(iemHelper.secondaryColour));
+        slider.setTrackColour(::getValue<Colour>(iemHelper.primaryColour));
         repaint();
     }
 
@@ -365,8 +365,8 @@ public:
         }
         case hash("color"): {
             iemHelper.receiveObjectMessage(symbol, atoms);
-            backgroundColour = nvgColour(Colour::fromString(iemHelper.secondaryColour.toString()));
-            slider.setTrackColour(Colour::fromString(iemHelper.primaryColour.toString()));
+            backgroundColour = nvgColour(::getValue<Colour>(iemHelper.secondaryColour));
+            slider.setTrackColour(::getValue<Colour>(iemHelper.primaryColour));
             object->repaint();
             break;
         }

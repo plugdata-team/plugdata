@@ -25,7 +25,7 @@ public:
         object->setColour(PlugDataColour::outlineColourId, Colours::transparentBlack);
 
         iemHelper.iemColourChangedCallback = [this] {
-            bgColour = Colour::fromString(iemHelper.secondaryColour.toString());
+            bgColour = getValue<Colour>(iemHelper.secondaryColour);
             bgCol = nvgColour(bgColour);
             selectionAreaCol = nvgColour(bgColour.contrasting(0.75f));
         };

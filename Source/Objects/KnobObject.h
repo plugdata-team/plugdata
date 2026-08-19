@@ -569,10 +569,10 @@ public:
             showArc = knb->x_arc;
             exponential = knb->x_exp;
             logMode = knb->x_expmode + 1;
-            primaryColour = getForegroundColour().toString();
-            secondaryColour = getBackgroundColour().toString();
+            primaryColour = colourToVar(getForegroundColour());
+            secondaryColour = colourToVar(getBackgroundColour());
             transparent = knb->x_transparent;
-            arcColour = getArcColour().toString();
+            arcColour = colourToVar(getArcColour());
             square = knb->x_square;
             sizeProperty = knb->x_size;
             arcStart = knb->x_arcstart;
@@ -747,20 +747,20 @@ public:
             break;
         }
         case hash("fgcolor"): {
-            primaryColour = getForegroundColour().toString();
+            primaryColour = colourToVar(getForegroundColour());
             break;
         }
         case hash("bgcolor"): {
-            secondaryColour = getBackgroundColour().toString();
+            secondaryColour = colourToVar(getBackgroundColour());
             break;
         }
         case hash("colors"): {
-            primaryColour = getForegroundColour().toString();
-            secondaryColour = getBackgroundColour().toString();
+            primaryColour = colourToVar(getForegroundColour());
+            secondaryColour = colourToVar(getBackgroundColour());
             break;
         }
         case hash("arccolor"): {
-            arcColour = getArcColour().toString();
+            arcColour = colourToVar(getArcColour());
             break;
         }
         case hash("init"): {
@@ -1148,7 +1148,7 @@ public:
 
     void updateColours()
     {
-        bgCol = nvgColour(Colour::fromString(secondaryColour.toString()));
+        bgCol = nvgColour(::getValue<Colour>(secondaryColour));
         repaint();
     }
 
@@ -1249,13 +1249,13 @@ public:
             sendMessage("receive", { pd::Atom(pd->generateSymbol(receiveSymbol.toString())) });
             object->updateIolets();
         } else if (value.refersToSameSourceAs(primaryColour)) {
-            auto const colour = "#" + primaryColour.toString().substring(2);
+            auto const colour = "#" + ::getValue<Colour>(primaryColour).toString().substring(2);
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_fg = pd->generateSymbol(colour);
-            knob.setFgColour(Colour::fromString(primaryColour.toString()));
+            knob.setFgColour(::getValue<Colour>(primaryColour));
             updateColours();
         } else if (value.refersToSameSourceAs(secondaryColour)) {
-            auto const colour = "#" + secondaryColour.toString().substring(2);
+            auto const colour = "#" + ::getValue<Colour>(secondaryColour).toString().substring(2);
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_bg = pd->generateSymbol(colour);
             updateColours();
@@ -1266,10 +1266,10 @@ public:
             updateArcStart();
             repaint();
         } else if (value.refersToSameSourceAs(arcColour)) {
-            auto const colour = "#" + arcColour.toString().substring(2);
+            auto const colour = "#" + ::getValue<Colour>(arcColour).toString().substring(2);
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_mg = pd->generateSymbol(colour);
-            knob.setArcColour(Colour::fromString(arcColour.toString()));
+            knob.setArcColour(::getValue<Colour>(arcColour));
             repaint();
         } else if (value.refersToSameSourceAs(readOnly)) {
             if (auto knb = ptr.get<t_fake_knob>())

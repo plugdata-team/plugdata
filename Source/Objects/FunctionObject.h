@@ -37,8 +37,8 @@ public:
     void update() override
     {
         if (auto function = ptr.get<t_fake_function>()) {
-            secondaryColour = colourFromHexArray(function->x_bgcolor).toString();
-            primaryColour = colourFromHexArray(function->x_fgcolor).toString();
+            secondaryColour = colourToVar(colourFromHexArray(function->x_bgcolor));
+            primaryColour = colourToVar(colourFromHexArray(function->x_fgcolor));
             sizeProperty = VarArray { var(function->x_width), var(function->x_height) };
             initialise = function->x_init;
 
@@ -106,9 +106,9 @@ public:
         bool const editing = cnv->locked == var(true) || cnv->presentationMode == var(true) || ModifierKeys::getCurrentModifiers().isCtrlDown();
 
         auto const b = getLocalBounds().toFloat();
-        auto const backgroundColour = nvgColour(Colour::fromString(secondaryColour.toString()));
+        auto const backgroundColour = nvgColour(getValue<Colour>(secondaryColour));
 
-        auto const foregroundColour = nvgColour(Colour::fromString(primaryColour.toString()));
+        auto const foregroundColour = nvgColour(getValue<Colour>(primaryColour));
         auto const selectedOutlineColour = nvgColour(PlugDataColours::objectSelectedOutlineColour);
         auto const outlineColour = nvgColour(PlugDataColours::objectOutlineColour);
 
@@ -403,10 +403,10 @@ public:
 
                 object->updateBounds();
             } else if (v.refersToSameSourceAs(primaryColour)) {
-                colourToHexArray(Colour::fromString(primaryColour.toString()), function->x_fgcolor);
+                colourToHexArray(getValue<Colour>(primaryColour), function->x_fgcolor);
                 repaint();
             } else if (v.refersToSameSourceAs(secondaryColour)) {
-                colourToHexArray(Colour::fromString(secondaryColour.toString()), function->x_bgcolor);
+                colourToHexArray(getValue<Colour>(secondaryColour), function->x_bgcolor);
                 repaint();
             } else if (v.refersToSameSourceAs(sendSymbol)) {
                 auto const symbol = sendSymbol.toString();

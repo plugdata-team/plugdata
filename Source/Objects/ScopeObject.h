@@ -63,9 +63,9 @@ public:
             bufferSize = scope->x_bufsize;
             delay = scope->x_delay;
             samplesPerPoint = scope->x_period;
-            secondaryColour = colourFromHexArray(scope->x_bg).toString();
-            primaryColour = colourFromHexArray(scope->x_fg).toString();
-            gridColour = colourFromHexArray(scope->x_gg).toString();
+            secondaryColour = colourToVar(colourFromHexArray(scope->x_bg));
+            primaryColour = colourToVar(colourFromHexArray(scope->x_fg));
+            gridColour = colourToVar(colourFromHexArray(scope->x_gg));
             sizeProperty = VarArray { var(scope->x_width), var(scope->x_height) };
 
             auto rcvSym = scope->x_rcv_set ? String::fromUTF8(scope->x_rcv_raw->s_name) : getBinbufSymbol(22);
@@ -125,13 +125,13 @@ public:
 
         auto const outlineColour = nvgColour(object->isSelected() ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
 
-        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgColour(Colour::fromString(secondaryColour.toString())), outlineColour, Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgColour(getValue<Colour>(secondaryColour)), outlineColour, Corners::objectCornerRadius);
 
         auto const dx = getWidth() * 0.125f;
         auto const dy = getHeight() * 0.25f;
 
         nanovg::nvgBeginPath(nvg);
-        nanovg::nvgStrokeColor(nvg, nvgColour(Colour::fromString(gridColour.toString())));
+        nanovg::nvgStrokeColor(nvg, nvgColour(getValue<Colour>(gridColour)));
         nanovg::nvgStrokeWidth(nvg, 1.0f);
 
         auto xx = dx;
@@ -154,7 +154,7 @@ public:
         nanovg::nvgIntersectScissor(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight());
         if (!(y_buffer.empty() || x_buffer.empty())) {
             nanovg::nvgBeginPath(nvg);
-            nanovg::nvgStrokeColor(nvg, nvgColour(Colour::fromString(primaryColour.toString())));
+            nanovg::nvgStrokeColor(nvg, nvgColour(getValue<Colour>(primaryColour)));
             nanovg::nvgStrokeWidth(nvg, 2.0f);
             nanovg::nvgLineJoin(nvg, NVG_ROUND);
             nanovg::nvgLineCap(nvg, NVG_ROUND);
@@ -266,13 +266,13 @@ public:
             object->updateBounds();
         } else if (v.refersToSameSourceAs(primaryColour)) {
             if (auto scope = ptr.get<t_fake_scope>())
-                colourToHexArray(Colour::fromString(primaryColour.toString()), scope->x_fg);
+                colourToHexArray(getValue<Colour>(primaryColour), scope->x_fg);
         } else if (v.refersToSameSourceAs(secondaryColour)) {
             if (auto scope = ptr.get<t_fake_scope>())
-                colourToHexArray(Colour::fromString(secondaryColour.toString()), scope->x_bg);
+                colourToHexArray(getValue<Colour>(secondaryColour), scope->x_bg);
         } else if (v.refersToSameSourceAs(gridColour)) {
             if (auto scope = ptr.get<t_fake_scope>())
-                colourToHexArray(Colour::fromString(gridColour.toString()), scope->x_gg);
+                colourToHexArray(getValue<Colour>(gridColour), scope->x_gg);
         } else if (v.refersToSameSourceAs(bufferSize)) {
             bufferSize = std::clamp<int>(getValue<int>(bufferSize), 0, SCOPE_MAXBUFSIZE * 4);
 
@@ -318,17 +318,17 @@ public:
         }
         case hash("fgcolor"): {
             if (atoms.size() == 3)
-                setParameterExcludingListener(primaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
+                setParameterExcludingListener(primaryColour, colourToVar(Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat())));
             break;
         }
         case hash("bgcolor"): {
             if (atoms.size() == 3)
-                setParameterExcludingListener(secondaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
+                setParameterExcludingListener(secondaryColour, colourToVar(Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat())));
             break;
         }
         case hash("gridcolor"): {
             if (atoms.size() == 3)
-                setParameterExcludingListener(gridColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
+                setParameterExcludingListener(gridColour, colourToVar(Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat())));
             break;
         }
         default:

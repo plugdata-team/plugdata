@@ -51,16 +51,16 @@ public:
 
     void updateColours()
     {
-        bgCol = nvgColour(Colour::fromString(secondaryColour.toString()));
-        fgCol = nvgColour(Colour::fromString(primaryColour.toString()));
+        bgCol = nvgColour(getValue<Colour>(secondaryColour));
+        fgCol = nvgColour(getValue<Colour>(primaryColour));
         repaint();
     }
 
     void update() override
     {
         if (auto button = ptr.get<t_fake_button>()) {
-            primaryColour = String::fromUTF8(button->x_fg->s_name).replace("#", "ff");
-            secondaryColour = String::fromUTF8(button->x_bg->s_name).replace("#", "ff");
+            primaryColour = colourToVar(Colour::fromString(String::fromUTF8(button->x_fg->s_name).replace("#", "ff")));
+            secondaryColour = colourToVar(Colour::fromString(String::fromUTF8(button->x_bg->s_name).replace("#", "ff")));
             transparent = button->x_transparent;
             sizeProperty = VarArray(button->x_w, button->x_h);
             readOnly = button->x_readonly;
@@ -317,12 +317,12 @@ public:
             object->updateBounds();
         } else if (value.refersToSameSourceAs(primaryColour)) {
             if (auto button = ptr.get<t_fake_button>()) {
-                button->x_fg = pd->generateSymbol("#" + primaryColour.toString().substring(2));
+                button->x_fg = pd->generateSymbol("#" + getValue<Colour>(primaryColour).toString().substring(2));
             }
             updateColours();
         } else if (value.refersToSameSourceAs(secondaryColour)) {
             if (auto button = ptr.get<t_fake_button>()) {
-                button->x_bg = pd->generateSymbol("#" + secondaryColour.toString().substring(2));
+                button->x_bg = pd->generateSymbol("#" + getValue<Colour>(secondaryColour).toString().substring(2));
             }
             updateColours();
         }
@@ -345,14 +345,14 @@ public:
         switch (symbol) {
         case hash("bgcolor"): {
             if (atoms.size() >= 3) {
-                setParameterExcludingListener(secondaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
+                setParameterExcludingListener(secondaryColour, colourToVar(Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat())));
                 updateColours();
             }
             break;
         }
         case hash("fgcolor"): {
             if (atoms.size() >= 3) {
-                setParameterExcludingListener(primaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
+                setParameterExcludingListener(primaryColour, colourToVar(Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat())));
                 updateColours();
             }
             break;

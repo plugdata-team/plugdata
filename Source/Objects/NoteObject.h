@@ -129,7 +129,7 @@ public:
     void render(NVGcontext* nvg) override
     {
         if (getValue<bool>(fillBackground) || getValue<bool>(outline)) {
-            auto const fillColour = getValue<bool>(fillBackground) ? nvgColour(Colour::fromString(secondaryColour.toString())) : nanovg::nvgRGBA(0, 0, 0, 0);
+            auto const fillColour = getValue<bool>(fillBackground) ? nvgColour(getValue<Colour>(secondaryColour)) : nanovg::nvgRGBA(0, 0, 0, 0);
             auto outlineColour = nanovg::nvgRGBA(0, 0, 0, 0);
             if (getValue<bool>(outline)) {
                 bool const selected = object->isSelected() && !cnv->isGraph;
@@ -157,8 +157,8 @@ public:
     {
         if (auto note = ptr.get<t_fake_note>()) {
             currentNoteText = getNote();
-            primaryColour = Colour(note->x_red, note->x_green, note->x_blue).toString();
-            secondaryColour = Colour(note->x_bg[0], note->x_bg[1], note->x_bg[2]).toString();
+            primaryColour = colourToVar(Colour(note->x_red, note->x_green, note->x_blue));
+            secondaryColour = colourToVar(Colour(note->x_bg[0], note->x_bg[1], note->x_bg[2]));
             fontSize = note->x_fontsize;
 
             bold = note->x_bold;
@@ -191,7 +191,7 @@ public:
         noteEditor.setIndents(0, 2);
         noteEditor.setFont(newFont);
         noteEditor.setText(currentNoteText);
-        noteEditor.applyColourToAllText(Colour::fromString(primaryColour.toString()));
+        noteEditor.applyColourToAllText(getValue<Colour>(primaryColour));
         noteEditor.repaint();
 
         auto const justificationType = getValue<int>(justification);
@@ -358,7 +358,7 @@ public:
 
             object->updateBounds();
         } else if (v.refersToSameSourceAs(primaryColour)) {
-            auto const colour = Colour::fromString(primaryColour.toString());
+            auto const colour = getValue<Colour>(primaryColour);
             noteEditor.applyColourToAllText(colour);
             if (auto note = ptr.get<t_fake_note>())
                 colourToHexArray(colour, &note->x_red);
@@ -366,7 +366,7 @@ public:
             repaint();
         } else if (v.refersToSameSourceAs(secondaryColour)) {
             if (auto note = ptr.get<t_fake_note>())
-                colourToHexArray(Colour::fromString(secondaryColour.toString()), note->x_bg);
+                colourToHexArray(getValue<Colour>(secondaryColour), note->x_bg);
             needsRepaint = true;
             repaint();
         } else if (v.refersToSameSourceAs(fontSize)) {
@@ -513,13 +513,13 @@ public:
         }
         case hash("color"): {
             if (auto note = ptr.get<t_fake_note>()) {
-                primaryColour = Colour(note->x_red, note->x_green, note->x_blue).toString();
+                primaryColour = colourToVar(Colour(note->x_red, note->x_green, note->x_blue));
             }
             break;
         }
         case hash("bgcolor"): {
             if (auto note = ptr.get<t_fake_note>()) {
-                secondaryColour = Colour(note->x_bg[0], note->x_bg[1], note->x_bg[2]).toString();
+                secondaryColour = colourToVar(Colour(note->x_bg[0], note->x_bg[1], note->x_bg[2]));
             }
             break;
         }

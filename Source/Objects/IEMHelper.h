@@ -28,16 +28,16 @@ public:
     void update()
     {
         bool colourHasChanged = false;
-        if (auto const col = getForegroundColour().toString(); col != primaryColour) {
-            primaryColour = col;
+        if (auto const col = getForegroundColour(); col != getValue<Colour>(primaryColour)) {
+            primaryColour = colourToVar(col);
             colourHasChanged = true;
         }
-        if (auto const col = getBackgroundColour().toString(); col != secondaryColour) {
-            secondaryColour = col;
+        if (auto const col = getBackgroundColour(); col != getValue<Colour>(secondaryColour)) {
+            secondaryColour = colourToVar(col);
             colourHasChanged = true;
         }
         // we only need the callback that colourHasChanged will trigger for the object ATM.
-        labelColour = getLabelColour().toString();
+        labelColour = colourToVar(getLabelColour());
 
         if (auto iemgui = ptr.get<t_iemgui>()) {
             labelPosition = VarArray { var(iemgui->x_ldx), var(iemgui->x_ldy) };
@@ -83,7 +83,7 @@ public:
         auto setColour = [this](Value& targetValue, pd::Atom const& atom) {
             if (atom.isSymbol()) {
                 auto const colour = "#FF" + atom.toString().fromFirstOccurrenceOf("#", false, false);
-                gui->setParameterExcludingListener(targetValue, colour);
+                gui->setParameterExcludingListener(targetValue, colourToVar(Colour::fromString(colour)));
             } else {
                 int iemcolor = atom.getFloat();
 
@@ -98,7 +98,7 @@ public:
                     iemcolor = (-1 - iemcolor) & 0xffffff;
 
                 auto const colour = convertFromIEMColour(iemcolor);
-                gui->setParameterExcludingListener(targetValue, colour.toString());
+                gui->setParameterExcludingListener(targetValue, colourToVar(colour));
             }
         };
         switch (symbol) {
@@ -180,17 +180,17 @@ public:
             setReceiveSymbol(receiveSymbol.toString());
             object->updateIolets();
         } else if (v.refersToSameSourceAs(primaryColour)) {
-            auto const colour = Colour::fromString(primaryColour.toString());
+            auto const colour = getValue<Colour>(primaryColour);
             setForegroundColour(colour);
             iemColourChangedCallback();
             gui->repaint();
         } else if (v.refersToSameSourceAs(secondaryColour)) {
-            auto const colour = Colour::fromString(secondaryColour.toString());
+            auto const colour = getValue<Colour>(secondaryColour);
             setBackgroundColour(colour);
             iemColourChangedCallback();
             gui->repaint();
         } else if (v.refersToSameSourceAs(labelColour)) {
-            setLabelColour(Colour::fromString(labelColour.toString()));
+            setLabelColour(getValue<Colour>(labelColour));
             gui->updateLabel();
         } else if (v.refersToSameSourceAs(labelPosition)) {
             setLabelPosition({ labelPosition.getValue().getArray()->getReference(0), labelPosition.getValue().getArray()->getReference(1) });

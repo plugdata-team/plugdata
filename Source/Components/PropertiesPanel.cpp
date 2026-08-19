@@ -428,7 +428,7 @@ PropertiesPanel::InspectorColourComponent::InspectorColourComponent(String const
         editor->setBorder(BorderSize<int>(0, 0, 4, 1));
         editor->setJustification(Justification::centred);
         editor->setInputRestrictions(allowAlpha ? 9 : 7, "#0123456789ABCDEFabcdef");
-        editor->applyColourToAllText(Colour::fromString(currentColour.toString()).contrasting(0.95f));
+        editor->applyColourToAllText(getValue<Colour>(currentColour).contrasting(0.95f));
     };
 
     hexValueEditor.onEditorHide = [this] {
@@ -437,7 +437,7 @@ PropertiesPanel::InspectorColourComponent::InspectorColourComponent(String const
         } else {
             colour = String("ff") + hexValueEditor.getText().substring(1).toLowerCase();
         }
-        currentColour.setValue(colour);
+        currentColour.setValue(colourToVar(Colour::fromString(colour.toString())));
     };
 
     hexValueEditor.onTextChange = [this] {
@@ -467,8 +467,8 @@ PropertiesPanelProperty* PropertiesPanel::InspectorColourComponent::createCopy()
 
 void PropertiesPanel::InspectorColourComponent::updateHexValue()
 {
-    hexValueEditor.setColour(Label::textColourId, Colour::fromString(currentColour.toString()).contrasting(0.95f));
-    hexValueEditor.setText(String("#") + currentColour.toString().substring(2).toUpperCase(), dontSendNotification);
+    hexValueEditor.setColour(Label::textColourId, getValue<Colour>(currentColour).contrasting(0.95f));
+    hexValueEditor.setText(String("#") + getValue<Colour>(currentColour).toString().substring(2).toUpperCase(), dontSendNotification);
 }
 
 void PropertiesPanel::InspectorColourComponent::resized()
@@ -483,7 +483,7 @@ void PropertiesPanel::InspectorColourComponent::resized()
 
 void PropertiesPanel::InspectorColourComponent::paint(Graphics& g)
 {
-    auto const colour = Colour::fromString(currentColour.toString());
+    auto const colour = getValue<Colour>(currentColour);
     auto const hoverColour = isMouseOver ? colour.brighter(0.4f) : colour;
 
     auto swatchBounds = getLocalBounds().removeFromRight(getWidth() / 2).toFloat().reduced(4.5f);
@@ -520,11 +520,11 @@ void PropertiesPanel::InspectorColourComponent::mouseDown(MouseEvent const& e)
     if (e.x > getWidth() - 28) {
         auto const pickerBounds = getScreenBounds().withTrimmedLeft(getWidth() / 2).expanded(5);
 
-        ColourPicker::getInstance()->show(findParentComponentOfClass<PluginEditor>(), getTopLevelComponent(), false, Colour::fromString(currentColour.toString()), pickerBounds, [_this = SafePointer(this)](Colour const c) {
+        ColourPicker::getInstance()->show(findParentComponentOfClass<PluginEditor>(), getTopLevelComponent(), false, getValue<Colour>(currentColour), pickerBounds, [_this = SafePointer(this)](Colour const c) {
             if (!_this)
                 return;
 
-            _this->currentColour = c.toString();
+            _this->currentColour = colourToVar(c);
             _this->repaint();
         });
     } else {
@@ -556,7 +556,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto const colour = Colour::fromString(colourValue.toString());
+        auto const colour = getValue<Colour>(colourValue);
 
         g.setColour(isMouseOver() ? colour.brighter(0.4f) : colour);
         g.fillEllipse(getLocalBounds().reduced(1).toFloat());
@@ -577,11 +577,11 @@ public:
     void mouseDown(MouseEvent const& e) override
     {
         auto const pickerBounds = getScreenBounds().expanded(5);
-        ColourPicker::getInstance()->show(findParentComponentOfClass<PluginEditor>(), getTopLevelComponent(), false, Colour::fromString(colourValue.toString()), pickerBounds, [_this = SafePointer(this)](Colour const c) {
+        ColourPicker::getInstance()->show(findParentComponentOfClass<PluginEditor>(), getTopLevelComponent(), false, getValue<Colour>(colourValue), pickerBounds, [_this = SafePointer(this)](Colour const c) {
             if (!_this)
                 return;
 
-            _this->colourValue = c.toString();
+            _this->colourValue = colourToVar(c);
             _this->repaint();
         });
     }
@@ -614,7 +614,7 @@ PropertiesPanel::ColourComponent::ColourComponent(String const& propertyName, Va
     };
 
     hexValueEditor.onFocusLost = [this] {
-        currentColour.setValue(colour);
+        currentColour.setValue(colourToVar(Colour::fromString(colour.toString())));
     };
 
     addAndMakeVisible(*swatchComponent);
@@ -643,7 +643,7 @@ PropertiesPanelProperty* PropertiesPanel::ColourComponent::createCopy()
 
 void PropertiesPanel::ColourComponent::updateHexValue()
 {
-    hexValueEditor.setText(String("#") + currentColour.toString().substring(2).toUpperCase());
+    hexValueEditor.setText(String("#") + getValue<Colour>(currentColour).toString().substring(2).toUpperCase());
 }
 
 void PropertiesPanel::ColourComponent::resized()

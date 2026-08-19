@@ -93,7 +93,7 @@ public:
         updateLabel();
 
         iemHelper.iemColourChangedCallback = [this] {
-            bgCol = nvgColour(Colour::fromString(iemHelper.secondaryColour.toString()));
+            bgCol = nvgColour(getValue<Colour>(iemHelper.secondaryColour));
         };
     }
 

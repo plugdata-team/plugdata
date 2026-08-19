@@ -59,8 +59,8 @@ public:
 
     void updateColours()
     {
-        bgCol = nvgColour(Colour::fromString(secondaryColour.toString()));
-        fgCol = nvgColour(Colour::fromString(primaryColour.toString()));
+        bgCol = nvgColour(getValue<Colour>(secondaryColour));
+        fgCol = nvgColour(getValue<Colour>(primaryColour));
         repaint();
     }
 
@@ -130,8 +130,8 @@ public:
             for (int i = 0; i < menu->x_n_items; i++) // Loop for menu items
                 items.add(String::fromUTF8(menu->x_items[i]->s_name));
 
-            primaryColour = convertTclColour(String::fromUTF8(menu->x_fg->s_name)).toString();
-            secondaryColour = convertTclColour(String::fromUTF8(menu->x_bg->s_name)).toString();
+            primaryColour = colourToVar(convertTclColour(String::fromUTF8(menu->x_fg->s_name)));
+            secondaryColour = colourToVar(convertTclColour(String::fromUTF8(menu->x_bg->s_name)));
             sizeProperty = VarArray(menu->x_width, menu->x_height);
             savestate = menu->x_savestate;
             loadbang = menu->x_lb;
@@ -258,12 +258,12 @@ public:
             sendMessage("receive", { pd->generateSymbol(sendSymbol.toString()) });
             object->updateIolets();
         } else if (value.refersToSameSourceAs(primaryColour)) {
-            auto const colour = "#" + primaryColour.toString().substring(2);
+            auto const colour = "#" + getValue<Colour>(primaryColour).toString().substring(2);
             if (auto menu = ptr.get<t_fake_menu>())
                 menu->x_fg = pd->generateSymbol(colour);
             updateColours();
         } else if (value.refersToSameSourceAs(secondaryColour)) {
-            auto const colour = "#" + secondaryColour.toString().substring(2);
+            auto const colour = "#" + getValue<Colour>(secondaryColour).toString().substring(2);
             if (auto menu = ptr.get<t_fake_menu>())
                 menu->x_bg = pd->generateSymbol(colour);
             updateColours();
@@ -348,13 +348,13 @@ public:
         }
         case hash("fg"): {
             if (atoms.size() >= 1 && atoms[0].isSymbol()) {
-                primaryColour = convertTclColour(atoms[0].toString()).toString();
+                primaryColour = colourToVar(convertTclColour(atoms[0].toString()));
             }
             break;
         }
         case hash("bg"): {
             if (atoms.size() >= 1 && atoms[0].isSymbol()) {
-                secondaryColour = convertTclColour(atoms[0].toString()).toString();
+                secondaryColour = colourToVar(convertTclColour(atoms[0].toString()));
             }
             break;
         }
