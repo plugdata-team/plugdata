@@ -323,6 +323,45 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     audioToolbar->setAlwaysOnTop(true);
     addAndMakeVisible(audioToolbar.get());
 
+#if JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD
+    if (ProjectInfo::isStandalone) {
+        standaloneWindowMinimiseButton.reset(getLookAndFeel().createDocumentWindowButton(DocumentWindow::minimiseButton));
+        standaloneWindowMaximiseButton.reset(getLookAndFeel().createDocumentWindowButton(DocumentWindow::maximiseButton));
+        standaloneWindowCloseButton.reset(getLookAndFeel().createDocumentWindowButton(DocumentWindow::closeButton));
+
+        if (standaloneWindowMinimiseButton) {
+            standaloneWindowMinimiseButton->onClick = [this] {
+                if (auto* window = findParentComponentOfClass<PlugDataWindow>())
+                    window->minimiseButtonPressed();
+            };
+        }
+
+        if (standaloneWindowMaximiseButton) {
+            standaloneWindowMaximiseButton->onClick = [this] {
+                if (auto* window = findParentComponentOfClass<PlugDataWindow>())
+                    window->maximiseButtonPressed();
+            };
+        }
+
+        if (standaloneWindowCloseButton) {
+            standaloneWindowCloseButton->addShortcut(KeyPress(KeyPress::F4Key, ModifierKeys::altModifier, 0));
+            standaloneWindowCloseButton->onClick = [this] {
+                if (auto* window = findParentComponentOfClass<PlugDataWindow>())
+                    window->closeButtonPressed();
+            };
+        }
+
+        for (auto* button : { standaloneWindowMinimiseButton.get(), standaloneWindowMaximiseButton.get(), standaloneWindowCloseButton.get() }) {
+            if (button) {
+                button->setAlwaysOnTop(true);
+                button->setWantsKeyboardFocus(false);
+                button->setVisible(false);
+                addChildComponent(button);
+            }
+        }
+    }
+#endif
+
     for (auto* button : SmallArray<MainToolbarButton*> {
              &mainMenuButton,
              &undoButton,
@@ -432,6 +471,41 @@ void PluginEditor::setUseBorderResizer(bool const shouldUse)
             borderResizer->setVisible(false);
         }
     }
+}
+
+void PluginEditor::setStandaloneWindowControlsEnabled(bool const shouldBeEnabled)
+{
+    standaloneWindowControlsEnabled = shouldBeEnabled;
+    updateStandaloneWindowControls();
+}
+
+void PluginEditor::updateStandaloneWindowControls()
+{
+#if JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD
+    auto* window = ProjectInfo::isStandalone ? dynamic_cast<PlugDataWindow*>(getTopLevelComponent()) : nullptr;
+    auto const visible = window && !window->useNativeTitlebar() && !isInPluginMode();
+    auto const enabled = visible && standaloneWindowControlsEnabled && window->isActiveWindow();
+
+    for (auto* button : { standaloneWindowMinimiseButton.get(), standaloneWindowMaximiseButton.get(), standaloneWindowCloseButton.get() }) {
+        if (button) {
+            button->setVisible(visible);
+            button->setEnabled(enabled);
+
+            if (visible)
+                button->toFront(false);
+        }
+    }
+
+    if (standaloneWindowMaximiseButton && window)
+        standaloneWindowMaximiseButton->setToggleState(window->isMaximised(), dontSendNotification);
+
+    if (visible) {
+        auto const titleBarArea = Rectangle<int>(0, 7, getWidth() - 6, 23);
+        getLookAndFeel().positionDocumentWindowButtons(*window, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), standaloneWindowMinimiseButton.get(), standaloneWindowMaximiseButton.get(), standaloneWindowCloseButton.get(), false);
+    }
+#else
+    ignoreUnused(standaloneWindowControlsEnabled);
+#endif
 }
 
 void PluginEditor::paint(Graphics& g)
@@ -608,11 +682,13 @@ void PluginEditor::resized()
         nvgSurface.setRoundedBottomCorners(true, true);
 #endif
         nvgSurface.updateBounds(getLocalBounds());
+        updateStandaloneWindowControls();
         return;
     }
 
 #if JUCE_LINUX || JUCE_BSD
-    nvgSurface.setRoundedBottomCorners(welcomePanel->isVisible(), welcomePanel->isVisible());
+    // TODO: we can hardcode this now
+    nvgSurface.setRoundedBottomCorners(wantsRoundedCorners(), wantsRoundedCorners());
 #endif
 
     auto const leftHasSelectors = leftSidebar && leftSidebar->isVisible() && leftSidebar->hasAnyPanel();
@@ -695,6 +771,7 @@ void PluginEditor::resized()
     welcomePanelSearchButton.setBounds(sidebarToggleButton.getX() - buttonSize - 2, 0, buttonSize, buttonSize);
 
     welcomePanelSearchInput.setBounds(libraryPanelSelector.getRight() + 10, 4, welcomePanelSearchButton.getX() - libraryPanelSelector.getRight() - 20, toolbarHeight - 4);
+    updateStandaloneWindowControls();
     repaint(); // Some outlines are dependent on whether or not the sidebars are expanded, or whether or not a patch is opened
 }
 
@@ -716,10 +793,10 @@ void PluginEditor::parentSizeChanged()
     if (!ProjectInfo::isStandalone)
         return;
 
+#if JUCE_MAC
     auto* standalone = dynamic_cast<PlugDataWindow*>(getTopLevelComponent());
     // Hide TitleBar Buttons in Plugin Mode
     bool visible = !isInPluginMode();
-#if JUCE_MAC
     if (!standalone->useNativeTitlebar() && !visible && !standalone->isFullScreen()) {
         // Hide TitleBar Buttons in Plugin Mode if using native title bar
         if (ComponentPeer* peer = standalone->getPeer())
@@ -730,12 +807,7 @@ void PluginEditor::parentSizeChanged()
             OSUtils::hideTitlebarButtons(peer, false, false, false);
     }
 #else
-    if (!standalone->useNativeTitlebar()) {
-        // Hide/Show TitleBar Buttons in Plugin Mode
-        standalone->getCloseButton()->setVisible(visible);
-        standalone->getMinimiseButton()->setVisible(visible);
-        standalone->getMaximiseButton()->setVisible(visible);
-    }
+    updateStandaloneWindowControls();
 #endif
 
     resized();

@@ -353,6 +353,9 @@ public:
         , editor(pluginEditor)
     {
         setTitleBarHeight(0);
+#if JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD
+        setTitleBarButtonsRequired(0, false);
+#endif
         pluginHolder = ProjectInfo::getStandalonePluginHolder();
 
         drawWindowShadow = Desktop::canUseSemiTransparentWindows();
@@ -550,23 +553,27 @@ public:
     void maximiseButtonPressed() override
     {
 #if JUCE_LINUX || JUCE_BSD
-        if (auto* b = getMaximiseButton()) {
-            if (auto* peer = getPeer()) {
-                bool shouldBeMaximised = !isMaximised();
-                setPendingLinuxMaximisedState(shouldBeMaximised);
+        if (auto* peer = getPeer()) {
+            bool shouldBeMaximised = !isMaximised();
+            setPendingLinuxMaximisedState(shouldBeMaximised);
+
+            if (auto* b = getMaximiseButton())
                 b->setToggleState(shouldBeMaximised, dontSendNotification);
 
-                if (!useNativeTitlebar()) {
-                    OSUtils::maximiseLinuxWindow(peer, shouldBeMaximised);
-                }
-            } else {
-                b->setToggleState(false, dontSendNotification);
+            if (!useNativeTitlebar()) {
+                OSUtils::maximiseLinuxWindow(peer, shouldBeMaximised);
             }
+        } else {
+            if (auto* b = getMaximiseButton())
+                b->setToggleState(false, dontSendNotification);
         }
 #else
         setFullScreen(!isFullScreen());
         parentHierarchyChanged();
 #endif
+        if (auto* pluginEditor = dynamic_cast<PluginEditor*>(editor))
+            pluginEditor->updateStandaloneWindowControls();
+
         resized();
     }
 
@@ -609,6 +616,9 @@ public:
                 pluginEditor->nvgSurface.invalidateAll();
         }
 #endif
+        if (auto* pluginEditor = dynamic_cast<PluginEditor*>(editor))
+            pluginEditor->updateStandaloneWindowControls();
+
         repaint();
     }
 
@@ -636,6 +646,15 @@ public:
 
 #if !JUCE_IOS
         getLookAndFeel().positionDocumentWindowButtons(*this, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), getMinimiseButton(), getMaximiseButton(), getCloseButton(), false);
+#endif
+
+#if JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD
+        for (auto* button : { getMinimiseButton(), getMaximiseButton(), getCloseButton() })
+            if (button)
+                button->setVisible(false);
+
+        if (auto* pluginEditor = dynamic_cast<PluginEditor*>(editor))
+            pluginEditor->updateStandaloneWindowControls();
 #endif
 
         if (auto* content = getContentComponent()) {
@@ -667,6 +686,9 @@ private:
 
             if (auto* b = _this->getMaximiseButton())
                 b->setToggleState(_this->isMaximised(), dontSendNotification);
+
+            if (auto* pluginEditor = dynamic_cast<PluginEditor*>(_this->editor))
+                pluginEditor->updateStandaloneWindowControls();
 
             _this->resized();
             _this->repaint();

@@ -159,6 +159,9 @@ public:
     {
         if (v.refersToSameSourceAs(nativeTitlebar)) {
             // Make sure titlebar buttons are greyed out because a dialog is still showing
+            if (auto* pluginEditor = dynamic_cast<PluginEditor*>(editor))
+                pluginEditor->setStandaloneWindowControlsEnabled(false);
+
             if (auto const* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent())) {
                 if (auto* closeButton = window->getCloseButton())
                     closeButton->setEnabled(false);
