@@ -95,7 +95,6 @@ Sidebar::Sidebar(Side sideIn, PluginProcessor* instance, PluginEditor* parent,
     , commandInputPtr(cmdInput)
 {
     inspectorAutoShow = SettingsFile::getInstance()->getProperty<bool>("inspector_auto_show");
-    updater.addAnimator(animator);
     rebuildPanelTable();
     resized();
 }
@@ -722,8 +721,6 @@ void Sidebar::showSidebar(bool const show)
         return;
 
     sidebarHidden = !show;
-    sidebarSelectorTarget = show ? 0.0f : 5.0f;
-    animator.start();
 
     SettingsFile::getInstance()->setProperty(side == Side::Right ? "right_sidebar_hidden" : "left_sidebar_hidden", !show);
 
