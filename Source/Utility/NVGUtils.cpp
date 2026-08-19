@@ -150,7 +150,8 @@ void NVGImage::renderJUCEComponent(NVGcontext* nvg, Component& component, float 
     nanovg::nvgScale(nvg, 1.0f / scale, 1.0f / scale);
 
     Point<float> offset;
-    nanovg::nvgTransformGetSubpixelOffset(nvg, &offset.x, &offset.y);
+    // TODO: fix this
+    //nanovg::nvgTransformGetSubpixelOffset(nvg, &offset.x, &offset.y);
 
     auto w = roundToInt(scale * static_cast<float>(component.getWidth()));
     auto h = roundToInt(scale * static_cast<float>(component.getHeight()));

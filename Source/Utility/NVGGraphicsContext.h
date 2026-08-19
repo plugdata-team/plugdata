@@ -79,7 +79,7 @@ public:
     void removeCachedImages();
 
     NVGcontext* getContext() const { return nvg; }
-    void resetClipRegion();
+    void resetClipRegion(AffineTransform initialTransform = {});
 
     static String const defaultTypefaceName;
     static int const imageCacheSize;
@@ -104,12 +104,14 @@ private:
 
     struct SavedState {
         RectangleList<int> clipRegion;
+        AffineTransform transform;
         float opacity = 1.0f;
         NVGcolor lastColour {};
     };
 
     float opacity = 1.0f;
     NVGcolor lastColour {};
+    AffineTransform currentTransform;
     RectangleList<int> clipRegion;
     std::vector<SavedState> stateStack;
     UnorderedSegmentedMap<uint64, NvgImage> images;

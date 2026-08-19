@@ -610,7 +610,7 @@ void NVGSurface::recordFrame()
         nanovg::nvgScale(asyncNvg, desktopScale, desktopScale);
 
         auto& llgc = editor->getOrCreateNanoLLGC(asyncNvg, lastRenderScale);
-        llgc.resetClipRegion();
+        llgc.resetClipRegion(AffineTransform::scale(desktopScale, desktopScale));
         Graphics g(llgc);
         g.reduceClipRegion(invalidArea);
 

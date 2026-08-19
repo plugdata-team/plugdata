@@ -64,11 +64,14 @@ bool NVGGraphicsContext::isVectorDevice() const { return false; }
 
 void NVGGraphicsContext::setOrigin(Point<int> const origin)
 {
+    currentTransform = AffineTransform::translation(static_cast<float>(origin.getX()), static_cast<float>(origin.getY()))
+                           .followedBy(currentTransform);
     nanovg::nvgTranslate(nvg, origin.getX(), origin.getY());
 }
 
 void NVGGraphicsContext::addTransform(AffineTransform const& t)
 {
+    currentTransform = t.followedBy(currentTransform);
     nanovg::nvgTransform(nvg, t.mat00, t.mat10, t.mat01, t.mat11, t.mat02, t.mat12);
 }
 
@@ -219,7 +222,7 @@ void NVGGraphicsContext::setImageBlendMode(BlendMode newMode)
 
 void NVGGraphicsContext::saveState()
 {
-    stateStack.push_back({ clipRegion, opacity, lastColour });
+    stateStack.push_back({ clipRegion, currentTransform, opacity, lastColour });
     nanovg::nvgSave(nvg);
 }
 
@@ -231,6 +234,7 @@ void NVGGraphicsContext::restoreState()
         auto state = std::move(stateStack.back());
         stateStack.pop_back();
         clipRegion = std::move(state.clipRegion);
+        currentTransform = state.transform;
         opacity = state.opacity;
         lastColour = state.lastColour;
     } else {
@@ -476,13 +480,13 @@ void NVGGraphicsContext::drawGlyphs(Span<uint16_t const> glyphs, Span<Point<floa
         nanovg::nvgSave(nvg);
         nanovg::nvgTransform(nvg, tx.mat00, tx.mat10, tx.mat01, tx.mat11, tx.mat02, tx.mat12);
 
-        float xform[6];
-        nanovg::nvgCurrentTransform(nvg, xform);
+        //float xform[6];
+        //nanovg::nvgCurrentTransform(nvg, xform);
 
         // NOTE: currently, path hashing assumes uniform and non-negative scaling. This is always true for plugdata
         uint64_t pathHash = (uint64_t)font.getTypefacePtr().get();
         pathHash ^= (uint64_t)glyph + 0x9e3779b97f4a7c15ULL + (pathHash << 6) + (pathHash >> 2);
-        pathHash ^= (uint64_t)static_cast<int>(xform[0]) + 0x9e3779b97f4a7c15ULL + (pathHash << 6) + (pathHash >> 2);
+        //pathHash ^= (uint64_t)static_cast<int>(xform[0]) + 0x9e3779b97f4a7c15ULL + (pathHash << 6) + (pathHash >> 2);
 
         // Cache glyphs so that nanovg doesn't have to calculate nonzero winding and path tesselation every single time
         auto cacheHit = pathCache[pathHash].fill();
@@ -507,20 +511,19 @@ void NVGGraphicsContext::removeCachedImages()
     images.clear();
 }
 
-void NVGGraphicsContext::resetClipRegion()
+void NVGGraphicsContext::resetClipRegion(AffineTransform initialTransform)
 {
     clipRegion.clear();
     clipRegion.add(maxClipBounds);
     stateStack.clear();
+    currentTransform = initialTransform;
     opacity = 1.0f;
     lastColour = nanovg::nvgRGBA(0, 0, 0, 255);
 }
 
 AffineTransform NVGGraphicsContext::getCurrentTransform() const
 {
-    float xform[6];
-    nanovg::nvgCurrentTransform(nvg, xform);
-    return { xform[0], xform[2], xform[4], xform[1], xform[3], xform[5] };
+    return currentTransform;
 }
 
 Rectangle<int> NVGGraphicsContext::getTransformedClipBounds(Rectangle<float> const& bounds, AffineTransform const& transform) const

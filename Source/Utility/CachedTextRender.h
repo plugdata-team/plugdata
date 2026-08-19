@@ -124,7 +124,8 @@ public:
 
             nanovg::nvgScale(nvg, 1.0f / scale, 1.0f / scale);
             nanovg::nvgTranslate(nvg, roundToInt(bounds.getX() * scale), roundToInt(bounds.getY() * scale));
-            nanovg::nvgTransformGetSubpixelOffset(nvg, &offset.x, &offset.y);
+            // TODO: fix this
+            //nanovg::nvgTransformGetSubpixelOffset(nvg, &offset.x, &offset.y);
         }
 
         image = NVGImage(nvg, width, height, [this, bounds, scale, offset](Graphics& g) {
