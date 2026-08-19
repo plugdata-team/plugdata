@@ -480,25 +480,28 @@ void NVGGraphicsContext::drawGlyphs(Span<uint16_t const> glyphs, Span<Point<floa
         nanovg::nvgSave(nvg);
         nanovg::nvgTransform(nvg, tx.mat00, tx.mat10, tx.mat01, tx.mat11, tx.mat02, tx.mat12);
 
-        //float xform[6];
-        //nanovg::nvgCurrentTransform(nvg, xform);
-
-        // NOTE: currently, path hashing assumes uniform and non-negative scaling. This is always true for plugdata
         uint64_t pathHash = (uint64_t)font.getTypefacePtr().get();
         pathHash ^= (uint64_t)glyph + 0x9e3779b97f4a7c15ULL + (pathHash << 6) + (pathHash >> 2);
-        //pathHash ^= (uint64_t)static_cast<int>(xform[0]) + 0x9e3779b97f4a7c15ULL + (pathHash << 6) + (pathHash >> 2);
 
-        // Cache glyphs so that nanovg doesn't have to calculate nonzero winding and path tesselation every single time
-        auto cacheHit = pathCache[pathHash].fill();
-        if (!cacheHit) {
+        // SDF text rendering: upload JUCE glyph paths into nanovg and render using SDF (much better than regular nanovg AA)
+        if (!nanovg::nvgSDFGlyphCached(nvg, pathHash)) {
+            constexpr float referenceEmPx = 32.0f;
+
             Path p;
             font.getTypefacePtr()->getOutlineForGlyph(glyph, p);
 
+            nanovg::nvgSave(nvg);
+            nanovg::nvgResetTransform(nvg);
+            nanovg::nvgScale(nvg, referenceEmPx, referenceEmPx);
             setPath(p, AffineTransform());
-            nanovg::nvgFill(nvg);
-            pathCache[pathHash].save(nvg);
+            nanovg::nvgSaveSDFGlyph(nvg, pathHash);
+            nanovg::nvgRestore(nvg);
         }
-        
+
+        // Draw the tile at the glyph transform. On the miss frame the tile was just generated
+        // earlier in this same command buffer, so this still draws it.
+        nanovg::nvgFillSDFGlyph(nvg, pathHash, lastColour);
+
         nanovg::nvgRestore(nvg);
     }
 }

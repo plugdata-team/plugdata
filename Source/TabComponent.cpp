@@ -113,13 +113,9 @@ public:
             g.fillEllipse(content.getX() + 8.0f, content.getCentreY() - dotSize * 0.5f, dotSize, dotSize);
         }
 
-        // Centre the title, reserving equal space each side for the dot and close button
-        auto const textArea = content.reduced(sideReserve, 0);
-        auto const textColour = active ? PlugDataColours::toolbarTextColour : PlugDataColours::toolbarTextColour.withAlpha(0.65f);
-        auto const fadeRight = textArea.getRight();
-        g.setGradientFill(ColourGradient(textColour, fadeRight - 6.0f, textArea.getY(), Colours::transparentBlack, fadeRight, textArea.getY(), false));
+        g.setColour(active ? PlugDataColours::toolbarTextColour : PlugDataColours::toolbarTextColour.withAlpha(0.65f));
         g.setFont(Fonts::getCurrentFont().withHeight(14.0f));
-        g.drawText(cnv->patch.getTitle(), textArea, Justification::centred, false);
+        g.drawText(cnv->patch.getTitle(), content.reduced(sideReserve, 0), Justification::centred, false);
     }
 
     void resized() override
