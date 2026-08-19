@@ -1369,9 +1369,9 @@ Canvas* TabComponent::getCanvasAtScreenPosition(Point<int> const screenPosition)
 TabComponent::VisibleCanvasArray TabComponent::getVisibleCanvases()
 {
     VisibleCanvasArray result;
-    if (auto* split = splits[0].getComponent())
+    if (auto* split = splits[0].get())
         result.add(reinterpret_cast<Canvas*>(split));
-    if (auto* split = splits[1].getComponent())
+    if (auto* split = splits[1].get())
         result.add(reinterpret_cast<Canvas*>(split));
     return result;
 }

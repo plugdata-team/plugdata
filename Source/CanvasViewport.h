@@ -395,10 +395,9 @@ class CanvasViewport : public Component
 
         void lookAndFeelChanged() override
         {
-            auto const scrollbarColour = findColour(ScrollBar::ColourIds::thumbColourId);
-            scrollbarCol = nvgColour(scrollbarColour);
-            activeScrollbarCol = nvgColour(scrollbarColour.interpolatedWith(PlugDataColours::canvasBackgroundColour.contrasting(0.6f), 0.7f));
-            scrollbarBgCol = nvgColour(scrollbarColour.interpolatedWith(PlugDataColours::canvasBackgroundColour, 0.7f));
+            scrollbarCol = nvgColour(PlugDataColours::scrollbarThumbColour);
+            activeScrollbarCol = nvgColour(PlugDataColours::scrollbarThumbColour.interpolatedWith(PlugDataColours::canvasBackgroundColour.contrasting(0.6f), 0.7f));
+            scrollbarBgCol = nvgColour(PlugDataColours::scrollbarThumbColour.interpolatedWith(PlugDataColours::canvasBackgroundColour, 0.7f));
 
             repaint();
         }

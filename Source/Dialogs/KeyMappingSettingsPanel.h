@@ -130,7 +130,7 @@ public:
     }
 
 private:
-    KeyPressMappingSet* mappings;
+    WeakReference<KeyPressMappingSet> mappings;
     PropertiesPanel propertiesPanel;
 
     std::unique_ptr<Dialog> confirmationDialog;

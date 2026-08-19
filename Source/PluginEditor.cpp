@@ -377,7 +377,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     MessageManager::callAsync([_this = SafePointer(this)](){
       if(_this && !_this->pd->findPatchInPluginMode(_this->editorIndex)) {
           if (!SettingsFile::getInstance()->getProperty<bool>("onboarding_completed") || SystemStats::getEnvironmentVariable("PLUGDATA_ONBOARDING", {}).isNotEmpty())
-              Dialogs::showOnboardingDialog(&_this->openedDialog, _this.getComponent());
+              Dialogs::showOnboardingDialog(&_this->openedDialog, _this.get());
       }
     });
 
