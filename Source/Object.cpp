@@ -457,12 +457,12 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
     cnv->pd->updateObjectImplementations();
 }
 
-SmallArray<Rectangle<float>> Object::getCorners() const
+StackArray<Rectangle<float>, 4> Object::getCorners() const
 {
     auto const rect = getLocalBounds().reduced(margin);
     constexpr float offset = 2.0f;
 
-    SmallArray<Rectangle<float>> corners = { Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopLeft().toFloat()).translated(offset, offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomLeft().toFloat()).translated(offset, -offset),
+    StackArray<Rectangle<float>, 4> corners = { Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopLeft().toFloat()).translated(offset, offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomLeft().toFloat()).translated(offset, -offset),
         Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomRight().toFloat()).translated(-offset, -offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopRight().toFloat()).translated(-offset, offset) };
 
     return corners;

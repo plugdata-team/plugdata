@@ -749,6 +749,14 @@ void PlugDataLook::setColours(UnorderedMap<PlugDataColour, Colour>& colours)
 
     getCurrentColourScheme().setUIColour(ColourScheme::UIColour::widgetBackground, colours.at(PlugDataColour::panelBackgroundColourId));
 
+
+    setColour(Slider::backgroundColourId,
+        colours.at(PlugDataColour::panelForegroundColourId));
+    setColour(Slider::trackColourId,
+        colours.at(PlugDataColour::panelActiveBackgroundColourId).contrasting(0.15f));
+    setColour(Slider::thumbColourId,
+        colours.at(PlugDataColour::panelActiveBackgroundColourId).contrasting(0.5f));
+
     setColour(TooltipWindow::backgroundColourId,
         colours.at(PlugDataColour::panelBackgroundColourId));
 

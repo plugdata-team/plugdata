@@ -65,14 +65,38 @@ public:
         Present
     };
 
-    // Draws a combined icon + label built as a single AttributedString
+    // Draws a combined icon + label built as a single AttributedString.
+    // Brightens on hover by itself, so it lights up independently from the chevron (like SmallIconButton)
     struct MainButton final : public TextButton {
-        AttributedString attributedText;
+        String icon;
+        String text;
+        Colour baseColour;
+
+        MainButton()
+        {
+            setRepaintsOnMouseActivity(true);
+        }
+
+        void setContent(String const& newIcon, String const& newText, Colour const& newColour)
+        {
+            icon = newIcon;
+            text = newText;
+            baseColour = newColour;
+            repaint();
+        }
 
         void paint(Graphics& g) override
         {
-            if (attributedText.getText().isEmpty())
+            if (text.isEmpty())
                 return;
+
+            // The icon and label share the mode's colour, and become lighter while the mouse is over this button
+            auto const colour = isMouseOver() ? baseColour.brighter(0.8f) : baseColour;
+
+            AttributedString attributedText;
+            attributedText.setJustification(Justification::centredRight);
+            attributedText.append(icon, Fonts::getIconFont().withHeight(13.0f), colour);
+            attributedText.append("  " + text, Fonts::getSemiBoldFont().withHeight(14.0f), colour);
 
             TextLayout layout;
             layout.createLayout(attributedText, static_cast<float>(getWidth()));
@@ -124,16 +148,6 @@ public:
         updateText();
     }
 
-    void mouseEnter(MouseEvent const& e) override
-    {
-        updateText();
-    }
-
-    void mouseExit(MouseEvent const& e) override
-    {
-        updateText();
-    }
-
     MainButton mainButton;
     SmallIconButton chevron = SmallIconButton(Icons::ThinDown);
 
@@ -163,17 +177,10 @@ private:
             break;
         }
 
-        // The icon and label share the mode's colour; the chevron keeps the regular colour
-        auto colour = active ? PlugDataColours::toolbarActiveColour : PlugDataColours::toolbarTextColour;
-        if(isMouseOver()) colour = colour.brighter(0.8f);
-
-        AttributedString attr;
-        attr.setJustification(Justification::centredRight);
-        attr.append(icon, Fonts::getIconFont().withHeight(13.0f), colour);
-        attr.append("  " + text, Fonts::getSemiBoldFont().withHeight(14.0f), colour);
-
-        mainButton.attributedText = attr;
-        mainButton.repaint();
+        // The icon and label share the mode's colour; the mainButton brightens itself on hover.
+        // The chevron keeps the regular colour and brightens on its own hover (it's a SmallIconButton)
+        auto const colour = active ? PlugDataColours::toolbarActiveColour : PlugDataColours::toolbarTextColour;
+        mainButton.setContent(icon, text, colour);
     }
 
     Mode mode = Edit;

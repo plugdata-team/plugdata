@@ -101,7 +101,7 @@ public:
 
     void triggerOverlayActiveState();
 
-    SmallArray<Rectangle<float>> getCorners() const;
+    StackArray<Rectangle<float>, 4> getCorners() const;
 
     uint16_t numInputs = 0;
     uint16_t numOutputs = 0;

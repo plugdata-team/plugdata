@@ -33,12 +33,11 @@ class ValueTreeNodeComponent final : public Component {
 
         void paint(Graphics& g) override
         {
-            if (!treeLine.isEmpty()) {
-                auto const colour = isHover && !node->isOpenInSearchMode() ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::panelTextColour.withAlpha(0.25f);
+            auto const colour = isHover && !node->isOpenInSearchMode() ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::panelTextColour.withAlpha(0.25f);
 
-                g.reduceClipRegion(treeLineImage, AffineTransform());
-                g.fillAll(colour);
-            }
+            g.setColour(colour);
+            g.drawVerticalLine(4.0f, 0.0f, getHeight() - 3.0f);
+            g.fillEllipse(Rectangle<float>(2.0f, getHeight() - 5.0f, 5.0f, 5.0f));
         }
 
         void mouseEnter(MouseEvent const& e) override
@@ -78,32 +77,9 @@ class ValueTreeNodeComponent final : public Component {
             }
         }
 
-        void resized() override
-        {
-            treeLine.clear();
-
-            if (getParentComponent()->isVisible()) {
-                // create a line to show the current branch
-                auto const b = getLocalBounds();
-                auto const lineEnd = Point<float>(4.0f, b.getHeight() - 3.0f);
-                treeLine.startNewSubPath(4.0f, 0.0f);
-                treeLine.lineTo(lineEnd);
-
-                if (!b.isEmpty()) {
-                    treeLineImage = Image(Image::PixelFormat::ARGB, b.getWidth(), b.getHeight(), true);
-                    Graphics treeLineG(treeLineImage);
-                    treeLineG.setColour(Colours::white);
-                    treeLineG.strokePath(treeLine, PathStrokeType(1.0f));
-                    auto const ballEnd = Rectangle<float>(0, 0, 5, 5).withCentre(lineEnd);
-                    treeLineG.fillEllipse(ballEnd);
-                }
-            }
-        }
 
     private:
         ValueTreeNodeComponent* node;
-        Path treeLine;
-        Image treeLineImage;
         bool isHover = false;
     };
 
