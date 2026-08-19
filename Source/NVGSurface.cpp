@@ -386,10 +386,6 @@ void NVGSurface::renderBackendFrame()
     // Replay the recorded frame: redraws the damaged region into the persistent
     // framebuffer (the rest of it is preserved).
     bool const didRender = nanovg::performRender(asyncNvg);
-#if NANOVG_GL_IMPLEMENTATION
-    if (didRender)
-        glFinish();
-#endif
 
     if (didRender) {
         frameReadyForReplay.store(false);
