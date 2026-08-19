@@ -143,8 +143,7 @@ public:
     {
         NVGScopedState scopedState(nvg);
         nanovg::nvgTranslate(nvg, getX(), getY());
-        Graphics g(*cnv->editor->getNanoLLGC());
-        paintEntireComponent(g, true);
+        cnv->editor->getNanoLLGC()->renderComponent(*this);
     }
 
 private:

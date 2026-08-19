@@ -39,7 +39,6 @@ void canvas_click(t_canvas* x, t_floatarg xpos, t_floatarg ypos, t_floatarg shif
 #include "TabComponent.h"
 #include "Pd/Patch.h"
 #include "Sidebar/Sidebar.h"
-#include "Utility/CachedTextRender.h"
 #include "Utility/CachedStringWidth.h"
 
 #include "Dialogs/Dialogs.h"

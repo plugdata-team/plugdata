@@ -53,8 +53,10 @@ public:
         }
     }
 
-    void renderLabel(NVGcontext* nvg, float const scale) override
+    void renderLabel(NVGGraphicsContext& llgc) override
     {
+        auto* nvg = llgc.getContext();
+
         if (!isVisible())
             return;
 

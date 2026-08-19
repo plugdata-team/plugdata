@@ -50,8 +50,6 @@ public:
 
     bool isValid() const;
 
-    void renderJUCEComponent(NVGcontext* nvg, Component& component, float scale);
-
     void deleteImage();
 
     void loadJUCEImage(NVGcontext* context, Image const& image, int repeatImage = false, int withMipmaps = false);

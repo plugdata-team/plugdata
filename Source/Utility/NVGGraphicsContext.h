@@ -81,6 +81,30 @@ public:
     NVGcontext* getContext() const { return nvg; }
     void resetClipRegion(AffineTransform initialTransform = {});
 
+    // Anchors JUCE drawing to nvg's CURRENT transform/scissor, for use inside a raw-nvg render pass
+    // (e.g. object rendering). JUCE positions glyphs relative to nvg's matrix, but TextLayout/Graphics
+    // cull content against getClipBounds(), which reflects this context's own tracked transform/clip.
+    // During a raw-nvg pass that tracked state is stale (set for the top-level paint), so culling wrongly
+    // drops text depending on scroll/zoom. Scoping a draw with this neutralises the tracked transform and
+    // clip (so nothing is culled) and installs a real nvg scissor for `clipBounds` in the current local
+    // space. Construct it, then draw with a Graphics wrapping this context; state is restored on scope exit.
+    struct ScopedAnchoredDraw {
+        ScopedAnchoredDraw(NVGGraphicsContext& context, Rectangle<float> clipBounds);
+        ~ScopedAnchoredDraw();
+        ScopedAnchoredDraw(ScopedAnchoredDraw const&) = delete;
+        ScopedAnchoredDraw& operator=(ScopedAnchoredDraw const&) = delete;
+
+    private:
+        NVGGraphicsContext& ctx;
+    };
+
+    // Paints a JUCE component through this context, anchored to nvg's current transform (see
+    // ScopedAnchoredDraw). Use this instead of a bare `Graphics g(llgc); c.paintEntireComponent(g)`
+    // during a raw-nvg render pass: component painting culls against getClipBounds(), so without
+    // anchoring the component's text can be dropped depending on scroll/zoom. Draws at nvg's current
+    // origin, clipped to the component's local bounds.
+    void renderComponent(Component& component);
+
     static String const defaultTypefaceName;
     static int const imageCacheSize;
 

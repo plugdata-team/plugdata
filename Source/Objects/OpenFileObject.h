@@ -101,9 +101,32 @@ public:
             colour = colour.withRotatedHue(0.5f);
 
         int const textWidth = getTextSize().getWidth() - 11;
-        if (cachedTextRender.prepareLayout(objText, Fonts::getCurrentFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty), PlugDataLook::getUseSyntaxHighlighting() && isValid)) {
-            repaint();
+
+        // Rebuild only when the inputs change: this is called every frame from render().
+        auto const textHash = hash(objText);
+        if (textHash == layoutTextHash && textWidth == lastTextWidth && static_cast<int32>(colour.getARGB()) == lastColourARGB)
+            return;
+
+        layoutTextHash = textHash;
+        lastTextWidth = textWidth;
+        lastColourARGB = static_cast<int32>(colour.getARGB());
+
+        auto const font = Fonts::getCurrentFont().withHeight(15);
+        bool const highlightObjectSyntax = PlugDataLook::getUseSyntaxHighlighting() && isValid;
+
+        AttributedString attributedText;
+        if (highlightObjectSyntax) {
+            auto const nameColour = colour.interpolatedWith(PlugDataColours::dataColour, 0.7f);
+            attributedText = getSyntaxHighlightedString(objText, font, colour, nameColour);
+        } else {
+            attributedText = AttributedString(objText);
+            attributedText.setColour(colour);
+            attributedText.setFont(font);
         }
+        attributedText.setJustification(Justification::centredLeft);
+        attributedText.setWordWrap(AttributedString::byChar);
+        textLayout.createLayout(attributedText, textWidth);
+        repaint();
     }
 
     String getLinkText() const
@@ -124,11 +147,14 @@ public:
 
         nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgColour(PlugDataColours::textObjectBackgroundColour), nanovg::nvgRGBA(0, 0, 0, 0), Corners::objectCornerRadius);
 
+        auto& llgc = *cnv->editor->getNanoLLGC();
         if (editor && editor->isVisible()) {
-            Graphics g(*cnv->editor->getNanoLLGC());
-            editor->paintEntireComponent(g, true);
+            llgc.renderComponent(*editor);
         } else {
-            cachedTextRender.renderText(nvg, border.subtractedFrom(b).toFloat(), getImageScale());
+            Graphics g(llgc);
+            auto const textBounds = border.subtractedFrom(b).toFloat();
+            NVGGraphicsContext::ScopedAnchoredDraw anchor(llgc, textBounds);
+            textLayout.draw(g, textBounds);
         }
     }
 

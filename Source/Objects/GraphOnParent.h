@@ -68,9 +68,9 @@ public:
         setLabelColour(PlugDataColours::canvasTextColour);
     }
 
-    void renderLabel(NVGcontext* nvg, float const scale) override
+    void renderLabel(NVGGraphicsContext& llgc) override
     {
-        ignoreUnused(scale);
+        auto* nvg = llgc.getContext();
 
         if (!isVisible())
             return;
@@ -182,8 +182,6 @@ class GraphOnParent final : public ObjectBase {
 
     pd::Patch::Ptr subpatch;
     std::unique_ptr<Canvas> canvas;
-
-    CachedTextRender textRenderer;
 
     NVGImage openInGopBackground;
     std::unique_ptr<TextEditor> editor;
@@ -304,10 +302,6 @@ public:
             editor->setBounds(getLocalBounds().removeFromTop(18));
         }
 
-        auto text = getText();
-        if (!getValue<bool>(hideNameAndArgs) && text != "graph" && text.isNotEmpty()) {
-            textRenderer.prepareLayout(getText(), Fonts::getDefaultFont().withHeight(13), PlugDataColours::canvasTextColour, getWidth(), getWidth(), false);
-        }
         updateCanvas();
         updateDrawables();
 
@@ -317,10 +311,6 @@ public:
 
     void lookAndFeelChanged() override
     {
-        auto text = getText();
-        if (!getValue<bool>(hideNameAndArgs) && text != "graph" && text.isNotEmpty()) {
-            textRenderer.prepareLayout(getText(), Fonts::getDefaultFont().withHeight(13), PlugDataColours::canvasTextColour, getWidth(), getWidth(), false);
-        }
     }
 
     void showEditor() override
@@ -494,13 +484,18 @@ public:
     {
         // Strangly, the title goes below the graph content in pd
         if (!getValue<bool>(hideNameAndArgs)) {
+            auto& llgc = *cnv->editor->getNanoLLGC();
             if (editor && editor->isVisible()) {
-                Graphics g(*cnv->editor->getNanoLLGC());
-                editor->paintEntireComponent(g, true);
+                llgc.renderComponent(*editor);
             } else {
                 auto const text = getText();
-                if (!getValue<bool>(hideNameAndArgs) && text != "graph" && text.isNotEmpty()) {
-                    textRenderer.renderText(nvg, Rectangle<float>(5, 1, getWidth() - 5, 16), getImageScale());
+                if (text != "graph" && text.isNotEmpty()) {
+                    Graphics g(llgc);
+                    auto const textBounds = Rectangle<float>(5, 1, getWidth() - 5, 16);
+                    NVGGraphicsContext::ScopedAnchoredDraw anchor(llgc, textBounds);
+                    g.setFont(Fonts::getDefaultFont().withHeight(13));
+                    g.setColour(PlugDataColours::canvasTextColour);
+                    g.drawText(text, textBounds, Justification::centredLeft);
                 }
             }
         }

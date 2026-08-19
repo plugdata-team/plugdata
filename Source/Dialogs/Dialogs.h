@@ -22,6 +22,7 @@ public:
     {
         if (auto* editor = dynamic_cast<PluginEditor*>(parentComponent)) {
             editor->nvgSurface.setRenderThroughImage(false);
+            editor->setStandaloneWindowControlsEnabled(true);
         }
 
         if (auto const* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent())) {

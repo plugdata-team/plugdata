@@ -226,7 +226,7 @@ void NVGSurface::createRenderContext()
     nvg.store(asyncNvg);
 
 #    if JUCE_LINUX || JUCE_BSD
-    nvgluSetCornerRadius(12.0f * calculateRenderScale(), roundedRight, roundedRight);
+    nvgluSetCornerRadius(12.0f * calculateRenderScale(), roundedLeft, roundedRight);
 #    endif
 
     surfaces[asyncNvg] = this;
@@ -606,6 +606,10 @@ void NVGSurface::recordFrame()
         // updating.
         nanovg::bindMainFramebuffer(asyncNvg);
         nanovg::viewport(asyncNvg, 0, 0, fbWidth, fbHeight);
+
+        if (isFullRepaint)
+            nanovg::clear(asyncNvg);
+
         nanovg::nvgBeginFrame(asyncNvg, bounds.getWidth() * desktopScale, bounds.getHeight() * desktopScale, devicePixelScale);
         nanovg::nvgScale(asyncNvg, desktopScale, desktopScale);
 

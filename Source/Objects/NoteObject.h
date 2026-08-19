@@ -34,8 +34,6 @@ class NoteObject final : public ObjectBase
     bool wasSelectedOnMouseDown : 1 = false;
     bool needsRepaint : 1 = false;
 
-    NVGImage imageRenderer;
-
 public:
     NoteObject(pd::WeakReference obj, Object* object)
         : ObjectBase(obj, object)
@@ -138,17 +136,7 @@ public:
             nanovg::nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), fillColour, outlineColour, Corners::objectCornerRadius);
         }
 
-        auto const scale = getImageScale();
-        if (needsRepaint || isEditorShown() || imageRenderer.needsUpdate(roundToInt(getWidth() * scale), roundToInt(getHeight() * scale))) {
-            imageRenderer.renderJUCEComponent(nvg, noteEditor, scale);
-            needsRepaint = false;
-        } else {
-            NVGScopedState state(nvg);
-            nanovg::nvgScale(nvg, 1.0f / scale, 1.0f / scale);
-            auto w = roundToInt(scale * static_cast<float>(noteEditor.getWidth()));
-            auto h = roundToInt(scale * static_cast<float>(noteEditor.getHeight()));
-            imageRenderer.render(nvg, { 0, 0, w, h }, true);
-        }
+        cnv->editor->getNanoLLGC()->renderComponent(noteEditor);
     }
 
     void paint(Graphics& g) override { }

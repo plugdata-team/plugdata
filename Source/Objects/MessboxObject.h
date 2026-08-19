@@ -18,7 +18,6 @@ class MessboxObject final : public ObjectBase
     Value bold = SynchronousValue();
     Value sizeProperty = SynchronousValue();
 
-    NVGImage imageRenderer;
     bool needsRepaint = true;
 
 public:
@@ -128,18 +127,7 @@ public:
         auto const outlineColour = selected ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour;
         nanovg::nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), nvgColour(getValue<Colour>(secondaryColour)), nvgColour(outlineColour), Corners::objectCornerRadius);
 
-        auto const scale = getImageScale();
-
-        if (needsRepaint || isEditorShown() || imageRenderer.needsUpdate(roundToInt(editor.getWidth() * scale), roundToInt(editor.getHeight() * scale))) {
-            imageRenderer.renderJUCEComponent(nvg, editor, scale);
-            needsRepaint = false;
-        } else {
-            NVGScopedState state(nvg);
-            nanovg::nvgScale(nvg, 1.0f / scale, 1.0f / scale);
-            auto w = roundToInt(scale * static_cast<float>(editor.getWidth()));
-            auto h = roundToInt(scale * static_cast<float>(editor.getHeight()));
-            imageRenderer.render(nvg, { 0, 0, w, h }, true);
-        }
+        cnv->editor->getNanoLLGC()->renderComponent(editor);
     }
 
     void paint(Graphics& g) override { }

@@ -319,7 +319,7 @@ void Sidebar::paint(Graphics& g)
         return;
 
     g.setColour(PlugDataColours::sidebarBackgroundColour);
-    g.fillRect(0, 30, getWidth(), getHeight() - 30);
+    g.fillRect(0, 0, getWidth(), getHeight() - 30);
     g.fillRoundedRectangle(0.0f, getHeight() - 50.f, getWidth(), 50.f, Corners::windowCornerRadius);
 
     String panelName = hasCurrentPanel && currentPanel < panelDisplayNames.size()

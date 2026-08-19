@@ -14,7 +14,7 @@
 #include "Utility/SynchronousValue.h"
 #include "NVGSurface.h"
 #include "Utility/NVGUtils.h"
-#include "Utility/CachedTextRender.h"
+#include "Utility/NVGGraphicsContext.h"
 #include "Object.h"
 #include "Canvas.h"
 
@@ -29,11 +29,6 @@ class Object;
 
 class ObjectLabel : public Label
     , public NVGComponent {
-
-    hash32 lastTextHash = 0;
-    NVGImage image;
-    float lastScale = 1.0f;
-    bool updateColour = false;
 
 public:
     explicit ObjectLabel()
@@ -50,34 +45,14 @@ public:
     void setLabelColour(Colour c)
     {
         setColour(Label::textColourId, c);
-        updateColour = true;
         repaint();
     }
 
-    virtual void renderLabel(NVGcontext* nvg, float const scale)
+    // Render the label directly through the nanovg LowLevelGraphicsContext, so its text goes through
+    // the SDF glyph path instead of being rasterised to a cached image.
+    virtual void renderLabel(NVGGraphicsContext& llgc)
     {
-        auto const w = roundToInt(scale * static_cast<float>(getWidth()));
-        auto const h = roundToInt(scale * static_cast<float>(getHeight()));
-
-        auto const textHash = hash(getText());
-        if (image.needsUpdate(w, h) || updateColour || lastTextHash != textHash || lastScale != scale) {
-            updateImage(nvg, scale);
-            lastTextHash = textHash;
-            lastScale = scale;
-            updateColour = false;
-        } else {
-            nanovg::nvgSave(nvg);
-            // Need to invert scale to make it render on a pixel grid correctly
-            nanovg::nvgScale(nvg, 1.0f / scale, 1.0f / scale);
-
-            image.render(nvg, Rectangle<int>(w, h), true);
-            nanovg::nvgRestore(nvg);
-        }
-    }
-    void updateImage(NVGcontext* nvg, float const scale)
-    {
-        // TODO: use single channel image texture
-        image.renderJUCEComponent(nvg, *this, scale);
+        llgc.renderComponent(*this);
     }
 };
 

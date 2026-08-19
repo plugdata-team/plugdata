@@ -154,10 +154,7 @@ public:
             nvgColour(PlugDataColours::guiObjectBackgroundColour), nvgColour(PlugDataColours::guiObjectBackgroundColour), nvgColour(PlugDataColours::guiObjectBackgroundColour),
             Corners::objectCornerRadius, ObjectFlagType::FlagTop, PlugDataLook::getUseFlagOutline());
 
-        {
-            Graphics g(*cnv->editor->getNanoLLGC());
-            input.paintEntireComponent(g, true);
-        }
+        cnv->editor->getNanoLLGC()->renderComponent(input);
 
         bool const highlighted = hasKeyboardFocus(true) && getValue<bool>(object->locked);
         auto const flagCol = highlighted ? nvgColour(PlugDataColours::objectSelectedOutlineColour) : nvgColour(PlugDataColours::guiObjectInternalOutlineColour);

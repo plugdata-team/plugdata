@@ -144,34 +144,6 @@ bool NVGImage::isValid() const
     return subImages.not_empty();
 }
 
-void NVGImage::renderJUCEComponent(NVGcontext* nvg, Component& component, float const scale)
-{
-    nanovg::nvgSave(nvg);
-    nanovg::nvgScale(nvg, 1.0f / scale, 1.0f / scale);
-
-    Point<float> offset;
-    // TODO: fix this
-    //nanovg::nvgTransformGetSubpixelOffset(nvg, &offset.x, &offset.y);
-
-    auto w = roundToInt(scale * static_cast<float>(component.getWidth()));
-    auto h = roundToInt(scale * static_cast<float>(component.getHeight()));
-
-    if (w > 0 && h > 0) {
-        Image componentImage(component.isOpaque() ? Image::RGB : Image::ARGB, w, h, true);
-        {
-            Graphics g(componentImage);
-            g.addTransform(AffineTransform::translation(offset.x, offset.y));
-            g.addTransform(AffineTransform::scale(scale, scale));
-            component.paintEntireComponent(g, true);
-        }
-
-        loadJUCEImage(nvg, componentImage);
-
-        render(nvg, { 0, 0, w, h }, true);
-    }
-    nanovg::nvgRestore(nvg);
-}
-
 void NVGImage::deleteImage()
 {
     if (subImages.size() && nvg) {

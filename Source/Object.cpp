@@ -1213,8 +1213,7 @@ void Object::render(NVGcontext* nvg)
 
     if (newObjectEditor) {
         nanovg::nvgDrawRoundedRect(nvg, 0, 0, b.getWidth(), b.getHeight(), nvgColour(PlugDataColours::textObjectBackgroundColour), nvgColour(isSelected() ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour), Corners::objectCornerRadius);
-        Graphics g(*editor->getNanoLLGC());
-        newObjectEditor->paintEntireComponent(g, true);
+        editor->getNanoLLGC()->renderComponent(*newObjectEditor);
     }
 
     // If autoconnect is about to happen, draw a fake inlet with a dotted outline
@@ -1299,11 +1298,12 @@ void Object::renderIolets(NVGcontext* nvg)
 void Object::renderLabel(NVGcontext* nvg)
 {
     if (gui) {
+        auto& llgc = *cnv->editor->getNanoLLGC();
         for (auto* label : gui->labels) {
             NVGScopedState scopedState(nvg);
             nanovg::nvgTranslate(nvg, label->getX(), label->getY());
             if (label->isVisible()) {
-                label->renderLabel(nvg, gui->getImageScale());
+                label->renderLabel(llgc);
             }
         }
     }

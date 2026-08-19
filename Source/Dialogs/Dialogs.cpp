@@ -80,6 +80,7 @@ Dialog::Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int const c
     }
 
     if (auto* pluginEditor = dynamic_cast<PluginEditor*>(editor)) {
+        pluginEditor->setStandaloneWindowControlsEnabled(false);
         pluginEditor->nvgSurface.setRenderThroughImage(true);
     }
 }

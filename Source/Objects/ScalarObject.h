@@ -352,7 +352,6 @@ class DrawableSymbol final : public DrawableTemplate
 
     t_fake_drawnumber* object;
     GlobalMouseListener mouseListener;
-    CachedTextRender textRenderer;
 
     String typeBuffer;
     float mouseDownValue;
@@ -416,13 +415,17 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-
-        auto const scale = canvas->isZooming ? canvas->editor->getRenderScale() * 2.0f : canvas->editor->getRenderScale() * std::max(1.0f, getValue<float>(canvas->zoomScale));
         auto const bounds = getBoundingBox().getBoundingBox().toNearestInt();
         NVGScopedState scopedState(nvg);
         nanovg::nvgTranslate(nvg, bounds.getX(), bounds.getY());
-        textRenderer.prepareLayout(getText(), getFont(), getColour(), Component::getWidth(), Component::getWidth(), false);
-        textRenderer.renderText(nvg, bounds.withZeroOrigin().toFloat(), scale);
+
+        auto& llgc = *canvas->editor->getNanoLLGC();
+        Graphics g(llgc);
+        auto const textBounds = bounds.withZeroOrigin().toFloat();
+        NVGGraphicsContext::ScopedAnchoredDraw anchor(llgc, textBounds);
+        g.setFont(getFont());
+        g.setColour(getColour());
+        g.drawText(getText(), textBounds, Justification::centredLeft);
     }
 
     void handleMouseDown(MouseEvent const& e)

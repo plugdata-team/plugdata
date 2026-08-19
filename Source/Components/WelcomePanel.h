@@ -6,7 +6,6 @@
 
 #pragma once
 #include "Utility/Autosave.h"
-#include "Utility/CachedTextRender.h"
 #include "Utility/NVGGraphicsContext.h"
 #include "Components/BouncingViewport.h"
 #include "Utility/PatchInfo.h"

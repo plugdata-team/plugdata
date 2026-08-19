@@ -143,7 +143,7 @@ protected:
     std::unique_ptr<TextEditor> editor;
     BorderSize<int> border = BorderSize<int>(1, 6, 1, 1);
 
-    CachedTextRender cachedTextRender;
+    TextLayout layout;
 
     Value sizeProperty = SynchronousValue();
     String objectText;
@@ -227,11 +227,15 @@ public:
             nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nanovg::nvgRGBA(0, 0, 0, 0), outlineCol, Corners::objectCornerRadius);
         }
 
+        auto& llgc = *cnv->editor->getNanoLLGC();
+
         if (editor && editor->isVisible()) {
-            Graphics g(*cnv->editor->getNanoLLGC());
-            editor->paintEntireComponent(g, true);
+            llgc.renderComponent(*editor);
         } else {
-            cachedTextRender.renderText(nvg, border.subtractedFrom(b).toFloat(), getImageScale());
+            Graphics g(llgc);
+            auto const textBounds = getLocalBounds().reduced(6, 0).toFloat();
+            NVGGraphicsContext::ScopedAnchoredDraw anchor(llgc, textBounds);
+            layout.draw(g, textBounds);
         }
     }
 
@@ -289,8 +293,6 @@ public:
             fontWidth = glist_fontwidth(cnv->patch.getRawPointer());
         }
 
-        auto const textSize = cachedTextRender.getTextBounds();
-
         // Calculating string width is expensive, so we cache all the strings that we already calculated the width for
         int const idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 13;
 
@@ -308,7 +310,52 @@ public:
         auto const maxIolets = std::max(object->numInputs, object->numOutputs);
         textWidth = std::max(textWidth, maxIolets * 18);
 
-        return { textWidth, textSize.getHeight() };
+        return { textWidth, static_cast<int>(layout.getHeight()) };
+    }
+
+    // Builds an AttributedString that colours the tokens of a Pd object's text like the editor does
+    // (object name, flags, math-expression arguments). Shared by text-based objects so they can build
+    // their TextLayout directly.
+    static AttributedString getSyntaxHighlightedString(String const& text, Font const& font, Colour const& colour, Colour const& nameColour)
+    {
+        auto attributedText = AttributedString();
+        auto lines = StringArray::fromLines(text);
+
+        auto const flagColour = colour.interpolatedWith(PlugDataColours::signalColour, 0.7f);
+        auto const mathColour = colour.interpolatedWith(Colours::purple, 0.5f);
+
+        bool firstToken = true;
+        bool hadFlag = false;
+        bool mathExpression = false;
+        for (int i = 0; i < lines.size(); i++) {
+            auto& line = lines[i];
+            auto tokens = StringArray::fromTokens(line, true);
+            for (int j = 0; j < tokens.size(); j++) {
+                auto token = tokens[j];
+                if (j != tokens.size() - 1)
+                    token += " ";
+                if (firstToken) {
+                    attributedText.append(token, font, nameColour);
+                    if (token == "expr " || token == "expr~ " || token == "fexpr~ " || token == "op " || token == "op~ ") {
+                        mathExpression = true;
+                    }
+                    firstToken = false;
+                } else if (mathExpression) {
+                    attributedText.append(token, font, mathColour);
+                } else if (token.startsWith("-") && !token.containsOnly("e.-0123456789 ")) {
+                    attributedText.append(token, font, flagColour);
+                    hadFlag = true;
+                } else if (hadFlag) {
+                    attributedText.append(token, font, nameColour);
+                } else {
+                    attributedText.append(token, font, colour);
+                }
+            }
+            if (i != lines.size() - 1)
+                attributedText.append("\n", font, colour);
+        }
+
+        return attributedText;
     }
 
     virtual void updateTextLayout()
@@ -322,10 +369,21 @@ public:
         }
 
         auto const colour = PlugDataColours::canvasTextColour;
-        int const textWidth = getTextSize().getWidth() - 12;
-        if (cachedTextRender.prepareLayout(objText, Fonts::getCurrentFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty), PlugDataLook::getUseSyntaxHighlighting() && isValid)) {
-            repaint();
+        auto const font = Fonts::getCurrentFont().withHeight(15);
+        bool const highlightObjectSyntax = PlugDataLook::getUseSyntaxHighlighting() && isValid;
+
+        AttributedString attributedText;
+        if (highlightObjectSyntax) {
+            auto const nameColour = colour.interpolatedWith(PlugDataColours::dataColour, 0.7f);
+            attributedText = getSyntaxHighlightedString(objText, font, colour, nameColour);
+        } else {
+            attributedText = AttributedString(objText);
+            attributedText.setColour(colour);
+            attributedText.setFont(font);
         }
+        attributedText.setJustification(Justification::centredLeft);
+        attributedText.setWordWrap(AttributedString::byChar);
+        layout.createLayout(attributedText, getTextSize().getWidth() - 12);
     }
 
     void setPdBounds(Rectangle<int> const b) override

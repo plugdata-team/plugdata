@@ -506,6 +506,37 @@ void NVGGraphicsContext::drawGlyphs(Span<uint16_t const> glyphs, Span<Point<floa
     }
 }
 
+NVGGraphicsContext::ScopedAnchoredDraw::ScopedAnchoredDraw(NVGGraphicsContext& context, Rectangle<float> clipBounds)
+    : ctx(context)
+{
+    // Push the tracked state (and nvgSave); restored in the destructor. This keeps the outer paint's
+    // state stack balanced — we only add and remove our own frame.
+    ctx.saveState();
+
+    // Clip pixels to the requested bounds via the nvg scissor (in nvg's current local space), matching
+    // the old image renderer. We use the nvg scissor rather than JUCE's clip so we can safely blank the
+    // tracked clip below without losing the intended clipping.
+    nanovg::nvgIntersectScissor(ctx.nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
+
+    // Neutralise the tracked transform/clip so getClipBounds() reports "everything": JUCE then culls
+    // nothing, and glyphs land correctly because they are drawn relative to nvg's current matrix.
+    ctx.currentTransform = AffineTransform();
+    ctx.clipRegion.clear();
+    ctx.clipRegion.add(maxClipBounds);
+}
+
+NVGGraphicsContext::ScopedAnchoredDraw::~ScopedAnchoredDraw()
+{
+    ctx.restoreState();
+}
+
+void NVGGraphicsContext::renderComponent(Component& component)
+{
+    ScopedAnchoredDraw anchor(*this, component.getLocalBounds().toFloat());
+    Graphics g(*this);
+    component.paintEntireComponent(g, true);
+}
+
 void NVGGraphicsContext::removeCachedImages()
 {
     for (auto it = images.begin(); it != images.end(); ++it)

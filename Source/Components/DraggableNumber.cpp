@@ -452,8 +452,7 @@ void DraggableNumber::render(NVGcontext* nvg, NVGGraphicsContext* llgc)
     nanovg::nvgIntersectScissor(nvg, 0, 0, getWidth(), getHeight());
 
     if (editor) {
-        Graphics g(*llgc);
-        paintEntireComponent(g, true);
+        llgc->renderComponent(*this);
         return;
     }
 
@@ -833,8 +832,7 @@ void DraggableListNumber::render(NVGcontext* nvg, NVGGraphicsContext* llgc)
     nanovg::nvgIntersectScissor(nvg, 0.5f, 0.5f, getWidth() - 1, getHeight() - 1);
 
     if (editor) {
-        Graphics g(*llgc);
-        paintEntireComponent(g, true);
+        llgc->renderComponent(*this);
         return;
     }
 

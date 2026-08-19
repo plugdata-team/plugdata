@@ -21,8 +21,6 @@ class PopMenu final : public ObjectBase {
     Value savestate = SynchronousValue();
     Value loadbang = SynchronousValue();
 
-    CachedTextRender textRenderer;
-
     NVGcolor fgCol;
     NVGcolor bgCol;
 
@@ -198,13 +196,8 @@ public:
 
     void updateTextLayout()
     {
-        auto const text = currentItem >= 0 ? currentText : getValue<String>(labelNoSelection);
-        auto const colour = Colour(fgCol.r, fgCol.g, fgCol.b, fgCol.a);
-        auto const font = Fonts::getCurrentFont().withHeight(getValue<int>(fontSize) * 1.5f);
-
-        if (textRenderer.prepareLayout(text, font, colour, Fonts::getStringWidth(text, font) + 12, getValue<int>(sizeProperty), false)) {
-            repaint();
-        }
+        // The label is drawn directly in render() from the current state, so just trigger a repaint.
+        repaint();
     }
 
     void render(NVGcontext* nvg) override
@@ -215,7 +208,16 @@ public:
 
         auto textBounds = getLocalBounds().reduced(2).translated(2, 0);
         if (!textBounds.isEmpty()) {
-            textRenderer.renderText(nvg, textBounds.toFloat(), getImageScale());
+            auto const text = currentItem >= 0 ? currentText : getValue<String>(labelNoSelection);
+            auto const colour = Colour(fgCol.r, fgCol.g, fgCol.b, fgCol.a);
+            auto const font = Fonts::getCurrentFont().withHeight(getValue<int>(fontSize) * 1.5f);
+
+            auto& llgc = *cnv->editor->getNanoLLGC();
+            Graphics g(llgc);
+            NVGGraphicsContext::ScopedAnchoredDraw anchor(llgc, textBounds.toFloat());
+            g.setFont(font);
+            g.setColour(colour);
+            g.drawText(text, textBounds.toFloat(), Justification::centredLeft);
         }
 
         auto const triangleBounds = b.removeFromRight(20).withSizeKeepingCentre(20, std::min(getHeight(), 12));
