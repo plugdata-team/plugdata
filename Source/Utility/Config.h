@@ -3,6 +3,7 @@
 #include <juce_data_structures/juce_data_structures.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_graphics/juce_graphics.h>
+#include <bit>
 
 using namespace juce;
 
