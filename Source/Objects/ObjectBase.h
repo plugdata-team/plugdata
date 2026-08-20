@@ -40,6 +40,10 @@ public:
         setEditable(false, false);
         setInterceptsMouseClicks(false, false);
         setColour(Label::textColourId, Colours::white);
+
+        setCachedComponentImage(new NVGSurface::InvalidationChecker([this](){
+            commandBufferDirty = true;
+        }));
     }
 
     void setLabelColour(Colour c)
@@ -48,12 +52,27 @@ public:
         repaint();
     }
 
-    // Render the label directly through the nanovg LowLevelGraphicsContext, so its text goes through
-    // the SDF glyph path instead of being rasterised to a cached image.
+    void render(NVGGraphicsContext& llgc)
+    {
+        auto* nvg = llgc.getContext();
+
+        if(commandBufferDirty) {
+            commandBuffer.clear();
+            nanovg::ScopedCommandRecorder recorder(nvg, commandBuffer);
+            renderLabel(llgc);
+            commandBufferDirty = false;
+        }
+
+        nanovg::replay(nvg, commandBuffer);
+    }
+
     virtual void renderLabel(NVGGraphicsContext& llgc)
     {
         llgc.renderComponent(*this);
     }
+
+    bool commandBufferDirty : 1 = true;
+    nanovg::CommandBuffer commandBuffer;
 };
 
 class ObjectBase : public Component

@@ -184,7 +184,6 @@ public:
             return corners;
         };
 
-        auto& resizeHandleImage = cnv->resizeHandleImage;
         int angle = 360;
         for (auto& corner : getCorners()) {
             NVGScopedState scopedState(nvg);
@@ -193,10 +192,7 @@ public:
             nanovg::nvgRotate(nvg, degreesToRadians<float>(angle));
             nanovg::nvgTranslate(nvg, -4.5f, -4.5f);
 
-            nanovg::nvgBeginPath(nvg);
-            nanovg::nvgRect(nvg, 0, 0, 9, 9);
-            nanovg::nvgFillPaint(nvg, nanovg::nvgImageAlphaPattern(nvg, 0, 0, 9, 9, 0, resizeHandleImage.getImageId(), nvgColour(PlugDataColours::objectSelectedOutlineColour)));
-            nanovg::nvgFill(nvg);
+            cnv->renderResizeHandle(nvg, nvgColour(PlugDataColours::objectSelectedOutlineColour));
             angle -= 90;
         }
 // #define SPACER_TEXT
@@ -442,31 +438,9 @@ void Canvas::updateFramebuffers(NVGcontext* nvg)
     auto const pixelScale = editor->getRenderScale();
     auto zoom = getValue<float>(zoomScale);
 
-    constexpr int resizerLogicalSize = 9;
-    float const viewScale = pixelScale * zoom;
-    int const resizerBufferSize = resizerLogicalSize * viewScale;
-
-    if (resizeHandleImage.needsUpdate(resizerBufferSize, resizerBufferSize)) {
-        resizeHandleImage = NVGImage(nvg, resizerBufferSize, resizerBufferSize, [viewScale](Graphics& g) {
-            g.addTransform(AffineTransform::scale(viewScale, viewScale));
-            auto const b = Rectangle<int>(0, 0, 9, 9);
-            // use the path with a hole in it to exclude the inner rounded rect from painting
-            Path outerArea;
-            outerArea.addRectangle(b);
-            outerArea.setUsingNonZeroWinding(false);
-
-            Path innerArea;
-            auto const innerRect = b.translated(Object::margin / 2, Object::margin / 2);
-            innerArea.addRoundedRectangle(innerRect, Corners::objectCornerRadius);
-            outerArea.addPath(innerArea);
-            g.reduceClipRegion(outerArea);
-
-            g.setColour(Colours::white); // For alpha image colour isn't important
-            g.fillRoundedRectangle(0.0f, 0.0f, 9.0f, 9.0f, Corners::resizeHanleCornerRadius); }, NVGImage::AlphaImage);
-    }
-
     auto gridLogicalSize = objectGrid.gridSize ? objectGrid.gridSize : 25;
     auto gridSizeCommon = 300;
+    float const viewScale = pixelScale * zoom;
     auto const gridBufferSize = gridSizeCommon * pixelScale * zoom;
 
     if (dotsLargeImage.needsUpdate(gridBufferSize, gridBufferSize) || lastObjectGridSize != gridLogicalSize) {
@@ -536,6 +510,41 @@ void Canvas::updateFramebuffers(NVGcontext* nvg)
 void Canvas::render(NVGcontext* nvg)
 {
     performRender(nvg, getLocalBounds());
+}
+
+void Canvas::renderResizeHandle(NVGcontext* nvg, NVGcolor const colour)
+{
+    nanovg::nvgFillColor(nvg, colour);
+
+    if (!resizeHandlePath.fill()) {
+        constexpr float resizerLogicalSize = 9.0f;
+        constexpr float kappa = 0.5522847498307936f;
+        auto const innerOffset = static_cast<float>(Object::margin) / 2.0f;
+        auto const outerRadius = jlimit(0.0f, resizerLogicalSize * 0.5f, Corners::resizeHanleCornerRadius);
+        auto const innerRadius = jlimit(0.0f, resizerLogicalSize - innerOffset, Corners::objectCornerRadius);
+        auto const outerControl = outerRadius * (1.0f - kappa);
+        auto const innerControl = innerRadius * (1.0f - kappa);
+
+        nanovg::nvgBeginPath(nvg);
+        nanovg::nvgMoveTo(nvg, outerRadius, 0.0f);
+        nanovg::nvgLineTo(nvg, resizerLogicalSize - outerRadius, 0.0f);
+        nanovg::nvgBezierTo(nvg, resizerLogicalSize - outerControl, 0.0f, resizerLogicalSize, outerControl, resizerLogicalSize, outerRadius);
+        nanovg::nvgLineTo(nvg, resizerLogicalSize, innerOffset);
+        nanovg::nvgLineTo(nvg, innerOffset + innerRadius, innerOffset);
+        if (innerRadius > 0.0f) {
+            nanovg::nvgBezierTo(nvg, innerOffset + innerControl, innerOffset, innerOffset, innerOffset + innerControl, innerOffset, innerOffset + innerRadius);
+        } else {
+            nanovg::nvgLineTo(nvg, innerOffset, innerOffset);
+        }
+        nanovg::nvgLineTo(nvg, innerOffset, resizerLogicalSize);
+        nanovg::nvgLineTo(nvg, outerRadius, resizerLogicalSize);
+        nanovg::nvgBezierTo(nvg, outerControl, resizerLogicalSize, 0.0f, resizerLogicalSize - outerControl, 0.0f, resizerLogicalSize - outerRadius);
+        nanovg::nvgLineTo(nvg, 0.0f, outerRadius);
+        nanovg::nvgBezierTo(nvg, 0.0f, outerControl, outerControl, 0.0f, outerRadius, 0.0f);
+        nanovg::nvgClosePath(nvg);
+        nanovg::nvgFill(nvg);
+        resizeHandlePath.save(nvg);
+    }
 }
 
 // Callback from canvasViewport to perform actual rendering

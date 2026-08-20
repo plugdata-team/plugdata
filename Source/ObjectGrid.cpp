@@ -82,7 +82,10 @@ void ObjectGrid::startLineFadeAnimation(int idx, float ms, float targetAlpha)
                              .withValueChangedCallback([this, idx](float v) {
                                  lineAlpha[idx] = makeAnimationLimits(lineAlpha[idx], lineTargetAlpha[idx]).lerp(v);
                                  auto const lineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(lines[idx].getStart(), lines[idx].getEnd()).expanded(2));
-                                 cnv->editor->nvgSurface.invalidateArea(lineArea);
+
+                                 if(cnv->editor->nvgSurface.getLocalBounds().contains(lineArea)) {
+                                     cnv->editor->nvgSurface.invalidateArea(lineArea);
+                                 }
                              })
                              .build();
     updater.addAnimator(lineAnimators[idx], [this, idx]() {

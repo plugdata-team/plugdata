@@ -97,6 +97,7 @@ public:
     void updateFramebuffers(NVGcontext* nvg) override;
     void render(NVGcontext* nvg) override;
     void performRender(NVGcontext* nvg, Rectangle<int> invalidRegion);
+    void renderResizeHandle(NVGcontext* nvg, NVGcolor colour);
 
     void resized() override;
 
@@ -274,7 +275,7 @@ public:
     Component objectLayer;
     Component connectionLayer;
 
-    NVGImage resizeHandleImage;
+    NVGCachedPath resizeHandlePath;
     NVGImage presentationShadowImage;
 
 private:

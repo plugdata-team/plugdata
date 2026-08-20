@@ -58,6 +58,31 @@ public:
 
     void updateBounds(Rectangle<int> bounds);
 
+    class InvalidationChecker final : public CachedComponentImage {
+    public:
+        InvalidationChecker(std::function<void()> invalidate) : invalidateCache(invalidate)
+        {
+        }
+
+        void paint(Graphics& g) override {};
+
+        bool invalidate(Rectangle<int> const& rect) override
+        {
+            invalidateCache();
+            return true;
+        }
+
+        bool invalidateAll() override
+        {
+            invalidateCache();
+            return true;
+        }
+
+        void releaseResources() override {}
+
+        std::function<void()> invalidateCache;
+    };
+
     class InvalidationListener final : public CachedComponentImage {
     public:
         InvalidationListener(NVGSurface& s, Component* origin, bool performNvgRepaint = false, std::function<bool()> canRepaintCheck = [] { return true; })
@@ -73,7 +98,7 @@ public:
         bool invalidate(Rectangle<int> const& rect) override
         {
             // Translate from canvas coords to viewport coords as float to prevent rounding errors
-            auto invalidatedBounds = surface.getLocalArea(originComponent, rect.expanded(2).toFloat()).getSmallestIntegerContainer();
+            auto invalidatedBounds = surface.getLocalArea(originComponent, rect.toFloat()).getSmallestIntegerContainer();
             invalidatedBounds = invalidatedBounds.getIntersection(surface.getLocalBounds());
 
             if (originComponent->isVisible() && canRepaint() && !invalidatedBounds.isEmpty()) {

@@ -83,7 +83,7 @@ public:
     void mouseExit(MouseEvent const& e) override;
 
     void render(NVGcontext* nvg) override;
-
+    void performRender(NVGcontext* nvg);
     void renderIolets(NVGcontext* nvg);
     void renderLabel(NVGcontext* nvg);
 
@@ -162,6 +162,10 @@ private:
     bool isHvccCompatible : 1 = true;
     bool isGemObject : 1 = false;
     bool isObjectMouseActive : 1 = false;
+        
+    bool commandBufferDirty : 1 = true;
+    nanovg::CommandBuffer commandBuffer;
+
 
     ObjectDragState& ds;
 

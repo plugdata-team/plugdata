@@ -29,6 +29,7 @@ void nvgluSetCornerRadius(float radius, bool left, bool right);
 #include "PluginProcessor.h"
 
 #define ENABLE_FPS_COUNT 0
+#define ENABLE_PAINT_DEBUGGING 0
 
 class FrameTimer {
 public:
@@ -583,6 +584,14 @@ void NVGSurface::recordFrame()
         g.reduceClipRegion(invalidArea);
 
         editor->paintEntireComponent(g, false);
+
+#if ENABLE_PAINT_DEBUGGING
+        static Random rng;
+        g.fillAll (Colour ((uint8) rng.nextInt (255),
+                           (uint8) rng.nextInt (255),
+                           (uint8) rng.nextInt (255),
+                           (uint8) 0x50));
+#endif
 
         // Restrict the backend flush to the damaged region so the rest of the
         // framebuffer keeps its previous contents (persistence). Coordinates are

@@ -96,6 +96,10 @@ void Object::setObjectBounds(Rectangle<int> const bounds)
 
 void Object::initialise()
 {
+    setCachedComponentImage(new NVGSurface::InvalidationChecker([this](){
+        commandBufferDirty = true;
+    }));
+
     cnv->objectLayer.addAndMakeVisible(this);
 
     cnv->selectedComponents.addChangeListener(this);
@@ -1173,6 +1177,18 @@ void Object::mouseDrag(MouseEvent const& e)
 
 void Object::render(NVGcontext* nvg)
 {
+    if(commandBufferDirty) {
+        commandBuffer.clear();
+        nanovg::ScopedCommandRecorder recorder(nvg, commandBuffer);
+        performRender(nvg);
+        commandBufferDirty = false;
+    }
+
+    nanovg::replay(nvg, commandBuffer);
+}
+
+void Object::performRender(NVGcontext* nvg)
+{
     auto const lb = getLocalBounds();
     auto const b = lb.reduced(margin);
 
@@ -1183,7 +1199,6 @@ void Object::render(NVGcontext* nvg)
     }
 
     if (selectedFlag && showHandles) {
-        auto& resizeHandleImage = cnv->resizeHandleImage;
         int angle = 360;
         for (auto& corner : getCorners()) {
             NVGScopedState scopedState(nvg);
@@ -1192,10 +1207,7 @@ void Object::render(NVGcontext* nvg)
             nanovg::nvgRotate(nvg, degreesToRadians<float>(angle));
             nanovg::nvgTranslate(nvg, -4.5f, -4.5f);
 
-            nanovg::nvgBeginPath(nvg);
-            nanovg::nvgRect(nvg, 0, 0, 9, 9);
-            nanovg::nvgFillPaint(nvg, nanovg::nvgImageAlphaPattern(nvg, 0, 0, 9, 9, 0, resizeHandleImage.getImageId(), nvgColour(PlugDataColours::objectSelectedOutlineColour)));
-            nanovg::nvgFill(nvg);
+            cnv->renderResizeHandle(nvg, nvgColour(PlugDataColours::objectSelectedOutlineColour));
             angle -= 90;
         }
     }
@@ -1303,7 +1315,7 @@ void Object::renderLabel(NVGcontext* nvg)
             NVGScopedState scopedState(nvg);
             nanovg::nvgTranslate(nvg, label->getX(), label->getY());
             if (label->isVisible()) {
-                label->renderLabel(llgc);
+                label->render(llgc);
             }
         }
     }

@@ -59,7 +59,6 @@ public:
         nanovg::nvgDrawRoundedRect(nvg, lineBounds.getX(), lineBounds.getY(), lineBounds.getWidth(), lineBounds.getHeight(), nanovg::nvgRGBA(0, 0, 0, 0), nvgColour(PlugDataColours::graphAreaColour), Corners::objectCornerRadius);
 
         if (!getValue<bool>(canvas->locked)) {
-            auto& resizeHandleImage = canvas->resizeHandleImage;
             int angle = 360;
 
             auto getVert = [lineBounds](int const index) -> Point<float> {
@@ -84,10 +83,7 @@ public:
                 nanovg::nvgRotate(nvg, degreesToRadians<float>(angle));
                 nanovg::nvgTranslate(nvg, -3.0f, -3.0f);
 
-                nanovg::nvgBeginPath(nvg);
-                nanovg::nvgRect(nvg, 0, 0, 9, 9);
-                nanovg::nvgFillPaint(nvg, nanovg::nvgImageAlphaPattern(nvg, 0, 0, 9, 9, 0, resizeHandleImage.getImageId(), nvgColour(PlugDataColours::graphAreaColour)));
-                nanovg::nvgFill(nvg);
+                canvas->renderResizeHandle(nvg, nvgColour(PlugDataColours::graphAreaColour));
                 angle -= 90;
             }
         }
