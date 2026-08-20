@@ -6,7 +6,8 @@
 
 #pragma once
 #include "Utility/Autosave.h"
-#include "Utility/NVGGraphicsContext.h"
+#include "Utility/Fonts.h"
+#include "Utility/NVGUtils.h"
 #include "Components/BouncingViewport.h"
 #include "Utility/PatchInfo.h"
 
@@ -26,26 +27,19 @@ class WelcomePanel final : public Component
 
         void paint(Graphics& g) override
         {
-            auto* nvg = dynamic_cast<NVGGraphicsContext&>(g.getInternalContext()).getContext();
-
             if (panel.currentTab == Home && panel.searchQuery.isEmpty()) {
                 if (panel.recentlyOpenedTiles.isEmpty()) {
-                    nanovg::nvgFontFace(nvg, "Inter-Bold");
-                    nanovg::nvgFontSize(nvg, 34);
-                    nanovg::nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-                    nanovg::nvgFillColor(nvg, nvgColour(PlugDataColours::panelTextColour));
-                    nanovg::nvgText(nvg, getWidth() / 2, getHeight() / 2 - 80, "Welcome to plugdata", nullptr);
+                    g.setFont(Fonts::getBoldFont().withPointHeight(34.0f));
+                    g.setColour(PlugDataColours::panelTextColour);
+                    g.drawText("Welcome to plugdata", Rectangle<float>(0.0f, getHeight() * 0.5f - 104.0f, static_cast<float>(getWidth()), 48.0f), Justification::centred, false);
                 } else {
-                    nanovg::nvgFontFace(nvg, "Inter-Bold");
-                    nanovg::nvgFontSize(nvg, 14);
-                    nanovg::nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-                    nanovg::nvgFillColor(nvg, nvgColour(PlugDataColours::panelTextColour));
-                    nanovg::nvgText(nvg, 96, 138, "Recently Opened", nullptr);
+                    g.setFont(Fonts::getBoldFont().withPointHeight(14.0f));
+                    g.setColour(PlugDataColours::panelTextColour);
+                    g.drawText("Recently Opened", Rectangle<float>(0.0f, 128.0f, 192.0f, 20.0f), Justification::centred, false);
 
-                    nanovg::nvgFontFace(nvg, "icon_font-Regular");
-                    nanovg::nvgFontSize(nvg, 14);
-                    nanovg::nvgFillColor(nvg, nvgColour(PlugDataColours::panelTextColour.withAlpha(isHoveringClearButton ? 0.6f : 1.0f)));
-                    nanovg::nvgText(nvg, clearButtonBounds.getCentreX(), clearButtonBounds.getCentreY(), Icons::Clear.toRawUTF8(), nullptr);
+                    g.setFont(Fonts::getIconFont().withPointHeight(14.0f));
+                    g.setColour(PlugDataColours::panelTextColour.withAlpha(isHoveringClearButton ? 0.6f : 1.0f));
+                    g.drawText(Icons::Clear, clearButtonBounds, Justification::centred, false);
                 }
             }
         }
@@ -103,7 +97,6 @@ class WelcomePanel final : public Component
         void paint(Graphics& g) override
         {
             auto const bounds = getLocalBounds().reduced(12);
-            auto* nvg = dynamic_cast<NVGGraphicsContext&>(g.getInternalContext()).getContext();
 
             auto const width = getWidth();
             auto const height = getHeight();
@@ -114,75 +107,69 @@ class WelcomePanel final : public Component
 
             auto const lB = bounds.toFloat().expanded(0.5f);
             {
-                auto const bgCol = !isHovered ? nvgColour(PlugDataColours::panelForegroundColour) : nvgColour(PlugDataColours::toolbarBackgroundColour);
+                auto const bgColour = !isHovered ? PlugDataColours::panelForegroundColour : PlugDataColours::toolbarBackgroundColour;
 
                 // Draw border around
-                nanovg::nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), bgCol, nvgColour(PlugDataColours::toolbarOutlineColour), Corners::largeCornerRadius);
+                g.setColour(bgColour);
+                g.fillRoundedRectangle(lB, Corners::largeCornerRadius);
+                g.setColour(PlugDataColours::toolbarOutlineColour);
+                g.drawRoundedRectangle(lB, Corners::largeCornerRadius, 1.0f);
             }
 
             auto const bgColour = PlugDataColours::panelForegroundColour;
-            auto const bgCol = nvgColour(bgColour);
-            auto const newOpenIconCol = nvgColour(bgColour.contrasting().withAlpha(0.32f));
+            auto const newOpenIconColour = bgColour.contrasting().withAlpha(0.32f);
             constexpr auto iconSize = 48;
             constexpr auto iconHalf = iconSize * 0.5f;
-            auto const circleBounds = Rectangle<int>(lB.getX() + 40 - iconHalf, lB.getCentreY() - iconHalf, iconSize, iconSize);
+            auto const circleBounds = Rectangle<float>(lB.getX() + 40.0f - iconHalf, lB.getCentreY() - iconHalf, iconSize, iconSize);
 
             // Background circle
-            nanovg::nvgDrawRoundedRect(nvg, circleBounds.getX(), circleBounds.getY(), iconSize, iconSize, newOpenIconCol, newOpenIconCol, iconHalf);
+            g.setColour(newOpenIconColour);
+            g.fillRoundedRectangle(circleBounds, iconHalf);
             switch (type) {
             case New: {
                 // Draw a cross icon manually
-                constexpr auto lineThickness = 4;
+                constexpr auto lineThickness = 4.0f;
                 constexpr auto lineRad = lineThickness * 0.5f;
-                constexpr auto crossSize = 26;
+                constexpr auto crossSize = 26.0f;
                 constexpr auto halfSize = crossSize * 0.5f;
+                g.setColour(bgColour);
                 // Horizontal line
-                nanovg::nvgDrawRoundedRect(nvg, circleBounds.getCentreX() - halfSize, circleBounds.getCentreY() - lineRad, crossSize, lineThickness, bgCol, bgCol, lineRad);
+                g.fillRoundedRectangle(circleBounds.getCentreX() - halfSize, circleBounds.getCentreY() - lineRad, crossSize, lineThickness, lineRad);
                 // Vertical line
-                nanovg::nvgDrawRoundedRect(nvg, circleBounds.getCentreX() - lineRad, circleBounds.getCentreY() - halfSize, lineThickness, crossSize, bgCol, bgCol, lineRad);
+                g.fillRoundedRectangle(circleBounds.getCentreX() - lineRad, circleBounds.getCentreY() - halfSize, lineThickness, crossSize, lineRad);
 
-                nanovg::nvgFontFace(nvg, "Inter-Bold");
-                nanovg::nvgFontSize(nvg, 12);
-                nanovg::nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_LEFT);
-                nanovg::nvgFillColor(nvg, nvgColour(PlugDataColours::panelTextColour));
-                nanovg::nvgText(nvg, 92, 45, "New Patch", nullptr);
+                g.setColour(PlugDataColours::panelTextColour);
+                g.setFont(Fonts::getBoldFont().withPointHeight(12.0f));
+                g.drawText("New Patch", Rectangle<int>(92, 30, width - 104, 20), Justification::centredLeft, false);
 
-                nanovg::nvgFontFace(nvg, "Inter-Regular");
-                nanovg::nvgText(nvg, 92, 63, "Create a new empty patch", nullptr);
+                g.setFont(Fonts::getDefaultFont().withPointHeight(12.0f));
+                g.drawText("Create a new empty patch", Rectangle<int>(92, 48, width - 104, 20), Justification::centredLeft, false);
                 break;
             }
             case Open: {
-                nanovg::nvgFontFace(nvg, "icon_font-Regular");
-                nanovg::nvgFillColor(nvg, bgCol);
-                nanovg::nvgFontSize(nvg, 34);
-                nanovg::nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-                nanovg::nvgText(nvg, circleBounds.getCentreX(), circleBounds.getCentreY() - 4, Icons::Folder.toRawUTF8(), nullptr);
+                g.setFont(Fonts::getIconFont().withPointHeight(34.0f));
+                g.setColour(bgColour);
+                g.drawText(Icons::Folder, circleBounds.toNearestInt(), Justification::centred, false);
 
-                nanovg::nvgFontFace(nvg, "Inter-Bold");
-                nanovg::nvgFontSize(nvg, 12);
-                nanovg::nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_LEFT);
-                nanovg::nvgFillColor(nvg, nvgColour(PlugDataColours::panelTextColour));
-                nanovg::nvgText(nvg, 92, 45, "Open Patch...", nullptr);
+                g.setColour(PlugDataColours::panelTextColour);
+                g.setFont(Fonts::getBoldFont().withPointHeight(12.0f));
+                g.drawText("Open Patch...", Rectangle<int>(92, 30, width - 104, 20), Justification::centredLeft, false);
 
-                nanovg::nvgFontFace(nvg, "Inter-Regular");
-                nanovg::nvgText(nvg, 92, 63, "Browse for a patch to open", nullptr);
+                g.setFont(Fonts::getDefaultFont().withPointHeight(12.0f));
+                g.drawText("Browse for a patch to open", Rectangle<int>(92, 48, width - 104, 20), Justification::centredLeft, false);
                 break;
             }
             case Store: {
-                nanovg::nvgFontFace(nvg, "icon_font-Regular");
-                nanovg::nvgFillColor(nvg, bgCol);
-                nanovg::nvgFontSize(nvg, 30);
-                nanovg::nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-                nanovg::nvgText(nvg, circleBounds.getCentreX(), circleBounds.getCentreY() - 4, Icons::Sparkle.toRawUTF8(), nullptr);
+                g.setFont(Fonts::getIconFont().withPointHeight(30.0f));
+                g.setColour(bgColour);
+                g.drawText(Icons::Sparkle, circleBounds.toNearestInt(), Justification::centred, false);
 
-                nanovg::nvgFontFace(nvg, "Inter-Bold");
-                nanovg::nvgFontSize(nvg, 12);
-                nanovg::nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_LEFT);
-                nanovg::nvgFillColor(nvg, nvgColour(PlugDataColours::panelTextColour));
-                nanovg::nvgText(nvg, 92, 45, "Discover...", nullptr);
+                g.setColour(PlugDataColours::panelTextColour);
+                g.setFont(Fonts::getBoldFont().withPointHeight(12.0f));
+                g.drawText("Discover...", Rectangle<int>(92, 30, width - 104, 20), Justification::centredLeft, false);
 
-                nanovg::nvgFontFace(nvg, "Inter-Regular");
-                nanovg::nvgText(nvg, 92, 63, "Browse online patch store", nullptr);
+                g.setFont(Fonts::getDefaultFont().withPointHeight(12.0f));
+                g.drawText("Browse online patch store", Rectangle<int>(92, 48, width - 104, 20), Justification::centredLeft, false);
             }
             default:
                 break;
@@ -230,7 +217,7 @@ class WelcomePanel final : public Component
         bool isHovered = false;
         String tileName, tileSubtitle;
         std::unique_ptr<Drawable> snapshot = nullptr;
-        NVGImage snapshotImage;
+        Image snapshotImage;
         File thumbnailFile;
 
         int lastWidth = -1;
@@ -330,6 +317,7 @@ class WelcomePanel final : public Component
                 auto const snapshotColour = PlugDataColours::objectSelectedOutlineColour.withAlpha(0.3f);
                 snapshot->replaceColour(Colours::black, snapshotColour);
             }
+            snapshotImage = {};
             resized();
         }
 
@@ -484,18 +472,21 @@ class WelcomePanel final : public Component
         {
             auto bounds = getLocalBounds().reduced(12);
 
-            auto* nvg = dynamic_cast<NVGGraphicsContext&>(g.getInternalContext()).getContext();
-            auto const scale = nanovg::nvgCurrentPixelScale(nvg);
-
             StackShadow::drawShadowForRect(g, bounds, 7, Corners::largeCornerRadius, 0.12f, 1);
 
             if (thumbnailFile != File()) {
                 if (!snapshotImage.isValid() || lastWidth != bounds.getWidth() || lastHeight != bounds.getHeight()) {
                     lastWidth = bounds.getWidth();
                     lastHeight = bounds.getHeight();
+                    auto const imageBounds = bounds.withTrimmedBottom(32);
 
-                    snapshotImage = NVGImage(nvg, bounds.getWidth() * scale, (bounds.getHeight() - 32) * scale, [this, bounds, scale](Graphics& g) {
-                        g.addTransform(AffineTransform::scale(scale));
+                    if (imageBounds.getWidth() > 0 && imageBounds.getHeight() > 0) {
+                        snapshotImage = Image(Image::ARGB, imageBounds.getWidth(), imageBounds.getHeight(), true);
+                        Graphics imageGraphics(snapshotImage);
+
+                        Path thumbnailClip;
+                        thumbnailClip.addRoundedRectangle(0.0f, 0.0f, static_cast<float>(imageBounds.getWidth()), static_cast<float>(imageBounds.getHeight()), Corners::largeCornerRadius, Corners::largeCornerRadius, true, true, false, false);
+                        imageGraphics.reduceClipRegion(thumbnailClip);
 
                         auto thumbnailImageData = ImageFileFormat::loadFrom(thumbnailFile).convertedToFormat(Image::ARGB);
                         if (thumbnailImageData.isValid()) {
@@ -529,53 +520,50 @@ class WelcomePanel final : public Component
                                 offsetY = (componentHeight - drawHeight) / 2;
                             }
 
-                            g.drawImage(thumbnailImageData, offsetX, offsetY, drawWidth, drawHeight, 0, 0, imageWidth, imageHeight);
+                            imageGraphics.drawImage(thumbnailImageData, offsetX, offsetY, drawWidth, drawHeight, 0, 0, imageWidth, imageHeight);
                         }
-                    });
-                }
-            } else {
-                if (tileType != LibraryPatch && snapshot && !snapshotImage.isValid()) {
-                    auto const scale = nanovg::nvgCurrentPixelScale(nvg);
-                    snapshotImage = NVGImage(nvg, bounds.getWidth() * scale, (bounds.getHeight() - 32) * scale, [this, scale](Graphics& g) {
-                        g.addTransform(AffineTransform::scale(scale));
-                        snapshot->drawAt(g, 0, 0, 1.0f);
-                    });
+                    } else {
+                        snapshotImage = {};
+                    }
                 }
             }
 
-            nanovg::nvgSave(nvg);
             auto const lB = bounds.toFloat().expanded(0.5f);
             // Draw background even for images incase there is a transparent PNG
-            nanovg::nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), nvgColour(PlugDataColours::panelForegroundColour), nvgColour(PlugDataColours::toolbarOutlineColour), Corners::largeCornerRadius);
+            g.setColour(PlugDataColours::panelForegroundColour);
+            g.fillRoundedRectangle(lB, Corners::largeCornerRadius);
+            g.setColour(PlugDataColours::toolbarOutlineColour);
+            g.drawRoundedRectangle(lB, Corners::largeCornerRadius, 1.0f);
 
-            nanovg::nvgRoundedScissor(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), Corners::largeCornerRadius);
-            if (thumbnailFile != File() || tileType == Patch) {
-                nanovg::nvgTranslate(nvg, 0.5f, 0.0f); // account for outline
-                snapshotImage.render(nvg, bounds.withTrimmedBottom(32));
+            auto const imageBounds = bounds.withTrimmedBottom(32);
+            if (thumbnailFile != File()) {
+                if (snapshotImage.isValid())
+                    g.drawImageAt(snapshotImage, imageBounds.getX(), imageBounds.getY());
+            } else if (tileType == Patch) {
+                if (snapshot)
+                    snapshot->drawWithin(g, imageBounds.toFloat(), RectanglePlacement::centred, 1.0f);
             } else {
                 auto const placeholderIconColour = PlugDataColours::objectSelectedOutlineColour.withAlpha(0.22f);
+                auto const placeholderIconBounds = Rectangle<float>(bounds.getX(), (bounds.getHeight() - 30.0f) * 0.5f - 34.0f, bounds.getWidth(), 68.0f);
 
                 // We draw the plugdata logo if library tiles don't have a thumbnail (patch snapshot is too busy)
-                nanovg::nvgFillColor(nvg, nvgColour(placeholderIconColour));
-                nanovg::nvgFontFace(nvg, "icon_font-Regular");
-                nanovg::nvgFontSize(nvg, 68.0f);
-                nanovg::nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-                nanovg::nvgText(nvg, bounds.getCentreX(), (bounds.getHeight() - 30) * 0.5f, Icons::PlugdataIconStandard.toRawUTF8(), nullptr);
+                g.setFont(Fonts::getIconFont().withPointHeight(68.0f));
+                g.setColour(placeholderIconColour);
+                g.drawText(Icons::PlugdataIconStandard, placeholderIconBounds, Justification::centred, false);
             }
 
-            nanovg::nvgRestore(nvg);
-
             // Draw border around
-            nanovg::nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), nanovg::nvgRGBA(0, 0, 0, 0), nvgColour(PlugDataColours::toolbarOutlineColour), Corners::largeCornerRadius);
+            g.setColour(PlugDataColours::toolbarOutlineColour);
+            g.drawRoundedRectangle(lB, Corners::largeCornerRadius, 1.0f);
 
             auto const hoverColour = PlugDataColours::toolbarHoverColour.interpolatedWith(PlugDataColours::toolbarBackgroundColour, 0.5f);
 
-            nanovg::nvgBeginPath(nvg);
-            nanovg::nvgRoundedRectVarying(nvg, bounds.getX(), bounds.getHeight() - 32, bounds.getWidth(), 44, 0.0f, 0.0f, Corners::largeCornerRadius, Corners::largeCornerRadius);
-            nanovg::nvgFillColor(nvg, nvgColour(isHovered ? hoverColour : PlugDataColours::toolbarBackgroundColour));
-            nanovg::nvgFill(nvg);
-            nanovg::nvgStrokeColor(nvg, nvgColour(PlugDataColours::toolbarOutlineColour));
-            nanovg::nvgStroke(nvg);
+            Path footerPath;
+            footerPath.addRoundedRectangle(bounds.getX(), bounds.getHeight() - 32, bounds.getWidth(), 44, Corners::largeCornerRadius, Corners::largeCornerRadius, false, false, true, true);
+            g.setColour(isHovered ? hoverColour : PlugDataColours::toolbarBackgroundColour);
+            g.fillPath(footerPath);
+            g.setColour(PlugDataColours::toolbarOutlineColour);
+            g.strokePath(footerPath, PathStrokeType(1.0f));
 
             auto textWidth = bounds.getWidth() - 8;
             g.setColour(PlugDataColours::panelTextColour);
@@ -587,14 +575,15 @@ class WelcomePanel final : public Component
 
             if (onFavourite) {
                 auto const favouriteIconBounds = getHeartIconBounds();
-                nanovg::nvgFontFace(nvg, "icon_font-Regular");
 
                 if (isFavourited) {
-                    nanovg::nvgFillColor(nvg, nanovg::nvgRGBA(250, 50, 40, 200));
-                    nanovg::nvgText(nvg, favouriteIconBounds.getX(), favouriteIconBounds.getY() + 14, Icons::HeartFilled.toRawUTF8(), nullptr);
+                    g.setFont(Fonts::getIconFont().withPointHeight(16.0f));
+                    g.setColour(Colour::fromRGBA(250, 50, 40, 200));
+                    g.drawText(Icons::HeartFilled, favouriteIconBounds, Justification::centred, false);
                 } else if (isMouseOver()) {
-                    nanovg::nvgFillColor(nvg, nvgColour(PlugDataColours::panelTextColour));
-                    nanovg::nvgText(nvg, favouriteIconBounds.getX(), favouriteIconBounds.getY() + 14, Icons::HeartStroked.toRawUTF8(), nullptr);
+                    g.setFont(Fonts::getIconFont().withPointHeight(16.0f));
+                    g.setColour(PlugDataColours::panelTextColour);
+                    g.drawText(Icons::HeartStroked, favouriteIconBounds, Justification::centred, false);
                 }
             }
         }
@@ -642,11 +631,9 @@ class WelcomePanel final : public Component
 
         void resized() override
         {
-            if (snapshot) {
-                auto const bounds = getLocalBounds().reduced(12).withTrimmedBottom(44);
-                // TODO: JUCE9, fix this
-                //snapshot->setTransformToFit(bounds.withSizeKeepingCentre(bounds.getWidth(), bounds.getHeight()).toFloat(), RectanglePlacement::centred);
-            }
+            snapshotImage = {};
+            lastWidth = -1;
+            lastHeight = -1;
         }
     };
 

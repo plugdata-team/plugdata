@@ -170,7 +170,6 @@ void NVGSurface::createRenderContext()
     if (!metalView)
         return;
 
-    //mnvgSetViewBounds(metalView, viewWidth, viewHeight);
     baseNvg = nvgCreateContext(metalView, 0, viewWidth, viewHeight);
 #elif NANOVG_GL_IMPLEMENTATION
     // Runs on the render thread. Context create/destroy and the main framebuffer
@@ -226,7 +225,7 @@ void NVGSurface::createRenderContext()
     nvg.store(asyncNvg);
 
 #    if JUCE_LINUX || JUCE_BSD
-    nvgluSetCornerRadius(12.0f * calculateRenderScale(), roundedLeft, roundedRight);
+    nvgluSetCornerRadius(12.0f * calculateRenderScale());
 #    endif
 
     surfaces[asyncNvg] = this;
@@ -277,6 +276,7 @@ void NVGSurface::destroyRenderContext()
 #if NANOVG_GL_IMPLEMENTATION
 void NVGSurface::newOpenGLContextCreated()
 {
+    glContext->setSwapInterval(0);
     createRenderContext();
 }
 
@@ -317,11 +317,6 @@ void NVGSurface::presentFramebuffer(int viewWidth, int viewHeight)
     nvgViewport(0, 0, viewWidth, viewHeight);
 
     if (mainFramebuffer) {
-        // Copy the FBO's colour buffer directly instead of sampling it as a
-        // texture: on this macOS GL driver the render-to-texture write is not
-        // visible to a subsequent texture fetch (even after glFinish), but the
-        // colour buffer itself is correct (verified via glReadPixels). The Metal
-        // backend's nvgBlitFramebuffer macro maps to the equivalent screen blit.
         nvgBlitFramebuffer(baseNvg, reinterpret_cast<NVGframebuffer*>(mainFramebuffer), 0, 0, viewWidth, viewHeight);
     } else {
         nvgClear(baseNvg);
@@ -341,11 +336,6 @@ void NVGSurface::renderBackendFrame()
     if (!asyncNvg)
         return;
 
-    // The persistent main/damage framebuffer is owned entirely by this render
-    // thread. When the window size changes, do not switch to a freshly-created
-    // framebuffer until the message thread has published a full repaint for
-    // this exact pixel size; otherwise a partial or missing frame would leave
-    // empty pixels visible for one swap.
     if (!mainFramebuffer || mainFramebufferWidth != viewWidth || mainFramebufferHeight != viewHeight) {
         auto const hasMatchingFullFrame = frameReadyForReplay.load()
             && nanovg::hasPendingFrame(asyncNvg)
@@ -378,8 +368,6 @@ void NVGSurface::renderBackendFrame()
         }
     }
 
-    // Tell the async layer which real framebuffer the recorded
-    // bindMainFramebuffer() ops resolve to, then bind it as the initial target.
     nanovg::setMainFramebuffer(asyncNvg, mainFramebuffer);
     nvgBindFramebuffer(reinterpret_cast<NVGframebuffer*>(mainFramebuffer));
 
@@ -426,10 +414,6 @@ void NVGSurface::detachContext()
     if (glContext)
         glContext->detach();
 #endif
-}
-
-void NVGSurface::updateBufferSize()
-{
 }
 
 void NVGSurface::lookAndFeelChanged()
@@ -513,34 +497,14 @@ void NVGSurface::invalidateArea(Rectangle<int> const area)
     scheduleRender();
 }
 
+void NVGSurface::handleAsyncUpdate()
+{
+    recordFrame();
+}
+
 void NVGSurface::scheduleRender()
 {
-    if (renderScheduled.exchange(true))
-        return;
-
-    MessageManager::callAsync([_this = SafePointer(this)] {
-        if (!_this)
-            return;
-
-        _this->renderScheduled.store(false);
-        _this->recordFrame();
-    });
-}
-
-void NVGSurface::renderAll()
-{
-    invalidateAll();
-}
-
-void NVGSurface::render()
-{
-    if (!MessageManager::getInstance()->isThisTheMessageThread()) {
-        scheduleRender();
-        return;
-    }
-
-    renderScheduled.store(false);
-    recordFrame();
+    triggerAsyncUpdate();
 }
 
 void NVGSurface::requestBackendRender()
@@ -642,23 +606,6 @@ void NVGSurface::recordFrame()
     requestBackendRender();
 }
 
-#if JUCE_LINUX || JUCE_BSD
-void NVGSurface::setRoundedBottomCorners(bool left, bool right)
-{
-    roundedLeft = left;
-    roundedRight = right;
-#    ifdef NANOVG_GL_IMPLEMENTATION
-    nvgluSetCornerRadius(12.0f * getRenderScale(), roundedLeft, roundedRight);
-#    endif
-}
-#endif
-
-void NVGSurface::setRenderThroughImage(bool const shouldRenderThroughImage)
-{
-    renderThroughImage = shouldRenderThroughImage;
-    invalidateAll();
-}
-
 NVGSurface* NVGSurface::getSurfaceForContext(NVGcontext* nvg)
 {
     auto const nvgIter = surfaces.find(nvg);
@@ -677,12 +624,6 @@ void NVGSurface::addBufferedObject(NVGComponent* component)
 void NVGSurface::removeBufferedObject(NVGComponent* component)
 {
     bufferedObjects.erase(component);
-}
-
-// TODO: juce9, I think we can remove this?
-void NVGSurface::handleCommandMessage(int)
-{
-    scheduleRender();
 }
 
 void NVGSurface::InvalidationListener::paint(Graphics& g) {

@@ -5,6 +5,7 @@
 #include "NVGGraphicsContext.h"
 #include <bit>
 #include <BinaryData.h>
+#include <cstring>
 
 #if PERFETTO
 #    include <melatonin_perfetto/melatonin_perfetto.h>
@@ -20,8 +21,32 @@ static NVGcolor nvgColour(Colour const& c)
 
 static uint64_t getImageHash(Image const& image)
 {
-    Image::BitmapData src(image, Image::BitmapData::readOnly);
-    return reinterpret_cast<uint64_t>(src.data);
+    Image::BitmapData const src(image, Image::BitmapData::readOnly);
+
+    uint64_t hash = 14695981039346656037ULL;
+    auto hashValue = [&hash](uint64_t value) {
+        for (int i = 0; i < 8; ++i) {
+            hash ^= static_cast<uint8>(value >> (i * 8));
+            hash *= 1099511628211ULL;
+        }
+    };
+    auto hashBytes = [&hash](uint8 const* data, size_t const numBytes) {
+        for (size_t i = 0; i < numBytes; ++i) {
+            hash ^= data[i];
+            hash *= 1099511628211ULL;
+        }
+    };
+
+    hashValue(static_cast<uint64_t>(src.pixelFormat));
+    hashValue(static_cast<uint64_t>(src.width));
+    hashValue(static_cast<uint64_t>(src.height));
+    hashValue(static_cast<uint64_t>(src.pixelStride));
+
+    auto const bytesPerRow = static_cast<size_t>(src.width) * static_cast<size_t>(src.pixelStride);
+    for (int y = 0; y < src.height; ++y)
+        hashBytes(src.getLinePointer(y), bytesPerRow);
+
+    return hash;
 }
 
 static bool isIntegerTranslation(AffineTransform const& transform)
@@ -406,8 +431,6 @@ void NVGGraphicsContext::fillPath(Path const& path, AffineTransform const& trans
 void NVGGraphicsContext::drawImage(Image const& image, AffineTransform const& t)
 {
     if (image.isARGB()) {
-        Image::BitmapData srcData(image, Image::BitmapData::readOnly);
-
         auto const id = getNvgImageId(image);
 
         if (id < 0)
@@ -435,7 +458,6 @@ void NVGGraphicsContext::drawImage(Image const& image, AffineTransform const& t)
         // Render using ARGB image data
         drawImage(argbImage, t);
     } else if (image.isSingleChannel()) {
-        Image::BitmapData srcData(image, Image::BitmapData::readOnly);
         auto const id = getNvgImageId(image);
         if (id < 0)
             return; // invalid image.
@@ -547,6 +569,7 @@ void NVGGraphicsContext::removeCachedImages()
 
 void NVGGraphicsContext::resetClipRegion(AffineTransform initialTransform)
 {
+    ++currentFrameId;
     clipRegion.clear();
     clipRegion.add(maxClipBounds);
     stateStack.clear();
@@ -601,11 +624,20 @@ int NVGGraphicsContext::getNvgImageId(Image const& image)
     if (it == images.end()) {
         if (image.isSingleChannel()) {
             Image::BitmapData const bitmap(image, Image::BitmapData::readOnly);
-            id = nanovg::nvgCreateImageAlpha(nvg, image.getWidth(), image.getHeight(), 0, bitmap.data);
+            if (bitmap.lineStride == bitmap.width) {
+                id = nanovg::nvgCreateImageAlpha(nvg, image.getWidth(), image.getHeight(), 0, bitmap.data);
+            } else {
+                std::vector<uint8> packed(static_cast<size_t>(bitmap.width) * static_cast<size_t>(bitmap.height));
+                for (int y = 0; y < bitmap.height; ++y) {
+                    std::memcpy(packed.data() + static_cast<size_t>(y) * static_cast<size_t>(bitmap.width),
+                        bitmap.getLinePointer(y), static_cast<size_t>(bitmap.width));
+                }
+                id = nanovg::nvgCreateImageAlpha(nvg, image.getWidth(), image.getHeight(), 0, packed.data());
+            }
             if (images.size() >= maxImageCacheSize)
                 reduceImageCache();
 
-            images[hash] = { id, 1 };
+            images[hash] = { id, 1, currentFrameId };
         } else {
             Image argbImage(image);
             argbImage.duplicateIfShared();
@@ -618,10 +650,11 @@ int NVGGraphicsContext::getNvgImageId(Image const& image)
             if (images.size() >= maxImageCacheSize)
                 reduceImageCache();
 
-            images[hash] = { id, 1 };
+            images[hash] = { id, 1, currentFrameId };
         }
     } else {
         it->second.accessCounter++;
+        it->second.lastUsedFrame = currentFrameId;
         id = it->second.id;
     }
 
@@ -640,7 +673,9 @@ void NVGGraphicsContext::reduceImageCache()
     auto it = images.begin();
 
     while (it != images.end()) {
-        if (it->second.accessCounter == minAccessCounter) {
+        if (it->second.lastUsedFrame == currentFrameId) {
+            ++it;
+        } else if (it->second.accessCounter == minAccessCounter) {
             nanovg::nvgDeleteImage(nvg, it->second.id);
             it = images.erase(it);
         } else {

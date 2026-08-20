@@ -145,22 +145,10 @@ private:
     void timerCallback() override
     {
         auto const position = topLevel->getMouseXYRelative();
-        auto const surfaceMousePosition = editor->nvgSurface.getLocalPoint(topLevel, position);
-        auto const mouseOverSurface = editor->nvgSurface.getLocalBounds().contains(surfaceMousePosition);
-
-        if (mouseOverSurface) {
-            editor->nvgSurface.setRenderThroughImage(true);
-            editor->nvgSurface.render();
-        }
-
         componentImage = topLevel->createComponentSnapshot(topLevel->getLocalBounds(), false, 1.0f);
         colourDisplayer.setCentrePosition(topLevel->localPointToGlobal(position));
         colourDisplayer.setROI(componentImage, position);
         setColour(componentImage.getPixelAt(position.x, position.y));
-
-        if (mouseOverSurface) {
-            editor->nvgSurface.setRenderThroughImage(false);
-        }
     }
 
     std::function<void(Colour)> callback;

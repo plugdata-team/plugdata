@@ -124,7 +124,10 @@ private:
     struct NvgImage {
         int id { -1 };           ///< Image/texture ID.
         int accessCounter { 0 }; ///< Usage counter.
+        uint64_t lastUsedFrame { 0 };
     };
+
+    uint64_t currentFrameId = 0;
 
     struct SavedState {
         RectangleList<int> clipRegion;

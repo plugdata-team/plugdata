@@ -21,7 +21,6 @@ public:
     ~Dialog() override
     {
         if (auto* editor = dynamic_cast<PluginEditor*>(parentComponent)) {
-            editor->nvgSurface.setRenderThroughImage(false);
             editor->setStandaloneWindowControlsEnabled(true);
         }
 

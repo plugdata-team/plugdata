@@ -36,22 +36,21 @@ class NVGSurface final :
 #else
     public Component, public OpenGLRenderer
 #endif
+    , public AsyncUpdater
 {
 public:
     explicit NVGSurface(PluginEditor* editor);
     ~NVGSurface() override;
 
     void initialise();
-    void updateBufferSize();
-
-    void renderAll();
-    void render();
 
     bool makeContextActive();
 
     void detachContext();
 
     void lookAndFeelChanged() override;
+
+    void handleAsyncUpdate() override;
 
     Rectangle<int> getInvalidArea() const { return invalidArea; }
 
@@ -104,21 +103,12 @@ public:
     void invalidateArea(Rectangle<int> area);
     void invalidateAll();
 
-    void setRenderThroughImage(bool renderThroughImage);
-
     static NVGSurface* getSurfaceForContext(NVGcontext*);
 
     void resized() override;
 
-#if JUCE_LINUX || JUCE_BSD
-    bool roundedLeft = false, roundedRight = true;
-    void setRoundedBottomCorners(bool left, bool right);
-#endif
-
     void addBufferedObject(NVGComponent* component);
     void removeBufferedObject(NVGComponent* component);
-
-    void handleCommandMessage(int commandID) override;
 
 private:
     float calculateRenderScale() const;
@@ -148,24 +138,16 @@ private:
     Rectangle<int> invalidArea;          // damage accumulated since the last recorded frame (message thread)
     Rectangle<int> inFlightDamage;       // damage of the last recorded frame, re-folded if it gets coalesced
     Rectangle<int> currentBounds;
-    std::atomic<bool> renderScheduled { false };
     std::atomic<bool> frameReadyForReplay { false };
     std::atomic<int> recordedFramebufferWidth { 0 };
     std::atomic<int> recordedFramebufferHeight { 0 };
     std::atomic<bool> recordedFrameIsFullRepaint { false };
 
-    // Persistent main/damage framebuffer: last-drawn content lives here so we only
-    // redraw the damaged region each frame, then blit the whole thing to the screen.
-    // Owned ENTIRELY by the render thread: the real backend framebuffer is created,
-    // sized, and destroyed there. The message thread never touches it; recordFrame
-    // just records nanovg::bindMainFramebuffer().
     void* mainFramebuffer = nullptr;        // real backend framebuffer (render thread only)
     int mainFramebufferWidth = 0;
     int mainFramebufferHeight = 0;
 
     static inline UnorderedMap<NVGcontext*, NVGSurface*> surfaces;
-
-    bool renderThroughImage = false;
 
     UnorderedSegmentedSet<WeakReference<NVGComponent>> bufferedObjects;
 

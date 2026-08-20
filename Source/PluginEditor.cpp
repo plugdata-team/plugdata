@@ -678,18 +678,10 @@ void PluginEditor::resized()
     pd->lastUIHeight = getHeight();
 
     if (isInPluginMode()) {
-#if JUCE_LINUX || JUCE_BSD
-        nvgSurface.setRoundedBottomCorners(true, true);
-#endif
         nvgSurface.updateBounds(getLocalBounds());
         updateStandaloneWindowControls();
         return;
     }
-
-#if JUCE_LINUX || JUCE_BSD
-    // TODO: we can hardcode this now
-    nvgSurface.setRoundedBottomCorners(wantsRoundedCorners(), wantsRoundedCorners());
-#endif
 
     auto const leftHasSelectors = leftSidebar && leftSidebar->isVisible() && leftSidebar->hasAnyPanel();
     auto const rightHasSelectors = rightSidebar && rightSidebar->isVisible() && rightSidebar->hasAnyPanel();
@@ -881,7 +873,7 @@ void PluginEditor::mouseDown(MouseEvent const& e)
             getPeer()->setBounds(unmaximisedSize, false);
         } else {
             unmaximisedSize = getTopLevelComponent()->getBounds();
-            auto const userArea = Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea;
+            auto const userArea = Desktop::getInstance().getDisplays().getPrimaryDisplay()->userBounds.getSmallestIntegerContainer();
             getPeer()->setBounds(userArea, false);
         }
 
