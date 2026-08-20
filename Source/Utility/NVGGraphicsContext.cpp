@@ -65,6 +65,154 @@ static uint8 alphaToByte(float const alpha)
     return static_cast<uint8>(roundToInt(jlimit(0.0f, 1.0f, alpha) * 255.0f));
 }
 
+enum class DeferredTextMode : uint8_t {
+    Baseline,
+    Rectangle,
+};
+
+struct DeferredTextPayload {
+    Font font { FontOptions() };
+    String text;
+    int justificationFlags = Justification::left;
+    Rectangle<int> bounds;
+    DeferredTextMode mode = DeferredTextMode::Baseline;
+};
+
+static void setRawNvgPath(NVGcontext* nvg, Path path, AffineTransform const& transform = {})
+{
+    path.applyTransform(transform);
+
+    ::nvgBeginPath(nvg);
+
+    Path::Iterator i(path);
+
+    while (i.next()) {
+        switch (i.elementType) {
+        case Path::Iterator::startNewSubPath:
+            ::nvgMoveTo(nvg, i.x1, i.y1);
+            ::nvgPathWinding(nvg, NVG_NONZERO);
+            break;
+        case Path::Iterator::lineTo:
+            ::nvgLineTo(nvg, i.x1, i.y1);
+            break;
+        case Path::Iterator::quadraticTo:
+            ::nvgQuadTo(nvg, i.x1, i.y1, i.x2, i.y2);
+            break;
+        case Path::Iterator::cubicTo:
+            ::nvgBezierTo(nvg, i.x1, i.y1, i.x2, i.y2, i.x3, i.y3);
+            break;
+        case Path::Iterator::closePath:
+            ::nvgClosePath(nvg);
+            break;
+        default:
+            break;
+        }
+    }
+}
+
+static uint64_t getSDFGlyphHash(Typeface const* typeface, int glyph)
+{
+    auto pathHash = reinterpret_cast<uint64_t>(typeface);
+    pathHash ^= static_cast<uint64_t>(glyph) + 0x9e3779b97f4a7c15ULL + (pathHash << 6) + (pathHash >> 2);
+    return pathHash;
+}
+
+static void renderSDFGlyph(NVGcontext* nvg, Typeface& typeface, Font const& font, int glyph, Point<float> const position)
+{
+    auto const scale = font.getHeightInPoints();
+    auto const tx = AffineTransform::scale(scale * font.getHorizontalScale(), scale).translated(position);
+    auto const pathHash = getSDFGlyphHash(&typeface, glyph);
+    auto const fillColour = ::nvgCurrentFillColor(nvg);
+
+    ::nvgSave(nvg);
+    ::nvgTransform(nvg, tx.mat00, tx.mat10, tx.mat01, tx.mat11, tx.mat02, tx.mat12);
+
+    if (!::nvgFillSDFGlyph(nvg, pathHash, fillColour)) {
+        constexpr float referenceEmPx = 32.0f;
+
+        Path path;
+        typeface.getOutlineForGlyph(glyph, path);
+
+        ::nvgSave(nvg);
+        ::nvgResetTransform(nvg);
+        ::nvgScale(nvg, referenceEmPx, referenceEmPx);
+        setRawNvgPath(nvg, std::move(path));
+        ::nvgSaveSDFGlyph(nvg, pathHash);
+        ::nvgRestore(nvg);
+
+        ::nvgFillSDFGlyph(nvg, pathHash, fillColour);
+    }
+
+    ::nvgRestore(nvg);
+}
+
+static void renderGlyphArrangement(NVGcontext* nvg, GlyphArrangement const& arrangement, Typeface& typeface, Font const& font)
+{
+    for (int i = 0; i < arrangement.getNumGlyphs(); ++i) {
+        auto const& glyph = arrangement.getGlyph(i);
+
+        if (glyph.isWhitespace())
+            continue;
+
+        renderSDFGlyph(nvg, typeface, font, glyph.getGlyphIndex(), { glyph.getLeft(), glyph.getBaselineY() });
+    }
+}
+
+static void renderDeferredText(NVGcontext* nvg, DeferredTextPayload const& payload)
+{
+    if (payload.text.isEmpty())
+        return;
+
+    auto const& font = payload.font;
+    auto typeface = font.getTypefacePtr();
+
+    if (typeface == nullptr)
+        return;
+
+    GlyphArrangement arrangement;
+    auto const bounds = payload.bounds.toFloat();
+
+    if (payload.mode == DeferredTextMode::Rectangle) {
+        arrangement.addCurtailedLineOfText(font, payload.text, 0.0f, 0.0f, bounds.getWidth(), false);
+        arrangement.justifyGlyphs(0, arrangement.getNumGlyphs(), 0.0f, 0.0f, bounds.getWidth(), bounds.getHeight(), Justification(payload.justificationFlags));
+        arrangement.moveRangeOfGlyphs(0, arrangement.getNumGlyphs(), bounds.getX(), bounds.getY());
+    } else {
+        arrangement.addLineOfText(font, payload.text, 0.0f, 0.0f);
+
+        auto offsetX = bounds.getX();
+        auto const horizontalFlags = payload.justificationFlags
+            & (Justification::right | Justification::horizontallyCentred | Justification::horizontallyJustified);
+
+        if (horizontalFlags != 0) {
+            auto width = arrangement.getBoundingBox(0, -1, true).getWidth();
+
+            if ((horizontalFlags & (Justification::horizontallyCentred | Justification::horizontallyJustified)) != 0)
+                width *= 0.5f;
+
+            offsetX -= width;
+        }
+
+        arrangement.moveRangeOfGlyphs(0, arrangement.getNumGlyphs(), offsetX, bounds.getY());
+    }
+
+    renderGlyphArrangement(nvg, arrangement, *typeface, font);
+}
+
+static void enqueueDeferredText(NVGcontext* nvg, DeferredTextPayload payload, AffineTransform const& transform)
+{
+    auto const needsTransform = !transform.isIdentity();
+
+    if (needsTransform) {
+        nanovg::nvgSave(nvg);
+        nanovg::nvgTransform(nvg, transform.mat00, transform.mat10, transform.mat01, transform.mat11, transform.mat02, transform.mat12);
+    }
+
+    nanovg::nvgRenderCallback(nvg, renderDeferredText, std::move(payload));
+
+    if (needsTransform)
+        nanovg::nvgRestore(nvg);
+}
+
 //==============================================================================
 
 int const NVGGraphicsContext::imageCacheSize = 256;
@@ -493,6 +641,50 @@ Font const& NVGGraphicsContext::getFont()
     return font;
 }
 
+void NVGGraphicsContext::drawText(StringRef const text, Point<float> const baseline, Justification const justification, AffineTransform const& transform)
+{
+    auto textString = String(text);
+
+    if (textString.isEmpty())
+        return;
+
+    auto const horizontalFlags = justification.getOnlyHorizontalFlags();
+    auto const clipBounds = getClipBounds();
+
+    if ((horizontalFlags == Justification::right && baseline.getX() < static_cast<float>(clipBounds.getX()))
+        || (horizontalFlags == Justification::left && baseline.getX() > static_cast<float>(clipBounds.getRight())))
+        return;
+
+    DeferredTextPayload payload;
+    payload.font = font;
+    payload.text = std::move(textString);
+    payload.justificationFlags = horizontalFlags;
+    payload.bounds = { roundToInt(baseline.getX()), roundToInt(baseline.getY()), 0, 0 };
+    payload.mode = DeferredTextMode::Baseline;
+
+    enqueueDeferredText(nvg, std::move(payload), transform);
+}
+
+void NVGGraphicsContext::drawText(StringRef const text, Rectangle<float> const area, Justification const justification, bool const /*useEllipsesIfTooBig*/, AffineTransform const& transform)
+{
+    if (area.isEmpty() || !clipRegionIntersects(area.getSmallestIntegerContainer()))
+        return;
+
+    auto textString = String(text);
+
+    if (textString.isEmpty())
+        return;
+
+    DeferredTextPayload payload;
+    payload.font = font;
+    payload.text = std::move(textString);
+    payload.justificationFlags = justification.getFlags();
+    payload.bounds = area.toNearestInt();
+    payload.mode = DeferredTextMode::Rectangle;
+
+    enqueueDeferredText(nvg, std::move(payload), transform);
+}
+
 void NVGGraphicsContext::drawGlyphs(Span<uint16_t const> glyphs, Span<Point<float> const> positions, AffineTransform const& t)
 {
     for (auto const [i, glyph] : enumerate(glyphs, size_t { })) {
@@ -535,10 +727,9 @@ NVGGraphicsContext::ScopedAnchoredDraw::ScopedAnchoredDraw(NVGGraphicsContext& c
     // state stack balanced — we only add and remove our own frame.
     ctx.saveState();
 
-    // Clip pixels to the requested bounds via the nvg scissor (in nvg's current local space), matching
-    // the old image renderer. We use the nvg scissor rather than JUCE's clip so we can safely blank the
-    // tracked clip below without losing the intended clipping.
-    nanovg::nvgIntersectScissor(ctx.nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
+    if(!clipBounds.isEmpty()) {
+        nanovg::nvgIntersectScissor(ctx.nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
+    }
 
     // Neutralise the tracked transform/clip so getClipBounds() reports "everything": JUCE then culls
     // nothing, and glyphs land correctly because they are drawn relative to nvg's current matrix.

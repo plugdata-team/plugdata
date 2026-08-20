@@ -424,7 +424,7 @@ public:
         auto const typefaceName = font.toString();
 
         if (typefaceName.isEmpty() || typefaceName == "Inter") {
-            return Fonts::getVariableFont().withStyle(style).withHeight(fontHeight);
+            return Fonts::getCurrentFont().withStyle(style).withHeight(fontHeight);
         }
 
         // Check if a system typeface exists, before we start searching for a font file

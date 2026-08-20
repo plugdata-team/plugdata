@@ -75,6 +75,8 @@ public:
     uint64_t getFrameId() const override { return 0; }
 
     void drawGlyphs(Span<uint16_t const>, Span<Point<float> const>, AffineTransform const&) override;
+    void drawText(StringRef text, Point<float> baseline, Justification justification = Justification::left, AffineTransform const& transform = {});
+    void drawText(StringRef text, Rectangle<float> area, Justification justification = Justification::centredLeft, bool useEllipsesIfTooBig = false, AffineTransform const& transform = {});
 
     void removeCachedImages();
 

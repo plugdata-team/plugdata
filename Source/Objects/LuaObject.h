@@ -794,6 +794,7 @@ public:
             break;
         }
         case hash("lua_draw_text"): {
+            /* TODO: reimplement this
             if (argc >= 4) {
                 float const x = atom_getfloat(argv + 1);
                 float const y = atom_getfloat(argv + 2);
@@ -843,7 +844,7 @@ public:
 
                 nanovg::nvgBeginPath(nvg);
                 nanovg::nvgTextBox(nvg, ax, ay, w, atom_getsymbol(argv)->s_name, nullptr);
-            }
+            }*/
             break;
         }
         case hash("lua_fill_path"): {

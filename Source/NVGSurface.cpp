@@ -31,64 +31,6 @@ void nvgluSetCornerRadius(float radius, bool left, bool right);
 #define ENABLE_FPS_COUNT 0
 #define ENABLE_PAINT_DEBUGGING 0
 
-class FrameTimer {
-public:
-    FrameTimer()
-    {
-        startTime = getNow();
-        prevTime = startTime;
-    }
-
-    void render(NVGcontext* nvg, int const width, int const height, float const scale)
-    {
-        nanovg::nvgBeginFrame(nvg, width, height, scale);
-
-        nanovg::nvgFillColor(nvg, nanovg::nvgRGBA(40, 40, 40, 255));
-        nanovg::nvgFillRect(nvg, 0, 0, 40, 22);
-
-        nanovg::nvgFontSize(nvg, 20.0f);
-        nanovg::nvgTextAlign(nvg, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
-        nanovg::nvgFillColor(nvg, nanovg::nvgRGBA(240, 240, 240, 255));
-        StackArray<char, 16> fpsBuf;
-        snprintf(fpsBuf.data(), 16, "%d", static_cast<int>(round(1.0f / getAverageFrameTime())));
-        nanovg::nvgText(nvg, 7, 2, fpsBuf.data(), nullptr);
-
-        nanovg::nvgGlobalScissor(nvg, 0, 0, 40 * scale, 22 * scale);
-        nanovg::nvgEndFrame(nvg);
-    }
-
-    void addFrameTime()
-    {
-        auto const timeSeconds = getTime();
-        auto const dt = timeSeconds - prevTime;
-        perf_head = (perf_head + 1) % 32;
-        frame_times[perf_head] = dt;
-        prevTime = timeSeconds;
-    }
-
-    double getTime() const { return getNow() - startTime; }
-
-private:
-    static double getNow()
-    {
-        auto const ticks = Time::getHighResolutionTicks();
-        return Time::highResolutionTicksToSeconds(ticks);
-    }
-
-    float getAverageFrameTime() const
-    {
-        float avg = 0;
-        for (int i = 0; i < 32; i++) {
-            avg += frame_times[i];
-        }
-        return avg / static_cast<float>(32);
-    }
-
-    float frame_times[32] = { };
-    int perf_head = 0;
-    double startTime = 0, prevTime = 0;
-};
-
 NVGSurface::NVGSurface(PluginEditor* e)
     :
 #if NANOVG_METAL_IMPLEMENTATION && (JUCE_MAC || JUCE_IOS)
@@ -230,13 +172,6 @@ void NVGSurface::createRenderContext()
 #    endif
 
     surfaces[asyncNvg] = this;
-
-    nanovg::nvgAtlasTextThreshold(asyncNvg, 32.0f);
-    nanovg::nvgCreateFontMem(asyncNvg, "Inter-Regular", BinaryData::getResourceCopy(BinaryData::InterRegular_ttf), BinaryData::getResourceSize(BinaryData::InterRegular_ttf), 0);
-    nanovg::nvgCreateFontMem(asyncNvg, "Inter-Bold", BinaryData::getResourceCopy(BinaryData::InterBold_ttf), BinaryData::getResourceSize(BinaryData::InterBold_ttf), 0);
-    nanovg::nvgCreateFontMem(asyncNvg, "Inter-Tabular", BinaryData::getResourceCopy(BinaryData::InterTabular_ttf), BinaryData::getResourceSize(BinaryData::InterTabular_ttf), 0);
-    nanovg::nvgCreateFontMem(asyncNvg, "icon_font-Regular", BinaryData::getResourceCopy(BinaryData::IconFont_ttf), BinaryData::getResourceSize(BinaryData::IconFont_ttf), 0);
-
     MessageManager::callAsync([_this = SafePointer(this)] {
         if (_this)
             _this->invalidateAll();

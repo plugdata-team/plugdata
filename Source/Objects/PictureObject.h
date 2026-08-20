@@ -180,11 +180,7 @@ public:
         nanovg::nvgIntersectScissor(nvg, 0, 0, getWidth(), getHeight());
 
         if (!imageBuffer.isValid()) {
-            nanovg::nvgFontSize(nvg, 20);
-            nanovg::nvgFontFace(nvg, "Inter-Regular");
-            nanovg::nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-            nanovg::nvgFillColor(nvg, nvgColour(PlugDataColours::canvasTextColour));
-            nanovg::nvgText(nvg, b.getCentreX(), b.getCentreY(), "?", nullptr);
+            Fonts::drawText(cnv->editor->getNanoLLGC(), "?", b, Fonts::getCurrentFont().withHeight(20), PlugDataColours::canvasTextColour, Justification::centred);
         } else {
             NVGScopedState scopedState(nvg);
             nanovg::nvgTranslate(nvg, offsetX, offsetY);

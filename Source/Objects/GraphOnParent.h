@@ -81,24 +81,20 @@ public:
         auto const x1 = static_cast<float>(localGraphBounds.getX());
         auto const x2 = static_cast<float>(localGraphBounds.getRight());
 
-        nanovg::nvgFontFace(nvg, "Inter-Regular");
-        nanovg::nvgFontSize(nvg, 10.0f);
         nanovg::nvgFillColor(nvg, nvgColour(PlugDataColours::canvasTextColour));
 
         for (auto const& text : xLabels) {
             auto const xpos = jmap<float>(text.getFloatValue(), gl_x1, gl_x2, x1, x2);
             auto const ypos = jmap<float>(xLabelY, gl_y1, gl_y2, y1, y2);
-            auto const align = xLabelY > 0.5f * (gl_y1 + gl_y2) ? NVG_ALIGN_BOTTOM : NVG_ALIGN_TOP;
-            nanovg::nvgTextAlign(nvg, NVG_ALIGN_CENTER | align);
-            nanovg::nvgText(nvg, xpos, ypos, text.toRawUTF8(), nullptr);
+            auto const align = xLabelY > 0.5f * (gl_y1 + gl_y2) ? Justification::centredBottom : Justification::centredTop;
+            llgc.drawText(text, Point<float>(xpos, ypos), align);
         }
 
         for (auto const& text : yLabels) {
             auto const xpos = jmap<float>(yLabelX, gl_x1, gl_x2, x1, x2);
             auto const ypos = jmap<float>(text.getFloatValue(), gl_y1, gl_y2, y1, y2);
-            auto const align = yLabelX > 0.5f * (gl_x1 + gl_x2) ? NVG_ALIGN_LEFT : NVG_ALIGN_RIGHT;
-            nanovg::nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | align);
-            nanovg::nvgText(nvg, xpos, ypos, text.toRawUTF8(), nullptr);
+            auto const align = yLabelX > 0.5f * (gl_x1 + gl_x2) ? Justification::centredLeft :  Justification::centredRight;
+            llgc.drawText(text, Point<float>(xpos, ypos), align);
         }
     }
 
@@ -548,12 +544,7 @@ public:
 
             auto const stringLength = Fonts::getStringWidth(errorText, 12);
             if (stringLength < getWidth() - Object::doubleMargin - 20 /* 20 is a hack for now */ && getHeight() > 12) {
-                nanovg::nvgBeginPath(nvg);
-                nanovg::nvgFontFace(nvg, "Inter-Regular");
-                nanovg::nvgFontSize(nvg, 12.0f);
-                nanovg::nvgFillColor(nvg, nvgColour(PlugDataColours::commentTextColour)); // why comment colour?
-                nanovg::nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_CENTER);
-                nanovg::nvgText(nvg, b.getCentreX(), b.getCentreY(), errorText.toRawUTF8(), nullptr);
+                Fonts::drawText(canvas->editor->getNanoLLGC(), errorText, b, Fonts::getCurrentFont().withHeight(12), PlugDataColours::commentTextColour, Justification::centred);
             }
         }
 

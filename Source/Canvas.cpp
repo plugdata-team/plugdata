@@ -195,15 +195,6 @@ public:
             cnv->renderResizeHandle(nvg, nvgColour(PlugDataColours::objectSelectedOutlineColour));
             angle -= 90;
         }
-// #define SPACER_TEXT
-#ifdef SPACER_TEXT
-        nanovg::nvgBeginPath(nvg);
-        auto textPos = getPosition().translated(0, -25);
-        nanovg::nvgFontSize(nvg, 20.0f);
-        nanovg::nvgTextAlign(nvg, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
-        nanovg::nvgFillColor(nvg, nanovg::nvgRGBA(240, 240, 240, 255));
-        nanovg::nvgText(nvg, textPos.x, textPos.y, String("Spacer size: " + String(spacer + 1.0f)).toRawUTF8(), nullptr);
-#endif
     }
 
 private:

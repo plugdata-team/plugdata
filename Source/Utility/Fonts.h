@@ -17,26 +17,23 @@ enum FontStyle {
 struct Fonts {
     Fonts()
     {
-        defaultTypeface = BinaryData::loadFont(BinaryData::InterRegular_ttf);
-        currentTypeface = defaultTypeface;
-
-        boldTypeface = BinaryData::loadFont(BinaryData::InterBold_ttf);
-        semiBoldTypeface = BinaryData::loadFont(BinaryData::InterSemiBold_ttf);
+        defaultTypeface = BinaryData::loadFont(BinaryData::InterVariable_ttf);
+        monoTypeface = BinaryData::loadFont(BinaryData::RobotoMonoVariable_ttf);
         iconTypeface = BinaryData::loadFont(BinaryData::IconFont_ttf);
-        monoTypeface = BinaryData::loadFont(BinaryData::RobotoMono_Regular_ttf);
-        monoBoldTypeface = BinaryData::loadFont(BinaryData::RobotoMono_Bold_ttf);
-        variableTypeface = BinaryData::loadFont(BinaryData::InterVariable_ttf);
+
+        currentTypeface = defaultTypeface;
         instance = this;
     }
 
+    
     static Font getCurrentFont() { return { FontOptions(instance->currentTypeface) }; }
     static Font getDefaultFont() { return { FontOptions(instance->defaultTypeface) }; }
-    static Font getBoldFont() { return { FontOptions(instance->boldTypeface) }; }
-    static Font getSemiBoldFont() { return { FontOptions(instance->semiBoldTypeface) }; }
+
+    static Font getBoldFont() { return getWeightedFont(instance->currentTypeface, 700.0f); }
+    static Font getSemiBoldFont() { return getWeightedFont(instance->currentTypeface, 600.0f); }
     static Font getIconFont() { return { FontOptions(instance->iconTypeface) }; }
     static Font getMonospaceFont() { return { FontOptions(instance->monoTypeface) }; }
-    static Font getMonospaceBoldFont() { return { FontOptions(instance->monoBoldTypeface) }; }
-    static Font getVariableFont() { return { FontOptions(instance->variableTypeface) }; }
+    static Font getMonospaceBoldFont() { return getWeightedFont(instance->monoTypeface, 700.0f); }
     static Font getTabularNumbersFont() { return { FontOptions(instance->defaultTypeface).withFeatureEnabled(FontFeatureTag(1953396077u)) }; }
 
     static void setCurrentFont(Font const& font) { instance->currentTypeface = font.getTypefacePtr(); }
@@ -75,6 +72,25 @@ struct Fonts {
     {
         return patchFile.findChildFiles(File::findFiles, false, "*.ttf;*.otf;");
     }
+
+    template<typename T>
+    static void drawText(T* llgc, String const& text, Rectangle<float> bounds, Font const& font, Colour colour, Justification just = Justification::centredLeft)
+    {
+        typename T::ScopedAnchoredDraw anchor(*llgc, Rectangle<float>());
+        llgc->setFill(colour);
+        llgc->setFont(font);
+        llgc->drawText(text, bounds, just);
+    }
+
+    template<typename T>
+    static void drawText(T* llgc, String const& text, Point<float> pos, Font const& font, Colour colour, Justification just = Justification::centredLeft)
+    {
+        typename T::ScopedAnchoredDraw anchor(*llgc, Rectangle<float>());
+        llgc->setFill(colour);
+        llgc->setFont(font);
+        llgc->drawText(text, pos, just);
+    }
+
 
     static std::optional<Font> findFont(File const& dirToSearch, String const& typefaceFileName)
     {
@@ -135,9 +151,6 @@ struct Fonts {
             break;
         case Monospace:
             font = Fonts::getMonospaceFont();
-            break;
-        case Variable:
-            font = Fonts::getVariableFont();
             break;
         case Tabular:
             font = Fonts::getTabularNumbersFont();
@@ -208,21 +221,47 @@ struct Fonts {
     }
 
 private:
+    static bool supportsWeightVariable(Typeface::Ptr const& typeface)
+    {
+        if (typeface == nullptr)
+            return false;
+
+        constexpr auto weightTag = FontFeatureTag("wght");
+
+        for (auto variable : typeface->getSupportedVariables()) {
+            if (variable == weightTag)
+                return true;
+        }
+
+        return false;
+    }
+
+    static Font getWeightedFont(Typeface::Ptr const& typeface, float const weight)
+    {
+        if (typeface == nullptr)
+            return Font(FontOptions()).boldened();
+
+        Font font { FontOptions(typeface) };
+
+        if (!supportsWeightVariable(typeface))
+            return font.boldened();
+
+        FontVariableSetting const settings[] { { "wght", weight } };
+
+        if (auto weightedTypeface = typeface->cloneWithVariableSettings(settings); weightedTypeface != nullptr)
+            return { FontOptions(weightedTypeface) };
+
+        return font.boldened();
+    }
+
     // This is effectively a singleton because it's loaded through SharedResourcePointer
     static inline Fonts* instance = nullptr;
 
     // Default typeface is Inter combined with Unicode symbols from GoNotoUniversal and emojis from NotoEmoji
     Typeface::Ptr defaultTypeface;
-
     Typeface::Ptr currentTypeface;
-
-    Typeface::Ptr boldTypeface;
-    Typeface::Ptr semiBoldTypeface;
     Typeface::Ptr iconTypeface;
     Typeface::Ptr monoTypeface;
-    Typeface::Ptr monoBoldTypeface;
-    Typeface::Ptr variableTypeface;
-    Typeface::Ptr tabularTypeface;
 
     static inline auto fontTable = UnorderedMap<String, Font>();
 };

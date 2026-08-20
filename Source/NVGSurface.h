@@ -25,7 +25,6 @@ using namespace juce::gl;
 #    define NANOVG_GL_IMPLEMENTATION 1
 #endif
 
-class FrameTimer;
 class PluginEditor;
 class NVGComponent;
 class NVGSurface final :
@@ -186,6 +185,4 @@ private:
     void* metalView = nullptr;
     std::atomic<bool> backendRenderRequested { false };
 #endif
-
-    std::unique_ptr<FrameTimer> frameTimer;
 };

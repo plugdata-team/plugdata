@@ -130,8 +130,6 @@ void Connection::lookAndFeelChanged()
     shadowColour = nvgColour(PlugDataColours::canvasBackgroundColour.contrasting(0.06f).withAlpha(0.24f));
     outlineColour = nvgColour(PlugDataColours::objectOutlineColour);
 
-    textColour = nvgColour(PlugDataColours::objectSelectedOutlineColour.contrasting());
-
     if (connectionStyle != PlugDataLook::getConnectionStyle()) {
         connectionStyle = PlugDataLook::getConnectionStyle();
         cachedPath.clear();
@@ -305,11 +303,9 @@ void Connection::renderConnectionOrder(NVGcontext* nvg) const
         nanovg::nvgStrokeWidth(nvg, 1.0f);
         nanovg::nvgFill(nvg);
         nanovg::nvgStroke(nvg);
+
         // connection index number
-        nanovg::nvgFillColor(nvg, textColour);
-        nanovg::nvgFontSize(nvg, 9.0f);
-        nanovg::nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_CENTER);
-        nanovg::nvgText(nvg, pos.getX(), pos.getY(), String(getMultiConnectNumber()).toUTF8(), nullptr);
+        Fonts::drawText(cnv->editor->getNanoLLGC(), String(getMultiConnectNumber()), Rectangle<float>(radius, radius).withCentre(pos.toFloat()), Fonts::getCurrentFont().withHeight(9), PlugDataColours::objectSelectedOutlineColour.contrasting(), Justification::centred);
     }
 }
 

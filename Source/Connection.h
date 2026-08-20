@@ -135,11 +135,7 @@ private:
     Value locked;
     Value presentationMode;
 
-    NVGcolor handleColour;
-    NVGcolor shadowColour;
-    NVGcolor outlineColour;
-
-    NVGcolor textColour;
+    NVGcolor handleColour, shadowColour, outlineColour;
 
     RectangleList<int> clipRegion;
 

@@ -148,17 +148,14 @@ public:
 
         // Draw octave numbers
         if (!cnv->locked.getValue() && !cnv->editor->isInPluginMode()) {
-            nanovg::nvgFillColor(nvg, nanovg::nvgRGB(90, 90, 90));
-            nanovg::nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
             auto const fontSizeScaled = b.getHeight() - 2 < 60 ? 13.0f * (b.getHeight() - 2) / 60.0f : 13;
-            nanovg::nvgFontSize(nvg, jmax(4.0f, fontSizeScaled));
             auto const octaveNumHeight = whiteNoteWidth * 1.2f;
             auto const scaledHeight = jmin(13.0f, b.getHeight() - 2 < 60 ? octaveNumHeight * (b.getHeight() - 2.0f) / 60.0f : octaveNumHeight);
             for (int i = 0; i < getValue<int>(octaves); i++) {
                 auto const position = i * 7 * whiteNoteWidth;
                 auto text = String(i + startOctave);
                 auto rectangle = Rectangle<int>(position, b.getHeight() - scaledHeight, whiteNoteWidth, scaledHeight);
-                nanovg::nvgText(nvg, rectangle.getCentreX(), rectangle.getCentreY(), text.toRawUTF8(), nullptr);
+                Fonts::drawText(cnv->editor->getNanoLLGC(), text, rectangle.toFloat(), Fonts::getCurrentFont().withHeight(jmax(4.0f, fontSizeScaled)), Colour(90, 90, 90), Justification::centred);
             }
         }
     }

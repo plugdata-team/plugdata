@@ -325,11 +325,8 @@ public:
         if (error) {
             auto const position = getLocalBounds().getCentre();
             auto const errorText = "array " + getUnexpandedName() + " is invalid";
-            nanovg::nvgFontSize(nvg, 11);
-            nanovg::nvgFontFace(nvg, "Inter-Regular");
-            nanovg::nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-            nanovg::nvgFillColor(nvg, nvgColour(PlugDataColours::canvasTextColour));
-            nanovg::nvgText(nvg, position.x, position.y, errorText.toRawUTF8(), nullptr);
+
+            Fonts::drawText(object->cnv->editor->getNanoLLGC(), errorText, position.toFloat(), Fonts::getCurrentFont().withHeight(11), PlugDataColours::canvasTextColour, Justification::centred);
             error = false;
         } else if (visible) {
             paintGraph(nvg);
