@@ -245,7 +245,7 @@ struct LuaPropertiesPanel {
 };
 
 class LuaObject final : public ObjectBase
-    , private Value::Listener {
+    , private Value::Listener, private AsyncUpdater {
     Colour currentColour;
 
     t_symbol* pdluaxSymbol;
@@ -260,7 +260,6 @@ class LuaObject final : public ObjectBase
 
     int currentTouchIndex = -1;
 
-    UnorderedSegmentedMap<int, NVGFramebuffer> framebuffers;
     UnorderedSegmentedMap<hash32, std::pair<NVGImage, Rectangle<int>>> images;
 
     struct LuaGuiMessage {
@@ -493,17 +492,29 @@ public:
         sendRepaintMessage();
     }
 
+    void handleAsyncUpdate() override
+    {
+        repaint();
+    }
+
     void render(NVGcontext* nvg) override
     {
         NVGScopedState scopedState(nvg);
 
-        auto scale = nanovg::nvgCurrentPixelScale(nvg) * getValue<float>(zoomScale);
-        nanovg::nvgScale(nvg, 1.0f / scale, 1.0f / scale);
-        nanovg::nvgTransformQuantize(nvg);
+        frameSwapLock.enter();
+        auto frames = currentFrame;
+        frameSwapLock.exit();
 
-        for (auto& [layer, fb] : framebuffers) {
-            fb.render(nvg, Rectangle<int>(std::ceil(getWidth() * scale), std::ceil(getHeight() * scale)));
+
+        auto b = getLocalBounds();
+        nanovg::nvgIntersectRoundedScissor(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+
+        for (auto& [layer, layerMessages] : frames) {
+            for (auto& guiMessage : layerMessages) {
+                handleGuiMessage(nvg, layer, guiMessage.symbol, guiMessage.size, guiMessage.data.data());
+            }
         }
+
     }
 
     void valueChanged(Value& v) override
@@ -625,33 +636,12 @@ public:
             if (getLocalBounds().isEmpty())
                 break;
 
-            auto const pixelScale = nanovg::nvgCurrentPixelScale(nvg);
-            auto const zoom = getValue<float>(zoomScale);
-            auto const imageScale = zoom * pixelScale;
-            int const imageWidth = std::ceil(getWidth() * imageScale);
-            int const imageHeight = std::ceil(getHeight() * imageScale);
-            if (!imageWidth || !imageHeight)
-                return;
-
-            framebuffers[layer].bind(nvg, imageWidth, imageHeight);
-
-            nanovg::viewport(nvg, 0, 0, imageWidth, imageHeight);
-            nanovg::clear(nvg);
-            nanovg::nvgBeginFrame(nvg, getWidth() * zoom, getHeight() * zoom, pixelScale);
-            nanovg::nvgScale(nvg, zoom, zoom);
             nanovg::nvgSave(nvg);
+
             return;
         }
         case hash("lua_end_paint"): {
-            if (!framebuffers[layer].isValid())
-                return;
-
-            auto const pixelScale = nanovg::nvgCurrentPixelScale(nvg);
-            auto const scale = getValue<float>(zoomScale) * pixelScale;
-            nanovg::nvgGlobalScissor(nvg, 0, 0, getWidth() * scale, getHeight() * scale);
-            nanovg::nvgEndFrameWithoutPublishing(nvg);
-            framebuffers[layer].unbind(nvg);
-            repaint();
+            nanovg::nvgRestore(nvg);
             return;
         }
         default:
@@ -794,23 +784,23 @@ public:
             break;
         }
         case hash("lua_draw_text"): {
-            /* TODO: reimplement this
             if (argc >= 4) {
                 float const x = atom_getfloat(argv + 1);
                 float const y = atom_getfloat(argv + 2);
                 float const w = atom_getfloat(argv + 3);
                 float const fontHeight = atom_getfloat(argv + 4);
                 int const alignment = atom_getfloat(argv + 5);
-
-                nanovg::nvgFontSize(nvg, fontHeight);
-                nanovg::nvgTextAlign(nvg, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
-
-                float bounds[4];
-                nanovg::nvgTextBoxBounds(nvg, 0, 0, w, atom_getsymbol(argv)->s_name, nullptr, bounds);
-                float textW = bounds[2] - bounds[0]; // actual rendered width
-                float textH = bounds[3] - bounds[1]; // actual rendered height (better than fontHeight)
+                auto const text = String::fromUTF8(atom_getsymbol(argv)->s_name);
 
                 float ax = x, ay = y;
+
+                AttributedString txt;
+                txt.append(text, Fonts::getCurrentFont().withPointHeight(fontHeight), currentColour);
+
+                TextLayout layout;
+                layout.createLayout(txt, w);
+                auto textW = layout.getWidth();
+                auto textH = layout.getHeight();
 
                 switch (alignment) {
                 case 1:
@@ -842,9 +832,11 @@ public:
                     break; // TOP
                 }
 
-                nanovg::nvgBeginPath(nvg);
-                nanovg::nvgTextBox(nvg, ax, ay, w, atom_getsymbol(argv)->s_name, nullptr);
-            }*/
+                auto* llgc = cnv->editor->getNanoLLGC();
+                Graphics g(*llgc);
+                NVGGraphicsContext::ScopedAnchoredDraw anchor(*llgc, getLocalBounds().toFloat());
+                layout.draw(g, Rectangle<float>(ax, ay, w, textH + 5));
+            }
             break;
         }
         case hash("lua_fill_path"): {
@@ -965,30 +957,6 @@ public:
         }
     }
 
-    // We need to update the framebuffer in a place where the current graphics context is active (for multi-window support, thanks to Alex for figuring that out)
-    // but we also need to be outside of calls to beginFrame/endFrame
-    // So we have this separate callback function that occurs after activating the GPU context, but before starting the frame
-    void updateFramebuffers(NVGcontext* nvg) override
-    {
-        frameSwapLock.enter();
-        auto frames = currentFrame;
-        currentFrame.clear();
-        frameSwapLock.exit();
-
-        for (auto& [layer, layerMessages] : frames) {
-            for (auto& guiMessage : layerMessages) {
-                handleGuiMessage(nvg, layer, guiMessage.symbol, guiMessage.size, guiMessage.data.data());
-            }
-            if (!framebuffers[layer].isValid())
-                sendRepaintMessage();
-        }
-
-        if (isSelected != object->isSelected()) {
-            isSelected = object->isSelected();
-            sendRepaintMessage();
-        }
-    }
-
     ObjectParameters getParameters() override
     {
         objectParameters.clear();
@@ -1025,6 +993,7 @@ public:
                 object->currentFrame[layer] = object->guiCommandBuffer[layer];
                 object->frameSwapLock.exit();
                 object->guiCommandBuffer[layer].clear();
+                object->triggerAsyncUpdate();
             }
         }
     }
