@@ -324,15 +324,15 @@ private:
                     Rectangle<float> bb(x, y, static_cast<float>(ioletSize), static_cast<float>(ioletSize));
                     Colour fill = ports[i] ? PlugDataColours::signalColour : PlugDataColours::dataColour;
 
-                    g.setColour(fill);
+                    g.setColour(PlugDataColours::objectOutlineColour);
                     if (squareIolets) {
-                        g.fillRect(bb);
-                        g.setColour(PlugDataColours::objectOutlineColour);
                         g.drawRect(bb, 1.0f);
+                        g.setColour(fill);
+                        g.fillRect(bb.reduced(0.5f));
                     } else {
-                        g.fillEllipse(bb);
-                        g.setColour(PlugDataColours::objectOutlineColour);
                         g.drawEllipse(bb, 1.0f);
+                        g.setColour(fill);
+                        g.fillEllipse(bb.reduced(0.5f));
                     }
                 }
             };
