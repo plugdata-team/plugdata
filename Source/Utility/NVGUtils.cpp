@@ -314,31 +314,32 @@ void NVGFramebuffer::setDirty()
     fbDirty = true;
 }
 
-void NVGFramebuffer::bind(NVGcontext* ctx, int const width, int const height)
+void NVGFramebuffer::ensureFramebuffer(NVGcontext* ctx, int const width, int const height, int const imageFlags)
 {
-    if (!fb || fbWidth != width || fbHeight != height) {
+    if (fb && (fbWidth != width || fbHeight != height)) {
+        nanovg::deleteFramebuffer(nvg, fb);
+        fb = nullptr;
+    }
+
+    if (!fb) {
         nvg = ctx;
-        if (fb)
-            nanovg::deleteFramebuffer(nvg, fb);
-        fb = nanovg::createFramebuffer(nvg, width, height, 0);
+        fb = nanovg::createFramebuffer(nvg, width, height, imageFlags);
         fbImage = nanovg::framebufferImage(nvg, fb);
         fbWidth = width;
         fbHeight = height;
     }
-
-    nanovg::bindFramebuffer(nvg, fb);
 }
 
-void NVGFramebuffer::unbind(NVGcontext* nvg)
+void NVGFramebuffer::renderToFramebuffer(NVGcontext* nvg, int const width, int const height, std::function<void(NVGcontext*)> renderCallback, int const imageFlags)
 {
-    nanovg::bindFramebuffer(nvg, nullptr);
-}
+    ensureFramebuffer(nvg, width, height, imageFlags);
 
-void NVGFramebuffer::renderToFramebuffer(NVGcontext* nvg, int const width, int const height, std::function<void(NVGcontext*)> renderCallback)
-{
-    bind(nvg, width, height);
-    renderCallback(nvg);
-    unbind(nvg);
+    // Commit the draw as a resource-queue pass: the layer brackets it with
+    // bind/unbind and replays it on the render thread, after the create above and
+    // before the frame that samples this framebuffer -- so a coalesced frame can't
+    // drop the render and leave stale/empty dots (the old flicker).
+    nanovg::commitFramebufferPass(nvg, fb, std::move(renderCallback));
+
     fbDirty = false;
 }
 

@@ -862,7 +862,8 @@ void TabComponent::handleAsyncUpdate()
         if (oldTabBounds.contains(cnv)) {
             newTabButton->setBounds(oldTabBounds[cnv]);
         } else {
-            newTabButton->setBounds(getWidth(), 0, 0, 30);
+            auto* lastTab = tabbars[patch->splitViewIndex == 1].getLast();
+            newTabButton->setBounds(lastTab ? lastTab->getRight() : 0, 0, 0, 30);
         }
 
         tabbars[patch->splitViewIndex == 1].add(newTabButton);

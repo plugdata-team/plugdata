@@ -430,15 +430,19 @@ void Canvas::updateFramebuffers(NVGcontext* nvg)
     auto zoom = getValue<float>(zoomScale);
 
     auto gridLogicalSize = objectGrid.gridSize ? objectGrid.gridSize : 25;
-    auto gridSizeCommon = 300;
-    float const viewScale = pixelScale * zoom;
+    auto constexpr gridSizeCommon = 300;
     auto const gridBufferSize = gridSizeCommon * pixelScale * zoom;
 
     if (dotsLargeImage.needsUpdate(gridBufferSize, gridBufferSize) || lastObjectGridSize != gridLogicalSize) {
         lastObjectGridSize = gridLogicalSize;
 
-        dotsLargeImage = NVGImage(nvg, gridBufferSize, gridBufferSize, [zoom, viewScale, gridLogicalSize, gridSizeCommon](Graphics& g) {
-            g.addTransform(AffineTransform::scale(viewScale, viewScale));
+        dotsLargeImage.renderToFramebuffer(nvg, gridBufferSize, gridBufferSize, [gridBufferSize, gridLogicalSize, zoom, pixelScale](NVGcontext* nvg){
+
+            nanovg::viewport(nvg, 0, 0, gridBufferSize, gridBufferSize);
+            nanovg::clear(nvg);
+            nanovg::nvgBeginFrame(nvg, gridSizeCommon * zoom, gridSizeCommon * zoom, pixelScale);
+            nanovg::nvgScale(nvg, zoom, zoom);
+
             float const ellipseRadius = zoom < 1.0f ? jmap(zoom, 0.25f, 1.0f, 3.0f, 1.0f) : 1.0f;
 
             int decim = 0;
@@ -475,26 +479,32 @@ void Canvas::updateFramebuffers(NVGcontext* nvg)
             auto markingColour = PlugDataColours::canvasDotsColour.interpolatedWith(PlugDataColours::canvasBackgroundColour, 0.2f);
             auto const majorDotColour = markingColour.withAlpha(std::min(zoom * 0.8f, 1.0f));
 
-            g.setColour(majorDotColour);
+            nanovg::nvgFillColor(nvg, nvgColour(majorDotColour));
+
             // Draw ellipses on the grid
             for (int x = 0; x <= gridSizeCommon; x += gridLogicalSize)
             {
                 for (int y = 0; y <= gridSizeCommon; y += gridLogicalSize)
                 {
+                    NVGcolor c = nvgColour(majorDotColour);
                     if (decim != 0) {
                         if (x % decim && y % decim)
                             continue;
-                        g.setColour(majorDotColour);
                         if (x % decim == 0 && y % decim == 0)
-                            g.setColour(markingColour);
+                            c = nvgColour(markingColour);
                     }
                     // Add half smallest dot offset so the dot isn't at the edge of the texture
                     // We remove this when we position the texture on the canvas
                     float const centerX = static_cast<float>(x) + 2.5f;
                     float const centerY = static_cast<float>(y) + 2.5f;
-                    g.fillEllipse(centerX - ellipseRadius, centerY - ellipseRadius, ellipseRadius * 2.0f, ellipseRadius * 2.0f);
+                    float const ellipseSize = ellipseRadius * 2.0f;
+                    nanovg::nvgDrawRoundedRect(nvg, centerX - ellipseRadius, centerY - ellipseRadius, ellipseSize, ellipseSize, c, c, ellipseRadius);
                 }
-            } }, NVGImage::RepeatImage, PlugDataColours::canvasBackgroundColour);
+            }
+
+            nanovg::nvgGlobalScissor(nvg, 0, 0, gridBufferSize, gridBufferSize);
+            nanovg::nvgEndFrameWithoutPublishing(nvg);
+        }, NVG_IMAGE_REPEATX | NVG_IMAGE_REPEATY);
     }
 }
 
@@ -572,7 +582,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
                 nanovg::nvgFillColor(nvg, nvgColour(PlugDataColours::canvasBackgroundColour)); // This fixes some glitches but I'm not sure why
                 nanovg::nvgFill(nvg);
 
-                nanovg::nvgFillPaint(nvg, nanovg::nvgImagePattern(nvg, 0, 0, gridSizeCommon, gridSizeCommon, 0, dotsLargeImage.getImageId(), 1));
+                nanovg::nvgFillPaint(nvg, nanovg::nvgImagePattern(nvg, 0, 0, gridSizeCommon, gridSizeCommon, 0, dotsLargeImage.getImage(), 1));
                 nanovg::nvgFill(nvg);
             }
         }

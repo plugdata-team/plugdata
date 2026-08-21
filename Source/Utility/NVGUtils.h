@@ -9,9 +9,6 @@
 #ifdef NANOVG_GL_IMPLEMENTATION
 #    include <juce_opengl/juce_opengl.h>
 using namespace juce::gl;
-#    undef NANOVG_GL_IMPLEMENTATION
-#    include <nanovg_gl_utils.h>
-#    define NANOVG_GL_IMPLEMENTATION 1
 #endif
 
 class NVGComponent {
@@ -92,17 +89,17 @@ public:
 
     void setDirty();
 
-    void bind(NVGcontext* ctx, int width, int height);
-
-    static void unbind(NVGcontext* nvg);
-
-    void renderToFramebuffer(NVGcontext* nvg, int width, int height, std::function<void(NVGcontext*)> renderCallback);
+    void renderToFramebuffer(NVGcontext* nvg, int width, int height, std::function<void(NVGcontext*)> renderCallback, int imageFlags);
 
     void render(NVGcontext* nvg, Rectangle<int> b);
 
     int getImage() const;
 
 private:
+    // Create (or resize) the backing framebuffer through the async resource queue,
+    // so its lifecycle survives frame coalescing (no leak, no missing target).
+    void ensureFramebuffer(NVGcontext* ctx, int width, int height, int imageFlags);
+
     static inline UnorderedSet<NVGFramebuffer*> allFramebuffers;
 
     NVGcontext* nvg;

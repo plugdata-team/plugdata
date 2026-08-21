@@ -15,7 +15,7 @@ using namespace juce::gl;
 #endif
 
 #ifndef PLUGDATA_NVG_FRAME_TIME_OVERLAY
-#    define PLUGDATA_NVG_FRAME_TIME_OVERLAY 0
+#    define PLUGDATA_NVG_FRAME_TIME_OVERLAY 1
 #endif
 
 #ifndef PLUGDATA_NVG_REPAINT_DEBUG
@@ -31,10 +31,9 @@ using namespace juce::gl;
 
 #include <atomic>
 #include <nanovg_async.h>
-#ifdef NANOVG_GL_IMPLEMENTATION
-#    undef NANOVG_GL_IMPLEMENTATION
-#    include <nanovg_gl_utils.h>
-#    define NANOVG_GL_IMPLEMENTATION 1
+
+#if !NANOVG_METAL_IMPLEMENTATION
+#define NANOVG_GL_IMPLEMENTATION 1
 #endif
 
 class PluginEditor;
@@ -193,7 +192,7 @@ private:
     std::atomic<int> recordedFramebufferHeight { 0 };
     std::atomic<bool> recordedFrameIsFullRepaint { false };
 
-    void* mainFramebuffer = nullptr;        // real backend framebuffer (render thread only)
+    NVGframebuffer* mainFramebuffer = nullptr;        // real backend framebuffer (render thread only)
     int mainFramebufferWidth = 0;
     int mainFramebufferHeight = 0;
 

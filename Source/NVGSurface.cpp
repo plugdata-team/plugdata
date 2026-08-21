@@ -14,11 +14,10 @@ using namespace juce::gl;
 #include <BinaryData.h>
 
 #include <nanovg_async.h>
-#ifdef NANOVG_GL_IMPLEMENTATION
+#ifndef NANOVG_METAL_IMPLEMENTATION
 #    include <nanovg_gl.h>
-#    include <nanovg_gl_utils.h>
 #    if JUCE_LINUX || JUCE_BSD
-void nvgluSetCornerRadius(float radius, bool left, bool right);
+void nvgSetCornerRadius(float radius, bool left, bool right);
 #    endif
 #endif
 
@@ -149,26 +148,6 @@ void NVGSurface::createRenderContext()
     }
 
     auto* asyncNvg = nanovg::create(baseNvg, false);
-    nanovg::BackendFunctions backendFunctions;
-    backendFunctions.createFramebuffer = [](NVGcontext* ctx, int width, int height, int imageFlags) -> void* {
-        return nvgCreateFramebuffer(ctx, width, height, imageFlags);
-    };
-    backendFunctions.deleteFramebuffer = [](void* framebuffer) {
-        nvgDeleteFramebuffer(reinterpret_cast<NVGframebuffer*>(framebuffer));
-    };
-    backendFunctions.bindFramebuffer = [](void* framebuffer) {
-        nvgBindFramebuffer(reinterpret_cast<NVGframebuffer*>(framebuffer));
-    };
-    backendFunctions.framebufferImage = [](void* framebuffer) -> int {
-        return framebuffer ? reinterpret_cast<NVGframebuffer*>(framebuffer)->image : 0;
-    };
-    backendFunctions.viewport = [](int x, int y, int width, int height) {
-        nvgViewport(x, y, width, height);
-    };
-    backendFunctions.clear = [](NVGcontext* ctx) {
-        nvgClear(ctx);
-    };
-    nanovg::setBackendFunctions(asyncNvg, backendFunctions);
     nvg.store(asyncNvg);
 
 #    if JUCE_LINUX || JUCE_BSD
@@ -259,7 +238,7 @@ void NVGSurface::presentFramebuffer(int viewWidth, int viewHeight)
     if (mainFramebuffer) {
         nvgBlitFramebuffer(baseNvg, reinterpret_cast<NVGframebuffer*>(mainFramebuffer), 0, 0, viewWidth, viewHeight);
     } else {
-        nvgClear(baseNvg);
+        nvgClearWithColor(baseNvg, nvgColour(PlugDataColours::canvasBackgroundColour));
     }
 }
 
