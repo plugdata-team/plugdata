@@ -206,8 +206,8 @@ public:
         }
 
 #if JUCE_WINDOWS
-        File usbDriverInstaller = toolchainDir.getChildFile("etc").getChildFile("usb_driver").getChildFile("install-filter.exe");
-        File driverSpec = toolchainDir.getChildFile("etc").getChildFile("usb_driver").getChildFile("DFU_in_FS_Mode.inf");
+        File usbDriverInstaller = toolchainDir.getChildFile("usr").getChildFile("etc").getChildFile("usb_driver").getChildFile("install-filter.exe");
+        File driverSpec = toolchainDir.getChildFile("usr").getChildFile("etc").getChildFile("usb_driver").getChildFile("DFU_in_FS_Mode.inf");
 
         // Since we interact with ComponentPeer, better call it from the message thread
         MessageManager::callAsync([this, usbDriverInstaller, driverSpec]() mutable {
