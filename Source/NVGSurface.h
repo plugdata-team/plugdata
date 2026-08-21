@@ -183,16 +183,16 @@ private:
 
     PluginEditor* editor;
 
-    std::atomic<NVGcontext*> nvg { nullptr };      // async command-recording wrapper (used for all drawing)
+    AtomicValue<NVGcontext*> nvg { nullptr };      // async command-recording wrapper (used for all drawing)
     NVGcontext* baseNvg = nullptr;  // real backend context (framebuffers, blit, teardown)
 
     Rectangle<int> invalidArea;          // damage accumulated since the last recorded frame (message thread)
     Rectangle<int> inFlightDamage;       // damage of the last recorded frame, re-folded if it gets coalesced
     Rectangle<int> currentBounds;
-    std::atomic<bool> frameReadyForReplay { false };
-    std::atomic<int> recordedFramebufferWidth { 0 };
-    std::atomic<int> recordedFramebufferHeight { 0 };
-    std::atomic<bool> recordedFrameIsFullRepaint { false };
+    AtomicValue<bool> frameReadyForReplay { false };
+    AtomicValue<int> recordedFramebufferWidth { 0 };
+    AtomicValue<int> recordedFramebufferHeight { 0 };
+    AtomicValue<bool> recordedFrameIsFullRepaint { false };
 
     NVGframebuffer* mainFramebuffer = nullptr;        // real backend framebuffer (render thread only)
     int mainFramebufferWidth = 0;
@@ -204,20 +204,20 @@ private:
 
     float lastRenderScale = 0.0f;
 
-    std::atomic<float> cachedRenderScale { 0.0f };
+    AtomicValue<float> cachedRenderScale { 0.0f };
 
     // Editor's logical (pre-scale) size, snapshotted on the message thread. The
     // render thread sizes the drawable/framebuffer from these instead of reading
     // the editor Component directly: Component bounds are message-thread-only, so
     // reading them off the render thread is a data race (see snapshotEditorSize).
-    std::atomic<int> editorWidth { 1 };
-    std::atomic<int> editorHeight { 1 };
+    AtomicValue<int> editorWidth { 1 };
+    AtomicValue<int> editorHeight { 1 };
 
     // Framebuffer readback (eyedropper). The request is filled on the message
     // thread and serviced on the render thread, which owns the framebuffer.
     CriticalSection readbackLock;                 // serialises readback requests
     WaitableEvent readbackReady;                  // signalled by the render thread
-    std::atomic<bool> readbackPending { false };
+    AtomicValue<bool> readbackPending { false };
     Rectangle<int> readbackDeviceArea;            // requested region, in device pixels
     HeapBlock<uint8> readbackData;                // filled with BGRA pixels
     int readbackWidth = 0;
@@ -237,6 +237,6 @@ private:
     void* metalView = nullptr;
     void* metalLayer = nullptr;   // the view's CAMetalLayer, cached on the message
                                   // thread so the render thread never touches the view
-    std::atomic<bool> backendRenderRequested { false };
+    AtomicValue<bool> backendRenderRequested { false };
 #endif
 };

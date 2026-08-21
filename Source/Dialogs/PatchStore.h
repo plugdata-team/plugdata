@@ -262,7 +262,7 @@ private:
     ThreadPool imagePool = ThreadPool(3);
     ThreadPool patchPool = ThreadPool(2);
 
-    std::atomic<bool> cancelledImageDownload = false;
+    AtomicValue<bool> cancelledImageDownload = false;
 
 public:
     JUCE_DECLARE_SINGLETON(DownloadPool, false);
@@ -426,8 +426,8 @@ private:
     URL imageURL;
     Image image;
     Spinner spinner;
-    std::atomic<hash32> imageHash;
-    std::atomic<int> width, height;
+    AtomicValue<hash32> imageHash;
+    AtomicValue<int> width, height;
 
     static inline float scale = 0.0f;
 
