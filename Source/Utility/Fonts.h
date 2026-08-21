@@ -22,20 +22,28 @@ struct Fonts {
 
         currentTypeface = defaultTypeface;
         instance = this;
+
+        // The monospace typeface never changes, so its weighted variant only needs preparing once
+        monoBoldFont = getWeightedFont(monoTypeface, 700.0f);
+        updateWeightedFonts();
     }
 
-    
+
     static Font getCurrentFont() { return { FontOptions(instance->currentTypeface) }; }
     static Font getDefaultFont() { return { FontOptions(instance->defaultTypeface) }; }
 
-    static Font getBoldFont() { return getWeightedFont(instance->currentTypeface, 700.0f); }
-    static Font getSemiBoldFont() { return getWeightedFont(instance->currentTypeface, 600.0f); }
+    static Font getBoldFont() { return instance->boldFont; }
+    static Font getSemiBoldFont() { return instance->semiBoldFont; }
     static Font getIconFont() { return { FontOptions(instance->iconTypeface) }; }
     static Font getMonospaceFont() { return { FontOptions(instance->monoTypeface) }; }
-    static Font getMonospaceBoldFont() { return getWeightedFont(instance->monoTypeface, 700.0f); }
+    static Font getMonospaceBoldFont() { return instance->monoBoldFont; }
     static Font getTabularNumbersFont() { return { FontOptions(instance->defaultTypeface).withFeatureEnabled(FontFeatureTag(1953396077u)) }; }
 
-    static void setCurrentFont(Font const& font) { instance->currentTypeface = font.getTypefacePtr(); }
+    static void setCurrentFont(Font const& font)
+    {
+        instance->currentTypeface = font.getTypefacePtr();
+        instance->updateWeightedFonts();
+    }
 
     static float getStringWidth(String text, Font font)
     {
@@ -235,6 +243,13 @@ private:
         return false;
     }
 
+    // Re-prepare the weighted variants of the current typeface, so we don't have to clone on every request
+    void updateWeightedFonts()
+    {
+        boldFont = getWeightedFont(currentTypeface, 700.0f);
+        semiBoldFont = getWeightedFont(currentTypeface, 600.0f);
+    }
+
     static Font getWeightedFont(Typeface::Ptr const& typeface, float const weight)
     {
         if (typeface == nullptr)
@@ -261,6 +276,11 @@ private:
     Typeface::Ptr currentTypeface;
     Typeface::Ptr iconTypeface;
     Typeface::Ptr monoTypeface;
+
+    // Weighted fonts prepared in advance, refreshed whenever the current font changes
+    Font boldFont { FontOptions() };
+    Font semiBoldFont { FontOptions() };
+    Font monoBoldFont { FontOptions() };
 
     static inline auto fontTable = UnorderedMap<String, Font>();
 };
