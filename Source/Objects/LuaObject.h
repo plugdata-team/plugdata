@@ -318,7 +318,6 @@ public:
             pd->setThis();
         }
 
-        object->editor->nvgSurface.addBufferedObject(this);
         parentHierarchyChanged();
     }
 
@@ -330,7 +329,6 @@ public:
         pd->unlockAudioThread();
 
         zoomScale.removeListener(this);
-        object->editor->nvgSurface.removeBufferedObject(this);
     }
 
     // We can only attach the zoomscale to canvas after the canvas has been added to its own parent

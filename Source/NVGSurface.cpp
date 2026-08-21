@@ -151,7 +151,7 @@ void NVGSurface::createRenderContext()
     nvg.store(asyncNvg);
 
 #    if JUCE_LINUX || JUCE_BSD
-    nvgluSetCornerRadius(12.0f * calculateRenderScale());
+    nvgSetCornerRadius(12.0f * calculateRenderScale());
 #    endif
 
     surfaces[asyncNvg] = this;

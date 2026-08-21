@@ -666,7 +666,7 @@ void PluginEditor::resized()
         if (!alreadyResized) {
             ScopedValueSetter recursionBlock(alreadyResized, true);
 
-            auto totalArea = Desktop::getInstance().getDisplays().getPrimaryDisplay()->totalArea;
+            auto totalArea = Desktop::getInstance().getDisplays().getPrimaryDisplay()->logicalBounds.getSmallestIntegerContainer();
             totalArea = OSUtils::getSafeAreaInsets().subtractedFrom(totalArea);
             setBounds(totalArea);
             window->setFullScreen(true);

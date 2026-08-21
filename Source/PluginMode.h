@@ -437,7 +437,7 @@ public:
     {
 #if JUCE_LINUX || JUCE_BSD
         // linux can make the window take up the whole display by simply setting the bounds to that of the display
-        auto bounds = shouldBeFullScreen ? Desktop::getInstance().getDisplays().getPrimaryDisplay()->totalArea : originalPluginWindowBounds;
+        auto bounds = shouldBeFullScreen ? Desktop::getInstance().getDisplays().getPrimaryDisplay()->logicalBounds.getSmallestIntegerContainer() : originalPluginWindowBounds;
         desktopWindow->setBounds(bounds, shouldBeFullScreen);
 #else
         window->setFullScreen(shouldBeFullScreen);

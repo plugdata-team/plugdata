@@ -840,7 +840,7 @@ private:
         {
 #if JUCE_IOS
             if (editor != nullptr) {
-                auto totalArea = Desktop::getInstance().getDisplays().getPrimaryDisplay()->totalArea;
+                auto totalArea = Desktop::getInstance().getDisplays().getPrimaryDisplay()->logicalBounds.getSmallestIntegerContainer();
                 totalArea = OSUtils::getSafeAreaInsets().addedTo(totalArea);
                 return totalArea;
             }
