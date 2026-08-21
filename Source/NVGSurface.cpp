@@ -134,6 +134,7 @@ void NVGSurface::createRenderContext()
 #endif
 
     if (!baseNvg) {
+#if !ENABLE_TESTING
         MessageManager::callAsync([] {
             static bool isShowingMessageBox = false;
             if (!isShowingMessageBox) {
@@ -152,6 +153,7 @@ void NVGSurface::createRenderContext()
                     nullptr);
             }
         });
+#endif
         return;
     }
 

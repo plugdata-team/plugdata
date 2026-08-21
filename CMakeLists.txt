@@ -39,6 +39,11 @@ option(ENABLE_WAYLAND "Enable native wayland support (experimental)" OFF)
 option(MACOS_LEGACY "Enable support for old macOS versions (lowers OSX_DEPLOYMENT TARGET and disables Metal" OFF)
 option(VERBOSE "" OFF)
 
+if(ENABLE_ASAN)
+  add_compile_options(-fsanitize=address)
+  add_link_options(-fsanitize=address)
+endif()
+
 if(CMAKE_GENERATOR STREQUAL "Ninja" AND MSVC)
     target_compile_options(pd PRIVATE /EHsc)
 endif()
@@ -185,11 +190,6 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
 elseif (MSVC)
     # MSVC equivalent for dead code stripping
     add_link_options(/OPT:REF /OPT:ICF /INCREMENTAL:NO)
-endif()
-
-if(ENABLE_ASAN)
-  add_compile_options(-fsanitize=address)
-  add_link_options(-fsanitize=address)
 endif()
 
 if(MSVC)

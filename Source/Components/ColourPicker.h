@@ -134,7 +134,8 @@ public:
         callback = [](Colour) { };
         colourDisplayer.hide();
         stopTimer();
-        topLevel->removeMouseListener(this);
+        if (topLevel)
+            topLevel->removeMouseListener(this);
         topLevel = nullptr;
     }
 
@@ -146,6 +147,11 @@ private:
 
     void timerCallback() override
     {
+        if (!topLevel) {
+            stopTimer();
+            return;
+        }
+        
         auto const positionInTopLevel = topLevel->getMouseXYRelative();
         colourDisplayer.setCentrePosition(topLevel->localPointToGlobal(positionInTopLevel));
 
@@ -176,7 +182,7 @@ private:
 
     std::function<void(Colour)> callback;
     int timerCount = 0;
-    Component* topLevel = nullptr;
+    Component::SafePointer<Component> topLevel = nullptr;
 
     EyedropperDisplayComponnent colourDisplayer;
     Colour currentColour;

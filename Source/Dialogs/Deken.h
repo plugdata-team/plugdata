@@ -96,7 +96,13 @@ public:
                     .withConnectionTimeoutMs(10000)
                     .withStatusCode(&statusCode));
 
-            if (instream != nullptr && statusCode == 200) {
+            bool downloadOk = instream != nullptr && statusCode == 200;
+#if ENABLE_TESTING
+            // Local file:// archives used by the test suite don't report an
+            // HTTP status, so accept any readable stream while testing
+            downloadOk = instream != nullptr;
+#endif
+            if (downloadOk) {
                 startThread();
             } else {
                 finish(Result::fail("Failed to start download"));
@@ -228,24 +234,37 @@ public:
 
     PackageList getAvailablePackages()
     {
+        MemoryBlock block;
 
-        // plugdata's deken servers, hosted on GitHub
-        // This will pre-parse the deken repo information to a faster and smaller format
-        // This saves a lot of work that plugdata would have to do on startup!
-
-        auto const triplet = os + "-" + machine + "-" + floatsize;
-        auto const repoForArchitecture = "https://raw.githubusercontent.com/plugdata-team/plugdata-deken/main/bin/" + triplet + ".bin";
-
-        webstream = std::make_unique<WebInputStream>(URL(repoForArchitecture), false);
-        webstream->connect(nullptr);
-
-        if (webstream->isError()) {
+#if ENABLE_TESTING
+        // The test suite injects a serialised package tree (or forces a failure)
+        // here, so no network request is made during testing
+        if (mockShouldFail) {
             sendActionMessage("Failed to connect to server");
             return { };
         }
+        if (mockPackageData.getSize() > 0) {
+            block = mockPackageData;
+        } else
+#endif
+        {
+            // plugdata's deken servers, hosted on GitHub
+            // This will pre-parse the deken repo information to a faster and smaller format
+            // This saves a lot of work that plugdata would have to do on startup!
 
-        MemoryBlock block;
-        webstream->readIntoMemoryBlock(block);
+            auto const triplet = os + "-" + machine + "-" + floatsize;
+            auto const repoForArchitecture = "https://raw.githubusercontent.com/plugdata-team/plugdata-deken/main/bin/" + triplet + ".bin";
+
+            webstream = std::make_unique<WebInputStream>(URL(repoForArchitecture), false);
+            webstream->connect(nullptr);
+
+            if (webstream->isError()) {
+                sendActionMessage("Failed to connect to server");
+                return { };
+            }
+
+            webstream->readIntoMemoryBlock(block);
+        }
 
         // Parse tree that was downloaded
         auto const tree = ValueTree::readFromData(block.getData(), block.getSize());
@@ -345,7 +364,15 @@ public:
 
     PackageList allPackages;
 
+#if ENABLE_TESTING
+    // The test suite installs into a temp dir and injects mock catalog data,
+    // so neither the network nor the user's real Externals folder is touched
+    static inline File filesystem = ProjectInfo::appDataDir.getChildFile("Externals");
+    static inline MemoryBlock mockPackageData;
+    static inline bool mockShouldFail = false;
+#else
     static inline File const filesystem = ProjectInfo::appDataDir.getChildFile("Externals");
+#endif
 
     // Package info file
     File pkgInfo = filesystem.getChildFile(".pkg_info");
@@ -409,7 +436,9 @@ public:
     JUCE_DECLARE_SINGLETON(PackageManager, false)
 };
 
+#ifndef PLUGDATA_TEST_TRANSLATION_UNIT // implemented in Dialogs.cpp's TU
 JUCE_IMPLEMENT_SINGLETON(PackageManager)
+#endif
 
 class Deken final : public Component
     , public ListBoxModel

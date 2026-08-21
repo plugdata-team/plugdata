@@ -422,6 +422,8 @@ void TabComponent::openPatch(const URL& path)
             url.setBookmarkData(patchPath.getBookmarkData());
 #endif
             auto const patch = pd->loadPatch(url);
+            if (!patch)
+                return;
 
             // If we're opening a temp file, assume it's dirty upon opening
             // This is so that you can recover an autosave without directly overewriting it, but still be prompted to save if you close the autosaved patch
@@ -442,6 +444,8 @@ void TabComponent::openPatch(const URL& path)
 Canvas* TabComponent::openPatch(String const& patchContent)
 {
     auto const patch = pd->loadPatch(patchContent);
+    if (!patch)
+        return nullptr;
     patch->setUntitled();
     return openPatch(patch);
 }
@@ -661,6 +665,8 @@ void TabComponent::nextTab()
 {
     auto const splitIndex = activeSplitIndex && splits[1];
     auto const& tabbar = tabbars[splitIndex];
+    if(!tabbar.size()) return;
+    
     auto oldTabIndex = 0;
     for (int i = 0; i < tabbar.size(); i++) {
         if (tabbar[i]->cnv == splits[splitIndex]) {
@@ -676,6 +682,8 @@ void TabComponent::previousTab()
 {
     auto const splitIndex = activeSplitIndex && splits[1];
     auto const& tabbar = tabbars[splitIndex];
+    if(!tabbar.size()) return;
+    
     auto oldTabIndex = 0;
     for (int i = 0; i < tabbar.size(); i++) {
         if (tabbar[i]->cnv == splits[splitIndex]) {

@@ -1586,7 +1586,8 @@ pd::Patch::Ptr PluginProcessor::loadPatch(String patchText)
     auto patch = loadPatch(URL(patchFile));
 
     // Set to unknown file when loading temp patch
-    patch->setCurrentFile(URL("file://"));
+    if (patch)
+        patch->setCurrentFile(URL("file://"));
 
     return patch;
 }
