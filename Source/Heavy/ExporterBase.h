@@ -287,8 +287,9 @@ struct ExporterBase : public Component
 
             exportingView->stopMonitoring();
 
-            MessageManager::callAsync([this] {
-                repaint();
+            MessageManager::callAsync([_this = SafePointer(this)] {
+                if (_this)
+                    _this->repaint();
             });
 
             FileSystemWatcher::removeGlobalIgnorePath(outPath);

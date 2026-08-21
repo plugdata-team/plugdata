@@ -47,10 +47,12 @@ public:
         cancelImageDownloads();
         imagePool.addJob([this] {
             SmallArray<PatchInfo> patches;
-            int statusCode = 0;
-            auto const webstream = URL("https://plugdata.org/store.json").createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress).withConnectionTimeoutMs(10000).withStatusCode(&statusCode));
 
-            if (!webstream || statusCode >= 400) {
+            String jsonString;
+#if ENABLE_TESTING
+            // The test suite injects mock catalog JSON (or forces a failure)
+            // here, so no network request is made during testing
+            if (mockStoreShouldFail) {
                 MessageManager::callAsync([this] {
                     for (auto& listener : listeners) {
                         listener->databaseDownloadFailed();
@@ -58,18 +60,36 @@ public:
                 });
                 return;
             }
+            if (mockStoreJson.isNotEmpty()) {
+                jsonString = mockStoreJson;
+            } else
+#endif
+            {
+                int statusCode = 0;
+                auto const webstream = URL("https://plugdata.org/store.json").createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress).withConnectionTimeoutMs(10000).withStatusCode(&statusCode));
 
-            MemoryBlock jsonData;
-            MemoryOutputStream mo(jsonData, false);
+                if (!webstream || statusCode >= 400) {
+                    MessageManager::callAsync([this] {
+                        for (auto& listener : listeners) {
+                            listener->databaseDownloadFailed();
+                        }
+                    });
+                    return;
+                }
 
-            mo.preallocate(32000); // fit store.json file with some extra space
-            while (true) {
-                auto const written = mo.writeFromInputStream(*webstream, 1 << 14);
-                if (written == 0)
-                    break;
+                MemoryBlock jsonData;
+                MemoryOutputStream mo(jsonData, false);
+
+                mo.preallocate(32000); // fit store.json file with some extra space
+                while (true) {
+                    auto const written = mo.writeFromInputStream(*webstream, 1 << 14);
+                    if (written == 0)
+                        break;
+                }
+                jsonString = jsonData.toString(); // Converting to string is important on Windows to get correct character encoding
             }
 
-            auto const parsedData = JSON::parse(jsonData.toString()); // Converting to string is important on Windows to get correct character encoding
+            auto const parsedData = JSON::parse(jsonString);
             auto patchData = parsedData["Patches"];
             if (patchData.isArray()) {
                 for (int i = 0; i < patchData.size(); ++i) {
@@ -262,13 +282,22 @@ private:
     ThreadPool imagePool = ThreadPool(3);
     ThreadPool patchPool = ThreadPool(2);
 
-    std::atomic<bool> cancelledImageDownload = false;
+    AtomicValue<bool> cancelledImageDownload = false;
 
 public:
+#if ENABLE_TESTING
+    // The test suite injects mock catalog JSON (or forces a failure) so the
+    // store database can be exercised without any network access
+    static inline String mockStoreJson;
+    static inline bool mockStoreShouldFail = false;
+#endif
+
     JUCE_DECLARE_SINGLETON(DownloadPool, false);
 };
 
+#ifndef PLUGDATA_TEST_TRANSLATION_UNIT // implemented in Dialogs.cpp's TU
 JUCE_IMPLEMENT_SINGLETON(DownloadPool);
+#endif
 
 class OnlineImage final : public Component
     , public DownloadPool::DownloadListener {
@@ -426,8 +455,8 @@ private:
     URL imageURL;
     Image image;
     Spinner spinner;
-    std::atomic<hash32> imageHash;
-    std::atomic<int> width, height;
+    AtomicValue<hash32> imageHash;
+    AtomicValue<int> width, height;
 
     static inline float scale = 0.0f;
 

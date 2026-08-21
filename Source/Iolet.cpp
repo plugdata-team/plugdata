@@ -7,7 +7,7 @@
 #include <juce_opengl/juce_opengl.h>
 using namespace juce::gl;
 
-#include <nanovg.h>
+#include <nanovg_async.h>
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
 #include "Utility/NVGUtils.h"
@@ -85,7 +85,7 @@ void Iolet::render(NVGcontext* nvg)
     if (isHovering)
         iB.expand(1.0f, 1.0f);
 
-    nvgDrawRoundedRect(nvg, iB.getX(), iB.getY(), iB.getWidth(), iB.getHeight(), innerCol, nvgColour(PlugDataColours::objectOutlineColour), PlugDataLook::useSquareIolets ? 0.0f : iB.getWidth() * 0.5f);
+    nanovg::nvgDrawRoundedRect(nvg, iB.getX(), iB.getY(), iB.getWidth(), iB.getHeight(), innerCol, nvgColour(PlugDataColours::objectOutlineColour), PlugDataLook::useSquareIolets ? 0.0f : iB.getWidth() * 0.5f);
 }
 
 bool Iolet::hitTest(int const x, int const y)

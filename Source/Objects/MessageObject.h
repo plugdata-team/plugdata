@@ -14,7 +14,7 @@ class MessageObject final : public ObjectBase
     BorderSize<int> border = BorderSize<int>(1, 4, 1, 1);
 
     String objectText;
-    CachedTextRender textRenderer;
+    TextLayout layout;
 
     bool isDown = false;
     bool isLocked = false;
@@ -72,8 +72,6 @@ public:
             fontWidth = glist_fontwidth(cnv->patch.getRawPointer());
         }
 
-        auto const textSize = textRenderer.getTextBounds();
-
         // Calculating string width is expensive, so we cache all the strings that we already calculated the width for
         int const idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 13;
 
@@ -89,7 +87,7 @@ public:
             textWidth = std::max(charWidth, 2) * fontWidth + offset;
         }
 
-        return { textWidth, textSize.getHeight() };
+        return { textWidth, static_cast<int>(layout.getHeight()) };
     }
 
     void updateTextLayout()
@@ -104,10 +102,14 @@ public:
 
         auto const colour = PlugDataColours::canvasTextColour;
         int const textWidth = getTextSize().getWidth() - 12;
-        int const widthCache = getValue<int>(sizeProperty);
-        if (textRenderer.prepareLayout(objText, Fonts::getCurrentFont().withHeight(15), colour, textWidth, widthCache ? widthCache : textWidth, false)) {
-            repaint();
-        }
+
+        AttributedString attributedText(objText);
+        attributedText.setColour(colour);
+        attributedText.setFont(Fonts::getCurrentFont().withHeight(15));
+        attributedText.setJustification(Justification::centredLeft);
+        attributedText.setWordWrap(AttributedString::byChar);
+        layout.createLayout(attributedText, textWidth);
+        repaint();
     }
 
     void setPdBounds(Rectangle<int> const b) override
@@ -146,7 +148,7 @@ public:
         auto const bgCol = nvgColour(isDown ? PlugDataColours::guiObjectInternalOutlineColour : PlugDataColours::guiObjectBackgroundColour);
 
         // Draw background
-        nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
+        nanovg::nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
             bgCol, bgCol, bgCol,
             Corners::objectCornerRadius, ObjectFlagType::FlagMessage, PlugDataLook::getUseFlagOutline());
 
@@ -157,19 +159,22 @@ public:
         // We do this by drawing an inner area that is bright, while changing the background colour darker
         if (isDown) {
             auto const dB = bounds.reduced(5);
-            nvgDrawRoundedRect(nvg, dB.getX(), dB.getY(), dB.getWidth(), dB.getHeight(), nvgColour(PlugDataColours::guiObjectBackgroundColour), nvgColour(PlugDataColours::guiObjectBackgroundColour), 0);
+            nanovg::nvgDrawRoundedRect(nvg, dB.getX(), dB.getY(), dB.getWidth(), dB.getHeight(), nvgColour(PlugDataColours::guiObjectBackgroundColour), nvgColour(PlugDataColours::guiObjectBackgroundColour), 0);
         }
 
         // Draw outline & flag with shader
-        nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),
-            nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
+        nanovg::nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),
+            nanovg::nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
             Corners::objectCornerRadius, ObjectFlagType::FlagMessage, PlugDataLook::getUseFlagOutline());
 
+        auto& llgc = *cnv->editor->getNanoLLGC();
         if (editor) {
-            Graphics g(*cnv->editor->getNanoLLGC());
-            editor->paintEntireComponent(g, true);
+            llgc.renderComponent(*editor);
         } else {
-            textRenderer.renderText(nvg, border.subtractedFrom(bounds).toFloat(), getImageScale());
+            Graphics g(llgc);
+            auto const textBounds = border.subtractedFrom(bounds).toFloat();
+            NVGGraphicsContext::ScopedAnchoredDraw anchor(llgc, textBounds);
+            layout.draw(g, textBounds);
         }
     }
 

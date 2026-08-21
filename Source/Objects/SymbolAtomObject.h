@@ -150,22 +150,19 @@ public:
         auto const sb = b.reduced(0.5f); // reduce size of background to stop AA edges from showing through
 
         // Draw background
-        nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
+        nanovg::nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
             nvgColour(PlugDataColours::guiObjectBackgroundColour), nvgColour(PlugDataColours::guiObjectBackgroundColour), nvgColour(PlugDataColours::guiObjectBackgroundColour),
             Corners::objectCornerRadius, ObjectFlagType::FlagTop, PlugDataLook::getUseFlagOutline());
 
-        {
-            Graphics g(*cnv->editor->getNanoLLGC());
-            input.paintEntireComponent(g, true);
-        }
+        cnv->editor->getNanoLLGC()->renderComponent(input);
 
         bool const highlighted = hasKeyboardFocus(true) && getValue<bool>(object->locked);
         auto const flagCol = highlighted ? nvgColour(PlugDataColours::objectSelectedOutlineColour) : nvgColour(PlugDataColours::guiObjectInternalOutlineColour);
         auto const outlineCol = nvgColour(object->isSelected() || hasKeyboardFocus(true) ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
 
         // Fill the internal of the shape with transparent colour, draw outline & flag with shader
-        nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),
-            nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
+        nanovg::nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),
+            nanovg::nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
             Corners::objectCornerRadius, ObjectFlagType::FlagTop, PlugDataLook::getUseFlagOutline());
     }
 

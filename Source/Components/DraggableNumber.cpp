@@ -446,21 +446,21 @@ int DraggableNumber::getDecimalAtPosition(int const x, Rectangle<float>* positio
     return draggedDecimal;
 }
 
+
 void DraggableNumber::render(NVGcontext* nvg, NVGGraphicsContext* llgc)
 {
     NVGScopedState scopedState(nvg);
-    nvgIntersectScissor(nvg, 0, 0, getWidth(), getHeight());
+    nanovg::nvgIntersectScissor(nvg, 0, 0, getWidth(), getHeight());
 
     if (editor) {
-        Graphics g(*llgc);
-        paintEntireComponent(g, true);
+        llgc->renderComponent(*this);
         return;
     }
 
     if (hoveredDecimal >= 0) {
         auto const highlightColour = outlineColour.withAlpha(isMouseButtonDown() ? 0.5f : 0.3f);
-        nvgFillColor(nvg, nvgColour(highlightColour));
-        nvgFillRoundedRect(nvg, hoveredDecimalPosition.getX(), hoveredDecimalPosition.getY(), hoveredDecimalPosition.getWidth(), hoveredDecimalPosition.getHeight(), 2.5f);
+        nanovg::nvgFillColor(nvg, nvgColour(highlightColour));
+        nanovg::nvgFillRoundedRect(nvg, hoveredDecimalPosition.getX(), hoveredDecimalPosition.getY(), hoveredDecimalPosition.getWidth(), hoveredDecimalPosition.getHeight(), 2.5f);
     }
 
     auto textArea = border.subtractedFrom(getLocalBounds()).toDouble();
@@ -484,10 +484,6 @@ void DraggableNumber::render(NVGcontext* nvg, NVGGraphicsContext* llgc)
         }
     }
 
-    nvgFontFace(nvg, "Inter-Tabular");
-    nvgFontSize(nvg, font.getHeightInPoints());
-    nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_LEFT);
-    nvgFillColor(nvg, nvgColour(textColour));
 
     // NOTE: We could simply do `String(numberText.getDoubleValue(), 0)` but using string manipulation
     // bypasses any potential issues with precision
@@ -509,12 +505,16 @@ void DraggableNumber::render(NVGcontext* nvg, NVGGraphicsContext* llgc)
     // Only display the decimal point if fractional exists, but make sure to show it as a user hovers over the fractional decimal places
     auto const formatedNumber = isMouseOverOrDragging() && hoveredDecimal > 0 ? numberText : removeDecimalNumString(numberText);
 
-    nvgText(nvg, textArea.getX(), textArea.getCentreY(), formatedNumber.toRawUTF8(), nullptr);
+    NVGGraphicsContext::ScopedAnchoredDraw anchor(*llgc, getLocalBounds().toFloat());
+    llgc->setFill(textColour);
+    llgc->setFont(font);
+    llgc->drawText(formatedNumber, textArea.toFloat());
 
     if (dragMode == Regular) {
         textArea = textArea.withTrimmedLeft(numberTextLength);
-        nvgFillColor(nvg, nvgColour(textColour.withAlpha(0.4f)));
-        nvgText(nvg, textArea.getX(), textArea.getCentreY(), extraNumberText.toRawUTF8(), nullptr);
+
+        llgc->setFill(textColour.withAlpha(0.4f));
+        llgc->drawText(extraNumberText, textArea.toFloat());
     }
 }
 
@@ -811,6 +811,8 @@ void DraggableListNumber::mouseUp(MouseEvent const& e)
     dragEnd();
 }
 
+
+
 void DraggableListNumber::paint(Graphics& g)
 {
     if (hoveredDecimal >= 0) {
@@ -830,28 +832,25 @@ void DraggableListNumber::paint(Graphics& g)
 void DraggableListNumber::render(NVGcontext* nvg, NVGGraphicsContext* llgc)
 {
     NVGScopedState scopedState(nvg);
-    nvgIntersectScissor(nvg, 0.5f, 0.5f, getWidth() - 1, getHeight() - 1);
+    nanovg::nvgIntersectScissor(nvg, 0.5f, 0.5f, getWidth() - 1, getHeight() - 1);
 
     if (editor) {
-        Graphics g(*llgc);
-        paintEntireComponent(g, true);
+        llgc->renderComponent(*this);
         return;
     }
 
     if (hoveredDecimal >= 0) {
         auto const highlightColour = outlineColour.withAlpha(isMouseButtonDown() ? 0.5f : 0.3f);
-        nvgFillColor(nvg, nvgColour(highlightColour));
-        nvgFillRoundedRect(nvg, hoveredDecimalPosition.getX(), hoveredDecimalPosition.getY() - 1, hoveredDecimalPosition.getWidth(), hoveredDecimalPosition.getHeight(), 2.5f);
+        nanovg::nvgFillColor(nvg, nvgColour(highlightColour));
+        nanovg::nvgFillRoundedRect(nvg, hoveredDecimalPosition.getX(), hoveredDecimalPosition.getY() - 1, hoveredDecimalPosition.getWidth(), hoveredDecimalPosition.getHeight(), 2.5f);
     }
 
-    nvgFontFace(nvg, "Inter-Tabular");
-    nvgFontSize(nvg, font.getHeightInPoints());
-    nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_LEFT);
-    nvgFillColor(nvg, nvgColour(textColour));
-
-    auto const listText = currentValue;
     auto const textArea = border.subtractedFrom(getBounds());
-    nvgText(nvg, textArea.getX(), textArea.getCentreY() + 1.5f, listText.toRawUTF8(), nullptr);
+
+    NVGGraphicsContext::ScopedAnchoredDraw anchor(*llgc, getLocalBounds().toFloat());
+    llgc->setFill(textColour);
+    llgc->setFont(font);
+    llgc->drawText(currentValue, textArea.toFloat());
 }
 
 void DraggableListNumber::textEditorReturnKeyPressed(TextEditor& editor)

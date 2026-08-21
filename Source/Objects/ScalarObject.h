@@ -147,7 +147,7 @@ public:
 };
 
 class DrawableCurve final : public DrawableTemplate
-    , public DrawablePath {
+    , public DrawableComponent, public DrawablePath {
 
     t_fake_curve* object;
     GlobalMouseListener globalMouseListener;
@@ -156,6 +156,7 @@ class DrawableCurve final : public DrawableTemplate
 public:
     DrawableCurve(t_scalar* s, t_gobj* obj, t_word* data, t_template* templ, Canvas* cnv, int const x, int const y, t_template* parent = nullptr)
         : DrawableTemplate(s, data, templ, parent, cnv, x, y)
+        , DrawableComponent(static_cast<DrawablePath&>(*this))
         , object(reinterpret_cast<t_fake_curve*>(obj))
         , globalMouseListener(cnv)
     {
@@ -226,17 +227,17 @@ public:
         setJUCEPath(nvg, p);
 
         if (closed) {
-            nvgClosePath(nvg);
+            nanovg::nvgClosePath(nvg);
 
-            nvgFillColor(nvg, nvgColour(getFill().colour));
-            nvgFill(nvg);
-            nvgStrokeWidth(nvg, getStrokeType().getStrokeThickness());
-            nvgStrokeColor(nvg, nvgColour(getStrokeFill().colour));
-            nvgStroke(nvg);
+            nanovg::nvgFillColor(nvg, nvgColour(getFill().colour));
+            nanovg::nvgFill(nvg);
+            nanovg::nvgStrokeWidth(nvg, getStrokeType().getStrokeThickness());
+            nanovg::nvgStrokeColor(nvg, nvgColour(getStrokeFill().colour));
+            nanovg::nvgStroke(nvg);
         } else {
-            nvgStrokeWidth(nvg, getStrokeType().getStrokeThickness());
-            nvgStrokeColor(nvg, nvgColour(getStrokeFill().colour));
-            nvgStroke(nvg);
+            nanovg::nvgStrokeWidth(nvg, getStrokeType().getStrokeThickness());
+            nanovg::nvgStrokeColor(nvg, nvgColour(getStrokeFill().colour));
+            nanovg::nvgStroke(nvg);
         }
     }
 
@@ -347,11 +348,10 @@ public:
 };
 
 class DrawableSymbol final : public DrawableTemplate
-    , public DrawableText {
+    , public DrawableComponent, public DrawableText {
 
     t_fake_drawnumber* object;
     GlobalMouseListener mouseListener;
-    CachedTextRender textRenderer;
 
     String typeBuffer;
     float mouseDownValue;
@@ -360,6 +360,7 @@ class DrawableSymbol final : public DrawableTemplate
 public:
     DrawableSymbol(t_scalar* s, t_gobj* obj, t_word* data, t_template* templ, Canvas* cnv, int const x, int const y, t_template* parent = nullptr)
         : DrawableTemplate(s, data, templ, parent, cnv, x, y)
+        , DrawableComponent(static_cast<DrawableText&>(*this))
         , object(reinterpret_cast<t_fake_drawnumber*>(obj))
     {
         mouseListener.globalMouseDown = [this](MouseEvent const& e) {
@@ -414,13 +415,17 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-
-        auto const scale = canvas->isZooming ? canvas->editor->getRenderScale() * 2.0f : canvas->editor->getRenderScale() * std::max(1.0f, getValue<float>(canvas->zoomScale));
         auto const bounds = getBoundingBox().getBoundingBox().toNearestInt();
         NVGScopedState scopedState(nvg);
-        nvgTranslate(nvg, bounds.getX(), bounds.getY());
-        textRenderer.prepareLayout(getText(), getFont(), getColour(), getWidth(), getWidth(), false);
-        textRenderer.renderText(nvg, bounds.withZeroOrigin().toFloat(), scale);
+        nanovg::nvgTranslate(nvg, bounds.getX(), bounds.getY());
+
+        auto& llgc = *canvas->editor->getNanoLLGC();
+        Graphics g(llgc);
+        auto const textBounds = bounds.withZeroOrigin().toFloat();
+        NVGGraphicsContext::ScopedAnchoredDraw anchor(llgc, textBounds);
+        g.setFont(getFont());
+        g.setColour(getColour());
+        g.drawText(getText(), textBounds, Justification::centredLeft);
     }
 
     void handleMouseDown(MouseEvent const& e)
@@ -515,7 +520,7 @@ public:
             }
 
             auto const symbolColour = numberToColour(fielddesc_getfloat(&object->x_color, templ, data, 1));
-            setColour(symbolColour);
+            DrawableText::setColour(symbolColour);
             auto const text = String::fromUTF8(buf);
             auto const font = getFont();
 
@@ -530,7 +535,7 @@ public:
 };
 
 class DrawablePlot final : public DrawableTemplate
-    , public DrawablePath {
+    , public DrawableComponent, public DrawablePath {
 
     t_fake_curve* object;
     GlobalMouseListener globalMouseListener;
@@ -539,6 +544,7 @@ class DrawablePlot final : public DrawableTemplate
 public:
     DrawablePlot(t_scalar* s, t_gobj* obj, t_word* data, t_template* templ, Canvas* cnv, int const x, int const y, t_template* parent = nullptr)
         : DrawableTemplate(s, data, templ, parent, cnv, x, y)
+        , DrawableComponent(static_cast<DrawablePath&>(*this))
         , object(reinterpret_cast<t_fake_curve*>(obj))
         , globalMouseListener(cnv)
     {
@@ -615,11 +621,11 @@ public:
         Path const p = getPath();
         setJUCEPath(nvg, p);
 
-        nvgFillColor(nvg, nvgColour(getFill().colour));
-        nvgFill(nvg);
-        nvgStrokeWidth(nvg, getStrokeType().getStrokeThickness());
-        nvgStrokeColor(nvg, nvgColour(getStrokeFill().colour));
-        nvgStroke(nvg);
+        nanovg::nvgFillColor(nvg, nvgColour(getFill().colour));
+        nanovg::nvgFill(nvg);
+        nanovg::nvgStrokeWidth(nvg, getStrokeType().getStrokeThickness());
+        nanovg::nvgStrokeColor(nvg, nvgColour(getStrokeFill().colour));
+        nanovg::nvgStroke(nvg);
     }
 
     static int readOwnerTemplate(t_fake_plot* x,

@@ -15,13 +15,10 @@
 #include "Pd/WeakReference.h"
 #include "Iolet.h"
 
-#include <nanovg.h>
+#include <nanovg_async.h>
 #ifdef NANOVG_GL_IMPLEMENTATION
 #    include <juce_opengl/juce_opengl.h>
 using namespace juce::gl;
-#    undef NANOVG_GL_IMPLEMENTATION
-#    include <nanovg_gl_utils.h>
-#    define NANOVG_GL_IMPLEMENTATION 1
 #endif
 
 struct ObjectDragState;
@@ -83,7 +80,7 @@ public:
     void mouseExit(MouseEvent const& e) override;
 
     void render(NVGcontext* nvg) override;
-
+    void performRender(NVGcontext* nvg);
     void renderIolets(NVGcontext* nvg);
     void renderLabel(NVGcontext* nvg);
 
@@ -101,7 +98,7 @@ public:
 
     void triggerOverlayActiveState();
 
-    SmallArray<Rectangle<float>> getCorners() const;
+    StackArray<Rectangle<float>, 4> getCorners() const;
 
     uint16_t numInputs = 0;
     uint16_t numOutputs = 0;
@@ -162,6 +159,10 @@ private:
     bool isHvccCompatible : 1 = true;
     bool isGemObject : 1 = false;
     bool isObjectMouseActive : 1 = false;
+        
+    bool commandBufferDirty : 1 = true;
+    nanovg::CommandBuffer commandBuffer;
+
 
     ObjectDragState& ds;
 

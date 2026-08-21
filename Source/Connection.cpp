@@ -7,7 +7,7 @@
 #include <juce_opengl/juce_opengl.h>
 using namespace juce::gl;
 
-#include <nanovg.h>
+#include <nanovg_async.h>
 #include "Utility/Config.h"
 #include "Utility/NVGUtils.h"
 #include "Utility/SettingsFile.h"
@@ -54,8 +54,6 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
         cableType = GemCable;
     }
 
-    setStrokeThickness(12.0f); // This will make sure the DrawablePath's bounds get expanded, which we use for hit detection and drawing reconnect handles
-
     inIdx = inlet->getIndex();
     outIdx = outlet->getIndex();
 
@@ -82,6 +80,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
     outobj->addComponentListener(this);
     inobj->addComponentListener(this);
 
+    setPaintingIsUnclipped(true);
     setInterceptsMouseClicks(true, true);
 
     addMouseListener(cnv, true);
@@ -131,8 +130,6 @@ void Connection::lookAndFeelChanged()
     shadowColour = nvgColour(PlugDataColours::canvasBackgroundColour.contrasting(0.06f).withAlpha(0.24f));
     outlineColour = nvgColour(PlugDataColours::objectOutlineColour);
 
-    textColour = nvgColour(PlugDataColours::objectSelectedOutlineColour.contrasting());
-
     if (connectionStyle != PlugDataLook::getConnectionStyle()) {
         connectionStyle = PlugDataLook::getConnectionStyle();
         cachedPath.clear();
@@ -160,8 +157,8 @@ NVGcolor Connection::getConnectionColour() const
 void Connection::render(NVGcontext* nvg)
 {
     auto connectionColour = getConnectionColour();
-    nvgSave(nvg);
-    nvgTranslate(nvg, getX(), getY());
+    nanovg::nvgSave(nvg);
+    nanovg::nvgTranslate(nvg, getX(), getY());
 
     bool isSignalCable = cableType == SignalCable && connectionStyle != PlugDataLook::ConnectionStyleVanilla;
     auto dashColor = shadowColour;
@@ -181,23 +178,23 @@ void Connection::render(NVGcontext* nvg)
         pathFromOrigin.applyTransform(AffineTransform::translation(-getX(), -getY()));
         auto startPoint = pathFromOrigin.getPointAlongPath(0.0);
 
-        nvgBeginPath(nvg);
-        nvgFillColor(nvg, shadowColour);
-        nvgCircle(nvg, startPoint.x, startPoint.y, cableThickness * 0.5f); // cableThickness is diameter, while circle is radius
-        nvgFill(nvg);
+        nanovg::nvgBeginPath(nvg);
+        nanovg::nvgFillColor(nvg, shadowColour);
+        nanovg::nvgCircle(nvg, startPoint.x, startPoint.y, cableThickness * 0.5f); // cableThickness is diameter, while circle is radius
+        nanovg::nvgFill(nvg);
 
-        nvgBeginPath(nvg);
-        nvgFillColor(nvg, connectionColour);
-        nvgCircle(nvg, startPoint.x, startPoint.y, cableThickness * 0.25f);
-        nvgFill(nvg);
+        nanovg::nvgBeginPath(nvg);
+        nanovg::nvgFillColor(nvg, connectionColour);
+        nanovg::nvgCircle(nvg, startPoint.x, startPoint.y, cableThickness * 0.25f);
+        nanovg::nvgFill(nvg);
         return;
     }
 
     float dashSize = isSignalCable ? numSignalChannels <= 1 ? 2.5f : 1.5f : 0.0f;
     auto useGradientLook = PlugDataLook::getUseGradientConnectionLook() && !(isSelected() || isHovering);
     auto showActivity = cableType == DataCable && cnv->shouldShowConnectionActivity();
-    nvgStrokePaint(nvg, nvgDoubleStroke(nvg, connectionColour, shadowColour, dashColor, dashSize, useGradientLook, showActivity, offset));
-    nvgStrokeWidth(nvg, cableThickness);
+    nanovg::nvgStrokePaint(nvg, nanovg::nvgDoubleStroke(nvg, connectionColour, shadowColour, dashColor, dashSize, useGradientLook, showActivity, offset));
+    nanovg::nvgStrokeWidth(nvg, cableThickness);
 
     bool cacheHit = cachedPath.stroke();
     if (!cacheHit) {
@@ -205,25 +202,25 @@ void Connection::render(NVGcontext* nvg)
         pathFromOrigin.applyTransform(AffineTransform::translation(-getX(), -getY()));
 
         setJUCEPath(nvg, pathFromOrigin);
-        nvgStroke(nvg);
+        nanovg::nvgStroke(nvg);
         cachedPath.save(nvg);
     }
 
-    nvgRestore(nvg);
+    nanovg::nvgRestore(nvg);
 
     if (isSelected() && isHovering) {
         auto expandedStartHandle = isInStartReconnectHandle ? startReconnectHandle.expanded(3.0f) : startReconnectHandle;
         auto expandedEndHandle = isInEndReconnectHandle ? endReconnectHandle.expanded(3.0f) : endReconnectHandle;
 
-        nvgFillColor(nvg, handleColour);
+        nanovg::nvgFillColor(nvg, handleColour);
 
-        nvgBeginPath(nvg);
-        nvgCircle(nvg, expandedStartHandle.getCentreX(), expandedStartHandle.getCentreY(), expandedStartHandle.getWidth() / 2);
-        nvgFill(nvg);
+        nanovg::nvgBeginPath(nvg);
+        nanovg::nvgCircle(nvg, expandedStartHandle.getCentreX(), expandedStartHandle.getCentreY(), expandedStartHandle.getWidth() / 2);
+        nanovg::nvgFill(nvg);
 
-        nvgBeginPath(nvg);
-        nvgCircle(nvg, expandedEndHandle.getCentreX(), expandedEndHandle.getCentreY(), expandedEndHandle.getWidth() / 2);
-        nvgFill(nvg);
+        nanovg::nvgBeginPath(nvg);
+        nanovg::nvgCircle(nvg, expandedEndHandle.getCentreX(), expandedEndHandle.getCentreY(), expandedEndHandle.getWidth() / 2);
+        nanovg::nvgFill(nvg);
     }
 
     // draw direction arrow if activated in overlay menu
@@ -253,16 +250,16 @@ void Connection::render(NVGcontext* nvg)
         auto const point_c = cnv->getLocalPoint(this, arrowLine.getPointAlongLine(0.0f, arrowWidth * 0.5f));
 
         // draw the arrow
-        nvgBeginPath(nvg);
-        nvgStrokeColor(nvg, outlineColour);
-        nvgFillColor(nvg, connectionColour);
-        nvgMoveTo(nvg, point_a.x, point_a.y);
-        nvgLineTo(nvg, point_b.x, point_b.y);
-        nvgLineTo(nvg, point_c.x, point_c.y);
-        nvgClosePath(nvg);
-        nvgStrokeWidth(nvg, 1.0f);
-        nvgFill(nvg);
-        nvgStroke(nvg);
+        nanovg::nvgBeginPath(nvg);
+        nanovg::nvgStrokeColor(nvg, outlineColour);
+        nanovg::nvgFillColor(nvg, connectionColour);
+        nanovg::nvgMoveTo(nvg, point_a.x, point_a.y);
+        nanovg::nvgLineTo(nvg, point_b.x, point_b.y);
+        nanovg::nvgLineTo(nvg, point_c.x, point_c.y);
+        nanovg::nvgClosePath(nvg);
+        nanovg::nvgStrokeWidth(nvg, 1.0f);
+        nanovg::nvgFill(nvg);
+        nanovg::nvgStroke(nvg);
     };
 
     if (cnv->shouldShowConnectionDirection()) {
@@ -296,21 +293,19 @@ void Connection::renderConnectionOrder(NVGcontext* nvg) const
         connectionPath.applyTransform(AffineTransform::translation(-getX(), -getY()));
         auto const pos = cnv->getLocalPoint(this, connectionPath.getPointAlongPath(jmax(pathLength - 8.5f * 3, 9.5f)));
         // circle background
-        nvgBeginPath(nvg);
-        nvgStrokeColor(nvg, outlineColour);
-        nvgFillColor(nvg, getConnectionColour());
+        nanovg::nvgBeginPath(nvg);
+        nanovg::nvgStrokeColor(nvg, outlineColour);
+        nanovg::nvgFillColor(nvg, getConnectionColour());
         constexpr auto radius = 7.0f;
         constexpr auto diameter = radius * 2.0f;
         auto const circleTopLeft = pos - Point<float>(radius, radius);
-        nvgRoundedRect(nvg, circleTopLeft.getX(), circleTopLeft.getY(), diameter, diameter, radius);
-        nvgStrokeWidth(nvg, 1.0f);
-        nvgFill(nvg);
-        nvgStroke(nvg);
+        nanovg::nvgRoundedRect(nvg, circleTopLeft.getX(), circleTopLeft.getY(), diameter, diameter, radius);
+        nanovg::nvgStrokeWidth(nvg, 1.0f);
+        nanovg::nvgFill(nvg);
+        nanovg::nvgStroke(nvg);
+
         // connection index number
-        nvgFillColor(nvg, textColour);
-        nvgFontSize(nvg, 9.0f);
-        nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_CENTER);
-        nvgText(nvg, pos.getX(), pos.getY(), String(getMultiConnectNumber()).toUTF8(), nullptr);
+        Fonts::drawText(cnv->editor->getNanoLLGC(), String(getMultiConnectNumber()), Rectangle<float>(radius, radius).withCentre(pos.toFloat()), Fonts::getCurrentFont().withHeight(9), PlugDataColours::objectSelectedOutlineColour.contrasting(), Justification::centred);
     }
 }
 
@@ -726,12 +721,21 @@ int Connection::getClosestLineIdx(Point<float> const& position, PathPlan const& 
     return -1;
 }
 
-void Connection::pathChanged()
+void Connection::setPath(Path const& newPath)
 {
-    strokePath.clear();
-    strokeType.createStrokedPath(strokePath, path, AffineTransform(), 1.0f);
-    setBoundsToEnclose(getDrawableBounds());
-    repaint();
+    path = newPath;
+    updateBounds();
+}
+
+void Connection::updateBounds()
+{
+    // Resize the component to enclose the path, expanded by the stroke thickness.
+    // The extra margin is used for hit detection and drawing the reconnect handles.
+    if (path.isEmpty()) {
+        setBounds({});
+        return;
+    }
+    setBounds(path.getBounds().expanded(6.0f).getSmallestIntegerContainer());
 }
 
 float Connection::getPathWidth() const

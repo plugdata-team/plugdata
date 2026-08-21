@@ -142,9 +142,8 @@ public:
     void render(NVGcontext* nvg) override
     {
         NVGScopedState scopedState(nvg);
-        nvgTranslate(nvg, getX(), getY());
-        Graphics g(*cnv->editor->getNanoLLGC());
-        paintEntireComponent(g, true);
+        nanovg::nvgTranslate(nvg, getX(), getY());
+        cnv->editor->getNanoLLGC()->renderComponent(*this);
     }
 
 private:

@@ -11,7 +11,8 @@ using namespace gl;
 #include "Utility/Containers.h"
 #include "Utility/NVGUtils.h"
 #include "Utility/Hash.h"
-#include <nanovg.h>
+#include <nanovg_async.h>
+#include <vector>
 /**
     JUCE low level graphics context backed by nanovg.
 
@@ -39,6 +40,8 @@ public:
     bool clipRegionIntersects(Rectangle<int> const&) override;
     Rectangle<int> getClipBounds() const override;
     bool isClipEmpty() const override;
+
+    void setImageBlendMode(BlendMode newMode) override;
 
     void saveState() override;
     void restoreState() override;
@@ -72,10 +75,37 @@ public:
     uint64_t getFrameId() const override { return 0; }
 
     void drawGlyphs(Span<uint16_t const>, Span<Point<float> const>, AffineTransform const&) override;
+    void drawText(StringRef text, Point<float> baseline, Justification justification = Justification::left, AffineTransform const& transform = {});
+    void drawText(StringRef text, Rectangle<float> area, Justification justification = Justification::centredLeft, bool useEllipsesIfTooBig = false, AffineTransform const& transform = {});
 
     void removeCachedImages();
 
     NVGcontext* getContext() const { return nvg; }
+    void resetClipRegion(AffineTransform initialTransform = {});
+
+    // Anchors JUCE drawing to nvg's CURRENT transform/scissor, for use inside a raw-nvg render pass
+    // (e.g. object rendering). JUCE positions glyphs relative to nvg's matrix, but TextLayout/Graphics
+    // cull content against getClipBounds(), which reflects this context's own tracked transform/clip.
+    // During a raw-nvg pass that tracked state is stale (set for the top-level paint), so culling wrongly
+    // drops text depending on scroll/zoom. Scoping a draw with this neutralises the tracked transform and
+    // clip (so nothing is culled) and installs a real nvg scissor for `clipBounds` in the current local
+    // space. Construct it, then draw with a Graphics wrapping this context; state is restored on scope exit.
+    struct ScopedAnchoredDraw {
+        ScopedAnchoredDraw(NVGGraphicsContext& context, Rectangle<float> clipBounds);
+        ~ScopedAnchoredDraw();
+        ScopedAnchoredDraw(ScopedAnchoredDraw const&) = delete;
+        ScopedAnchoredDraw& operator=(ScopedAnchoredDraw const&) = delete;
+
+    private:
+        NVGGraphicsContext& ctx;
+    };
+
+    // Paints a JUCE component through this context, anchored to nvg's current transform (see
+    // ScopedAnchoredDraw). Use this instead of a bare `Graphics g(llgc); c.paintEntireComponent(g)`
+    // during a raw-nvg render pass: component painting culls against getClipBounds(), so without
+    // anchoring the component's text can be dropped depending on scroll/zoom. Draws at nvg's current
+    // origin, clipped to the component's local bounds.
+    void renderComponent(Component& component);
 
     static String const defaultTypefaceName;
     static int const imageCacheSize;
@@ -83,6 +113,9 @@ public:
 private:
     int getNvgImageId(Image const& image);
     void reduceImageCache();
+    AffineTransform getCurrentTransform() const;
+    Rectangle<int> getTransformedClipBounds(Rectangle<float> const& bounds, AffineTransform const& transform) const;
+    RectangleList<int> getTransformedClipRegion(RectangleList<int> const& region, AffineTransform const& transform) const;
 
     NVGcontext* nvg;
 
@@ -93,10 +126,23 @@ private:
     struct NvgImage {
         int id { -1 };           ///< Image/texture ID.
         int accessCounter { 0 }; ///< Usage counter.
+        uint64_t lastUsedFrame { 0 };
+    };
+
+    uint64_t currentFrameId = 0;
+
+    struct SavedState {
+        RectangleList<int> clipRegion;
+        AffineTransform transform;
+        float opacity = 1.0f;
+        NVGcolor lastColour {};
     };
 
     float opacity = 1.0f;
-    NVGcolor lastColour;
-    UnorderedMap<uint64, NvgImage> images;
-    UnorderedMap<uint64_t, NVGCachedPath> pathCache;
+    NVGcolor lastColour {};
+    AffineTransform currentTransform;
+    RectangleList<int> clipRegion;
+    std::vector<SavedState> stateStack;
+    UnorderedSegmentedMap<uint64, NvgImage> images;
+    UnorderedSegmentedMap<uint64_t, NVGCachedPath> pathCache;
 };

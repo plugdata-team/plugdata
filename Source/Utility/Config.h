@@ -3,6 +3,7 @@
 #include <juce_data_structures/juce_data_structures.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_graphics/juce_graphics.h>
+#include <bit>
 
 using namespace juce;
 
@@ -55,10 +56,15 @@ T getValue(Value const& v)
     if constexpr (std::is_same_v<T, String>) {
         return v.toString();
     } else if constexpr (std::is_same_v<T, Colour>) {
-        return Colour::fromString(v.toString());
+        return std::bit_cast<Colour>(static_cast<int>(v.getValue()));
     } else {
         return static_cast<T>(v.getValue());
     }
+}
+
+inline var colourToVar(Colour const& c)
+{
+    return var(std::bit_cast<int>(c)); // juce::Colour is just a bgra int, so value->colour->value conversion can just be a cast
 }
 
 inline void setValueExcludingListener(Value& parameter, var const& value, Value::Listener* listener)

@@ -80,13 +80,13 @@ public:
         auto const outlineColour = nvgColour(selected ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
 
         auto const strokeColour = nvgColour(PlugDataColours::guiObjectInternalOutlineColour);
-        auto const whiteKeyColour = nvgRGB(225, 225, 225);
-        auto const blackKeyColour = nvgRGB(90, 90, 90);
+        auto const whiteKeyColour = nanovg::nvgRGB(225, 225, 225);
+        auto const blackKeyColour = nanovg::nvgRGB(90, 90, 90);
         auto const activeKeyColour = PlugDataColours::dataColour;
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), whiteKeyColour, outlineColour, Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), whiteKeyColour, outlineColour, Corners::objectCornerRadius);
 
-        nvgStrokeColor(nvg, strokeColour);
+        nanovg::nvgStrokeColor(nvg, strokeColour);
 
         auto const whiteNoteWidth = getWhiteKeyWidth();
         auto const blackNoteWidth = whiteNoteWidth * 0.7f;
@@ -99,66 +99,63 @@ public:
 
         // Fill held white notes
         if (!heldKeys.empty()) {
-            nvgBeginPath(nvg);
+            nanovg::nvgBeginPath(nvg);
             for (auto& key : heldKeys) {
                 if (key < lowest || key >= highest)
                     continue;
                 auto pos = getKeyPosition(key - lowest, true);
                 if (!MidiMessage::isMidiNoteBlack(key)) {
-                    nvgRect(nvg, pos.getStart(), 1.0f, whiteNoteWidth, getHeight() - 2.0f);
+                    nanovg::nvgRect(nvg, pos.getStart(), 1.0f, whiteNoteWidth, getHeight() - 2.0f);
                 }
             }
-            nvgFillColor(nvg, nvgColour(activeKeyColour));
-            nvgFill(nvg);
+            nanovg::nvgFillColor(nvg, nvgColour(activeKeyColour));
+            nanovg::nvgFill(nvg);
         }
 
         // Draw outlines for white notes
-        nvgBeginPath(nvg);
+        nanovg::nvgBeginPath(nvg);
         for (int i = 1; i < numWhiteNotes; i++) {
-            nvgMoveTo(nvg, i * whiteNoteWidth, 1.0f);
-            nvgLineTo(nvg, i * whiteNoteWidth, getHeight() - 1.0f);
+            nanovg::nvgMoveTo(nvg, i * whiteNoteWidth, 1.0f);
+            nanovg::nvgLineTo(nvg, i * whiteNoteWidth, getHeight() - 1.0f);
         }
-        nvgStroke(nvg);
+        nanovg::nvgStroke(nvg);
 
         // Fill black notes
-        nvgBeginPath(nvg);
+        nanovg::nvgBeginPath(nvg);
         for (int i = 0; i < numBlackNotes; i++) {
             auto const octave = i / 5 * 12;
             auto pos = getKeyPosition(blackNotes[i % 5] + octave, true);
-            nvgRect(nvg, pos.getStart(), 1.0f, blackNoteWidth, blackKeyHeight);
+            nanovg::nvgRect(nvg, pos.getStart(), 1.0f, blackNoteWidth, blackKeyHeight);
         }
 
-        nvgFillColor(nvg, blackKeyColour);
-        nvgFill(nvg);
+        nanovg::nvgFillColor(nvg, blackKeyColour);
+        nanovg::nvgFill(nvg);
 
         // Fill held black notes
         if (!heldKeys.empty()) {
-            nvgBeginPath(nvg);
+            nanovg::nvgBeginPath(nvg);
             for (auto& key : heldKeys) {
                 if (key < lowest || key >= highest)
                     continue;
                 auto pos = getKeyPosition(key - lowest, true);
                 if (MidiMessage::isMidiNoteBlack(key)) {
-                    nvgRect(nvg, pos.getStart(), 1.0f, blackNoteWidth, blackKeyHeight);
+                    nanovg::nvgRect(nvg, pos.getStart(), 1.0f, blackNoteWidth, blackKeyHeight);
                 }
             }
-            nvgFillColor(nvg, nvgColour(activeKeyColour.darker(0.5f)));
-            nvgFill(nvg);
+            nanovg::nvgFillColor(nvg, nvgColour(activeKeyColour.darker(0.5f)));
+            nanovg::nvgFill(nvg);
         }
 
         // Draw octave numbers
         if (!cnv->locked.getValue() && !cnv->editor->isInPluginMode()) {
-            nvgFillColor(nvg, nvgRGB(90, 90, 90));
-            nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
             auto const fontSizeScaled = b.getHeight() - 2 < 60 ? 13.0f * (b.getHeight() - 2) / 60.0f : 13;
-            nvgFontSize(nvg, jmax(4.0f, fontSizeScaled));
             auto const octaveNumHeight = whiteNoteWidth * 1.2f;
             auto const scaledHeight = jmin(13.0f, b.getHeight() - 2 < 60 ? octaveNumHeight * (b.getHeight() - 2.0f) / 60.0f : octaveNumHeight);
             for (int i = 0; i < getValue<int>(octaves); i++) {
                 auto const position = i * 7 * whiteNoteWidth;
                 auto text = String(i + startOctave);
                 auto rectangle = Rectangle<int>(position, b.getHeight() - scaledHeight, whiteNoteWidth, scaledHeight);
-                nvgText(nvg, rectangle.getCentreX(), rectangle.getCentreY(), text.toRawUTF8(), nullptr);
+                Fonts::drawText(cnv->editor->getNanoLLGC(), text, rectangle.toFloat(), Fonts::getCurrentFont().withHeight(jmax(4.0f, fontSizeScaled)), Colour(90, 90, 90), Justification::centred);
             }
         }
     }

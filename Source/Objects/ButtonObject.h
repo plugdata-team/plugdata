@@ -51,16 +51,16 @@ public:
 
     void updateColours()
     {
-        bgCol = nvgColour(Colour::fromString(secondaryColour.toString()));
-        fgCol = nvgColour(Colour::fromString(primaryColour.toString()));
+        bgCol = nvgColour(getValue<Colour>(secondaryColour));
+        fgCol = nvgColour(getValue<Colour>(primaryColour));
         repaint();
     }
 
     void update() override
     {
         if (auto button = ptr.get<t_fake_button>()) {
-            primaryColour = String::fromUTF8(button->x_fg->s_name).replace("#", "ff");
-            secondaryColour = String::fromUTF8(button->x_bg->s_name).replace("#", "ff");
+            primaryColour = colourToVar(Colour::fromString(String::fromUTF8(button->x_fg->s_name).replace("#", "ff")));
+            secondaryColour = colourToVar(Colour::fromString(String::fromUTF8(button->x_bg->s_name).replace("#", "ff")));
             transparent = button->x_transparent;
             sizeProperty = VarArray(button->x_w, button->x_h);
             readOnly = button->x_readonly;
@@ -270,8 +270,8 @@ public:
     {
         auto const b = getLocalBounds().toFloat();
 
-        auto fillColour = getValue<bool>(transparent) ? nvgRGBA(0, 0, 0, 0) : bgCol;
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), fillColour, object->isSelected() ? nvgColour(PlugDataColours::objectSelectedOutlineColour) : nvgColour(PlugDataColours::objectOutlineColour), Corners::objectCornerRadius);
+        auto fillColour = getValue<bool>(transparent) ? nanovg::nvgRGBA(0, 0, 0, 0) : bgCol;
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), fillColour, object->isSelected() ? nvgColour(PlugDataColours::objectSelectedOutlineColour) : nvgColour(PlugDataColours::objectOutlineColour), Corners::objectCornerRadius);
 
         auto radius = getValue<bool>(oval) ? getWidth() : Corners::objectCornerRadius;
         if (!getValue<bool>(transparent)) {
@@ -282,15 +282,15 @@ public:
 
             if (b.getWidth() >= 25 && b.getHeight() >= 25) {
                 spaceToShowRect = true;
-                nvgDrawRoundedRect(nvg, outerBounds.getX(), outerBounds.getY(), outerBounds.getWidth(), outerBounds.getHeight(), nvgColour(PlugDataColours::guiObjectInternalOutlineColour), nvgColour(PlugDataColours::guiObjectInternalOutlineColour), radius);
-                nvgDrawRoundedRect(nvg, innerRectBounds.getX(), innerRectBounds.getY(), innerRectBounds.getWidth(), innerRectBounds.getHeight(), bgCol, bgCol, radius - 1.0f);
+                nanovg::nvgDrawRoundedRect(nvg, outerBounds.getX(), outerBounds.getY(), outerBounds.getWidth(), outerBounds.getHeight(), nvgColour(PlugDataColours::guiObjectInternalOutlineColour), nvgColour(PlugDataColours::guiObjectInternalOutlineColour), radius);
+                nanovg::nvgDrawRoundedRect(nvg, innerRectBounds.getX(), innerRectBounds.getY(), innerRectBounds.getWidth(), innerRectBounds.getHeight(), bgCol, bgCol, radius - 1.0f);
             }
 
             // Fill ellipse if bangState is true
             if (state) {
                 auto const innerBounds = spaceToShowRect ? innerRectBounds.reduced(1) : guiBounds;
                 auto const cornerRadius = spaceToShowRect ? radius - 1.5f : radius - 1;
-                nvgDrawRoundedRect(nvg, innerBounds.getX(), innerBounds.getY(), innerBounds.getWidth(), innerBounds.getHeight(), fgCol, fgCol, cornerRadius);
+                nanovg::nvgDrawRoundedRect(nvg, innerBounds.getX(), innerBounds.getY(), innerBounds.getWidth(), innerBounds.getHeight(), fgCol, fgCol, cornerRadius);
             }
         }
     }
@@ -317,12 +317,12 @@ public:
             object->updateBounds();
         } else if (value.refersToSameSourceAs(primaryColour)) {
             if (auto button = ptr.get<t_fake_button>()) {
-                button->x_fg = pd->generateSymbol("#" + primaryColour.toString().substring(2));
+                button->x_fg = pd->generateSymbol("#" + getValue<Colour>(primaryColour).toString().substring(2));
             }
             updateColours();
         } else if (value.refersToSameSourceAs(secondaryColour)) {
             if (auto button = ptr.get<t_fake_button>()) {
-                button->x_bg = pd->generateSymbol("#" + secondaryColour.toString().substring(2));
+                button->x_bg = pd->generateSymbol("#" + getValue<Colour>(secondaryColour).toString().substring(2));
             }
             updateColours();
         }
@@ -345,14 +345,14 @@ public:
         switch (symbol) {
         case hash("bgcolor"): {
             if (atoms.size() >= 3) {
-                setParameterExcludingListener(secondaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
+                setParameterExcludingListener(secondaryColour, colourToVar(Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat())));
                 updateColours();
             }
             break;
         }
         case hash("fgcolor"): {
             if (atoms.size() >= 3) {
-                setParameterExcludingListener(primaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
+                setParameterExcludingListener(primaryColour, colourToVar(Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat())));
                 updateColours();
             }
             break;

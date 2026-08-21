@@ -36,6 +36,12 @@ class SmallIconButton : public TextButton {
     void mouseExit(MouseEvent const& e) override;
 
     void paint(Graphics& g) override;
+
+    int iconSize = 12;
+
+public:
+    void setIconFontSize(int newSize);
+
 };
 
 class WidePanelButton final : public TextButton {

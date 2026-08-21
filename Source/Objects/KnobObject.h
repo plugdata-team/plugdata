@@ -68,10 +68,10 @@ public:
             float const y = centre.getY() + radius * std::sin(angle);
 
             // Draw the tick at this position
-            nvgBeginPath(nvg);
-            nvgCircle(nvg, x, y, tickRadius);
-            nvgFillColor(nvg, nvgColour(fgColour));
-            nvgFill(nvg);
+            nanovg::nvgBeginPath(nvg);
+            nanovg::nvgCircle(nvg, x, y, tickRadius);
+            nanovg::nvgFillColor(nvg, nvgColour(fgColour));
+            nanovg::nvgFill(nvg);
         }
     }
 
@@ -270,34 +270,34 @@ public:
             auto const arcRadius = arcBounds.getWidth() * 0.5;
             auto const arcWidth = (arcRadius - lineThickness) / arcRadius;
 
-            nvgBeginPath(nvg);
-            nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, startAngle, endAngle, NVG_HOLE);
-            nvgStrokeWidth(nvg, arcWidth * lineThickness);
-            nvgStrokeColor(nvg, nvgColour(arcColour));
-            nvgStroke(nvg);
+            nanovg::nvgBeginPath(nvg);
+            nanovg::nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, startAngle, endAngle, NVG_HOLE);
+            nanovg::nvgStrokeWidth(nvg, arcWidth * lineThickness);
+            nanovg::nvgStrokeColor(nvg, nvgColour(arcColour));
+            nanovg::nvgStroke(nvg);
 
-            nvgBeginPath(nvg);
+            nanovg::nvgBeginPath(nvg);
             if (centre < angle) {
-                nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, centre, angle, NVG_HOLE);
+                nanovg::nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, centre, angle, NVG_HOLE);
             } else {
-                nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, angle, centre, NVG_HOLE);
+                nanovg::nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, angle, centre, NVG_HOLE);
             }
-            nvgStrokeColor(nvg, nvgColour(fgColour));
-            nvgStrokeWidth(nvg, arcWidth * lineThickness);
-            nvgStroke(nvg);
+            nanovg::nvgStrokeColor(nvg, nvgColour(fgColour));
+            nanovg::nvgStrokeWidth(nvg, arcWidth * lineThickness);
+            nanovg::nvgStroke(nvg);
         }
 
         float const wiperX = bounds.getCentreX() + bounds.getWidth() * 0.4f * std::cos(angle);
         float const wiperY = bounds.getCentreY() + bounds.getWidth() * 0.4f * std::sin(angle);
 
         // draw wiper
-        nvgBeginPath(nvg);
-        nvgMoveTo(nvg, bounds.getCentreX(), bounds.getCentreY()); // Adjust parameters as needed
-        nvgLineTo(nvg, wiperX, wiperY);                           // Adjust parameters as needed
-        nvgStrokeWidth(nvg, lineThickness);
-        nvgStrokeColor(nvg, nvgColour(fgColour));
-        nvgLineCap(nvg, NVG_ROUND);
-        nvgStroke(nvg);
+        nanovg::nvgBeginPath(nvg);
+        nanovg::nvgMoveTo(nvg, bounds.getCentreX(), bounds.getCentreY()); // Adjust parameters as needed
+        nanovg::nvgLineTo(nvg, wiperX, wiperY);                           // Adjust parameters as needed
+        nanovg::nvgStrokeWidth(nvg, lineThickness);
+        nanovg::nvgStrokeColor(nvg, nvgColour(fgColour));
+        nanovg::nvgLineCap(nvg, NVG_ROUND);
+        nanovg::nvgStroke(nvg);
 
         drawTicks(nvg, bounds, startAngle, endAngle, lineThickness);
     }
@@ -569,10 +569,10 @@ public:
             showArc = knb->x_arc;
             exponential = knb->x_exp;
             logMode = knb->x_expmode + 1;
-            primaryColour = getForegroundColour().toString();
-            secondaryColour = getBackgroundColour().toString();
+            primaryColour = colourToVar(getForegroundColour());
+            secondaryColour = colourToVar(getBackgroundColour());
             transparent = knb->x_transparent;
-            arcColour = getArcColour().toString();
+            arcColour = colourToVar(getArcColour());
             square = knb->x_square;
             sizeProperty = knb->x_size;
             arcStart = knb->x_arcstart;
@@ -747,20 +747,20 @@ public:
             break;
         }
         case hash("fgcolor"): {
-            primaryColour = getForegroundColour().toString();
+            primaryColour = colourToVar(getForegroundColour());
             break;
         }
         case hash("bgcolor"): {
-            secondaryColour = getBackgroundColour().toString();
+            secondaryColour = colourToVar(getBackgroundColour());
             break;
         }
         case hash("colors"): {
-            primaryColour = getForegroundColour().toString();
-            secondaryColour = getBackgroundColour().toString();
+            primaryColour = colourToVar(getForegroundColour());
+            secondaryColour = colourToVar(getBackgroundColour());
             break;
         }
         case hash("arccolor"): {
-            arcColour = getArcColour().toString();
+            arcColour = colourToVar(getArcColour());
             break;
         }
         case hash("init"): {
@@ -881,20 +881,20 @@ public:
     {
         auto const b = getLocalBounds().toFloat();
 
-        auto const background = ::getValue<bool>(transparent) ? nvgRGBA(0, 0, 0, 0) : bgCol;
+        auto const background = ::getValue<bool>(transparent) ? nanovg::nvgRGBA(0, 0, 0, 0) : bgCol;
         if (::getValue<bool>(square)) {
             bool const selected = object->isSelected() && !cnv->isGraph;
             auto const outlineColour = nvgColour(selected ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
             auto const lineThickness = std::max(b.getWidth() * 0.03f, 1.0f);
 
-            nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), background, outlineColour, Corners::objectCornerRadius);
+            nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), background, outlineColour, Corners::objectCornerRadius);
 
             if (!::getValue<bool>(showArc)) {
-                nvgBeginPath(nvg);
-                nvgStrokeWidth(nvg, lineThickness);
-                nvgStrokeColor(nvg, nvgColour(::getValue<Colour>(arcColour)));
-                nvgCircle(nvg, b.getCentreX(), b.getCentreY(), b.getWidth() / 2.7f);
-                nvgStroke(nvg);
+                nanovg::nvgBeginPath(nvg);
+                nanovg::nvgStrokeWidth(nvg, lineThickness);
+                nanovg::nvgStrokeColor(nvg, nvgColour(::getValue<Colour>(arcColour)));
+                nanovg::nvgCircle(nvg, b.getCentreX(), b.getCentreY(), b.getWidth() / 2.7f);
+                nanovg::nvgStroke(nvg);
             }
 
             knob.render(nvg);
@@ -909,17 +909,17 @@ public:
             float const scaleOffsetX = originalCentre.x * (1.0f - scaleFactor);
             float const scaleOffsetY = originalCentre.y * (1.0f - scaleFactor);
 
-            nvgTranslate(nvg, scaleOffsetX, scaleOffsetY);
-            nvgScale(nvg, scaleFactor, scaleFactor);
+            nanovg::nvgTranslate(nvg, scaleOffsetX, scaleOffsetY);
+            nanovg::nvgScale(nvg, scaleFactor, scaleFactor);
 
-            nvgFillColor(nvg, background);
-            nvgBeginPath(nvg);
-            nvgCircle(nvg, circleBounds.getCentreX(), circleBounds.getCentreY(), circleBounds.getWidth() / 2.0f);
-            nvgFill(nvg);
+            nanovg::nvgFillColor(nvg, background);
+            nanovg::nvgBeginPath(nvg);
+            nanovg::nvgCircle(nvg, circleBounds.getCentreX(), circleBounds.getCentreY(), circleBounds.getWidth() / 2.0f);
+            nanovg::nvgFill(nvg);
 
-            nvgStrokeColor(nvg, nvgColour(PlugDataColours::objectOutlineColour));
-            nvgStrokeWidth(nvg, 1.0f);
-            nvgStroke(nvg);
+            nanovg::nvgStrokeColor(nvg, nvgColour(PlugDataColours::objectOutlineColour));
+            nanovg::nvgStrokeWidth(nvg, 1.0f);
+            nanovg::nvgStroke(nvg);
 
             knob.render(nvg);
         }
@@ -1148,7 +1148,7 @@ public:
 
     void updateColours()
     {
-        bgCol = nvgColour(Colour::fromString(secondaryColour.toString()));
+        bgCol = nvgColour(::getValue<Colour>(secondaryColour));
         repaint();
     }
 
@@ -1249,13 +1249,13 @@ public:
             sendMessage("receive", { pd::Atom(pd->generateSymbol(receiveSymbol.toString())) });
             object->updateIolets();
         } else if (value.refersToSameSourceAs(primaryColour)) {
-            auto const colour = "#" + primaryColour.toString().substring(2);
+            auto const colour = "#" + ::getValue<Colour>(primaryColour).toString().substring(2);
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_fg = pd->generateSymbol(colour);
-            knob.setFgColour(Colour::fromString(primaryColour.toString()));
+            knob.setFgColour(::getValue<Colour>(primaryColour));
             updateColours();
         } else if (value.refersToSameSourceAs(secondaryColour)) {
-            auto const colour = "#" + secondaryColour.toString().substring(2);
+            auto const colour = "#" + ::getValue<Colour>(secondaryColour).toString().substring(2);
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_bg = pd->generateSymbol(colour);
             updateColours();
@@ -1266,10 +1266,10 @@ public:
             updateArcStart();
             repaint();
         } else if (value.refersToSameSourceAs(arcColour)) {
-            auto const colour = "#" + arcColour.toString().substring(2);
+            auto const colour = "#" + ::getValue<Colour>(arcColour).toString().substring(2);
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_mg = pd->generateSymbol(colour);
-            knob.setArcColour(Colour::fromString(arcColour.toString()));
+            knob.setArcColour(::getValue<Colour>(arcColour));
             repaint();
         } else if (value.refersToSameSourceAs(readOnly)) {
             if (auto knb = ptr.get<t_fake_knob>())

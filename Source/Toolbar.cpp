@@ -98,8 +98,9 @@ class VolumeComponent final : public Slider
 
         void paint(Graphics& g) override
         {
-            g.fillAll(PlugDataColours::levelMeterBackgroundColour);
+            g.fillAll(PlugDataColours::toolbarHoverColour);
             g.setColour(PlugDataColours::toolbarTextColour.withAlpha(0.666f));
+            g.setFont(Fonts::getCurrentFont().withHeight(13.5f));
             g.drawText(String(decibelValue) + "dB", getLocalBounds(), textJustification);
         }
 
@@ -180,43 +181,48 @@ public:
     void paint(Graphics& g) override
     {
         auto const height = getHeight() / 4.0f;
-        auto const barHeight = height * 0.6f;
+        auto const barHeight = height * 0.5f;
         auto const halfBarHeight = barHeight * 0.5f;
-        auto const width = getWidth() - 12.0f;
-        constexpr auto x = 6.0f;
+        auto const width = getWidth() - 4.0f;
+        constexpr auto x = 2.0f;
 
         constexpr auto outerBorderWidth = 2.5f;
         auto constexpr doubleOuterBorderWidth = 2.0f * outerBorderWidth;
         auto const bgHeight = getHeight() - doubleOuterBorderWidth;
-        auto const bgWidth = width - doubleOuterBorderWidth;
-        auto const meterWidth = width - bgHeight;
-        auto const barWidth = meterWidth - 2;
-        auto const leftOffset = x + bgHeight * 0.5f;
+        auto const meterWidth = width - 16;
+        auto const leftOffset = x + 10;
 
-        g.setColour(PlugDataColours::levelMeterBackgroundColour);
-        g.fillRoundedRectangle(x + outerBorderWidth + 4, outerBorderWidth, bgWidth - 8, bgHeight, Corners::defaultCornerRadius);
+        g.setColour(PlugDataColours::toolbarHoverColour);
+        auto const bgLeft = x + outerBorderWidth;
+        Path trackBg;
+        trackBg.addRoundedRectangle(bgLeft, outerBorderWidth, getWidth() - bgLeft, bgHeight,
+            Corners::defaultCornerRadius, Corners::defaultCornerRadius, true, false, true, false);
+        g.fillPath(trackBg);
 
         for (int ch = 0; ch < numChannels; ch++) {
             auto const barYPos = outerBorderWidth + (ch + 1) * (bgHeight / 3.0f) - halfBarHeight;
-            auto const barLength = jmin(audioLevel[ch] * barWidth, barWidth);
-            auto const peekPos = jmin(peakLevel[ch] * barWidth, barWidth);
+            auto const barLength = jmin(audioLevel[ch] * meterWidth, meterWidth);
+            auto const peekPos = jmin(peakLevel[ch] * meterWidth, meterWidth);
+
+            g.setColour(PlugDataColours::toolbarHoverColour.contrasting(0.08f));
+            g.fillRoundedRectangle(leftOffset, barYPos, meterWidth, barHeight, barHeight / 2);
 
             if (peekPos > 1) {
-                g.setColour(clipping[ch] ? Colours::red : PlugDataColours::levelMeterActiveColour);
-                g.fillRect(leftOffset, barYPos, barLength, barHeight);
-                g.fillRect(leftOffset + peekPos, barYPos, 1.0f, barHeight);
+                g.setColour(clipping[ch] ? Colours::red : PlugDataColours::toolbarActiveColour);
+                g.fillRoundedRectangle(leftOffset, barYPos, barLength, barHeight, barHeight / 2);
+                g.fillRect(leftOffset + peekPos - barHeight, barYPos, 1.0f, barHeight);
             }
         }
 
-        auto const backgroundColour = PlugDataColours::levelMeterThumbColour;
+        auto const backgroundColour = PlugDataColours::toolbarHoverColour.contrasting(0.5f);
 
         auto const value = getValue();
-        auto const thumbSize = getHeight() * 0.66f;
+        auto const thumbSize = getHeight() * 0.6f;
         auto const position = Point<float>(margin + value * (getWidth() - margin * 2), getHeight() * 0.5f);
         auto thumb = Rectangle<float>(thumbSize, thumbSize).withCentre(position);
         thumb = thumb.withSizeKeepingCentre(thumb.getWidth() - 12, thumb.getHeight());
-        g.setColour(backgroundColour.darker(thumb.contains(getMouseXYRelative().toFloat()) ? 0.3f : 0.0f).withAlpha(0.8f));
-        g.fillRoundedRectangle(thumb, Corners::defaultCornerRadius * 0.5f);
+        g.setColour(backgroundColour.darker(thumb.contains(getMouseXYRelative().toFloat()) ? 0.3f : 0.0f).withAlpha(0.9f));
+        g.fillRoundedRectangle(thumb, thumb.getWidth() * 0.5f);
     }
 
     void resized() override
@@ -240,7 +246,7 @@ public:
 
         if (auto const shouldBeVisible = (thumb.contains(mousePosition) || isDragging)) {
             if (value > 0.5f) {
-                decibelPopup.setBounds(Rectangle<int>(18, 2, 40, getHeight() - 4));
+                decibelPopup.setBounds(Rectangle<int>(12, 2, 40, getHeight() - 4));
                 decibelPopup.setJustification(Justification::left);
             } else {
                 decibelPopup.setBounds(Rectangle<int>(getWidth() - 50, 2, 40, getHeight() - 4));
@@ -297,7 +303,7 @@ public:
 
 private:
     VolumeSliderDecibelPopup decibelPopup;
-    int margin = 18;
+    int margin = 14;
 
     bool animationFadeIn = false;
     VBlankAnimatorUpdater updater { this };
@@ -396,7 +402,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.setColour(PlugDataColours::levelMeterBackgroundColour);
+        g.setColour(PlugDataColours::toolbarHoverColour);
         g.fillRoundedRectangle(getLocalBounds().reduced(6, 32).toFloat(), Corners::defaultCornerRadius);
 
         g.setColour(PlugDataColours::outlineColour);
@@ -517,34 +523,34 @@ public:
     {
         setTooltip("MIDI activity");
         setRepaintsOnMouseActivity(true);
-
-        lookAndFeelChanged();
-    }
-
-    void lookAndFeelChanged() override
-    {
-        activeColour = PlugDataColours::levelMeterActiveColour;
-        bgColour = PlugDataColours::levelMeterBackgroundColour;
-        textColour = PlugDataColours::toolbarTextColour;
     }
 
     void paint(Graphics& g) override
     {
-        auto const isHovered = isMouseOver() || currentCalloutBox;
+        if(isMouseOver())
+        {
+            g.setColour(PlugDataColours::toolbarHoverColour);
+            g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(1, 3.5f), Corners::defaultCornerRadius);
+        }
 
-        Fonts::drawIcon(g, Icons::MIDI, getLocalBounds().removeFromLeft(16).withTrimmedTop(1), textColour.brighter(isHovered ? 0.8f : 0.0f), 13);
+        constexpr float iconW = 15.0f;
+        constexpr float dotSize = 5.0f;
+        constexpr float dotGap = 4.0f;      // space between the two dots
+        constexpr float iconDotsGap = 5.0f; // space between the icon and the dots
+        auto const contentW = iconW + iconDotsGap + dotSize * 2 + dotGap;
+        auto const startX = std::max(0.0f, (getWidth() - contentW) * 0.5f);
 
-        auto const offsetY = getHeight() / 4.0f;
-        constexpr auto offsetX = 20.0f;
+        Fonts::drawIcon(g, Icons::MIDI, Rectangle<int>(roundToInt(startX), 0, roundToInt(iconW), getHeight()), PlugDataColours::toolbarTextColour, 14);
 
-        auto const midiInPos = Point<float>(offsetX, offsetY);
-        auto const midiOutPos = Point<float>(offsetX, offsetY * 2.4f);
+        auto const dotsX = startX + iconW + iconDotsGap;
+        auto const dotY = (getHeight() - dotSize) * 0.5f;
+        auto const idleColour = PlugDataColours::toolbarTextColour.withAlpha(0.33f);
 
-        g.setColour(blinkMidiIn ? activeColour : bgColour.brighter(isHovered ? 0.2f : 0.0f));
-        g.fillEllipse(midiInPos.x, midiInPos.y, 5, 5);
+        g.setColour(blinkMidiIn ? PlugDataColours::toolbarActiveColour : idleColour);
+        g.fillEllipse(dotsX, dotY, dotSize, dotSize);
 
-        g.setColour(blinkMidiOut ? activeColour : bgColour.brighter(isHovered ? 0.2f : 0.0f));
-        g.fillEllipse(midiOutPos.x, midiOutPos.y, 5, 5);
+        g.setColour(blinkMidiOut ? PlugDataColours::toolbarActiveColour : idleColour);
+        g.fillEllipse(dotsX + dotSize + dotGap, dotY, dotSize, dotSize);
     }
 
     void midiReceivedChanged(bool const midiReceived) override
@@ -567,6 +573,19 @@ public:
     void midiMessageSent(MidiMessage const& midiSent) override
     {
         messages.addMessage(midiSent, false);
+    }
+
+    // Repaint the parent so the pill's hover-highlight follows the mouse
+    void mouseEnter(MouseEvent const&) override
+    {
+        if (auto* p = getParentComponent())
+            p->repaint();
+    }
+
+    void mouseExit(MouseEvent const&) override
+    {
+        if (auto* p = getParentComponent())
+            p->repaint();
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -594,14 +613,10 @@ public:
         }
     }
 
-    bool blinkMidiIn = false;
-    bool blinkMidiOut = false;
-    bool isCallOutBoxActive = false;
+    bool blinkMidiIn:1 = false;
+    bool blinkMidiOut:1 = false;
+    bool isCallOutBoxActive:1 = false;
     MIDIListModel messages;
-
-    Colour activeColour;
-    Colour bgColour;
-    Colour textColour;
 
     static inline SafePointer<CallOutBox> currentCalloutBox = nullptr;
 };
@@ -627,7 +642,7 @@ public:
         g.saveState();
         g.reduceClipRegion(roundedClip);
 
-        g.setColour(PlugDataColours::levelMeterBackgroundColour);
+        g.setColour(PlugDataColours::toolbarHoverColour);
         g.fillRect(bounds);
 
         auto bottom = bounds.getBottom();
@@ -667,10 +682,10 @@ public:
         graphFilled.lineTo(bounds.getBottomRight().toFloat());
         graphFilled.lineTo(bounds.getBottomLeft().toFloat());
         graphFilled.closeSubPath();
-        g.setColour(PlugDataColours::levelMeterActiveColour.withAlpha(0.3f));
+        g.setColour(PlugDataColours::toolbarActiveColour.withAlpha(0.3f));
         g.fillPath(graphFilled);
 
-        g.setColour(PlugDataColours::levelMeterActiveColour);
+        g.setColour(PlugDataColours::toolbarActiveColour);
         g.strokePath(graphTopLine, PathStrokeType(1.0f));
 
         g.restoreState();
@@ -817,14 +832,23 @@ public:
 
     void paint(Graphics& g) override
     {
-        Colour textColour;
-        if (isMouseOver() || currentCalloutBox)
-            textColour = PlugDataColours::toolbarTextColour.brighter(0.8f);
-        else
-            textColour = PlugDataColours::toolbarTextColour;
+        if(isMouseOver())
+        {
+            g.setColour(PlugDataColours::toolbarHoverColour);
+            g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(1, 3.5f), Corners::defaultCornerRadius);
+        }
 
-        Fonts::drawIcon(g, Icons::CPU, getLocalBounds().removeFromLeft(16), textColour, 14);
-        Fonts::drawFittedText(g, String(cpuUsageToDraw) + "%", getLocalBounds().withTrimmedLeft(22).withTrimmedTop(1), textColour, 1, 0.9f, 13.5, Justification::centredLeft);
+        auto const txt = String(cpuUsageToDraw) + "%";
+        auto const font = Fonts::getCurrentFont().withHeight(13.5f);
+        auto const textW = Fonts::getStringWidth(txt, font);
+        constexpr float iconW = 15.0f;
+        constexpr float gap = 3.0f;
+        auto const startX = std::max(0.0f, (getWidth() - (iconW + gap + textW)) * 0.5f);
+
+        Fonts::drawIcon(g, Icons::CPU, Rectangle<int>(roundToInt(startX), 0, roundToInt(iconW), getHeight()), PlugDataColours::toolbarTextColour, 14);
+        g.setColour(PlugDataColours::toolbarTextColour);
+        g.setFont(font);
+        g.drawText(txt, Rectangle<float>(startX + iconW + gap, 0.0f, textW + 2.0f, static_cast<float>(getHeight())), Justification::centredLeft);
     }
 
     void timerCallback() override
@@ -836,6 +860,19 @@ public:
         updateCPUGraphLong();
         if (oldCpuUsage != cpuUsageToDraw)
             repaint();
+    }
+
+    // Repaint the parent so the pill's hover-highlight follows the mouse
+    void mouseEnter(MouseEvent const&) override
+    {
+        if (auto* p = getParentComponent())
+            p->repaint();
+    }
+
+    void mouseExit(MouseEvent const&) override
+    {
+        if (auto* p = getParentComponent())
+            p->repaint();
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -1143,7 +1180,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto const inactiveColour = PlugDataColours::levelMeterBackgroundColour;
+        auto const inactiveColour = PlugDataColours::toolbarHoverColour;
         auto const activeColour = PlugDataColours::toolbarActiveColour.interpolatedWith(PlugDataColours::toolbarBackgroundColour, 0.8f);
 
         constexpr float cornerRadius = Corners::defaultCornerRadius;
@@ -1158,15 +1195,20 @@ public:
 
         g.setColour(textColour);
         Path textPath;
-        textPath.addRoundedRectangle(textSegment.getX() + 0.5f, textSegment.getY() + 0.5f, textSegment.getWidth() - 1.0f, textSegment.getHeight() - 1.0f, cornerRadius, cornerRadius, true, true, true, true);
+        textPath.addRoundedRectangle(0.0f, textSegment.getY() + 0.5f, textSegment.getWidth(), textSegment.getHeight() - 1.0f, cornerRadius, cornerRadius, false, true, false, true);
         g.fillPath(textPath);
+
+        if (!getToggleState()) {
+            g.setColour(PlugDataColours::toolbarHoverColour.contrasting(0.12f));
+            g.drawLine(0.5f, 3.5f, 0.5f, getHeight() - 3.5f, 1.0f);
+        }
 
         auto iconColour = inactiveColour;
         if (isMouseOver() && iconSegment.contains(getMouseXYRelative())) {
             iconColour = iconColour.contrasting(0.2f);
         }
 
-        g.setColour(PlugDataColours::toolbarTextColour);
+        g.setColour(PlugDataColours::toolbarTextColour.withAlpha(0.8f));
         g.setFont(Fonts::getSemiBoldFont().withHeight(13.5f));
         g.drawText(getButtonText(), 0, 0, getWidth(), getHeight(), Justification::centred);
     }
@@ -1484,6 +1526,8 @@ public:
         toggle.addMouseListener(this, false);
         chevron.addMouseListener(this, false);
 
+        toggle.setIconFontSize(14);
+
         addAndMakeVisible(toggle);
         addAndMakeVisible(chevron);
         setRepaintsOnMouseActivity(true);
@@ -1498,9 +1542,9 @@ public:
     void resized() override
     {
         auto b = getLocalBounds();
-        constexpr int chevronWidth = 14;
-        toggle.setBounds(b.removeFromLeft(b.getWidth() - chevronWidth));
-        chevron.setBounds(b);
+        chevron.setBounds(b.removeFromRight(14));
+        toggle.setBounds(b);
+
     }
 
     void showDSPState(bool const dspState)
@@ -1511,7 +1555,7 @@ public:
     void audioProcessedChanged(bool const audioProcessed) override
     {
         auto const colour = audioProcessed
-            ? PlugDataColours::levelMeterActiveColour
+            ? PlugDataColours::toolbarActiveColour
             : PlugDataColours::signalColour;
         toggle.setColour(TextButton::textColourOnId, colour);
     }
@@ -1522,38 +1566,36 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto const bounds = getLocalBounds().toFloat().reduced(0, 4.5f);
+        auto const bounds = getLocalBounds().toFloat().reduced(0, 3.5f);
         constexpr float cornerRadius = Corners::defaultCornerRadius;
         auto const chevronWidth = 14.0f;
 
         auto const togglePart = bounds.withWidth(bounds.getWidth() - chevronWidth);
         auto const chevronPart = bounds.withLeft(bounds.getRight() - chevronWidth);
 
-        auto const baseColour = PlugDataColours::levelMeterBackgroundColour;
-        auto const hoverColour = baseColour.contrasting(0.06f);
+        // Draw toggle
+        if(toggleHovered || chevronHovered) {
+            {
+                Path p;
+                p.addRoundedRectangle(togglePart.getX(), togglePart.getY(),
+                                      togglePart.getWidth(), togglePart.getHeight(),
+                                      cornerRadius, cornerRadius,
+                                      true, false, true, false);
+                g.setColour(PlugDataColours::toolbarHoverColour.withAlpha(toggleHovered ? 1.0f : 0.5f));
+                g.fillPath(p);
+            }
 
-        {
-            Path p;
-            p.addRoundedRectangle(togglePart.getX(), togglePart.getY(),
-                togglePart.getWidth(), togglePart.getHeight(),
-                cornerRadius, cornerRadius,
-                true, false, true, false);
-            g.setColour(toggleHovered ? hoverColour : baseColour);
-            g.fillPath(p);
-        }
-        {
-            Path p;
-            p.addRoundedRectangle(chevronPart.getX(), chevronPart.getY(),
-                chevronPart.getWidth(), chevronPart.getHeight(),
-                cornerRadius, cornerRadius,
-                false, true, false, true);
-            g.setColour(chevronHovered ? hoverColour : baseColour);
-            g.fillPath(p);
-        }
 
-        g.setColour(baseColour.contrasting(0.06f));
-        auto const x = getWidth() - 15.0f;
-        g.drawLine(x, 4.5f, x, getHeight() - 4.5f);
+            {
+                Path p;
+                p.addRoundedRectangle(chevronPart.getX(), chevronPart.getY(),
+                                      chevronPart.getWidth(), chevronPart.getHeight(),
+                                      cornerRadius, cornerRadius,
+                                      false, true, false, true);
+                g.setColour(PlugDataColours::toolbarHoverColour.withAlpha(chevronHovered ? 1.0f : 0.5f));
+                g.fillPath(p);
+            }
+        }
     }
 
 private:
@@ -1707,8 +1749,8 @@ void AudioToolbar::updateOversampling()
 
 void AudioToolbar::lookAndFeelChanged()
 {
-    oversamplingBadge->setBadgeColour(PlugDataColours::levelMeterActiveColour, PlugDataColours::levelMeterActiveColour.contrasting());
-    dawLatencyBadge->setBadgeColour(PlugDataColours::levelMeterActiveColour, PlugDataColours::levelMeterActiveColour.contrasting());
+    oversamplingBadge->setBadgeColour(PlugDataColours::toolbarActiveColour, PlugDataColours::toolbarActiveColour.contrasting());
+    dawLatencyBadge->setBadgeColour(PlugDataColours::toolbarActiveColour, PlugDataColours::toolbarActiveColour.contrasting());
     recordingBadge->setBadgeColour(Colour(245, 62, 62), Colours::white);
 }
 
@@ -1716,31 +1758,37 @@ void AudioToolbar::resized()
 {
     auto b = getLocalBounds().reduced(4, 0);
 
-    // Power button on the right
-    auto powerBounds = b.removeFromRight(38).translated(-3, 0);
+    b.removeFromRight(7);
+
+    auto powerBounds = b.removeFromRight(42);
     powerButton->setBounds(powerBounds);
 
-    auto limiterBounds = b.removeFromRight(50).translated(-7, 0).reduced(3, 4);
+    b.removeFromRight(7);
+    auto limiterBounds = b.removeFromRight(46).reduced(0, 3);
     limiterButton->setBounds(limiterBounds);
 
-    // Volume gets the remaining space
-    volumeComponent->setBounds(b.removeFromRight(120).reduced(0, 2));
+    volumeComponent->setBounds(b.removeFromRight(110).reduced(0, 1));
 
-    midiBlinker->setBounds(b.removeFromRight(26));
-    cpuMeter->setBounds(b.removeFromRight(54));
+    b.removeFromRight(3);
+
+    midiBlinker->setBounds(b.removeFromRight(48));
+
+    b.removeFromRight(3);
+
+    cpuMeter->setBounds(b.removeFromRight(48));
 
     b.removeFromRight(8);
 
     if (dawLatencyBadge->isVisible()) {
-        dawLatencyBadge->setBounds(b.removeFromRight(dawLatencyBadge->getDesiredWidth()).reduced(0, 1));
+        dawLatencyBadge->setBounds(b.removeFromRight(dawLatencyBadge->getDesiredWidth()));
         b.removeFromRight(8);
     }
     if (oversamplingBadge->isVisible()) {
-        oversamplingBadge->setBounds(b.removeFromRight(oversamplingBadge->getDesiredWidth()).reduced(0, 1));
+        oversamplingBadge->setBounds(b.removeFromRight(oversamplingBadge->getDesiredWidth()));
         b.removeFromRight(8);
     }
     if (recordingBadge->isVisible()) {
-        recordingBadge->setBounds(b.removeFromRight(recordingBadge->getDesiredWidth()).reduced(0, 1));
+        recordingBadge->setBounds(b.removeFromRight(recordingBadge->getDesiredWidth()));
     }
 }
 

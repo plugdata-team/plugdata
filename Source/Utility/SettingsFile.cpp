@@ -205,6 +205,18 @@ SettingsFile* SettingsFile::initialise()
 
     isInitialised = true;
 
+#if ENABLE_TESTING
+    // Run the test suite against a disposable copy of the user's settings:
+    // tests get realistic settings to read, but every write goes to a temp
+    // file, so the real settings.json is never modified
+    auto const testSettingsFile = File::createTempFile(".json");
+    if (settingsFile.existsAsFile())
+        settingsFile.copyFileTo(testSettingsFile);
+    settingsFile = testSettingsFile;
+    lockFile = settingsFile.getSiblingFile(settingsFile.getFileNameWithoutExtension() + ".lock");
+    oldSettingsFile = File();
+#endif
+
     FileSystemWatcher::addGlobalIgnorePath(lockFile);
     FileSystemWatcher::addGlobalIgnorePath(settingsFile);
 
@@ -715,7 +727,7 @@ void SettingsFile::saveSettings()
 
             if (!themesToWrite.isEmpty())
                 properties->setProperty("themes", themesToWrite);
-        } else if (!defaultSettings.at(name).equalsWithSameType(value)) {
+        } else if (defaultSettings.contains(name) && !defaultSettings.at(name).equalsWithSameType(value)) {
             properties->setProperty(name, value);
         }
     }

@@ -5,12 +5,15 @@
 #include "NVGGraphicsContext.h"
 #include <bit>
 #include <BinaryData.h>
+#include <cstring>
+#include <memory>
 
 #if PERFETTO
 #    include <melatonin_perfetto/melatonin_perfetto.h>
 #endif
 
 static constexpr int maxImageCacheSize = 256;
+static Rectangle<int> const maxClipBounds { 0, 0, 1'000'000, 1'000'000 };
 
 static NVGcolor nvgColour(Colour const& c)
 {
@@ -19,8 +22,225 @@ static NVGcolor nvgColour(Colour const& c)
 
 static uint64_t getImageHash(Image const& image)
 {
-    Image::BitmapData src(image, Image::BitmapData::readOnly);
-    return reinterpret_cast<uint64_t>(src.data);
+    Image::BitmapData const src(image, Image::BitmapData::readOnly);
+
+    uint64_t hash = 14695981039346656037ULL;
+    auto hashValue = [&hash](uint64_t value) {
+        for (int i = 0; i < 8; ++i) {
+            hash ^= static_cast<uint8>(value >> (i * 8));
+            hash *= 1099511628211ULL;
+        }
+    };
+    auto hashBytes = [&hash](uint8 const* data, size_t const numBytes) {
+        for (size_t i = 0; i < numBytes; ++i) {
+            hash ^= data[i];
+            hash *= 1099511628211ULL;
+        }
+    };
+
+    hashValue(static_cast<uint64_t>(src.pixelFormat));
+    hashValue(static_cast<uint64_t>(src.width));
+    hashValue(static_cast<uint64_t>(src.height));
+    hashValue(static_cast<uint64_t>(src.pixelStride));
+
+    auto const bytesPerRow = static_cast<size_t>(src.width) * static_cast<size_t>(src.pixelStride);
+    for (int y = 0; y < src.height; ++y)
+        hashBytes(src.getLinePointer(y), bytesPerRow);
+
+    return hash;
+}
+
+static bool isIntegerTranslation(AffineTransform const& transform)
+{
+    if (!transform.isOnlyTranslation())
+        return false;
+
+    auto const x = transform.getTranslationX();
+    auto const y = transform.getTranslationY();
+    return approximatelyEqual(x, static_cast<float>(roundToInt(x)))
+        && approximatelyEqual(y, static_cast<float>(roundToInt(y)));
+}
+
+static uint8 alphaToByte(float const alpha)
+{
+    return static_cast<uint8>(roundToInt(jlimit(0.0f, 1.0f, alpha) * 255.0f));
+}
+
+enum class DeferredTextMode : uint8_t {
+    Baseline,
+    Rectangle,
+};
+
+struct PreparedGlyph {
+    int glyph = 0;
+    Point<float> position;
+};
+
+struct PreparedText {
+    Font font { FontOptions() };
+    Typeface::Ptr typeface;
+    std::vector<PreparedGlyph> glyphs;
+};
+
+struct DeferredTextPayload {
+    Font font { FontOptions() };
+    String text;
+    int justificationFlags = Justification::left;
+    Rectangle<int> bounds;
+    DeferredTextMode mode = DeferredTextMode::Baseline;
+    std::unique_ptr<PreparedText> prepared;
+};
+
+static void setRawNvgPath(NVGcontext* nvg, Path path, AffineTransform const& transform = {})
+{
+    path.applyTransform(transform);
+
+    ::nvgBeginPath(nvg);
+
+    Path::Iterator i(path);
+
+    while (i.next()) {
+        switch (i.elementType) {
+        case Path::Iterator::startNewSubPath:
+            ::nvgMoveTo(nvg, i.x1, i.y1);
+            ::nvgPathWinding(nvg, NVG_NONZERO);
+            break;
+        case Path::Iterator::lineTo:
+            ::nvgLineTo(nvg, i.x1, i.y1);
+            break;
+        case Path::Iterator::quadraticTo:
+            ::nvgQuadTo(nvg, i.x1, i.y1, i.x2, i.y2);
+            break;
+        case Path::Iterator::cubicTo:
+            ::nvgBezierTo(nvg, i.x1, i.y1, i.x2, i.y2, i.x3, i.y3);
+            break;
+        case Path::Iterator::closePath:
+            ::nvgClosePath(nvg);
+            break;
+        default:
+            break;
+        }
+    }
+}
+
+static uint64_t getSDFGlyphHash(Typeface const* typeface, int glyph)
+{
+    auto pathHash = reinterpret_cast<uint64_t>(typeface);
+    pathHash ^= static_cast<uint64_t>(glyph) + 0x9e3779b97f4a7c15ULL + (pathHash << 6) + (pathHash >> 2);
+    return pathHash;
+}
+
+static void renderSDFGlyph(NVGcontext* nvg, Typeface& typeface, Font const& font, int glyph, Point<float> const position)
+{
+    auto const scale = font.getHeightInPoints();
+    auto const tx = AffineTransform::scale(scale * font.getHorizontalScale(), scale).translated(position);
+    auto const pathHash = getSDFGlyphHash(&typeface, glyph);
+    auto const fillColour = ::nvgCurrentFillColor(nvg);
+
+    ::nvgSave(nvg);
+    ::nvgTransform(nvg, tx.mat00, tx.mat10, tx.mat01, tx.mat11, tx.mat02, tx.mat12);
+
+    if (!::nvgFillSDFGlyph(nvg, pathHash, fillColour)) {
+        constexpr float referenceEmPx = 32.0f;
+
+        Path path;
+        typeface.getOutlineForGlyph(glyph, path);
+
+        ::nvgSave(nvg);
+        ::nvgResetTransform(nvg);
+        ::nvgScale(nvg, referenceEmPx, referenceEmPx);
+        setRawNvgPath(nvg, std::move(path));
+        ::nvgSaveSDFGlyph(nvg, pathHash);
+        ::nvgRestore(nvg);
+
+        ::nvgFillSDFGlyph(nvg, pathHash, fillColour);
+    }
+
+    ::nvgRestore(nvg);
+}
+
+static std::unique_ptr<PreparedText> prepareDeferredText(DeferredTextPayload const& payload)
+{
+    auto prepared = std::make_unique<PreparedText>();
+    prepared->font = payload.font;
+    prepared->typeface = prepared->font.getTypefacePtr();
+
+    if (prepared->typeface == nullptr)
+        return {};
+
+    GlyphArrangement arrangement;
+    auto const bounds = payload.bounds.toFloat();
+
+    if (payload.mode == DeferredTextMode::Rectangle) {
+        arrangement.addCurtailedLineOfText(prepared->font, payload.text, 0.0f, 0.0f, bounds.getWidth(), false);
+        arrangement.justifyGlyphs(0, arrangement.getNumGlyphs(), 0.0f, 0.0f, bounds.getWidth(), bounds.getHeight(), Justification(payload.justificationFlags));
+        arrangement.moveRangeOfGlyphs(0, arrangement.getNumGlyphs(), bounds.getX(), bounds.getY());
+    } else {
+        arrangement.addLineOfText(prepared->font, payload.text, 0.0f, 0.0f);
+
+        auto offsetX = bounds.getX();
+        auto const horizontalFlags = payload.justificationFlags
+            & (Justification::right | Justification::horizontallyCentred | Justification::horizontallyJustified);
+
+        if (horizontalFlags != 0) {
+            auto width = arrangement.getBoundingBox(0, -1, true).getWidth();
+
+            if ((horizontalFlags & (Justification::horizontallyCentred | Justification::horizontallyJustified)) != 0)
+                width *= 0.5f;
+
+            offsetX -= width;
+        }
+
+        arrangement.moveRangeOfGlyphs(0, arrangement.getNumGlyphs(), offsetX, bounds.getY());
+    }
+
+    prepared->glyphs.reserve(static_cast<size_t>(arrangement.getNumGlyphs()));
+
+    for (int i = 0; i < arrangement.getNumGlyphs(); ++i) {
+        auto const& glyph = arrangement.getGlyph(i);
+
+        if (!glyph.isWhitespace())
+            prepared->glyphs.push_back({ glyph.getGlyphIndex(), { glyph.getLeft(), glyph.getBaselineY() } });
+    }
+
+    return prepared;
+}
+
+static void renderPreparedText(NVGcontext* nvg, PreparedText const& prepared)
+{
+    if (prepared.typeface == nullptr)
+        return;
+
+    for (auto const& glyph : prepared.glyphs) {
+        renderSDFGlyph(nvg, *prepared.typeface, prepared.font, glyph.glyph, glyph.position);
+    }
+}
+
+static void renderDeferredText(NVGcontext* nvg, DeferredTextPayload& payload)
+{
+    if (payload.text.isEmpty())
+        return;
+
+    if (payload.prepared == nullptr)
+        payload.prepared = prepareDeferredText(payload);
+
+    if (payload.prepared != nullptr)
+        renderPreparedText(nvg, *payload.prepared);
+}
+
+static void enqueueDeferredText(NVGcontext* nvg, DeferredTextPayload payload, AffineTransform const& transform)
+{
+    auto const needsTransform = !transform.isIdentity();
+
+    if (needsTransform) {
+        nanovg::nvgSave(nvg);
+        nanovg::nvgTransform(nvg, transform.mat00, transform.mat10, transform.mat01, transform.mat11, transform.mat02, transform.mat12);
+    }
+
+    nanovg::nvgRenderCallback(nvg, renderDeferredText, std::move(payload));
+
+    if (needsTransform)
+        nanovg::nvgRestore(nvg);
 }
 
 //==============================================================================
@@ -33,6 +253,7 @@ NVGGraphicsContext::NVGGraphicsContext(NVGcontext* nativeHandle)
     : nvg(nativeHandle)
 {
     jassert(nvg);
+    resetClipRegion();
 }
 
 NVGGraphicsContext::~NVGGraphicsContext()
@@ -46,12 +267,15 @@ bool NVGGraphicsContext::isVectorDevice() const { return false; }
 
 void NVGGraphicsContext::setOrigin(Point<int> const origin)
 {
-    nvgTranslate(nvg, origin.getX(), origin.getY());
+    currentTransform = AffineTransform::translation(static_cast<float>(origin.getX()), static_cast<float>(origin.getY()))
+                           .followedBy(currentTransform);
+    nanovg::nvgTranslate(nvg, origin.getX(), origin.getY());
 }
 
 void NVGGraphicsContext::addTransform(AffineTransform const& t)
 {
-    nvgTransform(nvg, t.mat00, t.mat10, t.mat01, t.mat11, t.mat02, t.mat12);
+    currentTransform = t.followedBy(currentTransform);
+    nanovg::nvgTransform(nvg, t.mat00, t.mat10, t.mat01, t.mat11, t.mat02, t.mat12);
 }
 
 float NVGGraphicsContext::getPhysicalPixelScaleFactor() const { return scale; }
@@ -60,34 +284,44 @@ void NVGGraphicsContext::setPhysicalPixelScaleFactor(float const newScale) { sca
 
 bool NVGGraphicsContext::clipToRectangle(Rectangle<int> const& rect)
 {
-    nvgIntersectScissor(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
-    return !getClipBounds().isEmpty();
+    clipRegion.clipTo(getTransformedClipBounds(rect.toFloat(), getCurrentTransform()));
+    nanovg::nvgIntersectScissor(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
+    return !clipRegion.isEmpty();
 }
 
 bool NVGGraphicsContext::clipToRectangleList(RectangleList<int> const& rects)
 {
     auto const rect = rects.getBounds();
-    nvgIntersectScissor(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
-    return !getClipBounds().isEmpty();
+    clipRegion.clipTo(getTransformedClipRegion(rects, getCurrentTransform()));
+    nanovg::nvgIntersectScissor(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
+    return !clipRegion.isEmpty();
 }
 
 void NVGGraphicsContext::excludeClipRectangle(Rectangle<int> const& rectangle)
 {
-    RectangleList<int> rectangles;
-    rectangles.add(getClipBounds());
-    rectangles.subtract(rectangle);
+    clipRegion.subtract(getTransformedClipBounds(rectangle.toFloat(), getCurrentTransform()));
 
-    clipToRectangleList(rectangles);
+    auto const rect = getClipBounds();
+    nanovg::nvgIntersectScissor(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
 }
 
 void NVGGraphicsContext::clipToPath(Path const& path, AffineTransform const& t)
 {
     auto const rect = path.getBoundsTransformed(t);
-    nvgIntersectScissor(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
+    clipRegion.clipTo(getTransformedClipBounds(rect, getCurrentTransform()));
+    nanovg::nvgIntersectScissor(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
 }
 
 void NVGGraphicsContext::clipToImageAlpha(Image const& sourceImage, AffineTransform const& transform)
 {
+    if (transform.isSingularity()) {
+        clipRegion.clear();
+        return;
+    }
+
+    auto const totalTransform = transform.followedBy(getCurrentTransform());
+    clipRegion.clipTo(getTransformedClipBounds(sourceImage.getBounds().toFloat(), totalTransform));
+
     if (!transform.isSingularity()) {
         // Convert the image to a single-channel image if necessary
         Image singleChannelImage(sourceImage);
@@ -101,59 +335,121 @@ void NVGGraphicsContext::clipToImageAlpha(Image const& sourceImage, AffineTransf
         // Create a new Nanovg image from the bitmap data
         int const width = singleChannelImage.getWidth();
         int const height = singleChannelImage.getHeight();
-        auto const image = nvgCreateImageARGB_sRGB(nvg, width, height, 0, pixelData);
-        auto const paint = nvgImagePattern(nvg, 0, 0, width, height, 0, image, 1);
+        auto const image = nanovg::nvgCreateImageARGB_sRGB(nvg, width, height, 0, pixelData);
+        auto const paint = nanovg::nvgImagePattern(nvg, 0, 0, width, height, 0, image, 1);
 
-        nvgSave(nvg);
-        nvgTransform(nvg, transform.mat00, transform.mat10, transform.mat01, transform.mat11, transform.mat02, transform.mat12);
-        nvgScale(nvg, 1.0f, -1.0f);
+        nanovg::nvgSave(nvg);
+        nanovg::nvgTransform(nvg, transform.mat00, transform.mat10, transform.mat01, transform.mat11, transform.mat02, transform.mat12);
+        nanovg::nvgScale(nvg, 1.0f, -1.0f);
 
         // Clip the graphics context to the alpha mask of the Nanovg image
-        nvgBeginPath(nvg);
-        nvgRect(nvg, 0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height));
-        nvgPathWinding(nvg, NVG_HOLE);
-        nvgFillPaint(nvg, paint);
-        nvgFill(nvg);
+        nanovg::nvgBeginPath(nvg);
+        nanovg::nvgRect(nvg, 0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height));
+        nanovg::nvgPathWinding(nvg, NVG_HOLE);
+        nanovg::nvgFillPaint(nvg, paint);
+        nanovg::nvgFill(nvg);
 
         // Restore the original transformations
-        nvgRestore(nvg);
-        nvgDeleteImage(nvg, image);
+        nanovg::nvgRestore(nvg);
+        nanovg::nvgDeleteImage(nvg, image);
     }
 }
 
 bool NVGGraphicsContext::clipRegionIntersects(Rectangle<int> const& rect)
 {
-    auto const clip = getClipBounds();
-    return clip.intersects(rect);
+    if (clipRegion.isEmpty())
+        return false;
+
+    auto const transform = getCurrentTransform();
+
+    if (transform.isSingularity())
+        return false;
+
+    if (isIntegerTranslation(transform)) {
+        return clipRegion.intersectsRectangle(rect.translated(
+            roundToInt(transform.getTranslationX()),
+            roundToInt(transform.getTranslationY())));
+    }
+
+    return clipRegion.intersectsRectangle(getTransformedClipBounds(rect.toFloat(), transform));
 }
 
 Rectangle<int> NVGGraphicsContext::getClipBounds() const
 {
-    // auto scissorBounds = nvgCurrentScissor(nvg); TODO: fix this!
-    return Rectangle<int>(0, 0, 999999, 999999);
+    if (clipRegion.isEmpty())
+        return {};
+
+    auto const transform = getCurrentTransform();
+
+    if (transform.isSingularity())
+        return {};
+
+    auto const bounds = clipRegion.getBounds();
+
+    if (isIntegerTranslation(transform)) {
+        return bounds.translated(
+            -roundToInt(transform.getTranslationX()),
+            -roundToInt(transform.getTranslationY()));
+    }
+
+    return bounds.toFloat().transformedBy(transform.inverted()).getSmallestIntegerContainer();
 }
 
 bool NVGGraphicsContext::isClipEmpty() const
 {
-    float x, y, w, h;
-    nvgCurrentScissor(nvg, &x, &y, &w, &h);
-    return w <= 0 || h <= 0;
+    return clipRegion.isEmpty();
 }
+
+void NVGGraphicsContext::setImageBlendMode(BlendMode newMode)
+{
+    switch (newMode)
+    {
+        case BlendMode::sourceOver:
+            nanovg::nvgGlobalCompositeOperation(nvg, NVG_SOURCE_OVER);
+            break;
+
+        case BlendMode::source:
+            nanovg::nvgGlobalCompositeOperation(nvg, NVG_COPY);
+            break;
+
+        case BlendMode::destinationIn:
+            nanovg::nvgGlobalCompositeOperation(nvg, NVG_DESTINATION_IN);
+            break;
+
+        case BlendMode::destinationOut:
+            nanovg::nvgGlobalCompositeOperation(nvg, NVG_DESTINATION_OUT);
+            break;
+    }
+}
+
 
 void NVGGraphicsContext::saveState()
 {
-    nvgSave(nvg);
+    stateStack.push_back({ clipRegion, currentTransform, opacity, lastColour });
+    nanovg::nvgSave(nvg);
 }
 
 void NVGGraphicsContext::restoreState()
 {
-    nvgRestore(nvg);
+    nanovg::nvgRestore(nvg);
+
+    if (!stateStack.empty()) {
+        auto state = std::move(stateStack.back());
+        stateStack.pop_back();
+        clipRegion = std::move(state.clipRegion);
+        currentTransform = state.transform;
+        opacity = state.opacity;
+        lastColour = state.lastColour;
+    } else {
+        jassertfalse;
+        resetClipRegion();
+    }
 }
 
 void NVGGraphicsContext::beginTransparencyLayer(float const op)
 {
     saveState();
-    nvgGlobalAlpha(nvg, op);
+    nanovg::nvgGlobalAlpha(nvg, op);
 }
 
 void NVGGraphicsContext::endTransparencyLayer()
@@ -163,10 +459,12 @@ void NVGGraphicsContext::endTransparencyLayer()
 
 void NVGGraphicsContext::setFill(FillType const& fillType)
 {
+    opacity = fillType.getOpacity();
+
     if (fillType.isColour()) {
         auto c = nvgColour(fillType.colour);
-        nvgFillColor(nvg, c);
-        nvgStrokeColor(nvg, c);
+        nanovg::nvgFillColor(nvg, c);
+        nanovg::nvgStrokeColor(nvg, c);
         lastColour = c;
     } else if (fillType.isGradient()) {
         if (ColourGradient* gradient = fillType.gradient.get()) {
@@ -174,23 +472,28 @@ void NVGGraphicsContext::setFill(FillType const& fillType)
 
             if (numColours == 1) {
                 // Just a solid fill
-                nvgFillColor(nvg, nvgColour(gradient->getColour(0)));
+                auto c = nvgColour(gradient->getColour(0).withMultipliedAlpha(opacity));
+                nanovg::nvgFillColor(nvg, c);
+                nanovg::nvgStrokeColor(nvg, c);
+                lastColour = c;
             } else if (numColours > 1) {
                 NVGpaint p;
+                auto const startColour = nvgColour(gradient->getColour(0).withMultipliedAlpha(opacity));
+                auto const endColour = nvgColour(gradient->getColour(numColours - 1).withMultipliedAlpha(opacity));
 
                 if (gradient->isRadial) {
-                    p = nvgRadialGradient(nvg,
+                    p = nanovg::nvgRadialGradient(nvg,
                         gradient->point1.getX(), gradient->point1.getY(),
                         gradient->point2.getX(), gradient->point2.getY(),
-                        nvgColour(gradient->getColour(0)), nvgColour(gradient->getColour(numColours - 1)));
+                        startColour, endColour);
                 } else {
-                    p = nvgLinearGradient(nvg,
+                    p = nanovg::nvgLinearGradient(nvg,
                         gradient->point1.getX(), gradient->point1.getY(),
                         gradient->point2.getX(), gradient->point2.getY(),
-                        nvgColour(gradient->getColour(0)), nvgColour(gradient->getColour(numColours - 1)));
+                        startColour, endColour);
                 }
 
-                nvgFillPaint(nvg, p);
+                nanovg::nvgFillPaint(nvg, p);
             }
         }
     }
@@ -198,12 +501,12 @@ void NVGGraphicsContext::setFill(FillType const& fillType)
 
 void NVGGraphicsContext::setOpacity(float op)
 {
+    opacity = jlimit(0.0f, 1.0f, op);
     auto c = lastColour;
-    nvgRGBA(c.r, c.g, c.b, op);
-    nvgFillColor(nvg, c);
-    nvgStrokeColor(nvg, c);
+    c.a = alphaToByte(opacity);
+    nanovg::nvgFillColor(nvg, c);
+    nanovg::nvgStrokeColor(nvg, c);
     lastColour = c;
-    opacity = op;
 }
 
 void NVGGraphicsContext::setInterpolationQuality(Graphics::ResamplingQuality)
@@ -213,16 +516,16 @@ void NVGGraphicsContext::setInterpolationQuality(Graphics::ResamplingQuality)
 
 void NVGGraphicsContext::fillRect(Rectangle<int> const& rect, bool /* replaceExistingContents */)
 {
-    nvgBeginPath(nvg);
-    nvgRect(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
-    nvgFill(nvg);
+    nanovg::nvgBeginPath(nvg);
+    nanovg::nvgRect(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
+    nanovg::nvgFill(nvg);
 }
 
 void NVGGraphicsContext::fillRect(Rectangle<float> const& rect)
 {
-    nvgBeginPath(nvg);
-    nvgRect(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
-    nvgFill(nvg);
+    nanovg::nvgBeginPath(nvg);
+    nanovg::nvgRect(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
+    nanovg::nvgFill(nvg);
 }
 
 void NVGGraphicsContext::fillRectList(RectangleList<float> const& rects)
@@ -236,32 +539,32 @@ void NVGGraphicsContext::strokePath(Path const& path, PathStrokeType const& stro
     // First set options
     switch (strokeType.getEndStyle()) {
     case PathStrokeType::EndCapStyle::butt:
-        nvgLineCap(nvg, NVG_BUTT);
+        nanovg::nvgLineCap(nvg, NVG_BUTT);
         break;
     case PathStrokeType::EndCapStyle::rounded:
-        nvgLineCap(nvg, NVG_ROUND);
+        nanovg::nvgLineCap(nvg, NVG_ROUND);
         break;
     case PathStrokeType::EndCapStyle::square:
-        nvgLineCap(nvg, NVG_SQUARE);
+        nanovg::nvgLineCap(nvg, NVG_SQUARE);
         break;
     }
 
     switch (strokeType.getJointStyle()) {
     case PathStrokeType::JointStyle::mitered:
-        nvgLineJoin(nvg, NVG_MITER);
+        nanovg::nvgLineJoin(nvg, NVG_MITER);
         break;
     case PathStrokeType::JointStyle::curved:
-        nvgLineJoin(nvg, NVG_ROUND);
+        nanovg::nvgLineJoin(nvg, NVG_ROUND);
         break;
     case PathStrokeType::JointStyle::beveled:
-        nvgLineJoin(nvg, NVG_BEVEL);
+        nanovg::nvgLineJoin(nvg, NVG_BEVEL);
         break;
     }
 
-    nvgStrokeWidth(nvg, strokeType.getStrokeThickness());
-    nvgPathWinding(nvg, NVG_SOLID);
+    nanovg::nvgStrokeWidth(nvg, strokeType.getStrokeThickness());
+    nanovg::nvgPathWinding(nvg, NVG_SOLID);
     setPath(path, transform);
-    nvgStroke(nvg);
+    nanovg::nvgStroke(nvg);
 }
 
 void NVGGraphicsContext::setPath(Path const& path, AffineTransform const& transform)
@@ -269,27 +572,27 @@ void NVGGraphicsContext::setPath(Path const& path, AffineTransform const& transf
     Path p(path);
     p.applyTransform(transform);
 
-    nvgBeginPath(nvg);
+    nanovg::nvgBeginPath(nvg);
 
     Path::Iterator i(p);
 
     while (i.next()) {
         switch (i.elementType) {
         case Path::Iterator::startNewSubPath:
-            nvgMoveTo(nvg, i.x1, i.y1);
-            nvgPathWinding(nvg, NVG_NONZERO);
+            nanovg::nvgMoveTo(nvg, i.x1, i.y1);
+            nanovg::nvgPathWinding(nvg, NVG_NONZERO);
             break;
         case Path::Iterator::lineTo:
-            nvgLineTo(nvg, i.x1, i.y1);
+            nanovg::nvgLineTo(nvg, i.x1, i.y1);
             break;
         case Path::Iterator::quadraticTo:
-            nvgQuadTo(nvg, i.x1, i.y1, i.x2, i.y2);
+            nanovg::nvgQuadTo(nvg, i.x1, i.y1, i.x2, i.y2);
             break;
         case Path::Iterator::cubicTo:
-            nvgBezierTo(nvg, i.x1, i.y1, i.x2, i.y2, i.x3, i.y3);
+            nanovg::nvgBezierTo(nvg, i.x1, i.y1, i.x2, i.y2, i.x3, i.y3);
             break;
         case Path::Iterator::closePath:
-            nvgClosePath(nvg);
+            nanovg::nvgClosePath(nvg);
             break;
         default:
             break;
@@ -300,14 +603,12 @@ void NVGGraphicsContext::setPath(Path const& path, AffineTransform const& transf
 void NVGGraphicsContext::fillPath(Path const& path, AffineTransform const& transform)
 {
     setPath(path, transform);
-    nvgFill(nvg);
+    nanovg::nvgFill(nvg);
 }
 
 void NVGGraphicsContext::drawImage(Image const& image, AffineTransform const& t)
 {
     if (image.isARGB()) {
-        Image::BitmapData srcData(image, Image::BitmapData::readOnly);
-
         auto const id = getNvgImageId(image);
 
         if (id < 0)
@@ -315,15 +616,15 @@ void NVGGraphicsContext::drawImage(Image const& image, AffineTransform const& t)
 
         Rectangle<float> const rect(0.0f, 0.0f, image.getWidth(), image.getHeight());
 
-        NVGpaint const imgPaint = nvgImagePattern(nvg, 0, 0, rect.getWidth(), rect.getHeight(), 0.0f, id, opacity);
+        NVGpaint const imgPaint = nanovg::nvgImagePattern(nvg, 0, 0, rect.getWidth(), rect.getHeight(), 0.0f, id, opacity);
 
-        nvgSave(nvg);
-        nvgTransform(nvg, t.mat00, t.mat10, t.mat01, t.mat11, t.mat02, t.mat12);
-        nvgBeginPath(nvg);
-        nvgRect(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
-        nvgFillPaint(nvg, imgPaint);
-        nvgFill(nvg);
-        nvgRestore(nvg);
+        nanovg::nvgSave(nvg);
+        nanovg::nvgTransform(nvg, t.mat00, t.mat10, t.mat01, t.mat11, t.mat02, t.mat12);
+        nanovg::nvgBeginPath(nvg);
+        nanovg::nvgRect(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
+        nanovg::nvgFillPaint(nvg, imgPaint);
+        nanovg::nvgFill(nvg);
+        nanovg::nvgRestore(nvg);
     } else if (image.isRGB()) {
         auto argbImage = Image(Image::ARGB, image.getWidth(), image.getHeight(), true);
         for (int y = 0; y < image.getHeight(); ++y) {
@@ -335,30 +636,29 @@ void NVGGraphicsContext::drawImage(Image const& image, AffineTransform const& t)
         // Render using ARGB image data
         drawImage(argbImage, t);
     } else if (image.isSingleChannel()) {
-        Image::BitmapData srcData(image, Image::BitmapData::readOnly);
         auto const id = getNvgImageId(image);
         if (id < 0)
             return; // invalid image.
 
         Rectangle<float> const rect(0.0f, 0.0f, image.getWidth(), image.getHeight());
-        NVGpaint const imgPaint = nvgImageAlphaPattern(nvg, 0, 0, rect.getWidth(), rect.getHeight(), 0.0f, id, lastColour);
+        NVGpaint const imgPaint = nanovg::nvgImageAlphaPattern(nvg, 0, 0, rect.getWidth(), rect.getHeight(), 0.0f, id, lastColour);
 
-        nvgSave(nvg);
-        nvgTransform(nvg, t.mat00, t.mat10, t.mat01, t.mat11, t.mat02, t.mat12);
-        nvgBeginPath(nvg);
-        nvgRect(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
-        nvgFillPaint(nvg, imgPaint);
-        nvgFill(nvg);
-        nvgRestore(nvg);
+        nanovg::nvgSave(nvg);
+        nanovg::nvgTransform(nvg, t.mat00, t.mat10, t.mat01, t.mat11, t.mat02, t.mat12);
+        nanovg::nvgBeginPath(nvg);
+        nanovg::nvgRect(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
+        nanovg::nvgFillPaint(nvg, imgPaint);
+        nanovg::nvgFill(nvg);
+        nanovg::nvgRestore(nvg);
     }
 }
 
 void NVGGraphicsContext::drawLine(Line<float> const& line)
 {
-    nvgBeginPath(nvg);
-    nvgMoveTo(nvg, line.getStartX(), line.getStartY());
-    nvgLineTo(nvg, line.getEndX(), line.getEndY());
-    nvgStroke(nvg);
+    nanovg::nvgBeginPath(nvg);
+    nanovg::nvgMoveTo(nvg, line.getStartX(), line.getStartY());
+    nanovg::nvgLineTo(nvg, line.getEndX(), line.getEndY());
+    nanovg::nvgStroke(nvg);
 }
 
 void NVGGraphicsContext::setFont(Font const& f)
@@ -371,43 +671,170 @@ Font const& NVGGraphicsContext::getFont()
     return font;
 }
 
+void NVGGraphicsContext::drawText(StringRef const text, Point<float> const baseline, Justification const justification, AffineTransform const& transform)
+{
+    auto textString = String(text);
+
+    if (textString.isEmpty())
+        return;
+
+    auto const horizontalFlags = justification.getOnlyHorizontalFlags();
+    auto const clipBounds = getClipBounds();
+
+    if ((horizontalFlags == Justification::right && baseline.getX() < static_cast<float>(clipBounds.getX()))
+        || (horizontalFlags == Justification::left && baseline.getX() > static_cast<float>(clipBounds.getRight())))
+        return;
+
+    DeferredTextPayload payload;
+    payload.font = font;
+    payload.text = std::move(textString);
+    payload.justificationFlags = horizontalFlags;
+    payload.bounds = { roundToInt(baseline.getX()), roundToInt(baseline.getY()), 0, 0 };
+    payload.mode = DeferredTextMode::Baseline;
+
+    enqueueDeferredText(nvg, std::move(payload), transform);
+}
+
+void NVGGraphicsContext::drawText(StringRef const text, Rectangle<float> const area, Justification const justification, bool const /*useEllipsesIfTooBig*/, AffineTransform const& transform)
+{
+    if (area.isEmpty() || !clipRegionIntersects(area.getSmallestIntegerContainer()))
+        return;
+
+    auto textString = String(text);
+
+    if (textString.isEmpty())
+        return;
+
+    DeferredTextPayload payload;
+    payload.font = font;
+    payload.text = std::move(textString);
+    payload.justificationFlags = justification.getFlags();
+    payload.bounds = area.toNearestInt();
+    payload.mode = DeferredTextMode::Rectangle;
+
+    enqueueDeferredText(nvg, std::move(payload), transform);
+}
+
 void NVGGraphicsContext::drawGlyphs(Span<uint16_t const> glyphs, Span<Point<float> const> positions, AffineTransform const& t)
 {
     for (auto const [i, glyph] : enumerate(glyphs, size_t { })) {
         auto const scale = font.getHeightInPoints();
         auto tx = AffineTransform::scale(scale * font.getHorizontalScale(), scale).translated(positions[i]).followedBy(t);
 
-        nvgSave(nvg);
-        nvgTransform(nvg, tx.mat00, tx.mat10, tx.mat01, tx.mat11, tx.mat02, tx.mat12);
+        nanovg::nvgSave(nvg);
+        nanovg::nvgTransform(nvg, tx.mat00, tx.mat10, tx.mat01, tx.mat11, tx.mat02, tx.mat12);
 
-        float xform[6];
-        nvgCurrentTransform(nvg, xform);
-
-        // NOTE: currently, path hashing assumes uniform and non-negative scaling. This is always true for plugdata
         uint64_t pathHash = (uint64_t)font.getTypefacePtr().get();
         pathHash ^= (uint64_t)glyph + 0x9e3779b97f4a7c15ULL + (pathHash << 6) + (pathHash >> 2);
-        pathHash ^= (uint64_t)static_cast<int>(xform[0]) + 0x9e3779b97f4a7c15ULL + (pathHash << 6) + (pathHash >> 2);
 
-        // Cache glyphs so that nanovg doesn't have to calculate nonzero winding and path tesselation every single time
-        auto cacheHit = pathCache[pathHash].fill();
-        if (!cacheHit) {
+        // SDF text rendering: upload JUCE glyph paths into nanovg and render using SDF (much better than regular nanovg AA)
+        if (!nanovg::nvgSDFGlyphCached(nvg, pathHash)) {
+            constexpr float referenceEmPx = 32.0f;
+
             Path p;
             font.getTypefacePtr()->getOutlineForGlyph(glyph, p);
 
+            nanovg::nvgSave(nvg);
+            nanovg::nvgResetTransform(nvg);
+            nanovg::nvgScale(nvg, referenceEmPx, referenceEmPx);
             setPath(p, AffineTransform());
-            nvgFill(nvg);
-            pathCache[pathHash].save(nvg);
+            nanovg::nvgSaveSDFGlyph(nvg, pathHash);
+            nanovg::nvgRestore(nvg);
         }
-        nvgRestore(nvg);
+
+        // Draw the tile at the glyph transform. On the miss frame the tile was just generated
+        // earlier in this same command buffer, so this still draws it.
+        nanovg::nvgFillSDFGlyph(nvg, pathHash, lastColour);
+
+        nanovg::nvgRestore(nvg);
     }
+}
+
+NVGGraphicsContext::ScopedAnchoredDraw::ScopedAnchoredDraw(NVGGraphicsContext& context, Rectangle<float> clipBounds)
+    : ctx(context)
+{
+    // Push the tracked state (and nvgSave); restored in the destructor. This keeps the outer paint's
+    // state stack balanced — we only add and remove our own frame.
+    ctx.saveState();
+
+    if(!clipBounds.isEmpty()) {
+        nanovg::nvgIntersectScissor(ctx.nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
+    }
+
+    // Neutralise the tracked transform/clip so getClipBounds() reports "everything": JUCE then culls
+    // nothing, and glyphs land correctly because they are drawn relative to nvg's current matrix.
+    ctx.currentTransform = AffineTransform();
+    ctx.clipRegion.clear();
+    ctx.clipRegion.add(maxClipBounds);
+}
+
+NVGGraphicsContext::ScopedAnchoredDraw::~ScopedAnchoredDraw()
+{
+    ctx.restoreState();
+}
+
+void NVGGraphicsContext::renderComponent(Component& component)
+{
+    ScopedAnchoredDraw anchor(*this, component.getLocalBounds().toFloat());
+    Graphics g(*this);
+    component.paintEntireComponent(g, true);
 }
 
 void NVGGraphicsContext::removeCachedImages()
 {
     for (auto it = images.begin(); it != images.end(); ++it)
-        nvgDeleteImage(nvg, it->second.id);
+        nanovg::nvgDeleteImage(nvg, it->second.id);
 
     images.clear();
+}
+
+void NVGGraphicsContext::resetClipRegion(AffineTransform initialTransform)
+{
+    ++currentFrameId;
+    clipRegion.clear();
+    clipRegion.add(maxClipBounds);
+    stateStack.clear();
+    currentTransform = initialTransform;
+    opacity = 1.0f;
+    lastColour = nanovg::nvgRGBA(0, 0, 0, 255);
+}
+
+AffineTransform NVGGraphicsContext::getCurrentTransform() const
+{
+    return currentTransform;
+}
+
+Rectangle<int> NVGGraphicsContext::getTransformedClipBounds(Rectangle<float> const& bounds, AffineTransform const& transform) const
+{
+    if (bounds.isEmpty() || transform.isSingularity())
+        return {};
+
+    if (isIntegerTranslation(transform)) {
+        return bounds.getSmallestIntegerContainer().translated(
+            roundToInt(transform.getTranslationX()),
+            roundToInt(transform.getTranslationY()));
+    }
+
+    return bounds.transformedBy(transform).getSmallestIntegerContainer();
+}
+
+RectangleList<int> NVGGraphicsContext::getTransformedClipRegion(RectangleList<int> const& region, AffineTransform const& transform) const
+{
+    RectangleList<int> transformed;
+
+    if (region.isEmpty() || transform.isSingularity())
+        return transformed;
+
+    if (isIntegerTranslation(transform)) {
+        transformed = region;
+        transformed.offsetAll(roundToInt(transform.getTranslationX()), roundToInt(transform.getTranslationY()));
+        return transformed;
+    }
+
+    for (auto const& rect : region)
+        transformed.add(getTransformedClipBounds(rect.toFloat(), transform));
+
+    return transformed;
 }
 
 int NVGGraphicsContext::getNvgImageId(Image const& image)
@@ -418,11 +845,20 @@ int NVGGraphicsContext::getNvgImageId(Image const& image)
     if (it == images.end()) {
         if (image.isSingleChannel()) {
             Image::BitmapData const bitmap(image, Image::BitmapData::readOnly);
-            id = nvgCreateImageAlpha(nvg, image.getWidth(), image.getHeight(), 0, bitmap.data);
+            if (bitmap.lineStride == bitmap.width) {
+                id = nanovg::nvgCreateImageAlpha(nvg, image.getWidth(), image.getHeight(), 0, bitmap.data);
+            } else {
+                std::vector<uint8> packed(static_cast<size_t>(bitmap.width) * static_cast<size_t>(bitmap.height));
+                for (int y = 0; y < bitmap.height; ++y) {
+                    std::memcpy(packed.data() + static_cast<size_t>(y) * static_cast<size_t>(bitmap.width),
+                        bitmap.getLinePointer(y), static_cast<size_t>(bitmap.width));
+                }
+                id = nanovg::nvgCreateImageAlpha(nvg, image.getWidth(), image.getHeight(), 0, packed.data());
+            }
             if (images.size() >= maxImageCacheSize)
                 reduceImageCache();
 
-            images[hash] = { id, 1 };
+            images[hash] = { id, 1, currentFrameId };
         } else {
             Image argbImage(image);
             argbImage.duplicateIfShared();
@@ -430,15 +866,16 @@ int NVGGraphicsContext::getNvgImageId(Image const& image)
             argbImage = argbImage.convertedToFormat(Image::PixelFormat::ARGB);
             Image::BitmapData const bitmap(argbImage, Image::BitmapData::readOnly);
 
-            id = nvgCreateImageARGB(nvg, argbImage.getWidth(), argbImage.getHeight(), 0, bitmap.data);
+            id = nanovg::nvgCreateImageARGB(nvg, argbImage.getWidth(), argbImage.getHeight(), 0, bitmap.data);
 
             if (images.size() >= maxImageCacheSize)
                 reduceImageCache();
 
-            images[hash] = { id, 1 };
+            images[hash] = { id, 1, currentFrameId };
         }
     } else {
         it->second.accessCounter++;
+        it->second.lastUsedFrame = currentFrameId;
         id = it->second.id;
     }
 
@@ -457,8 +894,10 @@ void NVGGraphicsContext::reduceImageCache()
     auto it = images.begin();
 
     while (it != images.end()) {
-        if (it->second.accessCounter == minAccessCounter) {
-            nvgDeleteImage(nvg, it->second.id);
+        if (it->second.lastUsedFrame == currentFrameId) {
+            ++it;
+        } else if (it->second.accessCounter == minAccessCounter) {
+            nanovg::nvgDeleteImage(nvg, it->second.id);
             it = images.erase(it);
         } else {
             it->second.accessCounter -= minAccessCounter;

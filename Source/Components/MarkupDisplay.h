@@ -346,7 +346,7 @@ protected:
                             font = Fonts::getBoldFont().withHeight(15);
                         }
                         if (italic) {
-                            font = Fonts::getVariableFont().italicised().withHeight(15);
+                            font = Fonts::getCurrentFont().italicised().withHeight(15);
                         }
                     }
                 }
@@ -630,10 +630,10 @@ public:
         for (int i = 0; i < table.cells.size(); i++) {
             OwnedArray<Table::Cell> const* row = table.cells[i];
             for (int j = 0; j < row->size(); j++) {
-                if (j < table.columnwidths.size()) {
+                if (j < static_cast<int>(table.columnwidths.size())) {
                     table.columnwidths[j] = jmax(table.columnwidths[j], (*row)[j]->width);
                 } else {
-                    table.columnwidths[j] = (*row)[j]->width;
+                    table.columnwidths.add((*row)[j]->width);
                 }
             }
         }
@@ -645,7 +645,7 @@ public:
             for (int j = 0; j < row->size(); j++) {
                 rowheight = jmax(rowheight, (*row)[j]->height);
             }
-            table.rowheights[i] = rowheight;
+            table.rowheights.add(rowheight);
         }
         table.setBounds(0, 0, getWidthRequired() + table.leftmargin + table.cellgap, getHeightRequired(0.f));
     }

@@ -17,7 +17,7 @@ class CommentObject final : public ObjectBase
     BorderSize<int> border = BorderSize<int>(1, 0, 1, 0);
     String objectText;
 
-    CachedTextRender textRenderer;
+    TextLayout layout;
 
 public:
     CommentObject(pd::WeakReference obj, Object* object)
@@ -50,11 +50,14 @@ public:
     {
         auto const bounds = getLocalBounds();
 
+        auto& llgc = *cnv->editor->getNanoLLGC();
         if (editor) {
-            Graphics g(*cnv->editor->getNanoLLGC());
-            editor->paintEntireComponent(g, true);
+            llgc.renderComponent(*editor);
         } else {
-            textRenderer.renderText(nvg, border.subtractedFrom(bounds).toFloat(), getImageScale());
+            Graphics g(llgc);
+            auto const textBounds = border.subtractedFrom(bounds).toFloat();
+            NVGGraphicsContext::ScopedAnchoredDraw anchor(llgc, textBounds);
+            layout.draw(g, textBounds);
         }
     }
 
@@ -214,8 +217,6 @@ public:
             fontWidth = glist_fontwidth(cnv->patch.getRawPointer());
         }
 
-        auto const textSize = textRenderer.getTextBounds();
-
         int const idealWidth = CachedFontStringWidth::get()->calculateStringWidth(Fonts::getCurrentFont().withHeight(14.5f).withHorizontalScale(calculateHorizontalScale()), objText) + 2;
 
         // We want to adjust the width so ideal text with aligns with fontWidth
@@ -230,7 +231,7 @@ public:
             textWidth = std::max(charWidth, 2) * fontWidth + offset;
         }
 
-        return { textWidth, textSize.getHeight() };
+        return { textWidth, static_cast<int>(layout.getHeight()) };
     }
 
     void lookAndFeelChanged() override
@@ -244,10 +245,14 @@ public:
 
         auto const colour = PlugDataColours::commentTextColour;
         int const textWidth = getTextSize().getWidth();
-        int const size = getValue<int>(sizeProperty);
-        if (textRenderer.prepareLayout(objText, Fonts::getCurrentFont().withHeight(14.5f).withHorizontalScale(calculateHorizontalScale()), colour, textWidth, size ? getValue<int>(sizeProperty) : getWidth(), false)) {
-            repaint();
-        }
+
+        AttributedString attributedText(objText);
+        attributedText.setColour(colour);
+        attributedText.setFont(Fonts::getCurrentFont().withHeight(14.5f).withHorizontalScale(calculateHorizontalScale()));
+        attributedText.setJustification(Justification::centredLeft);
+        attributedText.setWordWrap(AttributedString::byChar);
+        layout.createLayout(attributedText, textWidth);
+        repaint();
     }
 
     std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override

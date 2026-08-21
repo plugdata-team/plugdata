@@ -101,19 +101,25 @@ void SmallIconButton::mouseExit(MouseEvent const& e)
     repaint();
 }
 
+void SmallIconButton::setIconFontSize(int newSize)
+{
+    iconSize = newSize;
+    repaint();
+}
+
 void SmallIconButton::paint(Graphics& g)
 {
     auto colour = PlugDataColours::toolbarTextColour;
 
     if (!isEnabled()) {
-        colour = Colours::grey;
+        colour = colour.withAlpha(0.35f);
     } else if (getToggleState()) {
         colour = PlugDataColours::toolbarActiveColour;
     } else if (isMouseOver()) {
         colour = PlugDataColours::toolbarTextColour.brighter(0.8f);
     }
 
-    Fonts::drawIcon(g, getButtonText(), getLocalBounds(), colour, 12);
+    Fonts::drawIcon(g, getButtonText(), getLocalBounds(), colour, iconSize);
 }
 
 WidePanelButton::WidePanelButton(String const& icon, int const iconSize)

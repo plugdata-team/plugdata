@@ -23,7 +23,7 @@
 using PathPlan = SmallArray<Point<float>>;
 
 class Canvas;
-class Connection final : public DrawablePath
+class Connection final : public Component
     , public ComponentListener
     , public ChangeListener
     , public pd::MessageListener
@@ -43,6 +43,10 @@ public:
     ~Connection() override;
 
     static Path getNonSegmentedPath(Point<float> start, Point<float> end);
+
+    // Manual path/bounds management (previously provided by DrawablePath/DrawableComponent)
+    void setPath(Path const& newPath);
+    Path const& getPath() const { return path; }
 
     bool isSegmented() const;
     void setSegmented(bool segmented);
@@ -115,9 +119,13 @@ private:
 
     void setSelected(bool shouldBeSelected);
 
-    void pathChanged() override;
+    // Recomputes the component bounds to enclose the current path, expanded by the
+    // stroke thickness. Used for hit detection and drawing the reconnect handles.
+    void updateBounds();
 
     float getPathWidth() const;
+
+    Path path;
 
     SmallArray<SafePointer<Connection>> reconnecting;
     Rectangle<float> startReconnectHandle, endReconnectHandle;
@@ -127,11 +135,7 @@ private:
     Value locked;
     Value presentationMode;
 
-    NVGcolor handleColour;
-    NVGcolor shadowColour;
-    NVGcolor outlineColour;
-
-    NVGcolor textColour;
+    NVGcolor handleColour, shadowColour, outlineColour;
 
     RectangleList<int> clipRegion;
 
@@ -180,11 +184,13 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
 };
 
-class ConnectionBeingCreated final : public DrawablePath
+class ConnectionBeingCreated final : public Component
     , public NVGComponent {
-    SafePointer<Iolet> iolet;
+    Iolet::SafePointer<Iolet> iolet;
     Component* cnv;
     Point<float> lastMousePos;
+
+    Path path;
 
 public:
     ConnectionBeingCreated(Iolet* target, Component* canvas)
@@ -192,9 +198,8 @@ public:
         , iolet(target)
         , cnv(canvas)
     {
-        setStrokeThickness(5.0f);
-
         // Only listen for mouse-events on canvas and the original iolet
+        setPaintingIsUnclipped(true);
         setInterceptsMouseClicks(false, true);
         cnv->addMouseListener(this, true);
         iolet->addMouseListener(this, false);
@@ -215,12 +220,23 @@ public:
         }
     }
 
-    void pathChanged() override
+    // Manual path/bounds management (previously provided by DrawablePath/DrawableComponent)
+    void setPath(Path const& newPath)
     {
-        strokePath.clear();
-        strokePath = path;
-        setBoundsToEnclose(getDrawableBounds().expanded(3));
-        repaint();
+        path = newPath;
+        updateBounds();
+    }
+
+    Path const& getPath() const { return path; }
+
+    // Resizes the component to enclose the path, expanded by the stroke thickness
+    void updateBounds()
+    {
+        if (path.isEmpty()) {
+            setBounds({});
+            return;
+        }
+        setBounds(path.getBounds().expanded(2.5f).getSmallestIntegerContainer());
     }
 
     void mouseDrag(MouseEvent const& e) override
@@ -281,7 +297,7 @@ public:
             break;
         }
 
-        nvgStrokeWidth(nvg, cableThickness);
+        nanovg::nvgStrokeWidth(nvg, cableThickness);
 
         if (iolet && iolet->isSignal() && connectionStyle != PlugDataLook::ConnectionStyleVanilla) {
             auto const lineColour = PlugDataColours::signalColour.brighter(0.6f);
@@ -290,18 +306,18 @@ public:
             dashColor.r *= 0.4f;
             dashColor.g *= 0.4f;
             dashColor.b *= 0.4f;
-            nvgStrokePaint(nvg, nvgDoubleStroke(nvg, nvgColour(lineColour), nvgColour(shadowColour), dashColor, 2.5f, false, false, 0.0f));
-            nvgStroke(nvg);
+            nanovg::nvgStrokePaint(nvg, nanovg::nvgDoubleStroke(nvg, nvgColour(lineColour), nvgColour(shadowColour), dashColor, 2.5f, false, false, 0.0f));
+            nanovg::nvgStroke(nvg);
         } else {
             auto const lineColour = PlugDataColours::dataColour.brighter(0.6f);
-            nvgStrokePaint(nvg, nvgDoubleStroke(nvg, nvgColour(lineColour), nvgColour(shadowColour), nvgColour(Colours::transparentBlack), 0.0f, false, false, 0.0f));
-            nvgStroke(nvg);
+            nanovg::nvgStrokePaint(nvg, nanovg::nvgDoubleStroke(nvg, nvgColour(lineColour), nvgColour(shadowColour), nvgColour(Colours::transparentBlack), 0.0f, false, false, 0.0f));
+            nanovg::nvgStroke(nvg);
         }
 
-        nvgBeginPath(nvg);
-        nvgFillColor(nvg, nvgRGBAf(0.6f, 0.6f, 0.6f, 0.7f));
-        nvgCircle(nvg, lastMousePos.x, lastMousePos.y, 3.5f);
-        nvgFill(nvg);
+        nanovg::nvgBeginPath(nvg);
+        nanovg::nvgFillColor(nvg, nanovg::nvgRGBAf(0.6f, 0.6f, 0.6f, 0.7f));
+        nanovg::nvgCircle(nvg, lastMousePos.x, lastMousePos.y, 3.5f);
+        nanovg::nvgFill(nvg);
     }
 
     void toNextIolet()

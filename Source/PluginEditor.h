@@ -34,11 +34,9 @@ class TabComponent;
 class PluginProcessor;
 class Autosave;
 class PluginMode;
-class TouchSelectionHelper;
 class WelcomePanel;
 class CalloutArea;
 class NVGGraphicsContext;
-class ConsoleMessageDisplay;
 class Console;
 class DocumentationBrowser;
 class AutomationPanel;
@@ -123,7 +121,6 @@ public:
     bool perform(InvocationInfo const& info) override;
 
     bool wantsRoundedCorners() const;
-    bool usesFloatingPanels() const;
 
     bool keyPressed(KeyPress const& key) override;
 
@@ -133,6 +130,8 @@ public:
 
     void commandKeyChanged(bool isHeld) override;
     void setUseBorderResizer(bool shouldUse);
+    void updateStandaloneWindowControls();
+    void setStandaloneWindowControlsEnabled(bool shouldBeEnabled);
 
     Sidebar* getLeftSidebar() const { return leftSidebar.get(); }
     Sidebar* getRightSidebar() const { return rightSidebar.get(); }
@@ -195,16 +194,15 @@ public:
         return nvgCtx.get();
     }
 
+    NVGGraphicsContext& getOrCreateNanoLLGC(NVGcontext* nvg, float renderScale);
+
 private:
     TabComponent tabComponent;
 
 public:
     std::unique_ptr<PluginMode> pluginMode;
-    std::unique_ptr<ConsoleMessageDisplay> consoleMessageDisplay;
 
 private:
-    std::unique_ptr<TouchSelectionHelper> touchSelectionHelper;
-
     // Used by standalone to handle dragging the window
     WindowDragger windowDragger;
 
@@ -231,6 +229,11 @@ private:
 
     // Used in standalone
     std::unique_ptr<MouseRateReducedComponent<ResizableBorderComponent>> borderResizer;
+
+    std::unique_ptr<Button> standaloneWindowMinimiseButton;
+    std::unique_ptr<Button> standaloneWindowMaximiseButton;
+    std::unique_ptr<Button> standaloneWindowCloseButton;
+    bool standaloneWindowControlsEnabled = true;
 
     std::unique_ptr<NVGGraphicsContext> nvgCtx;
 

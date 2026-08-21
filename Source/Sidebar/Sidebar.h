@@ -169,8 +169,6 @@ public:
 
     void setCommandTarget(String const& text);
 
-    void renderButtonsOnCanvas(NVGcontext* ctx);
-
     void updateCommandInputVisibility();
 
     static constexpr int dragbarWidth = 6;
@@ -242,17 +240,4 @@ private:
     bool sidebarHidden = false;
 
     int lastWidth = 250;
-
-    float sidebarSelectorOffset = 5.0f;
-    float sidebarSelectorTarget = 0.0f;
-    VBlankAnimatorUpdater updater { this };
-    Animator animator = ValueAnimatorBuilder { }
-                            .withDurationMs(320)
-                            .withEasing(Easings::createEaseInOut())
-                            .withValueChangedCallback([this](float const v) {
-                                sidebarSelectorOffset = makeAnimationLimits(sidebarSelectorOffset, sidebarSelectorTarget).lerp(v);
-                                resized();
-                                repaint();
-                            })
-                            .build();
 };

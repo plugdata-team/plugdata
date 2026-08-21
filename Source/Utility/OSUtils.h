@@ -60,6 +60,9 @@ struct OSUtils {
 #if JUCE_MAC || JUCE_IOS
     static float MTLGetPixelScale(void* view);
     static void* MTLCreateView(void* parent, int x, int y, int width, int height);
+    // Returns the view's CAMetalLayer. Must be called on the main thread, but the
+    // returned layer can then be used from the render thread.
+    static void* MTLGetLayer(void* view);
     static void MTLDeleteView(void* view);
     static void MTLSetVisible(void* view, bool shouldBeVisible);
 #endif

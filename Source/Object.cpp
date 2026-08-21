@@ -96,6 +96,10 @@ void Object::setObjectBounds(Rectangle<int> const bounds)
 
 void Object::initialise()
 {
+    setCachedComponentImage(new NVGSurface::InvalidationChecker([this](){
+        commandBufferDirty = true;
+    }));
+
     cnv->objectLayer.addAndMakeVisible(this);
 
     cnv->selectedComponents.addChangeListener(this);
@@ -457,12 +461,12 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
     cnv->pd->updateObjectImplementations();
 }
 
-SmallArray<Rectangle<float>> Object::getCorners() const
+StackArray<Rectangle<float>, 4> Object::getCorners() const
 {
     auto const rect = getLocalBounds().reduced(margin);
     constexpr float offset = 2.0f;
 
-    SmallArray<Rectangle<float>> corners = { Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopLeft().toFloat()).translated(offset, offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomLeft().toFloat()).translated(offset, -offset),
+    StackArray<Rectangle<float>, 4> corners = { Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopLeft().toFloat()).translated(offset, offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomLeft().toFloat()).translated(offset, -offset),
         Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomRight().toFloat()).translated(-offset, -offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopRight().toFloat()).translated(-offset, offset) };
 
     return corners;
@@ -1173,78 +1177,85 @@ void Object::mouseDrag(MouseEvent const& e)
 
 void Object::render(NVGcontext* nvg)
 {
+    if(commandBufferDirty) {
+        commandBuffer.clear();
+        nanovg::ScopedCommandRecorder recorder(nvg, commandBuffer);
+        performRender(nvg);
+        commandBufferDirty = false;
+    }
+
+    nanovg::replay(nvg, commandBuffer);
+}
+
+void Object::performRender(NVGcontext* nvg)
+{
     auto const lb = getLocalBounds();
     auto const b = lb.reduced(margin);
 
     if (cnv->shouldShowObjectActivity() && !approximatelyEqual(activeStateAlpha, 0.0f)) {
         auto glowColour = nvgColour(PlugDataColours::dataColour);
         glowColour.a = static_cast<uint8_t>(activeStateAlpha * 255);
-        nvgSmoothGlow(nvg, lb.getX(), lb.getY(), lb.getWidth(), lb.getHeight(), glowColour, nvgRGBA(0, 0, 0, 0), Corners::objectCornerRadius, 1.1f);
+        nanovg::nvgSmoothGlow(nvg, lb.getX(), lb.getY(), lb.getWidth(), lb.getHeight(), glowColour, nanovg::nvgRGBA(0, 0, 0, 0), Corners::objectCornerRadius, 1.1f);
     }
 
     if (selectedFlag && showHandles) {
-        auto& resizeHandleImage = cnv->resizeHandleImage;
         int angle = 360;
         for (auto& corner : getCorners()) {
             NVGScopedState scopedState(nvg);
             // Rotate around centre
-            nvgTranslate(nvg, corner.getCentreX(), corner.getCentreY());
-            nvgRotate(nvg, degreesToRadians<float>(angle));
-            nvgTranslate(nvg, -4.5f, -4.5f);
+            nanovg::nvgTranslate(nvg, corner.getCentreX(), corner.getCentreY());
+            nanovg::nvgRotate(nvg, degreesToRadians<float>(angle));
+            nanovg::nvgTranslate(nvg, -4.5f, -4.5f);
 
-            nvgBeginPath(nvg);
-            nvgRect(nvg, 0, 0, 9, 9);
-            nvgFillPaint(nvg, nvgImageAlphaPattern(nvg, 0, 0, 9, 9, 0, resizeHandleImage.getImageId(), nvgColour(PlugDataColours::objectSelectedOutlineColour)));
-            nvgFill(nvg);
+            cnv->renderResizeHandle(nvg, nvgColour(PlugDataColours::objectSelectedOutlineColour));
             angle -= 90;
         }
     }
 
     if (gui && gui->isTransparent() && !getValue<bool>(locked) && !cnv->isGraph) {
-        nvgFillColor(nvg, nvgColour(PlugDataColours::canvasBackgroundColour.contrasting(0.35f).withAlpha(0.1f)));
-        nvgFillRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+        nanovg::nvgFillColor(nvg, nvgColour(PlugDataColours::canvasBackgroundColour.contrasting(0.35f).withAlpha(0.1f)));
+        nanovg::nvgFillRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
     }
 
-    nvgTranslate(nvg, margin, margin);
+    nanovg::nvgTranslate(nvg, margin, margin);
 
     if (gui) {
         gui->render(nvg);
     }
 
     if (newObjectEditor) {
-        nvgDrawRoundedRect(nvg, 0, 0, b.getWidth(), b.getHeight(), nvgColour(PlugDataColours::textObjectBackgroundColour), nvgColour(isSelected() ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour), Corners::objectCornerRadius);
-        Graphics g(*editor->getNanoLLGC());
-        newObjectEditor->paintEntireComponent(g, true);
+        nanovg::nvgDrawRoundedRect(nvg, 0, 0, b.getWidth(), b.getHeight(), nvgColour(PlugDataColours::textObjectBackgroundColour), nvgColour(isSelected() ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour), Corners::objectCornerRadius);
+        editor->getNanoLLGC()->renderComponent(*newObjectEditor);
     }
 
     // If autoconnect is about to happen, draw a fake inlet with a dotted outline
     if (isInitialEditorShown() && cnv->lastSelectedObject && cnv->lastSelectedObject != this && cnv->lastSelectedObject->numOutputs && getValue<bool>(editor->autoconnect)) {
         auto const* outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
         SmallArray fakeInletBounds = PlugDataLook::getUseIoletSpacingEdge() ? SmallArray { -8.0f, -3.0f, 18.0f, 7.0f } : SmallArray { 8.5f, -3.5f, 8.0f, 8.0f };
-        nvgBeginPath(nvg);
+        nanovg::nvgBeginPath(nvg);
         if (PlugDataLook::getUseSquareIolets()) {
-            nvgRect(nvg, fakeInletBounds[0] + fakeInletBounds[2] * 0.5f, fakeInletBounds[1] + fakeInletBounds[3] * 0.5f, fakeInletBounds[2] * 0.5f, fakeInletBounds[3] * 0.5f);
+            nanovg::nvgRect(nvg, fakeInletBounds[0] + fakeInletBounds[2] * 0.5f, fakeInletBounds[1] + fakeInletBounds[3] * 0.5f, fakeInletBounds[2] * 0.5f, fakeInletBounds[3] * 0.5f);
         } else {
-            nvgEllipse(nvg, fakeInletBounds[0] + fakeInletBounds[2] * 0.5f, fakeInletBounds[1] + fakeInletBounds[3] * 0.5f, fakeInletBounds[2] * 0.5f, fakeInletBounds[3] * 0.5f);
+            nanovg::nvgEllipse(nvg, fakeInletBounds[0] + fakeInletBounds[2] * 0.5f, fakeInletBounds[1] + fakeInletBounds[3] * 0.5f, fakeInletBounds[2] * 0.5f, fakeInletBounds[3] * 0.5f);
         }
 
-        nvgFillColor(nvg, nvgColour(outlet->isSignal() ? PlugDataColours::signalColour.brighter() : PlugDataColours::dataColour.brighter()));
-        nvgFill(nvg);
+        nanovg::nvgFillColor(nvg, nvgColour(outlet->isSignal() ? PlugDataColours::signalColour.brighter() : PlugDataColours::dataColour.brighter()));
+        nanovg::nvgFill(nvg);
 
-        nvgStrokeColor(nvg, nvgColour(PlugDataColours::objectOutlineColour));
-        nvgStrokeWidth(nvg, 1.0f);
-        nvgStroke(nvg);
+        nanovg::nvgStrokeColor(nvg, nvgColour(PlugDataColours::objectOutlineColour));
+        nanovg::nvgStrokeWidth(nvg, 1.0f);
+        nanovg::nvgStroke(nvg);
     }
 
-    nvgTranslate(nvg, -margin, -margin);
+    nanovg::nvgTranslate(nvg, -margin, -margin);
 
     if (!isHvccCompatible) {
         NVGScopedState scopedState(nvg);
-        nvgBeginPath(nvg);
-        nvgStrokeColor(nvg, nvgRGBA(255, 127, 0.0f, 255)); // orange
-        nvgStrokeWidth(nvg, 1.0f);
-        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
-        nvgStroke(nvg);
+        nanovg::nvgBeginPath(nvg);
+        nanovg::nvgStrokeColor(nvg, nanovg::nvgRGBA(255, 127, 0.0f, 255)); // orange
+        nanovg::nvgStrokeWidth(nvg, 1.0f);
+        nanovg::nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+        nanovg::nvgStroke(nvg);
     } else if (cnv->shouldShowIndex()) {
         constexpr int halfHeight = 5;
 
@@ -1253,13 +1264,9 @@ void Object::render(NVGcontext* nvg)
         auto const indexBounds = b.withSizeKeepingCentre(b.getWidth() + doubleMargin, halfHeight * 2).removeFromRight(textWidth);
 
         auto const fillColour = nvgColour(PlugDataColours::objectSelectedOutlineColour);
-        nvgDrawRoundedRect(nvg, indexBounds.getX(), indexBounds.getY(), indexBounds.getWidth(), indexBounds.getHeight(), fillColour, fillColour, 2.0f);
+        nanovg::nvgDrawRoundedRect(nvg, indexBounds.getX(), indexBounds.getY(), indexBounds.getWidth(), indexBounds.getHeight(), fillColour, fillColour, 2.0f);
 
-        nvgFontSize(nvg, 8.0f);
-        nvgFontFace(nvg, "Inter-Regular");
-        nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_CENTER);
-        nvgFillColor(nvg, nvgColour(PlugDataColours::objectSelectedOutlineColour.contrasting()));
-        nvgText(nvg, indexBounds.getCentreX(), indexBounds.getCentreY(), text.c_str(), nullptr);
+        Fonts::drawText(cnv->editor->getNanoLLGC(), text, indexBounds.toFloat(), Fonts::getCurrentFont().withHeight(8.0f), PlugDataColours::objectSelectedOutlineColour.contrasting(), Justification::centred);
     }
 
     renderIolets(nvg);
@@ -1272,26 +1279,26 @@ void Object::renderIolets(NVGcontext* nvg)
 
     if (getValue<bool>(locked) || !drawIoletExpanded) {
         auto const clipBounds = getLocalBounds().reduced(Object::margin);
-        nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
+        nanovg::nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
     } else if (getValue<bool>(patchDownwardsOnly)) {
         auto const clipBounds = getLocalBounds().reduced(Object::margin);
-        nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight() + Object::doubleMargin);
+        nanovg::nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight() + Object::doubleMargin);
     }
 
     auto lastPosition = Point<int>();
     for (auto* iolet : iolets) {
-        nvgTranslate(nvg, iolet->getX() - lastPosition.x, iolet->getY() - lastPosition.y);
+        nanovg::nvgTranslate(nvg, iolet->getX() - lastPosition.x, iolet->getY() - lastPosition.y);
 
         if (iolet->isTargeted()) {
-            nvgSave(nvg);
-            nvgResetScissor(nvg);
+            nanovg::nvgSave(nvg);
+            nanovg::nvgResetScissor(nvg);
         }
 
         iolet->render(nvg);
         lastPosition = iolet->getPosition();
 
         if (iolet->isTargeted()) {
-            nvgRestore(nvg);
+            nanovg::nvgRestore(nvg);
         }
     }
 }
@@ -1299,11 +1306,12 @@ void Object::renderIolets(NVGcontext* nvg)
 void Object::renderLabel(NVGcontext* nvg)
 {
     if (gui) {
+        auto& llgc = *cnv->editor->getNanoLLGC();
         for (auto* label : gui->labels) {
             NVGScopedState scopedState(nvg);
-            nvgTranslate(nvg, label->getX(), label->getY());
+            nanovg::nvgTranslate(nvg, label->getX(), label->getY());
             if (label->isVisible()) {
-                label->renderLabel(nvg, gui->getImageScale());
+                label->render(llgc);
             }
         }
     }

@@ -32,7 +32,7 @@ public:
     {
 
         input.onEditorShow = [this]() {
-            auto const fg = Colour::fromString(primaryColour.toString());
+            auto const fg = ::getValue<Colour>(primaryColour);
             input.setColour(Label::textWhenEditingColourId, fg);
             input.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
         };
@@ -82,8 +82,8 @@ public:
             interval = object->x_rate;
             ramp = object->x_ramp_ms;
             init = object->x_set_val;
-            primaryColour = "ff" + String::fromUTF8(object->x_fg->s_name + 1);
-            secondaryColour = "ff" + String::fromUTF8(object->x_bg->s_name + 1);
+            primaryColour = colourToVar(Colour::fromString("ff" + String::fromUTF8(object->x_fg->s_name + 1)));
+            secondaryColour = colourToVar(Colour::fromString("ff" + String::fromUTF8(object->x_bg->s_name + 1)));
             mode = object->x_outmode;
             sizeProperty = VarArray { var(object->x_width), var(object->x_height) };
         }
@@ -215,9 +215,9 @@ public:
                 nbx->x_set_val = ::getValue<float>(init);
             }
         } else if (value.refersToSameSourceAs(primaryColour)) {
-            setForegroundColour(primaryColour.toString());
+            setForegroundColour(::getValue<Colour>(primaryColour).toString());
         } else if (value.refersToSameSourceAs(secondaryColour)) {
-            setBackgroundColour(secondaryColour.toString());
+            setBackgroundColour(::getValue<Colour>(secondaryColour).toString());
         }
     }
 
@@ -242,15 +242,15 @@ public:
     void render(NVGcontext* nvg) override
     {
         auto const b = getLocalBounds().toFloat();
-        auto const backgroundColour = Colour::fromString(secondaryColour.toString());
+        auto const backgroundColour = ::getValue<Colour>(secondaryColour);
         bool const selected = object->isSelected() && !cnv->isGraph;
         auto const outlineColour = selected ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour;
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgColour(backgroundColour), nvgColour(outlineColour), Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgColour(backgroundColour), nvgColour(outlineColour), Corners::objectCornerRadius);
 
         {
             NVGScopedState scopedState(nvg);
-            nvgTranslate(nvg, input.getX(), input.getY());
+            nanovg::nvgTranslate(nvg, input.getX(), input.getY());
             input.render(nvg, cnv->editor->getNanoLLGC());
         }
     }

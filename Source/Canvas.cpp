@@ -171,7 +171,7 @@ public:
         auto iCol = nvgColour(PlugDataColours::objectSelectedOutlineColour);
 
         iCol.a = 5; // Make the inner colour semi-transparent
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), iCol, nvgColour(PlugDataColours::objectSelectedOutlineColour), Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), iCol, nvgColour(PlugDataColours::objectSelectedOutlineColour), Corners::objectCornerRadius);
 
         // Draw handles at edge
         auto getCorners = [this] {
@@ -184,30 +184,17 @@ public:
             return corners;
         };
 
-        auto& resizeHandleImage = cnv->resizeHandleImage;
         int angle = 360;
         for (auto& corner : getCorners()) {
             NVGScopedState scopedState(nvg);
             // Rotate around centre
-            nvgTranslate(nvg, corner.getCentreX(), corner.getCentreY());
-            nvgRotate(nvg, degreesToRadians<float>(angle));
-            nvgTranslate(nvg, -4.5f, -4.5f);
+            nanovg::nvgTranslate(nvg, corner.getCentreX(), corner.getCentreY());
+            nanovg::nvgRotate(nvg, degreesToRadians<float>(angle));
+            nanovg::nvgTranslate(nvg, -4.5f, -4.5f);
 
-            nvgBeginPath(nvg);
-            nvgRect(nvg, 0, 0, 9, 9);
-            nvgFillPaint(nvg, nvgImageAlphaPattern(nvg, 0, 0, 9, 9, 0, resizeHandleImage.getImageId(), nvgColour(PlugDataColours::objectSelectedOutlineColour)));
-            nvgFill(nvg);
+            cnv->renderResizeHandle(nvg, nvgColour(PlugDataColours::objectSelectedOutlineColour));
             angle -= 90;
         }
-// #define SPACER_TEXT
-#ifdef SPACER_TEXT
-        nvgBeginPath(nvg);
-        auto textPos = getPosition().translated(0, -25);
-        nvgFontSize(nvg, 20.0f);
-        nvgTextAlign(nvg, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
-        nvgFillColor(nvg, nvgRGBA(240, 240, 240, 255));
-        nvgText(nvg, textPos.x, textPos.y, String("Spacer size: " + String(spacer + 1.0f)).toRawUTF8(), nullptr);
-#endif
     }
 
 private:
@@ -442,38 +429,20 @@ void Canvas::updateFramebuffers(NVGcontext* nvg)
     auto const pixelScale = editor->getRenderScale();
     auto zoom = getValue<float>(zoomScale);
 
-    constexpr int resizerLogicalSize = 9;
-    float const viewScale = pixelScale * zoom;
-    int const resizerBufferSize = resizerLogicalSize * viewScale;
-
-    if (resizeHandleImage.needsUpdate(resizerBufferSize, resizerBufferSize)) {
-        resizeHandleImage = NVGImage(nvg, resizerBufferSize, resizerBufferSize, [viewScale](Graphics& g) {
-            g.addTransform(AffineTransform::scale(viewScale, viewScale));
-            auto const b = Rectangle<int>(0, 0, 9, 9);
-            // use the path with a hole in it to exclude the inner rounded rect from painting
-            Path outerArea;
-            outerArea.addRectangle(b);
-            outerArea.setUsingNonZeroWinding(false);
-
-            Path innerArea;
-            auto const innerRect = b.translated(Object::margin / 2, Object::margin / 2);
-            innerArea.addRoundedRectangle(innerRect, Corners::objectCornerRadius);
-            outerArea.addPath(innerArea);
-            g.reduceClipRegion(outerArea);
-
-            g.setColour(Colours::white); // For alpha image colour isn't important
-            g.fillRoundedRectangle(0.0f, 0.0f, 9.0f, 9.0f, Corners::resizeHanleCornerRadius); }, NVGImage::AlphaImage);
-    }
-
     auto gridLogicalSize = objectGrid.gridSize ? objectGrid.gridSize : 25;
-    auto gridSizeCommon = 300;
+    auto constexpr gridSizeCommon = 300;
     auto const gridBufferSize = gridSizeCommon * pixelScale * zoom;
 
     if (dotsLargeImage.needsUpdate(gridBufferSize, gridBufferSize) || lastObjectGridSize != gridLogicalSize) {
         lastObjectGridSize = gridLogicalSize;
 
-        dotsLargeImage = NVGImage(nvg, gridBufferSize, gridBufferSize, [zoom, viewScale, gridLogicalSize, gridSizeCommon](Graphics& g) {
-            g.addTransform(AffineTransform::scale(viewScale, viewScale));
+        dotsLargeImage.renderToFramebuffer(nvg, gridBufferSize, gridBufferSize, [gridBufferSize, gridLogicalSize, zoom, pixelScale](NVGcontext* nvg){
+
+            nanovg::viewport(nvg, 0, 0, gridBufferSize, gridBufferSize);
+            nanovg::clear(nvg);
+            nanovg::nvgBeginFrame(nvg, gridSizeCommon * zoom, gridSizeCommon * zoom, pixelScale);
+            nanovg::nvgScale(nvg, zoom, zoom);
+
             float const ellipseRadius = zoom < 1.0f ? jmap(zoom, 0.25f, 1.0f, 3.0f, 1.0f) : 1.0f;
 
             int decim = 0;
@@ -510,26 +479,72 @@ void Canvas::updateFramebuffers(NVGcontext* nvg)
             auto markingColour = PlugDataColours::canvasDotsColour.interpolatedWith(PlugDataColours::canvasBackgroundColour, 0.2f);
             auto const majorDotColour = markingColour.withAlpha(std::min(zoom * 0.8f, 1.0f));
 
-            g.setColour(majorDotColour);
+            nanovg::nvgFillColor(nvg, nvgColour(majorDotColour));
+
             // Draw ellipses on the grid
             for (int x = 0; x <= gridSizeCommon; x += gridLogicalSize)
             {
                 for (int y = 0; y <= gridSizeCommon; y += gridLogicalSize)
                 {
+                    NVGcolor c = nvgColour(majorDotColour);
                     if (decim != 0) {
                         if (x % decim && y % decim)
                             continue;
-                        g.setColour(majorDotColour);
                         if (x % decim == 0 && y % decim == 0)
-                            g.setColour(markingColour);
+                            c = nvgColour(markingColour);
                     }
                     // Add half smallest dot offset so the dot isn't at the edge of the texture
                     // We remove this when we position the texture on the canvas
                     float const centerX = static_cast<float>(x) + 2.5f;
                     float const centerY = static_cast<float>(y) + 2.5f;
-                    g.fillEllipse(centerX - ellipseRadius, centerY - ellipseRadius, ellipseRadius * 2.0f, ellipseRadius * 2.0f);
+                    float const ellipseSize = ellipseRadius * 2.0f;
+                    nanovg::nvgDrawRoundedRect(nvg, centerX - ellipseRadius, centerY - ellipseRadius, ellipseSize, ellipseSize, c, c, ellipseRadius);
                 }
-            } }, NVGImage::RepeatImage, PlugDataColours::canvasBackgroundColour);
+            }
+
+            nanovg::nvgGlobalScissor(nvg, 0, 0, gridBufferSize, gridBufferSize);
+            nanovg::nvgEndFrameWithoutPublishing(nvg);
+        }, NVG_IMAGE_REPEATX | NVG_IMAGE_REPEATY);
+    }
+}
+
+void Canvas::render(NVGcontext* nvg)
+{
+    performRender(nvg, getLocalBounds());
+}
+
+void Canvas::renderResizeHandle(NVGcontext* nvg, NVGcolor const colour)
+{
+    nanovg::nvgFillColor(nvg, colour);
+
+    if (!resizeHandlePath.fill()) {
+        constexpr float resizerLogicalSize = 9.0f;
+        constexpr float kappa = 0.5522847498307936f;
+        auto const innerOffset = static_cast<float>(Object::margin) / 2.0f;
+        auto const outerRadius = jlimit(0.0f, resizerLogicalSize * 0.5f, Corners::resizeHanleCornerRadius);
+        auto const innerRadius = jlimit(0.0f, resizerLogicalSize - innerOffset, Corners::objectCornerRadius);
+        auto const outerControl = outerRadius * (1.0f - kappa);
+        auto const innerControl = innerRadius * (1.0f - kappa);
+
+        nanovg::nvgBeginPath(nvg);
+        nanovg::nvgMoveTo(nvg, outerRadius, 0.0f);
+        nanovg::nvgLineTo(nvg, resizerLogicalSize - outerRadius, 0.0f);
+        nanovg::nvgBezierTo(nvg, resizerLogicalSize - outerControl, 0.0f, resizerLogicalSize, outerControl, resizerLogicalSize, outerRadius);
+        nanovg::nvgLineTo(nvg, resizerLogicalSize, innerOffset);
+        nanovg::nvgLineTo(nvg, innerOffset + innerRadius, innerOffset);
+        if (innerRadius > 0.0f) {
+            nanovg::nvgBezierTo(nvg, innerOffset + innerControl, innerOffset, innerOffset, innerOffset + innerControl, innerOffset, innerOffset + innerRadius);
+        } else {
+            nanovg::nvgLineTo(nvg, innerOffset, innerOffset);
+        }
+        nanovg::nvgLineTo(nvg, innerOffset, resizerLogicalSize);
+        nanovg::nvgLineTo(nvg, outerRadius, resizerLogicalSize);
+        nanovg::nvgBezierTo(nvg, outerControl, resizerLogicalSize, 0.0f, resizerLogicalSize - outerControl, 0.0f, resizerLogicalSize - outerRadius);
+        nanovg::nvgLineTo(nvg, 0.0f, outerRadius);
+        nanovg::nvgBezierTo(nvg, 0.0f, outerControl, outerControl, 0.0f, outerRadius, 0.0f);
+        nanovg::nvgClosePath(nvg);
+        nanovg::nvgFill(nvg);
+        resizeHandlePath.save(nvg);
     }
 }
 
@@ -539,20 +554,20 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     constexpr auto halfSize = infiniteCanvasSize / 2;
     auto const zoom = getValue<float>(zoomScale);
     bool const isLocked = getValue<bool>(locked);
-    nvgSave(nvg);
+    nanovg::nvgSave(nvg);
 
     if (viewport) {
-        nvgTranslate(nvg, -viewport->getViewPositionX(), -viewport->getViewPositionY());
-        nvgScale(nvg, zoom, zoom);
+        nanovg::nvgTranslate(nvg, -viewport->getViewPositionX(), -viewport->getViewPositionY());
+        nanovg::nvgScale(nvg, zoom, zoom);
         invalidRegion = invalidRegion.translated(viewport->getViewPositionX(), viewport->getViewPositionY());
         invalidRegion /= zoom;
 
         if (isLocked) {
-            nvgFillColor(nvg, nvgColour(PlugDataColours::canvasBackgroundColour));
-            nvgFillRect(nvg, invalidRegion.getX(), invalidRegion.getY(), invalidRegion.getWidth(), invalidRegion.getHeight());
+            nanovg::nvgFillColor(nvg, nvgColour(PlugDataColours::canvasBackgroundColour));
+            nanovg::nvgFillRect(nvg, invalidRegion.getX(), invalidRegion.getY(), invalidRegion.getWidth(), invalidRegion.getHeight());
         } else {
-            nvgBeginPath(nvg);
-            nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
+            nanovg::nvgBeginPath(nvg);
+            nanovg::nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
 
             // Use least common multiple of grid sizes: 5,10,15,20,25,30 for texture size for now
             // We repeat the texture on GPU, this is so the texture does not become too small for GPU processing
@@ -562,13 +577,13 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
                 constexpr auto gridSizeCommon = 300;
                 NVGScopedState scopedState(nvg);
                 // offset image texture by 2.5f so no dots are on the edge of the texture
-                nvgTranslate(nvg, canvasOrigin.x - 2.5f, canvasOrigin.x - 2.5f);
+                nanovg::nvgTranslate(nvg, canvasOrigin.x - 2.5f, canvasOrigin.x - 2.5f);
 
-                nvgFillColor(nvg, nvgColour(PlugDataColours::canvasBackgroundColour)); // This fixes some glitches but I'm not sure why
-                nvgFill(nvg);
+                nanovg::nvgFillColor(nvg, nvgColour(PlugDataColours::canvasBackgroundColour)); // This fixes some glitches but I'm not sure why
+                nanovg::nvgFill(nvg);
 
-                nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, gridSizeCommon, gridSizeCommon, 0, dotsLargeImage.getImageId(), 1));
-                nvgFill(nvg);
+                nanovg::nvgFillPaint(nvg, nanovg::nvgImagePattern(nvg, 0, 0, gridSizeCommon, gridSizeCommon, 0, dotsLargeImage.getImage(), 1));
+                nanovg::nvgFill(nvg);
             }
         }
     }
@@ -578,59 +593,59 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     auto drawBorder = [this, nvg](bool const bg, bool const fg) {
         if (viewport && (showOrigin || showBorder) && !::getValue<bool>(presentationMode)) {
             NVGScopedState scopedState(nvg);
-            nvgBeginPath(nvg);
+            nanovg::nvgBeginPath(nvg);
 
             auto const borderWidth = getValue<float>(patchWidth);
             auto const borderHeight = getValue<float>(patchHeight);
             constexpr auto pos = Point<int>(halfSize, halfSize);
 
             if (bg) {
-                nvgBeginPath(nvg);
-                nvgMoveTo(nvg, pos.x, pos.y);
-                nvgLineTo(nvg, pos.x, pos.y + (showOrigin ? halfSize : borderHeight));
-                nvgMoveTo(nvg, pos.x, pos.y);
-                nvgLineTo(nvg, pos.x + (showOrigin ? halfSize : borderWidth), pos.y);
+                nanovg::nvgBeginPath(nvg);
+                nanovg::nvgMoveTo(nvg, pos.x, pos.y);
+                nanovg::nvgLineTo(nvg, pos.x, pos.y + (showOrigin ? halfSize : borderHeight));
+                nanovg::nvgMoveTo(nvg, pos.x, pos.y);
+                nanovg::nvgLineTo(nvg, pos.x + (showOrigin ? halfSize : borderWidth), pos.y);
 
                 if (showBorder) {
-                    nvgMoveTo(nvg, pos.x + borderWidth, pos.y);
-                    nvgLineTo(nvg, pos.x + borderWidth, pos.y + borderHeight);
-                    nvgLineTo(nvg, pos.x, pos.y + borderHeight);
+                    nanovg::nvgMoveTo(nvg, pos.x + borderWidth, pos.y);
+                    nanovg::nvgLineTo(nvg, pos.x + borderWidth, pos.y + borderHeight);
+                    nanovg::nvgLineTo(nvg, pos.x, pos.y + borderHeight);
                 }
-                nvgLineStyle(nvg, NVG_LINE_SOLID);
-                nvgStrokeColor(nvg, nvgColour(PlugDataColours::canvasBackgroundColour));
-                nvgStrokeWidth(nvg, 8.0f);
-                nvgStroke(nvg);
+                nanovg::nvgLineStyle(nvg, NVG_LINE_SOLID);
+                nanovg::nvgStrokeColor(nvg, nvgColour(PlugDataColours::canvasBackgroundColour));
+                nanovg::nvgStrokeWidth(nvg, 8.0f);
+                nanovg::nvgStroke(nvg);
 
-                nvgFillColor(nvg, nvgColour(PlugDataColours::canvasBackgroundColour));
-                nvgFillRect(nvg, pos.x - 1.0f, pos.y - 1.0f, 2, 2);
+                nanovg::nvgFillColor(nvg, nvgColour(PlugDataColours::canvasBackgroundColour));
+                nanovg::nvgFillRect(nvg, pos.x - 1.0f, pos.y - 1.0f, 2, 2);
             }
 
-            nvgStrokeColor(nvg, nvgColour(PlugDataColours::canvasDotsColour.interpolatedWith(PlugDataColours::canvasBackgroundColour, 0.2f)));
-            nvgStrokeWidth(nvg, 1.5f);
-            nvgDashLength(nvg, 8.0f);
-            nvgLineStyle(nvg, NVG_LINE_DASHED);
+            nanovg::nvgStrokeColor(nvg, nvgColour(PlugDataColours::canvasDotsColour.interpolatedWith(PlugDataColours::canvasBackgroundColour, 0.2f)));
+            nanovg::nvgStrokeWidth(nvg, 1.5f);
+            nanovg::nvgDashLength(nvg, 8.0f);
+            nanovg::nvgLineStyle(nvg, NVG_LINE_DASHED);
 
             if (fg) {
-                nvgBeginPath(nvg);
-                nvgMoveTo(nvg, pos.x, pos.y);
-                nvgLineTo(nvg, pos.x, pos.y + (showOrigin ? halfSize : borderHeight));
-                nvgStroke(nvg);
-                nvgBeginPath(nvg);
-                nvgMoveTo(nvg, pos.x, pos.y);
-                nvgLineTo(nvg, pos.x + (showOrigin ? halfSize : borderWidth), pos.y);
-                nvgStroke(nvg);
+                nanovg::nvgBeginPath(nvg);
+                nanovg::nvgMoveTo(nvg, pos.x, pos.y);
+                nanovg::nvgLineTo(nvg, pos.x, pos.y + (showOrigin ? halfSize : borderHeight));
+                nanovg::nvgStroke(nvg);
+                nanovg::nvgBeginPath(nvg);
+                nanovg::nvgMoveTo(nvg, pos.x, pos.y);
+                nanovg::nvgLineTo(nvg, pos.x + (showOrigin ? halfSize : borderWidth), pos.y);
+                nanovg::nvgStroke(nvg);
             }
             if (showBorder && fg) {
-                nvgStrokeWidth(nvg, 1.5f);
-                nvgLineStyle(nvg, NVG_LINE_DASHED);
-                nvgBeginPath(nvg);
-                nvgMoveTo(nvg, pos.x + borderWidth, pos.y + borderHeight);
-                nvgLineTo(nvg, pos.x + borderWidth, pos.y);
-                nvgStroke(nvg);
-                nvgBeginPath(nvg);
-                nvgMoveTo(nvg, pos.x + borderWidth, pos.y + borderHeight);
-                nvgLineTo(nvg, pos.x, pos.y + borderHeight);
-                nvgStroke(nvg);
+                nanovg::nvgStrokeWidth(nvg, 1.5f);
+                nanovg::nvgLineStyle(nvg, NVG_LINE_DASHED);
+                nanovg::nvgBeginPath(nvg);
+                nanovg::nvgMoveTo(nvg, pos.x + borderWidth, pos.y + borderHeight);
+                nanovg::nvgLineTo(nvg, pos.x + borderWidth, pos.y);
+                nanovg::nvgStroke(nvg);
+                nanovg::nvgBeginPath(nvg);
+                nanovg::nvgMoveTo(nvg, pos.x + borderWidth, pos.y + borderHeight);
+                nanovg::nvgLineTo(nvg, pos.x, pos.y + borderHeight);
+                nanovg::nvgStroke(nvg);
 
                 canvasBorderResizer->render(nvg);
             }
@@ -665,31 +680,31 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             NVGScopedState scopedState(nvg);
 
             // background colour to crop outside of border area
-            nvgBeginPath(nvg);
-            nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
-            nvgPathWinding(nvg, NVG_HOLE);
-            nvgRoundedRect(nvg, pos.getX(), pos.getY(), borderWidth, borderHeight, windowCorner);
-            nvgFillColor(nvg, nvgColour(PlugDataColours::presentationBackgroundColour));
-            nvgFill(nvg);
+            nanovg::nvgBeginPath(nvg);
+            nanovg::nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
+            nanovg::nvgPathWinding(nvg, NVG_HOLE);
+            nanovg::nvgRoundedRect(nvg, pos.getX(), pos.getY(), borderWidth, borderHeight, windowCorner);
+            nanovg::nvgFillColor(nvg, nvgColour(PlugDataColours::presentationBackgroundColour));
+            nanovg::nvgFill(nvg);
 
             // background drop shadow to simulate a virtual plugin
-            nvgBeginPath(nvg);
-            nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
-            nvgPathWinding(nvg, NVG_HOLE);
-            nvgRoundedRect(nvg, pos.getX(), pos.getY(), borderWidth, borderHeight, windowCorner);
+            nanovg::nvgBeginPath(nvg);
+            nanovg::nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
+            nanovg::nvgPathWinding(nvg, NVG_HOLE);
+            nanovg::nvgRoundedRect(nvg, pos.getX(), pos.getY(), borderWidth, borderHeight, windowCorner);
 
             int const shadowSize = 24 / scale;
             auto borderArea = Rectangle<int>(0, 0, borderWidth, borderHeight).expanded(shadowSize);
             if (presentationShadowImage.needsUpdate(borderArea.getWidth(), borderArea.getHeight())) {
                 presentationShadowImage = NVGImage(nvg, borderArea.getWidth(), borderArea.getHeight(), [borderArea, shadowSize, windowCorner](Graphics& g) { StackShadow::drawShadowForRect(g, borderArea.reduced(shadowSize).withPosition(shadowSize, shadowSize), shadowSize, windowCorner, 0.3f, 2); }, NVGImage::AlphaImage);
             }
-            auto const shadowImage = nvgImageAlphaPattern(nvg, pos.getX() - shadowSize, pos.getY() - shadowSize, borderArea.getWidth(), borderArea.getHeight(), 0, presentationShadowImage.getImageId(), nvgColour(Colours::black));
+            auto const shadowImage = nanovg::nvgImageAlphaPattern(nvg, pos.getX() - shadowSize, pos.getY() - shadowSize, borderArea.getWidth(), borderArea.getHeight(), 0, presentationShadowImage.getImageId(), nvgColour(Colours::black));
 
-            nvgStrokeColor(nvg, nvgColour(PlugDataColours::presentationBackgroundColour.contrasting(0.3f)));
-            nvgStrokeWidth(nvg, 0.5f / scale);
-            nvgFillPaint(nvg, shadowImage);
-            nvgFill(nvg);
-            nvgStroke(nvg);
+            nanovg::nvgStrokeColor(nvg, nvgColour(PlugDataColours::presentationBackgroundColour.contrasting(0.3f)));
+            nanovg::nvgStrokeWidth(nvg, 0.5f / scale);
+            nanovg::nvgFillPaint(nvg, shadowImage);
+            nanovg::nvgFill(nvg);
+            nanovg::nvgStroke(nvg);
         }
     }
     // render connections infront or behind objects depending on lock mode or overlay setting
@@ -710,7 +725,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
 
     if (graphArea) {
         NVGScopedState scopedState(nvg);
-        nvgTranslate(nvg, graphArea->getX(), graphArea->getY());
+        nanovg::nvgTranslate(nvg, graphArea->getX(), graphArea->getY());
         graphArea->render(nvg);
     }
 
@@ -719,7 +734,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     if (viewport && lasso.isVisible() && !lasso.getBounds().isEmpty()) {
         auto lassoBounds = lasso.getBounds();
         lassoBounds = lassoBounds.withSize(jmax(lasso.getWidth(), 2), jmax(lasso.getHeight(), 2));
-        nvgDrawRoundedRect(nvg, lassoBounds.getX(), lassoBounds.getY(), lassoBounds.getWidth(), lassoBounds.getHeight(), nvgColour(PlugDataColours::objectSelectedOutlineColour.withAlpha(0.075f)), nvgColour(PlugDataColours::canvasBackgroundColour.interpolatedWith(PlugDataColours::objectSelectedOutlineColour, 0.65f)), 0.0f);
+        nanovg::nvgDrawRoundedRect(nvg, lassoBounds.getX(), lassoBounds.getY(), lassoBounds.getWidth(), lassoBounds.getHeight(), nvgColour(PlugDataColours::objectSelectedOutlineColour.withAlpha(0.075f)), nvgColour(PlugDataColours::canvasBackgroundColour.interpolatedWith(PlugDataColours::objectSelectedOutlineColour, 0.65f)), 0.0f);
     }
 
     suggestor->renderAutocompletion(nvg);
@@ -739,7 +754,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     if (objectsDistributeResizer)
         objectsDistributeResizer->render(nvg);
 
-    nvgRestore(nvg);
+    nanovg::nvgRestore(nvg);
 
     // Draw scrollbars
     if (viewport) {
@@ -754,7 +769,7 @@ void Canvas::renderAllObjects(NVGcontext* nvg, Rectangle<int> const area)
             auto b = obj->getBounds();
             if (b.intersects(area) && obj->isVisible()) {
                 NVGScopedState scopedState(nvg);
-                nvgTranslate(nvg, b.getX(), b.getY());
+                nanovg::nvgTranslate(nvg, b.getX(), b.getY());
                 obj->render(nvg);
             }
         }
@@ -1590,8 +1605,10 @@ void Canvas::deselectAll(bool const broadcastChange)
         s->hideParameters();
 
     if (!broadcastChange) {
-        // Add back the listener, but make sure it's added back 'after' the last event on the message queue
-        MessageManager::callAsync([this] { selectedComponents.addChangeListener(this); });
+        MessageManager::callAsync([_this = SafePointer(this)] {
+            if (_this)
+                _this->selectedComponents.addChangeListener(_this);
+        });
     }
 }
 
@@ -2559,8 +2576,10 @@ void Canvas::setSelected(Component* component, bool const shouldNowBeSelected, b
     }
 
     if (!broadcastChange) {
-        // Add back the listener, but make sure it's added back 'after' the last event on the message queue
-        MessageManager::callAsync([this] { selectedComponents.addChangeListener(this); });
+        MessageManager::callAsync([_this = SafePointer(this)] {
+            if (_this)
+                _this->selectedComponents.addChangeListener(_this);
+        });
     }
 }
 

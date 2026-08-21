@@ -29,7 +29,7 @@
     auto isInset = win.titleVisibility == NSWindowTitleVisible;
     if(isPopup || isFullscreen || isInset)
         return [self FrameView__closeButtonOrigin];
-    return {15, self.bounds.size.height - 28};
+    return {15, self.bounds.size.height - 26};
 }
 - (CGFloat)FrameView__titlebarHeight {
     auto* win = static_cast<NSWindow*>(self.window);
@@ -267,10 +267,36 @@ float OSUtils::MTLGetPixelScale(void* view) {
 void* OSUtils::MTLCreateView(void* parent, int x, int y, int width, int height)
 {
     NSView *childView = [[MTLCustomView alloc] initWithFrame:NSMakeRect(x, y, width, height)];
+
+    // Host a CAMetalLayer, on the main thread. Assign the layer first, then set
+    // wantsLayer = YES: that puts the NSView into layer-hosting mode so AppKit
+    // actually composites our Metal layer. Without this the layer is never shown
+    // and the view stays transparent, even though rendering/present succeed. This
+    // MUST happen on the main thread (the render thread later only touches Metal
+    // objects on this layer, never the AppKit view).
+    CAMetalLayer* metalLayer = [CAMetalLayer new];
+    metalLayer.device = MTLCreateSystemDefaultDevice();
+    metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
+    metalLayer.framebufferOnly = NO;
+    metalLayer.presentsWithTransaction = NO;
+    childView.layer = metalLayer;
+    childView.wantsLayer = YES;
+
     auto* parentView = reinterpret_cast<NSView*>(parent);
     [parentView addSubview:childView];
-    
+
+    // Now that the view is in a window, match the layer's point<->pixel scale to
+    // the backing scale so the drawable is presented at the correct on-screen size.
+    CGFloat const scale = childView.window ? childView.window.backingScaleFactor : 2.0;
+    metalLayer.contentsScale = scale;
+    metalLayer.drawableSize = CGSizeMake(width * scale, height * scale);
+
     return childView;
+}
+
+void* OSUtils::MTLGetLayer(void* view)
+{
+    return reinterpret_cast<NSView*>(view).layer;
 }
 
 void OSUtils::MTLDeleteView(void* view)
@@ -506,6 +532,11 @@ void* OSUtils::MTLCreateView(void* parent, int x, int y, int width, int height)
     [parentView addSubview:childView];
 
     return childView;
+}
+
+void* OSUtils::MTLGetLayer(void* view)
+{
+    return reinterpret_cast<UIView*>(view).layer;
 }
 
 void OSUtils::MTLDeleteView(void* view)

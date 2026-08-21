@@ -729,8 +729,6 @@ void PlugDataLook::setColours(UnorderedMap<PlugDataColour, Colour>& colours)
         colours.at(PlugDataColour::panelActiveBackgroundColourId));
     setColour(TextButton::textColourOnId,
         colours.at(PlugDataColour::toolbarTextColourId));
-    setColour(Slider::thumbColourId,
-        colours.at(PlugDataColour::levelMeterThumbColourId));
     setColour(ScrollBar::thumbColourId,
         colours.at(PlugDataColour::scrollbarThumbColourId));
     setColour(DirectoryContentsDisplayComponent::highlightColourId,
@@ -751,6 +749,14 @@ void PlugDataLook::setColours(UnorderedMap<PlugDataColour, Colour>& colours)
 
     getCurrentColourScheme().setUIColour(ColourScheme::UIColour::widgetBackground, colours.at(PlugDataColour::panelBackgroundColourId));
 
+
+    setColour(Slider::backgroundColourId,
+        colours.at(PlugDataColour::panelForegroundColourId));
+    setColour(Slider::trackColourId,
+        colours.at(PlugDataColour::panelActiveBackgroundColourId).contrasting(0.15f));
+    setColour(Slider::thumbColourId,
+        colours.at(PlugDataColour::panelActiveBackgroundColourId).contrasting(0.5f));
+
     setColour(TooltipWindow::backgroundColourId,
         colours.at(PlugDataColour::panelBackgroundColourId));
 
@@ -762,10 +768,6 @@ void PlugDataLook::setColours(UnorderedMap<PlugDataColour, Colour>& colours)
         colours.at(PlugDataColour::canvasBackgroundColourId));
     setColour(ScrollBar::backgroundColourId,
         colours.at(PlugDataColour::canvasBackgroundColourId));
-    setColour(Slider::backgroundColourId,
-        colours.at(PlugDataColour::canvasBackgroundColourId));
-    setColour(Slider::trackColourId,
-        colours.at(PlugDataColour::levelMeterBackgroundColourId));
     setColour(TextEditor::backgroundColourId,
         colours.at(PlugDataColour::canvasBackgroundColourId));
     setColour(FileBrowserComponent::currentPathBoxBackgroundColourId,
@@ -1155,13 +1157,13 @@ const String PlugDataLook::defaultThemesJSON = R"(
       },
       {
         "name": "light",
-        "toolbar_background": "ffebebeb",
+        "toolbar_background": "fff1f1f1",
         "toolbar_text": "ff373737",
         "toolbar_active": "ff007aff",
-        "toolbar_hover": "ffe0e0e0",
+        "toolbar_hover": "ffe6e6e6",
         "tabbar_background": "ffebebeb",
         "tab_text": "ff373737",
-        "selected_tab_background": "ffe0e0e0",
+        "selected_tab_background": "ffffffff",
         "selected_tab_text": "ff373737",
         "canvas_background": "fffafafa",
         "canvas_text": "ff4d4d4d",
@@ -1178,18 +1180,18 @@ const String PlugDataLook::defaultThemesJSON = R"(
         "signal_colour": "ffff8500",
         "gem_colour": "ff01de00",
         "dialog_background": "ffebebeb",
-        "sidebar_colour": "ffefefef",
+        "sidebar_colour": "fff4f4f4",
         "sidebar_text": "ff373737",
-        "sidebar_background_active": "ffe6e6e6",
+        "sidebar_background_active": "ffebebeb",
         "levelmeter_active": "ff007aff",
-        "levelmeter_background": "ffe1e1e1",
-        "levelmeter_thumb": "ff9a9a9a",
+        "levelmeter_background": "ffe6e6e6",
+        "levelmeter_thumb": "ff8e8e8e",
         "panel_background": "fff7f7f7",
         "panel_foreground": "fffdfdfd",
         "panel_text": "ff373737",
         "panel_background_active": "ffececec",
-        "popup_background": "ffe8e8e8",
-        "popup_background_active": "ffdcdcdc",
+        "popup_background": "ffececec",
+        "popup_background_active": "ffe0e0e0",
         "popup_text": "ff373737",
         "scrollbar_thumb": "ffa9a9a9",
         "graph_area": "ffff0000",
@@ -1390,9 +1392,6 @@ void PlugDataLook::setTheme(DynamicObject::Ptr themeTree)
     PlugDataColours::sidebarBackgroundColour = colours[PlugDataColour::sidebarBackgroundColourId];
     PlugDataColours::sidebarTextColour = colours[PlugDataColour::sidebarTextColourId];
     PlugDataColours::sidebarActiveBackgroundColour = colours[PlugDataColour::sidebarActiveBackgroundColourId];
-    PlugDataColours::levelMeterActiveColour = colours[PlugDataColour::levelMeterActiveColourId];
-    PlugDataColours::levelMeterBackgroundColour = colours[PlugDataColour::levelMeterBackgroundColourId];
-    PlugDataColours::levelMeterThumbColour = colours[PlugDataColour::levelMeterThumbColourId];
     PlugDataColours::panelBackgroundColour = colours[PlugDataColour::panelBackgroundColourId];
     PlugDataColours::panelForegroundColour = colours[PlugDataColour::panelForegroundColourId];
     PlugDataColours::panelTextColour = colours[PlugDataColour::panelTextColourId];

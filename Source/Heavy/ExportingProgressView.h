@@ -585,17 +585,19 @@ public:
     {
         state = newState;
 
-        MessageManager::callAsync([this] {
-            setVisible(state < NotExporting);
-            continueButton.setVisible(state >= Success);
-            if (state == Exporting || state == Flashing)
-                console.clear();
-            if (console.isShowing()) {
-                console.grabKeyboardFocus();
+        MessageManager::callAsync([_this = SafePointer(this)] {
+            if (!_this)
+                return;
+            _this->setVisible(_this->state < NotExporting);
+            _this->continueButton.setVisible(_this->state >= Success);
+            if (_this->state == Exporting || _this->state == Flashing)
+                _this->console.clear();
+            if (_this->console.isShowing()) {
+                _this->console.grabKeyboardFocus();
             }
 
-            resized();
-            repaint();
+            _this->resized();
+            _this->repaint();
         });
     }
 

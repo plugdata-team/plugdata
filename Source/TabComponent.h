@@ -9,6 +9,7 @@ class TabComponent final : public Component
     , public DragAndDropTarget
     , public AsyncUpdater {
     class TabBarButtonComponent;
+    class NewTabButton;
 
 public:
     explicit TabComponent(PluginEditor* editor);
@@ -62,6 +63,7 @@ private:
     void sendTabUpdateToVisibleCanvases() const;
 
     void resized() override;
+    void paintOverChildren(Graphics& g) override;
 
     void moveToLeftSplit(TabComponent::TabBarButtonComponent const* tab);
     void moveToRightSplit(TabComponent::TabBarButtonComponent const* tab);
@@ -86,7 +88,7 @@ private:
 
     void showHiddenTabsMenu(int splitIndex);
 
-    StackArray<MainToolbarButton, 2> newTabButtons = { MainToolbarButton(Icons::Add), MainToolbarButton(Icons::Add) };
+    std::unique_ptr<NewTabButton> newTabButtons[2];
     StackArray<MainToolbarButton, 2> tabOverflowButtons = { MainToolbarButton(Icons::ThinDown), MainToolbarButton(Icons::ThinDown) };
 
     StackArray<OwnedArray<TabBarButtonComponent>, 2> tabbars;

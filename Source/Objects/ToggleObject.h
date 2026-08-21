@@ -86,7 +86,7 @@ public:
         auto const selectedOutlineColour = nvgColour(PlugDataColours::objectSelectedOutlineColour);
         auto const outlineColour = nvgColour(PlugDataColours::objectOutlineColour);
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
         auto const sizeReduction = std::min(1.0f, getWidth() / 20.0f);
         float const margin = (getWidth() * 0.08f + 4.5f) * sizeReduction;
@@ -95,14 +95,14 @@ public:
         auto const max = std::max(crossBounds.getWidth(), crossBounds.getHeight());
         auto const strokeWidth = std::max(max * 0.15f, 2.0f) * sizeReduction;
 
-        nvgBeginPath(nvg);
-        nvgMoveTo(nvg, crossBounds.getX(), crossBounds.getY());
-        nvgLineTo(nvg, crossBounds.getRight(), crossBounds.getBottom());
-        nvgMoveTo(nvg, crossBounds.getRight(), crossBounds.getY());
-        nvgLineTo(nvg, crossBounds.getX(), crossBounds.getBottom());
-        nvgStrokeColor(nvg, toggleState ? toggledColour : untoggledColour);
-        nvgStrokeWidth(nvg, strokeWidth);
-        nvgStroke(nvg);
+        nanovg::nvgBeginPath(nvg);
+        nanovg::nvgMoveTo(nvg, crossBounds.getX(), crossBounds.getY());
+        nanovg::nvgLineTo(nvg, crossBounds.getRight(), crossBounds.getBottom());
+        nanovg::nvgMoveTo(nvg, crossBounds.getRight(), crossBounds.getY());
+        nanovg::nvgLineTo(nvg, crossBounds.getX(), crossBounds.getBottom());
+        nanovg::nvgStrokeColor(nvg, toggleState ? toggledColour : untoggledColour);
+        nanovg::nvgStrokeWidth(nvg, strokeWidth);
+        nanovg::nvgStroke(nvg);
     }
 
     void toggleObject(Point<int> position) override

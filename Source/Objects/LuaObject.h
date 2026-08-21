@@ -245,7 +245,7 @@ struct LuaPropertiesPanel {
 };
 
 class LuaObject final : public ObjectBase
-    , private Value::Listener {
+    , private Value::Listener, private AsyncUpdater {
     Colour currentColour;
 
     t_symbol* pdluaxSymbol;
@@ -260,7 +260,6 @@ class LuaObject final : public ObjectBase
 
     int currentTouchIndex = -1;
 
-    UnorderedSegmentedMap<int, NVGFramebuffer> framebuffers;
     UnorderedSegmentedMap<hash32, std::pair<NVGImage, Rectangle<int>>> images;
 
     struct LuaGuiMessage {
@@ -319,7 +318,6 @@ public:
             pd->setThis();
         }
 
-        object->editor->nvgSurface.addBufferedObject(this);
         parentHierarchyChanged();
     }
 
@@ -331,7 +329,6 @@ public:
         pd->unlockAudioThread();
 
         zoomScale.removeListener(this);
-        object->editor->nvgSurface.removeBufferedObject(this);
     }
 
     // We can only attach the zoomscale to canvas after the canvas has been added to its own parent
@@ -493,17 +490,29 @@ public:
         sendRepaintMessage();
     }
 
+    void handleAsyncUpdate() override
+    {
+        repaint();
+    }
+
     void render(NVGcontext* nvg) override
     {
         NVGScopedState scopedState(nvg);
 
-        auto scale = nvgCurrentPixelScale(nvg) * getValue<float>(zoomScale);
-        nvgScale(nvg, 1.0f / scale, 1.0f / scale);
-        nvgTransformQuantize(nvg);
+        frameSwapLock.enter();
+        auto frames = currentFrame;
+        frameSwapLock.exit();
 
-        for (auto& [layer, fb] : framebuffers) {
-            fb.render(nvg, Rectangle<int>(std::ceil(getWidth() * scale), std::ceil(getHeight() * scale)));
+
+        auto b = getLocalBounds();
+        nanovg::nvgIntersectRoundedScissor(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+
+        for (auto& [layer, layerMessages] : frames) {
+            for (auto& guiMessage : layerMessages) {
+                handleGuiMessage(nvg, layer, guiMessage.symbol, guiMessage.size, guiMessage.data.data());
+            }
         }
+
     }
 
     void valueChanged(Value& v) override
@@ -520,7 +529,7 @@ public:
             return;
 
         auto getNVGColor = [](uint32_t color) -> NVGcolor {
-            return nvgRGBA(
+            return nanovg::nvgRGBA(
                 (color >> 0) & 0xff,
                 (color >> 8) & 0xff,
                 (color >> 16) & 0xff,
@@ -535,18 +544,18 @@ public:
             NVGcolor ocol = getNVGColor(g->stops[g->nstops - 1].color);
 
             float inverse[6];
-            nvgTransformInverse(inverse, g->xform);
+            nanovg::nvgTransformInverse(inverse, g->xform);
 
             Point<float> s, e;
             // Is it always the case that the gradient should be transformed from (0, 0) to (0, 1)?
-            nvgTransformPoint(&s.x, &s.y, inverse, 0, 0);
-            nvgTransformPoint(&e.x, &e.y, inverse, 0, 1);
+            nanovg::nvgTransformPoint(&s.x, &s.y, inverse, 0, 0);
+            nanovg::nvgTransformPoint(&e.x, &e.y, inverse, 0, 1);
 
             NVGpaint paint;
             if (p->type == NSVG_PAINT_LINEAR_GRADIENT)
-                paint = nvgLinearGradient(nvg, s.x, s.y, e.x, e.y, icol, ocol);
+                paint = nanovg::nvgLinearGradient(nvg, s.x, s.y, e.x, e.y, icol, ocol);
             else
-                paint = nvgRadialGradient(nvg, s.x, s.y, 0.0, 160, icol, ocol);
+                paint = nanovg::nvgRadialGradient(nvg, s.x, s.y, 0.0, 160, icol, ocol);
             return paint;
         };
 
@@ -557,62 +566,62 @@ public:
             if (!(shape->flags & NSVG_FLAGS_VISIBLE))
                 continue;
 
-            nvgSave(nvg);
+            nanovg::nvgSave(nvg);
 
             // Opacity
             if (shape->opacity < 1.0)
-                nvgGlobalAlpha(nvg, shape->opacity);
+                nanovg::nvgGlobalAlpha(nvg, shape->opacity);
 
             // Build path
-            nvgBeginPath(nvg);
-            nvgPathWinding(nvg, NVG_NONZERO);
+            nanovg::nvgBeginPath(nvg);
+            nanovg::nvgPathWinding(nvg, NVG_NONZERO);
 
             // Iterate path linked list
             for (NSVGpath* path = shape->paths; path; path = path->next) {
-                nvgMoveTo(nvg, path->pts[0], path->pts[1]);
+                nanovg::nvgMoveTo(nvg, path->pts[0], path->pts[1]);
                 for (int i = 1; i < path->npts; i += 3) {
                     float* p = &path->pts[2 * i];
-                    nvgBezierTo(nvg, p[0], p[1], p[2], p[3], p[4], p[5]);
+                    nanovg::nvgBezierTo(nvg, p[0], p[1], p[2], p[3], p[4], p[5]);
                 }
 
                 // Close path
                 if (path->closed)
-                    nvgClosePath(nvg);
+                    nanovg::nvgClosePath(nvg);
             }
 
             // Fill shape
             if (shape->fill.type) {
                 switch (shape->fill.type) {
                 case NSVG_PAINT_COLOR: {
-                    nvgFillColor(nvg, getNVGColor(shape->fill.color));
+                    nanovg::nvgFillColor(nvg, getNVGColor(shape->fill.color));
                 } break;
                 case NSVG_PAINT_LINEAR_GRADIENT:
                 case NSVG_PAINT_RADIAL_GRADIENT: {
-                    nvgFillPaint(nvg, getPaint(nvg, &shape->fill));
+                    nanovg::nvgFillPaint(nvg, getPaint(nvg, &shape->fill));
                 } break;
                 }
-                nvgFill(nvg);
+                nanovg::nvgFill(nvg);
             }
 
             // Stroke shape
             if (shape->stroke.type) {
-                nvgStrokeWidth(nvg, shape->strokeWidth);
+                nanovg::nvgStrokeWidth(nvg, shape->strokeWidth);
                 // strokeDashOffset, strokeDashArray, strokeDashCount not yet supported
-                nvgLineCap(nvg, (NVGlineCap)shape->strokeLineCap);
-                nvgLineJoin(nvg, (int)shape->strokeLineJoin);
+                nanovg::nvgLineCap(nvg, (NVGlineCap)shape->strokeLineCap);
+                nanovg::nvgLineJoin(nvg, (int)shape->strokeLineJoin);
 
                 switch (shape->stroke.type) {
                 case NSVG_PAINT_COLOR: {
-                    nvgStrokeColor(nvg, getNVGColor(shape->stroke.color));
+                    nanovg::nvgStrokeColor(nvg, getNVGColor(shape->stroke.color));
                 } break;
                 case NSVG_PAINT_LINEAR_GRADIENT: {
-                    nvgStrokePaint(nvg, getPaint(nvg, &shape->stroke));
+                    nanovg::nvgStrokePaint(nvg, getPaint(nvg, &shape->stroke));
                 } break;
                 }
-                nvgStroke(nvg);
+                nanovg::nvgStroke(nvg);
             }
 
-            nvgRestore(nvg);
+            nanovg::nvgRestore(nvg);
         }
     }
 
@@ -625,33 +634,12 @@ public:
             if (getLocalBounds().isEmpty())
                 break;
 
-            auto const pixelScale = nvgCurrentPixelScale(nvg);
-            auto const zoom = getValue<float>(zoomScale);
-            auto const imageScale = zoom * pixelScale;
-            int const imageWidth = std::ceil(getWidth() * imageScale);
-            int const imageHeight = std::ceil(getHeight() * imageScale);
-            if (!imageWidth || !imageHeight)
-                return;
+            nanovg::nvgSave(nvg);
 
-            framebuffers[layer].bind(nvg, imageWidth, imageHeight);
-
-            nvgViewport(0, 0, imageWidth, imageHeight);
-            nvgClear(nvg);
-            nvgBeginFrame(nvg, getWidth() * zoom, getHeight() * zoom, pixelScale);
-            nvgScale(nvg, zoom, zoom);
-            nvgSave(nvg);
             return;
         }
         case hash("lua_end_paint"): {
-            if (!framebuffers[layer].isValid())
-                return;
-
-            auto const pixelScale = nvgCurrentPixelScale(nvg);
-            auto const scale = getValue<float>(zoomScale) * pixelScale;
-            nvgGlobalScissor(nvg, 0, 0, getWidth() * scale, getHeight() * scale);
-            nvgEndFrame(nvg);
-            framebuffers[layer].unbind();
-            repaint();
+            nanovg::nvgRestore(nvg);
             return;
         }
         default:
@@ -666,8 +654,8 @@ public:
                 currentColour = StackArray<Colour, 3> { PlugDataColours::guiObjectBackgroundColour,
                     PlugDataColours::canvasTextColour,
                     PlugDataColours::guiObjectInternalOutlineColour }[colourID];
-                nvgFillColor(nvg, nvgColour(currentColour));
-                nvgStrokeColor(nvg, nvgColour(currentColour));
+                nanovg::nvgFillColor(nvg, nvgColour(currentColour));
+                nanovg::nvgStrokeColor(nvg, nvgColour(currentColour));
             }
             if (argc >= 3) {
                 Colour const color(static_cast<uint8>(atom_getfloat(argv)),
@@ -675,8 +663,8 @@ public:
                     static_cast<uint8>(atom_getfloat(argv + 2)));
 
                 currentColour = color.withAlpha(argc >= 4 ? atom_getfloat(argv + 3) : 1.0f);
-                nvgFillColor(nvg, nvgColour(currentColour));
-                nvgStrokeColor(nvg, nvgColour(currentColour));
+                nanovg::nvgFillColor(nvg, nvgColour(currentColour));
+                nanovg::nvgStrokeColor(nvg, nvgColour(currentColour));
             }
             break;
         }
@@ -688,11 +676,11 @@ public:
                 float const y2 = atom_getfloat(argv + 3);
                 float const lineThickness = atom_getfloat(argv + 4);
 
-                nvgStrokeWidth(nvg, lineThickness);
-                nvgBeginPath(nvg);
-                nvgMoveTo(nvg, x1, y1);
-                nvgLineTo(nvg, x2, y2);
-                nvgStroke(nvg);
+                nanovg::nvgStrokeWidth(nvg, lineThickness);
+                nanovg::nvgBeginPath(nvg);
+                nanovg::nvgMoveTo(nvg, x1, y1);
+                nanovg::nvgLineTo(nvg, x2, y2);
+                nanovg::nvgStroke(nvg);
             }
             break;
         }
@@ -703,9 +691,9 @@ public:
                 float const w = atom_getfloat(argv + 2);
                 float const h = atom_getfloat(argv + 3);
 
-                nvgBeginPath(nvg);
-                nvgEllipse(nvg, x + w / 2, y + h / 2, w / 2, h / 2);
-                nvgFill(nvg);
+                nanovg::nvgBeginPath(nvg);
+                nanovg::nvgEllipse(nvg, x + w / 2, y + h / 2, w / 2, h / 2);
+                nanovg::nvgFill(nvg);
             }
             break;
         }
@@ -717,10 +705,10 @@ public:
                 float const h = atom_getfloat(argv + 3);
                 float const lineThickness = atom_getfloat(argv + 4);
 
-                nvgStrokeWidth(nvg, lineThickness);
-                nvgBeginPath(nvg);
-                nvgEllipse(nvg, x + w / 2, y + h / 2, w / 2, h / 2);
-                nvgStroke(nvg);
+                nanovg::nvgStrokeWidth(nvg, lineThickness);
+                nanovg::nvgBeginPath(nvg);
+                nanovg::nvgEllipse(nvg, x + w / 2, y + h / 2, w / 2, h / 2);
+                nanovg::nvgStroke(nvg);
             }
             break;
         }
@@ -731,7 +719,7 @@ public:
                 float const w = atom_getfloat(argv + 2);
                 float const h = atom_getfloat(argv + 3);
 
-                nvgFillRect(nvg, x, y, w, h);
+                nanovg::nvgFillRect(nvg, x, y, w, h);
             }
             break;
         }
@@ -743,8 +731,8 @@ public:
                 float const h = atom_getfloat(argv + 3);
                 float const lineThickness = atom_getfloat(argv + 4);
 
-                nvgStrokeWidth(nvg, lineThickness);
-                nvgStrokeRect(nvg, x, y, w, h);
+                nanovg::nvgStrokeWidth(nvg, lineThickness);
+                nanovg::nvgStrokeRect(nvg, x, y, w, h);
             }
             break;
         }
@@ -756,7 +744,7 @@ public:
                 float const h = atom_getfloat(argv + 3);
                 float const cornerRadius = atom_getfloat(argv + 4);
 
-                nvgFillRoundedRect(nvg, x, y, w, h, cornerRadius);
+                nanovg::nvgFillRoundedRect(nvg, x, y, w, h, cornerRadius);
             }
             break;
         }
@@ -770,10 +758,10 @@ public:
                 float const cornerRadius = atom_getfloat(argv + 4);
                 float const lineThickness = atom_getfloat(argv + 5);
 
-                nvgStrokeWidth(nvg, lineThickness);
-                nvgBeginPath(nvg);
-                nvgRoundedRect(nvg, x, y, w, h, cornerRadius);
-                nvgStroke(nvg);
+                nanovg::nvgStrokeWidth(nvg, lineThickness);
+                nanovg::nvgBeginPath(nvg);
+                nanovg::nvgRoundedRect(nvg, x, y, w, h, cornerRadius);
+                nanovg::nvgStroke(nvg);
             }
             break;
         }
@@ -785,11 +773,11 @@ public:
                 float const y2 = atom_getfloat(argv + 3);
                 float const lineThickness = atom_getfloat(argv + 4);
 
-                nvgStrokeWidth(nvg, lineThickness);
-                nvgBeginPath(nvg);
-                nvgMoveTo(nvg, x1, y1);
-                nvgLineTo(nvg, x2, y2);
-                nvgStroke(nvg);
+                nanovg::nvgStrokeWidth(nvg, lineThickness);
+                nanovg::nvgBeginPath(nvg);
+                nanovg::nvgMoveTo(nvg, x1, y1);
+                nanovg::nvgLineTo(nvg, x2, y2);
+                nanovg::nvgStroke(nvg);
             }
             break;
         }
@@ -800,16 +788,17 @@ public:
                 float const w = atom_getfloat(argv + 3);
                 float const fontHeight = atom_getfloat(argv + 4);
                 int const alignment = atom_getfloat(argv + 5);
-
-                nvgFontSize(nvg, fontHeight);
-                nvgTextAlign(nvg, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
-
-                float bounds[4];
-                nvgTextBoxBounds(nvg, 0, 0, w, atom_getsymbol(argv)->s_name, nullptr, bounds);
-                float textW = bounds[2] - bounds[0]; // actual rendered width
-                float textH = bounds[3] - bounds[1]; // actual rendered height (better than fontHeight)
+                auto const text = String::fromUTF8(atom_getsymbol(argv)->s_name);
 
                 float ax = x, ay = y;
+
+                AttributedString txt;
+                txt.append(text, Fonts::getCurrentFont().withPointHeight(fontHeight), currentColour);
+
+                TextLayout layout;
+                layout.createLayout(txt, w);
+                auto textW = layout.getWidth();
+                auto textH = layout.getHeight();
 
                 switch (alignment) {
                 case 1:
@@ -841,58 +830,60 @@ public:
                     break; // TOP
                 }
 
-                nvgBeginPath(nvg);
-                nvgTextBox(nvg, ax, ay, w, atom_getsymbol(argv)->s_name, nullptr);
+                auto* llgc = cnv->editor->getNanoLLGC();
+                Graphics g(*llgc);
+                NVGGraphicsContext::ScopedAnchoredDraw anchor(*llgc, getLocalBounds().toFloat());
+                layout.draw(g, Rectangle<float>(ax, ay, w, textH + 5));
             }
             break;
         }
         case hash("lua_fill_path"): {
-            nvgBeginPath(nvg);
-            nvgMoveTo(nvg, atom_getfloat(argv), atom_getfloat(argv + 1));
+            nanovg::nvgBeginPath(nvg);
+            nanovg::nvgMoveTo(nvg, atom_getfloat(argv), atom_getfloat(argv + 1));
             for (int i = 1; i < argc / 2; i++) {
                 float const x = atom_getfloat(argv + i * 2);
                 float const y = atom_getfloat(argv + i * 2 + 1);
-                nvgLineTo(nvg, x, y);
+                nanovg::nvgLineTo(nvg, x, y);
             }
 
-            nvgClosePath(nvg);
-            nvgFill(nvg);
+            nanovg::nvgClosePath(nvg);
+            nanovg::nvgFill(nvg);
             break;
         }
         case hash("lua_stroke_path"): {
-            nvgBeginPath(nvg);
+            nanovg::nvgBeginPath(nvg);
             auto const strokeWidth = atom_getfloat(argv);
 
             int const numPoints = (argc - 1) / 2;
-            nvgMoveTo(nvg, atom_getfloat(argv + 1), atom_getfloat(argv + 2));
+            nanovg::nvgMoveTo(nvg, atom_getfloat(argv + 1), atom_getfloat(argv + 2));
             for (int i = 1; i < numPoints; i++) {
                 float const x = atom_getfloat(argv + i * 2 + 1);
                 float const y = atom_getfloat(argv + i * 2 + 2);
-                nvgLineTo(nvg, x, y);
+                nanovg::nvgLineTo(nvg, x, y);
             }
 
-            nvgStrokeWidth(nvg, strokeWidth);
-            nvgStroke(nvg);
+            nanovg::nvgStrokeWidth(nvg, strokeWidth);
+            nanovg::nvgStroke(nvg);
             break;
         }
         case hash("lua_fill_all"): {
             auto const bounds = getLocalBounds();
             auto const outlineColour = nvgColour(isSelected ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
 
-            nvgDrawRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), nvgColour(currentColour), outlineColour, Corners::objectCornerRadius);
+            nanovg::nvgDrawRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), nvgColour(currentColour), outlineColour, Corners::objectCornerRadius);
 
             // Make sure subsequent draw calls cannot render over the outline
-            nvgIntersectRoundedScissor(nvg, bounds.getX() + 0.75f, bounds.getY() + 0.75f, bounds.getWidth() - 1.5f, bounds.getHeight() - 1.5f, Corners::objectCornerRadius);
+            nanovg::nvgIntersectRoundedScissor(nvg, bounds.getX() + 0.75f, bounds.getY() + 0.75f, bounds.getWidth() - 1.5f, bounds.getHeight() - 1.5f, Corners::objectCornerRadius);
             break;
         }
         case hash("lua_draw_svg"): {
             if (argc >= 3) {
                 float const x = atom_getfloat(argv + 1);
                 float const y = atom_getfloat(argv + 2);
-                nvgSave(nvg);
-                nvgTranslate(nvg, x, y);
+                nanovg::nvgSave(nvg);
+                nanovg::nvgTranslate(nvg, x, y);
                 drawSVG(nvg, atom_getsymbol(argv)->s_name);
-                nvgRestore(nvg);
+                nanovg::nvgRestore(nvg);
             }
             break;
         }
@@ -931,10 +922,10 @@ public:
 
                 float const x = atom_getfloat(argv + 1);
                 float const y = atom_getfloat(argv + 2);
-                nvgSave(nvg);
-                nvgTranslate(nvg, x, y);
+                nanovg::nvgSave(nvg);
+                nanovg::nvgTranslate(nvg, x, y);
                 images.at(pathHash).first.render(nvg, images[pathHash].second);
-                nvgRestore(nvg);
+                nanovg::nvgRestore(nvg);
             }
             break;
         }
@@ -942,7 +933,7 @@ public:
             if (argc >= 2) {
                 float const tx = atom_getfloat(argv);
                 float const ty = atom_getfloat(argv + 1);
-                nvgTranslate(nvg, tx, ty);
+                nanovg::nvgTranslate(nvg, tx, ty);
             }
             break;
         }
@@ -950,41 +941,17 @@ public:
             if (argc >= 2) {
                 float const sx = atom_getfloat(argv);
                 float const sy = atom_getfloat(argv + 1);
-                nvgScale(nvg, sx, sy);
+                nanovg::nvgScale(nvg, sx, sy);
             }
             break;
         }
         case hash("lua_reset_transform"): {
-            nvgRestore(nvg);
-            nvgSave(nvg);
+            nanovg::nvgRestore(nvg);
+            nanovg::nvgSave(nvg);
             break;
         }
         default:
             break;
-        }
-    }
-
-    // We need to update the framebuffer in a place where the current graphics context is active (for multi-window support, thanks to Alex for figuring that out)
-    // but we also need to be outside of calls to beginFrame/endFrame
-    // So we have this separate callback function that occurs after activating the GPU context, but before starting the frame
-    void updateFramebuffers(NVGcontext* nvg) override
-    {
-        frameSwapLock.enter();
-        auto frames = currentFrame;
-        currentFrame.clear();
-        frameSwapLock.exit();
-
-        for (auto& [layer, layerMessages] : frames) {
-            for (auto& guiMessage : layerMessages) {
-                handleGuiMessage(nvg, layer, guiMessage.symbol, guiMessage.size, guiMessage.data.data());
-            }
-            if (!framebuffers[layer].isValid())
-                sendRepaintMessage();
-        }
-
-        if (isSelected != object->isSelected()) {
-            isSelected = object->isSelected();
-            sendRepaintMessage();
         }
     }
 
@@ -1024,6 +991,7 @@ public:
                 object->currentFrame[layer] = object->guiCommandBuffer[layer];
                 object->frameSwapLock.exit();
                 object->guiCommandBuffer[layer].clear();
+                object->triggerAsyncUpdate();
             }
         }
     }

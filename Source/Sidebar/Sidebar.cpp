@@ -95,7 +95,6 @@ Sidebar::Sidebar(Side sideIn, PluginProcessor* instance, PluginEditor* parent,
     , commandInputPtr(cmdInput)
 {
     inspectorAutoShow = SettingsFile::getInstance()->getProperty<bool>("inspector_auto_show");
-    updater.addAnimator(animator);
     rebuildPanelTable();
     resized();
 }
@@ -297,7 +296,7 @@ void Sidebar::showButtonContextMenu(SidebarSelectorButton* button, SidePanel pan
 
 void Sidebar::paint(Graphics& g)
 {
-    if (sidebarHidden && !editor->usesFloatingPanels()) {
+    if (sidebarHidden) {
         auto baseColour = PlugDataColours::toolbarBackgroundColour;
         if (ProjectInfo::isStandalone && !editor->isActiveWindow())
             baseColour = baseColour.brighter(baseColour.getBrightness() / 2.5f);
@@ -307,10 +306,12 @@ void Sidebar::paint(Graphics& g)
         g.fillRoundedRectangle(0.0f, 30.0f, getWidth(), getHeight() - 30.0f, Corners::windowCornerRadius);
         
         g.setColour(PlugDataColours::toolbarOutlineColour);
+
+        auto lineBottom = static_cast<float>(sidebarHidden ? getHeight() - 30 : getHeight());
         if (side == Side::Right)
-            g.drawLine(0.5f, 30.5f, 0.5f, static_cast<float>(getHeight()));
+            g.drawVerticalLine(0.5f, 30.5f, lineBottom);
         else
-            g.drawLine(getWidth() - 0.5f, 30.5f, getWidth() - 0.5f, static_cast<float>(getHeight()));
+            g.drawVerticalLine(getWidth() - 0.5f, 30.5f, lineBottom);
         return;
     }
 
@@ -318,8 +319,8 @@ void Sidebar::paint(Graphics& g)
         return;
 
     g.setColour(PlugDataColours::sidebarBackgroundColour);
-    g.fillRect(0, 30, getWidth(), getHeight() - 42);
-    g.fillRoundedRectangle(0.0f, 30.0f, getWidth(), getHeight() - 30.0f, Corners::windowCornerRadius);
+    g.fillRect(0, 30, getWidth(), getHeight() - 60);
+    g.fillRoundedRectangle(0.0f, getHeight() - 50.f, getWidth(), 50.f, Corners::windowCornerRadius);
 
     String panelName = hasCurrentPanel && currentPanel < panelDisplayNames.size()
         ? panelDisplayNames[currentPanel]
@@ -338,7 +339,7 @@ void Sidebar::paintOverChildren(Graphics& g)
     if (!hasAnyPanel())
         return;
 
-    if (sidebarHidden && !editor->usesFloatingPanels())
+    if (sidebarHidden)
         return;
 
     g.setColour(PlugDataColours::toolbarOutlineColour);
@@ -361,7 +362,7 @@ void Sidebar::paintOverChildren(Graphics& g)
 int Sidebar::getCommandInputHeight()
 {
     return commandInputPtr && commandInputPtr->isVisible() && commandInputPtr->getParentComponent() == this
-        ? commandInputPtr->getHeight() + 16
+        ? commandInputPtr->getHeight()
         : 0;
 }
 
@@ -371,35 +372,25 @@ void Sidebar::resized()
     if (bounds.getWidth() == 0)
         return;
 
-    int totalH = 0;
-    for (auto const& _ : panelTable)
-        totalH += 30 + 8;
-
-    bool const floatingPanels = editor->usesFloatingPanels();
-    if (sidebarHidden && !floatingPanels)
+    if (sidebarHidden)
         setCachedComponentImage(nullptr);
 
-    auto buttonBarBounds = Rectangle<int>();
-    if (floatingPanels) {
-        buttonBarBounds = (side == Side::Right)
-            ? bounds.removeFromRight(42).reduced(0, 1).translated(-6, 0)
-            : bounds.removeFromLeft(42).reduced(0, 1).translated(6, 0);
+    auto buttonColumn = (side == Side::Right)
+        ? bounds.removeFromRight(34).reduced(2, 0)
+        : bounds.removeFromLeft(34).reduced(2, 0);
 
-        buttonBarBounds.translate(side == Side::Right ? -sidebarSelectorOffset : sidebarSelectorOffset, 0);
-        buttonBarBounds = buttonBarBounds.withSizeKeepingCentre(30, totalH);
-    } else {
-        buttonBarBounds = (side == Side::Right)
-            ? bounds.removeFromRight(34).reduced(2, 0)
-            : bounds.removeFromLeft(34).reduced(2, 0);
-
-        buttonBarBounds = buttonBarBounds.withSizeKeepingCentre(30, totalH);
+    auto topBounds = buttonColumn.withTrimmedTop(34);
+    for (auto const& entry : panelTable) {
+        if (!entry.button || entry.id == InspectorPanel)
+            continue;
+        entry.button->setBounds(topBounds.removeFromTop(30));
+        topBounds.removeFromTop(8);
     }
 
-    for (auto const& entry : panelTable) {
-        if (entry.button) {
-            entry.button->setBounds(buttonBarBounds.removeFromTop(30));
-            buttonBarBounds.removeFromTop(8);
-        }
+    if (auto* inspectorButton = getSelectorButton(InspectorPanel)) {
+        auto bottomBounds = buttonColumn.withTrimmedBottom(34);
+        auto commandInputOffset = commandInputPtr ? commandInputPtr->getInputHeight() : 30;
+        inspectorButton->setBounds(bottomBounds.removeFromBottom(commandInputOffset));
     }
 
     auto extraButtonBounds = side == Side::Right ? Rectangle<int>(0, 0, 30, 30) : Rectangle<int>(getWidth() - 30, 0, 30, 30);
@@ -409,18 +400,13 @@ void Sidebar::resized()
     if (resetInspectorButton)
         resetInspectorButton->setBounds(extraButtonBounds);
 
+    bounds.removeFromTop(30);
+
     if (commandInputPtr && commandInputPtr->isVisible()
         && commandInputPtr->getParentComponent() == this) {
         auto commandInputHeight = getCommandInputHeight();
-        commandInputPtr->setBounds(getLocalBounds()
-                .removeFromBottom(commandInputHeight)
-                .reduced(8)
-                .withTrimmedLeft(side == Side::Left ? 30 : 0)
-                .withTrimmedRight(side == Side::Right ? 30 : 0));
-        bounds.removeFromBottom(commandInputHeight);
+        commandInputPtr->setBounds(bounds.removeFromBottom(commandInputHeight).getUnion(buttonColumn.removeFromBottom(commandInputHeight)));
     }
-
-    bounds.removeFromTop(30);
 
     if (inspectorPtr && inspectorPtr->getParentComponent() == this && inspectorPtr->isVisible())
         inspectorPtr->setBounds(bounds);
@@ -559,16 +545,16 @@ bool Sidebar::refreshInspectorVisibility(bool const allowManualShow)
 
 void Sidebar::updateCommandInputVisibility()
 {
-    auto const wantsCmd = (currentPanel == ConsolePanel) || (hasPanel(ConsolePanel) && inspectorAutoShow && currentPanel == InspectorPanel);
+    auto const wantsCmd = hasPanel(InspectorPanel);
+
     if (commandInputPtr) {
-        if (wantsCmd && hasPanel(currentPanel)) {
+        if (wantsCmd) {
             if (commandInputPtr->getParentComponent() != this) {
                 if (commandInputPtr->getParentComponent())
                     commandInputPtr->getParentComponent()->removeChildComponent(commandInputPtr);
                 addAndMakeVisible(commandInputPtr);
-            } else {
-                commandInputPtr->setVisible(true);
             }
+            commandInputPtr->setVisible(!sidebarHidden);
         } else if (commandInputPtr->getParentComponent() == this) {
             commandInputPtr->setVisible(false);
         }
@@ -589,6 +575,7 @@ void Sidebar::showPanel(SidePanel const panelToShow)
             inspectorPtr->setVisible(false);
         inspectorManuallyShown = false;
         showSidebar(false);
+        updateCommandInputVisibility();
         return;
     }
 
@@ -734,14 +721,12 @@ void Sidebar::showSidebar(bool const show)
         return;
 
     sidebarHidden = !show;
-    sidebarSelectorTarget = show ? 0.0f : 5.0f;
-    animator.start();
 
     SettingsFile::getInstance()->setProperty(side == Side::Right ? "right_sidebar_hidden" : "left_sidebar_hidden", !show);
 
     if (!show) {
         lastWidth = getWidth();
-        int const newWidth = editor->usesFloatingPanels() ? 48 : 34;
+        int const newWidth = 34;
         if (side == Side::Right)
             setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());
         else
@@ -755,10 +740,7 @@ void Sidebar::showSidebar(bool const show)
             inspectorPtr->setVisible(false);
         inspectorManuallyShown = false;
         updateSelectorButtonStates();
-        if (editor->usesFloatingPanels())
-            setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this));
-        else
-            setCachedComponentImage(nullptr);
+        setCachedComponentImage(nullptr);
     } else {
         setCachedComponentImage(nullptr);
         int const newWidth = lastWidth;
@@ -844,45 +826,6 @@ void Sidebar::hideParameters()
     updateExtraSettingsButton();
     resized();
     repaint();
-}
-
-void Sidebar::renderButtonsOnCanvas(NVGcontext* nvg)
-{
-    if (!hasAnyPanel())
-        return;
-
-    if (!editor->usesFloatingPanels())
-        return;
-
-    Graphics g(*editor->getNanoLLGC());
-
-    auto totalHeight = 0;
-    for (auto const& _ : panelTable) {
-        totalHeight += 38;
-    }
-
-    auto b = editor->nvgSurface.getLocalArea(this, getLocalBounds()).withSizeKeepingCentre(36, totalHeight).translated(side == Side::Right ? -8 : 8, -4);
-
-    StackShadow::drawShadowForRect(g, b.reduced(3.0f), 10, Corners::largeCornerRadius, 0.4f, 1);
-
-    g.setColour(PlugDataColours::toolbarBackgroundColour);
-    g.fillRoundedRectangle(b.toFloat(), Corners::largeCornerRadius);
-
-    g.setColour(PlugDataColours::toolbarOutlineColour);
-    g.drawRoundedRectangle(b.toFloat(), Corners::largeCornerRadius, 1.0f);
-
-    auto drawButton = [&](Component* button) {
-        auto pos = editor->nvgSurface.getLocalPoint(button, Point<int>(0, 0));
-        g.saveState();
-        g.addTransform(AffineTransform::translation(pos));
-        button->paintEntireComponent(g, true);
-        g.restoreState();
-    };
-
-    for (auto const& entry : panelTable) {
-        if (entry.button)
-            drawButton(entry.button);
-    }
 }
 
 void Sidebar::updateSearch(bool const resetInspector)

@@ -6,13 +6,10 @@
 
 #pragma once
 
-#include <nanovg.h>
+#include <nanovg_async.h>
 #ifdef NANOVG_GL_IMPLEMENTATION
 #    include <juce_opengl/juce_opengl.h>
 using namespace juce::gl;
-#    undef NANOVG_GL_IMPLEMENTATION
-#    include <nanovg_gl_utils.h>
-#    define NANOVG_GL_IMPLEMENTATION 1
 #endif
 
 #include "ObjectGrid.h"          // move to impl
@@ -95,7 +92,9 @@ public:
     void focusLost(FocusChangeType cause) override;
 
     void updateFramebuffers(NVGcontext* nvg) override;
+    void render(NVGcontext* nvg) override;
     void performRender(NVGcontext* nvg, Rectangle<int> invalidRegion);
+    void renderResizeHandle(NVGcontext* nvg, NVGcolor colour);
 
     void resized() override;
 
@@ -251,8 +250,6 @@ public:
 
     int lastObjectGridSize = -1;
 
-    NVGImage dotsLargeImage;
-
     Point<int> const canvasOrigin;
 
     std::unique_ptr<GraphArea> graphArea;
@@ -273,8 +270,9 @@ public:
     Component objectLayer;
     Component connectionLayer;
 
-    NVGImage resizeHandleImage;
+    NVGCachedPath resizeHandlePath;
     NVGImage presentationShadowImage;
+    NVGFramebuffer dotsLargeImage;
 
 private:
     void changeListenerCallback(ChangeBroadcaster* c) override;

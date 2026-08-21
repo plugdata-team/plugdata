@@ -14,7 +14,7 @@
 #include "Utility/SynchronousValue.h"
 #include "NVGSurface.h"
 #include "Utility/NVGUtils.h"
-#include "Utility/CachedTextRender.h"
+#include "Utility/NVGGraphicsContext.h"
 #include "Object.h"
 #include "Canvas.h"
 
@@ -30,11 +30,6 @@ class Object;
 class ObjectLabel : public Label
     , public NVGComponent {
 
-    hash32 lastTextHash = 0;
-    NVGImage image;
-    float lastScale = 1.0f;
-    bool updateColour = false;
-
 public:
     explicit ObjectLabel()
         : NVGComponent(this)
@@ -45,40 +40,39 @@ public:
         setEditable(false, false);
         setInterceptsMouseClicks(false, false);
         setColour(Label::textColourId, Colours::white);
+
+        setCachedComponentImage(new NVGSurface::InvalidationChecker([this](){
+            commandBufferDirty = true;
+        }));
     }
 
     void setLabelColour(Colour c)
     {
         setColour(Label::textColourId, c);
-        updateColour = true;
         repaint();
     }
 
-    virtual void renderLabel(NVGcontext* nvg, float const scale)
+    void render(NVGGraphicsContext& llgc)
     {
-        auto const w = roundToInt(scale * static_cast<float>(getWidth()));
-        auto const h = roundToInt(scale * static_cast<float>(getHeight()));
+        auto* nvg = llgc.getContext();
 
-        auto const textHash = hash(getText());
-        if (image.needsUpdate(w, h) || updateColour || lastTextHash != textHash || lastScale != scale) {
-            updateImage(nvg, scale);
-            lastTextHash = textHash;
-            lastScale = scale;
-            updateColour = false;
-        } else {
-            nvgSave(nvg);
-            // Need to invert scale to make it render on a pixel grid correctly
-            nvgScale(nvg, 1.0f / scale, 1.0f / scale);
-
-            image.render(nvg, Rectangle<int>(w, h), true);
-            nvgRestore(nvg);
+        if(commandBufferDirty) {
+            commandBuffer.clear();
+            nanovg::ScopedCommandRecorder recorder(nvg, commandBuffer);
+            renderLabel(llgc);
+            commandBufferDirty = false;
         }
+
+        nanovg::replay(nvg, commandBuffer);
     }
-    void updateImage(NVGcontext* nvg, float const scale)
+
+    virtual void renderLabel(NVGGraphicsContext& llgc)
     {
-        // TODO: use single channel image texture
-        image.renderJUCEComponent(nvg, *this, scale);
+        llgc.renderComponent(*this);
     }
+
+    bool commandBufferDirty : 1 = true;
+    nanovg::CommandBuffer commandBuffer;
 };
 
 class ObjectBase : public Component

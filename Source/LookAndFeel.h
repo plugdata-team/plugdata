@@ -7,7 +7,7 @@
 #pragma once
 
 #include <bit>
-#include <nanovg.h>
+#include <nanovg_async.h>
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
 #include "Utility/SettingsFile.h"
@@ -41,9 +41,6 @@ struct PlugDataColours {
     static inline Colour sidebarBackgroundColour;
     static inline Colour sidebarTextColour;
     static inline Colour sidebarActiveBackgroundColour;
-    static inline Colour levelMeterActiveColour;
-    static inline Colour levelMeterBackgroundColour;
-    static inline Colour levelMeterThumbColour;
     static inline Colour panelBackgroundColour;
     static inline Colour panelForegroundColour;
     static inline Colour panelTextColour;
@@ -99,10 +96,6 @@ inline UnorderedMap<PlugDataColour, std::tuple<String, String, String>> const Pl
     { caretColourId, { "Text editor caret", "caret_colour", "Other" } },
     { toolbarOutlineColourId, { "Outline", "toolbar_outline_colour", "Other" } },
     { scrollbarThumbColourId, { "Scrollbar thumb", "scrollbar_thumb", "Other" } },
-
-    { levelMeterActiveColourId, { "Level meter active", "levelmeter_active", "Level Meter" } },
-    { levelMeterBackgroundColourId, { "Level meter track", "levelmeter_background", "Level Meter" } },
-    { levelMeterThumbColourId, { "Level meter thumb", "levelmeter_thumb", "Level Meter" } },
 
     { panelBackgroundColourId, { "Panel background", "panel_background", "Properties Panel" } },
     { panelForegroundColourId, { "Panel foreground", "panel_foreground", "Properties Panel" } },
