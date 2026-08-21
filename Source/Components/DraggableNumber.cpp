@@ -446,24 +446,6 @@ int DraggableNumber::getDecimalAtPosition(int const x, Rectangle<float>* positio
     return draggedDecimal;
 }
 
-struct ScopedNanoTimer
-{
-    std::chrono::high_resolution_clock::time_point t0;
-    std::string n;
-
-    ScopedNanoTimer(std::string name)
-        : t0(std::chrono::high_resolution_clock::now())
-        , n(name)
-    {
-    }
-    ~ScopedNanoTimer(void)
-    {
-        auto  t1 = std::chrono::high_resolution_clock::now();
-        auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count();
-        std::cout << n << nanos << "\n";
-    }
-};
-
 
 void DraggableNumber::render(NVGcontext* nvg, NVGGraphicsContext* llgc)
 {
@@ -477,8 +459,8 @@ void DraggableNumber::render(NVGcontext* nvg, NVGGraphicsContext* llgc)
 
     if (hoveredDecimal >= 0) {
         auto const highlightColour = outlineColour.withAlpha(isMouseButtonDown() ? 0.5f : 0.3f);
-        //nanovg::nvgFillColor(nvg, nvgColour(highlightColour));
-        //nanovg::nvgFillRoundedRect(nvg, hoveredDecimalPosition.getX(), hoveredDecimalPosition.getY(), hoveredDecimalPosition.getWidth(), hoveredDecimalPosition.getHeight(), 2.5f);
+        nanovg::nvgFillColor(nvg, nvgColour(highlightColour));
+        nanovg::nvgFillRoundedRect(nvg, hoveredDecimalPosition.getX(), hoveredDecimalPosition.getY(), hoveredDecimalPosition.getWidth(), hoveredDecimalPosition.getHeight(), 2.5f);
     }
 
     auto textArea = border.subtractedFrom(getLocalBounds()).toDouble();

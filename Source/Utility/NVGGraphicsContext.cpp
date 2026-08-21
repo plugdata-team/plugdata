@@ -6,6 +6,7 @@
 #include <bit>
 #include <BinaryData.h>
 #include <cstring>
+#include <memory>
 
 #if PERFETTO
 #    include <melatonin_perfetto/melatonin_perfetto.h>
@@ -70,12 +71,24 @@ enum class DeferredTextMode : uint8_t {
     Rectangle,
 };
 
+struct PreparedGlyph {
+    int glyph = 0;
+    Point<float> position;
+};
+
+struct PreparedText {
+    Font font { FontOptions() };
+    Typeface::Ptr typeface;
+    std::vector<PreparedGlyph> glyphs;
+};
+
 struct DeferredTextPayload {
     Font font { FontOptions() };
     String text;
     int justificationFlags = Justification::left;
     Rectangle<int> bounds;
     DeferredTextMode mode = DeferredTextMode::Baseline;
+    std::unique_ptr<PreparedText> prepared;
 };
 
 static void setRawNvgPath(NVGcontext* nvg, Path path, AffineTransform const& transform = {})
@@ -146,38 +159,24 @@ static void renderSDFGlyph(NVGcontext* nvg, Typeface& typeface, Font const& font
     ::nvgRestore(nvg);
 }
 
-static void renderGlyphArrangement(NVGcontext* nvg, GlyphArrangement const& arrangement, Typeface& typeface, Font const& font)
+static std::unique_ptr<PreparedText> prepareDeferredText(DeferredTextPayload const& payload)
 {
-    for (int i = 0; i < arrangement.getNumGlyphs(); ++i) {
-        auto const& glyph = arrangement.getGlyph(i);
+    auto prepared = std::make_unique<PreparedText>();
+    prepared->font = payload.font;
+    prepared->typeface = prepared->font.getTypefacePtr();
 
-        if (glyph.isWhitespace())
-            continue;
-
-        renderSDFGlyph(nvg, typeface, font, glyph.getGlyphIndex(), { glyph.getLeft(), glyph.getBaselineY() });
-    }
-}
-
-static void renderDeferredText(NVGcontext* nvg, DeferredTextPayload const& payload)
-{
-    if (payload.text.isEmpty())
-        return;
-
-    auto const& font = payload.font;
-    auto typeface = font.getTypefacePtr();
-
-    if (typeface == nullptr)
-        return;
+    if (prepared->typeface == nullptr)
+        return {};
 
     GlyphArrangement arrangement;
     auto const bounds = payload.bounds.toFloat();
 
     if (payload.mode == DeferredTextMode::Rectangle) {
-        arrangement.addCurtailedLineOfText(font, payload.text, 0.0f, 0.0f, bounds.getWidth(), false);
+        arrangement.addCurtailedLineOfText(prepared->font, payload.text, 0.0f, 0.0f, bounds.getWidth(), false);
         arrangement.justifyGlyphs(0, arrangement.getNumGlyphs(), 0.0f, 0.0f, bounds.getWidth(), bounds.getHeight(), Justification(payload.justificationFlags));
         arrangement.moveRangeOfGlyphs(0, arrangement.getNumGlyphs(), bounds.getX(), bounds.getY());
     } else {
-        arrangement.addLineOfText(font, payload.text, 0.0f, 0.0f);
+        arrangement.addLineOfText(prepared->font, payload.text, 0.0f, 0.0f);
 
         auto offsetX = bounds.getX();
         auto const horizontalFlags = payload.justificationFlags
@@ -195,7 +194,38 @@ static void renderDeferredText(NVGcontext* nvg, DeferredTextPayload const& paylo
         arrangement.moveRangeOfGlyphs(0, arrangement.getNumGlyphs(), offsetX, bounds.getY());
     }
 
-    renderGlyphArrangement(nvg, arrangement, *typeface, font);
+    prepared->glyphs.reserve(static_cast<size_t>(arrangement.getNumGlyphs()));
+
+    for (int i = 0; i < arrangement.getNumGlyphs(); ++i) {
+        auto const& glyph = arrangement.getGlyph(i);
+
+        if (!glyph.isWhitespace())
+            prepared->glyphs.push_back({ glyph.getGlyphIndex(), { glyph.getLeft(), glyph.getBaselineY() } });
+    }
+
+    return prepared;
+}
+
+static void renderPreparedText(NVGcontext* nvg, PreparedText const& prepared)
+{
+    if (prepared.typeface == nullptr)
+        return;
+
+    for (auto const& glyph : prepared.glyphs) {
+        renderSDFGlyph(nvg, *prepared.typeface, prepared.font, glyph.glyph, glyph.position);
+    }
+}
+
+static void renderDeferredText(NVGcontext* nvg, DeferredTextPayload& payload)
+{
+    if (payload.text.isEmpty())
+        return;
+
+    if (payload.prepared == nullptr)
+        payload.prepared = prepareDeferredText(payload);
+
+    if (payload.prepared != nullptr)
+        renderPreparedText(nvg, *payload.prepared);
 }
 
 static void enqueueDeferredText(NVGcontext* nvg, DeferredTextPayload payload, AffineTransform const& transform)
