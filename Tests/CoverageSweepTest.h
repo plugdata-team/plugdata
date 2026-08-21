@@ -41,7 +41,6 @@ void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 #include "Toolbar.h"
 #include "Utility/AudioMidiFifo.h"
 #include "Utility/Autosave.h"
-#include "Utility/CachedTextRender.h"
 #include "Utility/ModifierKeyListener.h"
 #include "Utility/Recorder.h"
 
@@ -1209,18 +1208,6 @@ private:
         exerciseMidiDeviceManager();
         exerciseObjectOrdering();
 
-        CachedTextRender textRender;
-        auto const font = Fonts::getDefaultFont().withHeight(14.0f);
-        auto const colour = PlugDataColours::canvasTextColour;
-        auto const nameColour = PlugDataColours::dataColour;
-        CachedTextRender::getSyntaxHighlightedString(
-            "expr $f1 + 2\nosc~ -rate 440\nprint coverage", font, colour, nameColour);
-        textRender.prepareLayout("expr $f1 + 2", font, colour, 240, 240, true);
-        textRender.prepareLayout("plain text", font, colour, 180, 180, false);
-        textRender.getTextBounds();
-        if (auto* context = editor->getNanoLLGC(); context && context->getContext())
-            textRender.renderText(context->getContext(), { 0.0f, 0.0f, 240.0f, 60.0f }, 1.0f);
-
         auto* settings = SettingsFile::getInstance();
         ValueTree legacyTheme("Theme");
         legacyTheme.setProperty("theme", "Coverage", nullptr);
@@ -1247,7 +1234,6 @@ private:
         CommandInput commandInput(editor);
         commandInput.setBounds(0, 0, 420, 80);
         commandInput.handleURL("ls");
-        commandInput.updateSize(true);
         commandInput.parseExpressions("value { 1 + 2 }");
         commandInput.parseExpressions("{ pd.post('coverage') }");
         commandInput.parseExpressions("{ pd.post(7) }");
