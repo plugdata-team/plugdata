@@ -79,6 +79,10 @@ NVGSurface::~NVGSurface()
 
 void NVGSurface::initialise()
 {
+    // Publish the editor size before the render thread can start, so its first
+    // createRenderContext/renderBackendFrame reads a valid snapshot.
+    snapshotEditorSize();
+
 #if NANOVG_METAL_IMPLEMENTATION && (JUCE_MAC || JUCE_IOS)
     if (!metalView) {
         auto* peer = getPeer();
@@ -87,9 +91,12 @@ void NVGSurface::initialise()
 
         auto* nativePeer = peer->getNativeHandle();
         metalView = OSUtils::MTLCreateView(nativePeer, 0, 0, getWidth(), getHeight());
+        metalLayer = OSUtils::MTLGetLayer(metalView);
         setView(metalView);
         setVisible(true);
     }
+
+    updateRenderScale();
 
     if (!isThreadRunning()) {
         backendRenderRequested.store(true);
@@ -109,14 +116,15 @@ void NVGSurface::createRenderContext()
         return;
 
 #if NANOVG_METAL_IMPLEMENTATION && (JUCE_MAC || JUCE_IOS)
+    // Render thread: use the message-thread snapshot, not the editor Component.
     auto const pixelScale = calculateRenderScale();
-    auto const viewWidth = jmax(1, roundToInt(editor->getWidth() * pixelScale));
-    auto const viewHeight = jmax(1, roundToInt(editor->getHeight() * pixelScale));
+    auto const viewWidth = jmax(1, roundToInt(editorWidth.load(std::memory_order_relaxed) * pixelScale));
+    auto const viewHeight = jmax(1, roundToInt(editorHeight.load(std::memory_order_relaxed) * pixelScale));
 
-    if (!metalView)
+    if (!metalLayer)
         return;
 
-    baseNvg = nvgCreateContext(metalView, 0, viewWidth, viewHeight);
+    baseNvg = nvgCreateContextForLayer(metalLayer, 0, viewWidth, viewHeight);
 #elif NANOVG_GL_IMPLEMENTATION
     // Runs on the render thread. Context create/destroy and the main framebuffer
     // are render-thread-owned; no contextMutex needed (see NVGSurface.h / recordFrame).
@@ -229,8 +237,9 @@ void NVGSurface::presentFramebuffer(int viewWidth, int viewHeight)
     nvgBindFramebuffer(nullptr);
 
 #if NANOVG_METAL_IMPLEMENTATION && (JUCE_MAC || JUCE_IOS)
-    if (metalView)
-        mnvgSetViewBounds(metalView, viewWidth, viewHeight);
+    // Render thread: resize the drawable via the cached layer, never the view.
+    if (metalLayer)
+        mnvgSetLayerDrawableSize(metalLayer, viewWidth, viewHeight);
 #endif
 
     nvgViewport(0, 0, viewWidth, viewHeight);
@@ -245,8 +254,8 @@ void NVGSurface::presentFramebuffer(int viewWidth, int viewHeight)
 void NVGSurface::renderBackendFrame()
 {
     auto const pixelScale = calculateRenderScale();
-    auto const viewWidth = jmax(1, roundToInt(editor->getWidth() * pixelScale));
-    auto const viewHeight = jmax(1, roundToInt(editor->getHeight() * pixelScale));
+    auto const viewWidth = jmax(1, roundToInt(editorWidth.load(std::memory_order_relaxed) * pixelScale));
+    auto const viewHeight = jmax(1, roundToInt(editorHeight.load(std::memory_order_relaxed) * pixelScale));
 
     if (!baseNvg)
         return;
@@ -321,6 +330,8 @@ void NVGSurface::renderBackendFrame()
 #if NANOVG_GL_IMPLEMENTATION
 void NVGSurface::renderOpenGL()
 {
+    updateRenderScale();
+
     renderBackendFrame();
 }
 #endif
@@ -339,6 +350,7 @@ void NVGSurface::detachContext()
         setView(nullptr);
         OSUtils::MTLDeleteView(metalView);
         metalView = nullptr;
+        metalLayer = nullptr;   // owned by the view; cleared here after the render thread has stopped
     }
 #elif NANOVG_GL_IMPLEMENTATION
     if (glContext)
@@ -370,20 +382,38 @@ bool NVGSurface::makeContextActive()
 
 float NVGSurface::calculateRenderScale() const
 {
+    auto const scale = cachedRenderScale.load(std::memory_order_relaxed);
+    if (scale > 0.0f)
+        return scale;
+
+    return Desktop::getInstance().getGlobalScaleFactor();
+}
+
+void NVGSurface::updateRenderScale()
+{
 #if NANOVG_METAL_IMPLEMENTATION && (JUCE_MAC || JUCE_IOS)
     if (metalView) {
         auto const scale = OSUtils::MTLGetPixelScale(metalView);
         if (scale > 0.0f)
-            return scale * Desktop::getInstance().getGlobalScaleFactor();
+            cachedRenderScale.store(scale * Desktop::getInstance().getGlobalScaleFactor(), std::memory_order_relaxed);
     }
 #elif NANOVG_GL_IMPLEMENTATION
     if (glContext) {
         auto const scale = glContext->getRenderingScale();
-        if (scale > 0.0f)
-            return scale;
+        if (scale > 0.0)
+            cachedRenderScale.store(static_cast<float>(scale), std::memory_order_relaxed);
     }
 #endif
-    return Desktop::getInstance().getGlobalScaleFactor();
+}
+
+void NVGSurface::snapshotEditorSize()
+{
+    // Message thread only. Publishes the editor's logical size so the render thread
+    // can size the drawable/framebuffer without touching the editor Component, whose
+    // bounds are message-thread-only.
+    JUCE_ASSERT_MESSAGE_THREAD;
+    editorWidth.store(jmax(1, editor->getWidth()), std::memory_order_relaxed);
+    editorHeight.store(jmax(1, editor->getHeight()), std::memory_order_relaxed);
 }
 
 float NVGSurface::getRenderScale() const
@@ -394,6 +424,7 @@ float NVGSurface::getRenderScale() const
 void NVGSurface::updateBounds(Rectangle<int>)
 {
     currentBounds = editor->getLocalBounds();
+    snapshotEditorSize();
 
     if (getBounds() != currentBounds)
         setBounds(currentBounds);
@@ -404,15 +435,12 @@ void NVGSurface::updateBounds(Rectangle<int>)
 
 void NVGSurface::resized()
 {
+    snapshotEditorSize();
+
     invalidateAll();
 
 #if NANOVG_METAL_IMPLEMENTATION && (JUCE_MAC || JUCE_IOS)
-    if (metalView) {
-        auto const pixelScale = calculateRenderScale();
-        auto const viewWidth = jmax(1, roundToInt(editor->getWidth() * pixelScale));
-        auto const viewHeight = jmax(1, roundToInt(editor->getHeight() * pixelScale));
-        mnvgSetViewBounds(metalView, viewWidth, viewHeight);
-    }
+    updateRenderScale();
 #endif
 }
 
@@ -473,8 +501,13 @@ void NVGSurface::recordFrame()
     JUCE_ASSERT_MESSAGE_THREAD;
 
     auto const bounds = editor->getLocalBounds();
+    snapshotEditorSize();
     if (bounds.isEmpty())
         return;
+
+#if NANOVG_METAL_IMPLEMENTATION && (JUCE_MAC || JUCE_IOS)
+    updateRenderScale();
+#endif
 
     lastRenderScale = calculateRenderScale();
     auto const desktopScale = Desktop::getInstance().getGlobalScaleFactor();

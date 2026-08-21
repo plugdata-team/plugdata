@@ -294,6 +294,11 @@ void* OSUtils::MTLCreateView(void* parent, int x, int y, int width, int height)
     return childView;
 }
 
+void* OSUtils::MTLGetLayer(void* view)
+{
+    return reinterpret_cast<NSView*>(view).layer;
+}
+
 void OSUtils::MTLDeleteView(void* view)
 {
     auto* viewToRemove = reinterpret_cast<NSView*>(view);
@@ -527,6 +532,11 @@ void* OSUtils::MTLCreateView(void* parent, int x, int y, int width, int height)
     [parentView addSubview:childView];
 
     return childView;
+}
+
+void* OSUtils::MTLGetLayer(void* view)
+{
+    return reinterpret_cast<UIView*>(view).layer;
 }
 
 void OSUtils::MTLDeleteView(void* view)

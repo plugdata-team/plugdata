@@ -157,6 +157,8 @@ private:
     void serviceReadbackRequest();
 
     float calculateRenderScale() const;
+    void updateRenderScale();
+    void snapshotEditorSize();
     void scheduleRender();
     void recordFrame();
     void createRenderContext();
@@ -202,6 +204,15 @@ private:
 
     float lastRenderScale = 0.0f;
 
+    std::atomic<float> cachedRenderScale { 0.0f };
+
+    // Editor's logical (pre-scale) size, snapshotted on the message thread. The
+    // render thread sizes the drawable/framebuffer from these instead of reading
+    // the editor Component directly: Component bounds are message-thread-only, so
+    // reading them off the render thread is a data race (see snapshotEditorSize).
+    std::atomic<int> editorWidth { 1 };
+    std::atomic<int> editorHeight { 1 };
+
     // Framebuffer readback (eyedropper). The request is filled on the message
     // thread and serviced on the render thread, which owns the framebuffer.
     CriticalSection readbackLock;                 // serialises readback requests
@@ -224,6 +235,8 @@ private:
 
 #if NANOVG_METAL_IMPLEMENTATION && (JUCE_MAC || JUCE_IOS)
     void* metalView = nullptr;
+    void* metalLayer = nullptr;   // the view's CAMetalLayer, cached on the message
+                                  // thread so the render thread never touches the view
     std::atomic<bool> backendRenderRequested { false };
 #endif
 };
