@@ -283,8 +283,6 @@ public:
                                .build();
 };
 
-// The "+" new-tab button. Lives to the right of the tabs and animates its position
-// alongside the tab buttons (same easing/duration) when tabs are added/removed/reordered.
 class TabComponent::NewTabButton final : public Component {
 public:
     NewTabButton()
@@ -298,8 +296,14 @@ public:
         button.setBounds(getLocalBounds());
     }
 
-    void animate(Rectangle<int> const targetBounds)
+    void updateBounds(Rectangle<int> const targetBounds, bool animate)
     {
+        if(!animate)
+        {
+            animator.complete();
+            setBounds(targetBounds);
+        }
+
         animationStartBounds = getBounds();
         animationEndBounds = targetBounds;
         animator.complete();
@@ -1157,11 +1161,7 @@ void TabComponent::resized()
         tabOverflowButtons[i].setBounds(splitBounds.removeFromLeft(overflow ? overflowButtonWidth : 0));
 
         auto const newTabBounds = splitBounds.removeFromLeft(newTabButtonWidth).translated(2, 0);
-        if (boundsChanged || !animateTabs) {
-            newTabButtons[i]->setBounds(newTabBounds);
-        } else {
-            newTabButtons[i]->animate(newTabBounds);
-        }
+        newTabButtons[i]->updateBounds(newTabBounds, animateTabs && !boundsChanged);
     }
 
     // go over all canvases in each split (a split is simply a pointer to the active canvas)

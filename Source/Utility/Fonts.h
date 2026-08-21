@@ -10,7 +10,6 @@ enum FontStyle {
     Bold,
     Semibold,
     Monospace,
-    Variable,
     Tabular
 };
 
