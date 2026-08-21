@@ -227,7 +227,10 @@ void NVGSurface::run()
         if (threadShouldExit())
             break;
 
-        renderBackendFrame();
+        JUCE_AUTORELEASEPOOL
+        {
+            renderBackendFrame();
+        }
     }
 
     destroyRenderContext();
