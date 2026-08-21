@@ -195,6 +195,7 @@ class HeavyCompatibleObjects {
         "hv.eq~",
         "hv.exp~",
         "hv.filter.gain~",
+        "hv.filter.sig~",
         "hv.filter~",
         "hv.flanger~",
         "hv.flanger2~",
