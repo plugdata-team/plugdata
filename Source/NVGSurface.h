@@ -14,8 +14,20 @@
 using namespace juce::gl;
 #endif
 
+#ifndef PLUGDATA_NVG_FRAME_TIME_OVERLAY
+#    define PLUGDATA_NVG_FRAME_TIME_OVERLAY 0
+#endif
+
+#ifndef PLUGDATA_NVG_REPAINT_DEBUG
+#    define PLUGDATA_NVG_REPAINT_DEBUG 0
+#endif
+
 #include "Utility/Config.h"
 #include "Utility/SettingsFile.h"
+
+#ifdef PLUGDATA_NVG_FRAME_TIME_OVERLAY
+#include "Utility/FrameTimeOverlay.h"
+#endif
 
 #include <atomic>
 #include <nanovg_async.h>
@@ -27,6 +39,7 @@ using namespace juce::gl;
 
 class PluginEditor;
 class NVGComponent;
+
 class NVGSurface final :
 #if NANOVG_METAL_IMPLEMENTATION && JUCE_MAC
     public NSViewComponent, public Thread
@@ -134,7 +147,16 @@ public:
     void addBufferedObject(NVGComponent* component);
     void removeBufferedObject(NVGComponent* component);
 
+    // Reads back a region of the rendered framebuffer into a JUCE image.
+    // 'logicalArea' is in this component's (i.e. the editor's) logical coordinates.
+    // The returned image is in logical resolution, opaque, top-left origin.
+    // Used by the eyedropper, which can't snapshot the GPU-rendered UI the normal way.
+    // Safe to call from the message thread; blocks briefly on the render thread.
+    Image renderToImage(Rectangle<int> logicalArea);
+
 private:
+    void serviceReadbackRequest();
+
     float calculateRenderScale() const;
     void scheduleRender();
     void recordFrame();
@@ -143,6 +165,10 @@ private:
     void renderBackendFrame();
     void presentFramebuffer(int viewWidth, int viewHeight);
     void requestBackendRender();
+
+#if PLUGDATA_NVG_FRAME_TIME_OVERLAY
+    void drawFrameTimeOverlay(int viewWidth, int viewHeight, float scale);
+#endif
 
 #if NANOVG_METAL_IMPLEMENTATION && (JUCE_MAC || JUCE_IOS)
     void run() override;
@@ -176,6 +202,22 @@ private:
     UnorderedSegmentedSet<WeakReference<NVGComponent>> bufferedObjects;
 
     float lastRenderScale = 0.0f;
+
+    // Framebuffer readback (eyedropper). The request is filled on the message
+    // thread and serviced on the render thread, which owns the framebuffer.
+    CriticalSection readbackLock;                 // serialises readback requests
+    WaitableEvent readbackReady;                  // signalled by the render thread
+    std::atomic<bool> readbackPending { false };
+    Rectangle<int> readbackDeviceArea;            // requested region, in device pixels
+    HeapBlock<uint8> readbackData;                // filled with BGRA pixels
+    int readbackWidth = 0;
+    int readbackHeight = 0;
+    bool readbackSucceeded = false;
+
+#if PLUGDATA_NVG_FRAME_TIME_OVERLAY
+    std::unique_ptr<FrameTimeOverlay> frameTimeOverlay;
+    std::unique_ptr<VBlankAttachment> frameTimeVBlankAttachment;
+#endif
 
 #if NANOVG_GL_IMPLEMENTATION
     std::unique_ptr<OpenGLContext> glContext;

@@ -28,9 +28,6 @@ void nvgluSetCornerRadius(float radius, bool left, bool right);
 #include "PluginEditor.h"
 #include "PluginProcessor.h"
 
-#define ENABLE_FPS_COUNT 0
-#define ENABLE_PAINT_DEBUGGING 0
-
 NVGSurface::NVGSurface(PluginEditor* e)
     :
 #if NANOVG_METAL_IMPLEMENTATION && (JUCE_MAC || JUCE_IOS)
@@ -52,8 +49,15 @@ NVGSurface::NVGSurface(PluginEditor* e)
     glContext->setContinuousRepainting(false);
 #endif
 
-#if ENABLE_FPS_COUNT
-    frameTimer = std::make_unique<FrameTimer>();
+#if PLUGDATA_NVG_FRAME_TIME_OVERLAY
+    frameTimeOverlay = std::make_unique<FrameTimeOverlay>();
+    frameTimeVBlankAttachment = std::make_unique<VBlankAttachment>(this, [this](double timestampSec) {
+        if (!frameTimeOverlay)
+            return;
+
+        frameTimeOverlay->addVBlank(timestampSec);
+        requestBackendRender();
+    });
 #endif
 
     setInterceptsMouseClicks(false, false);
@@ -272,6 +276,8 @@ void NVGSurface::renderBackendFrame()
     if (!asyncNvg)
         return;
 
+    serviceReadbackRequest();
+
     if (!mainFramebuffer || mainFramebufferWidth != viewWidth || mainFramebufferHeight != viewHeight) {
         auto const hasMatchingFullFrame = frameReadyForReplay.load()
             && nanovg::hasPendingFrame(asyncNvg)
@@ -309,15 +315,24 @@ void NVGSurface::renderBackendFrame()
 
     // Replay the recorded frame: redraws the damaged region into the persistent
     // framebuffer (the rest of it is preserved).
+#if PLUGDATA_NVG_FRAME_TIME_OVERLAY
+    auto const renderStartMs = Time::getMillisecondCounterHiRes();
+#endif
     bool const didRender = nanovg::performRender(asyncNvg);
 
     if (didRender) {
         frameReadyForReplay.store(false);
-#    if ENABLE_FPS_COUNT
-        if (frameTimer)
-            frameTimer->addFrameTime();
-#    endif
+#if PLUGDATA_NVG_FRAME_TIME_OVERLAY
+        // The render-thread cost of actually replaying the frame -- a real estimate
+        // of frame performance, unlike the (throttled) interval between repaints.
+        if (frameTimeOverlay)
+            frameTimeOverlay->addFrame(Time::getMillisecondCounterHiRes() - renderStartMs);
+#endif
     }
+
+#if PLUGDATA_NVG_FRAME_TIME_OVERLAY
+    drawFrameTimeOverlay(viewWidth, viewHeight, pixelScale);
+#endif
 
     // Composite the persistent framebuffer onto the screen every pass, so the
     // window keeps showing the accumulated content after each buffer swap.
@@ -454,6 +469,26 @@ void NVGSurface::requestBackendRender()
 #endif
 }
 
+#if PLUGDATA_NVG_FRAME_TIME_OVERLAY
+void NVGSurface::drawFrameTimeOverlay(int const viewWidth, int const viewHeight, float const scale)
+{
+    if (!frameTimeOverlay || !baseNvg || !mainFramebuffer)
+        return;
+
+    auto const size = FrameTimeOverlay::sizeFor(scale);
+    auto const margin = 10.0f * scale;
+    auto const x = static_cast<float>(viewWidth) - size.width - margin;
+    auto const y = static_cast<float>(viewHeight) - size.height - margin;
+
+    nvgViewport(0, 0, viewWidth, viewHeight);
+
+    nvgBeginFrame(baseNvg, static_cast<float>(viewWidth), static_cast<float>(viewHeight), 1.0f);
+    frameTimeOverlay->draw(baseNvg, x, y, scale);
+    nvgGlobalScissor(baseNvg, 0, 0, viewWidth, viewHeight);
+    nvgEndFrame(baseNvg);
+}
+#endif
+
 void NVGSurface::recordFrame()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -478,6 +513,10 @@ void NVGSurface::recordFrame()
         initialise();
         return;
     }
+
+#if PLUGDATA_NVG_FRAME_TIME_OVERLAY
+    auto const prepareStartMs = Time::getMillisecondCounterHiRes();
+#endif
 
     {
         // Damage tracking: draw only the region invalidated through the
@@ -520,7 +559,7 @@ void NVGSurface::recordFrame()
 
         editor->paintEntireComponent(g, false);
 
-#if ENABLE_PAINT_DEBUGGING
+#if PLUGDATA_NVG_REPAINT_DEBUG
         static Random rng;
         g.fillAll (Colour ((uint8) rng.nextInt (255),
                            (uint8) rng.nextInt (255),
@@ -545,9 +584,114 @@ void NVGSurface::recordFrame()
         recordedFrameIsFullRepaint.store(isFullRepaint);
     }
 
+#if PLUGDATA_NVG_FRAME_TIME_OVERLAY
+    if (frameTimeOverlay)
+        frameTimeOverlay->setPrepareTime(Time::getMillisecondCounterHiRes() - prepareStartMs);
+#endif
+
     invalidArea = {};
     frameReadyForReplay.store(true);
     requestBackendRender();
+}
+
+void NVGSurface::serviceReadbackRequest()
+{
+    // Render thread. Reads the requested region straight out of the persistent
+    // main framebuffer and hands the raw BGRA pixels back to the waiting caller.
+    if (!readbackPending.load())
+        return;
+
+    auto const area = readbackDeviceArea;
+    bool succeeded = false;
+
+    if (baseNvg && mainFramebuffer && !area.isEmpty()
+        && area.getX() >= 0 && area.getY() >= 0
+        && area.getRight() <= mainFramebufferWidth
+        && area.getBottom() <= mainFramebufferHeight) {
+        auto const w = area.getWidth();
+        auto const h = area.getHeight();
+
+        readbackData.malloc(static_cast<size_t>(w) * h * 4);
+        nvgReadPixels(baseNvg, reinterpret_cast<NVGframebuffer*>(mainFramebuffer),
+            area.getX(), area.getY(), w, h, mainFramebufferHeight, readbackData.getData());
+
+        readbackWidth = w;
+        readbackHeight = h;
+        succeeded = true;
+    }
+
+    readbackSucceeded = succeeded;
+    readbackPending.store(false);
+    readbackReady.signal();
+}
+
+Image NVGSurface::renderToImage(Rectangle<int> logicalArea)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    if (!makeContextActive())
+        return {};
+
+    logicalArea = logicalArea.getIntersection(getLocalBounds());
+    if (logicalArea.isEmpty())
+        return {};
+
+    auto const scale = getRenderScale();
+    Rectangle<int> const deviceBounds(0, 0,
+        jmax(1, roundToInt(getWidth() * scale)),
+        jmax(1, roundToInt(getHeight() * scale)));
+
+    auto const deviceArea = Rectangle<int>(
+        roundToInt(logicalArea.getX() * scale),
+        roundToInt(logicalArea.getY() * scale),
+        jmax(1, roundToInt(logicalArea.getWidth() * scale)),
+        jmax(1, roundToInt(logicalArea.getHeight() * scale)))
+                                .getIntersection(deviceBounds);
+
+    if (deviceArea.isEmpty())
+        return {};
+
+    // One readback at a time; the eyedropper is the only caller.
+    ScopedLock const sl(readbackLock);
+
+    readbackDeviceArea = deviceArea;
+    readbackSucceeded = false;
+    readbackReady.reset();
+    readbackPending.store(true);
+
+    // Kick the render thread, which owns the framebuffer, to service the request.
+    requestBackendRender();
+
+    if (!readbackReady.wait(200) || !readbackSucceeded) {
+        readbackPending.store(false);
+        return {};
+    }
+
+    auto const w = readbackWidth;
+    auto const h = readbackHeight;
+
+    Image image(Image::ARGB, w, h, false);
+    {
+        Image::BitmapData bitmap(image, Image::BitmapData::writeOnly);
+        auto const* src = readbackData.getData();
+        for (int y = 0; y < h; ++y) {
+            // nvgReadPixels returns top-left-origin BGRA for both GL and Metal.
+            auto const* s = src + static_cast<size_t>(y) * w * 4;
+            auto* d = reinterpret_cast<PixelARGB*>(bitmap.getLinePointer(y));
+            for (int x = 0; x < w; ++x) {
+                // Force opaque: the eyedropper wants the visible colour, not the
+                // framebuffer's alpha.
+                d[x].setARGB(255, s[2], s[1], s[0]);
+                s += 4;
+            }
+        }
+    }
+
+    // Hand back a logical-resolution image so callers can work in logical coords.
+    if (w != logicalArea.getWidth() || h != logicalArea.getHeight())
+        return image.rescaled(logicalArea.getWidth(), logicalArea.getHeight(), Graphics::mediumResamplingQuality);
+
+    return image;
 }
 
 NVGSurface* NVGSurface::getSurfaceForContext(NVGcontext* nvg)

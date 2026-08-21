@@ -5,8 +5,10 @@
  */
 #pragma once
 
-// Eyedropper will create a snapshot of the top level component,
-// to allow the user to pick colours from anywhere in the app
+#include "PluginEditor.h"
+
+// Eyedropper samples the editor's rendered framebuffer, so it can pick colours
+// from anywhere in the (GPU-rendered) app UI
 class Eyedropper final : public Timer
     , public MouseListener {
     class EyedropperDisplayComponnent final : public Component {
@@ -144,11 +146,32 @@ private:
 
     void timerCallback() override
     {
-        auto const position = topLevel->getMouseXYRelative();
-        componentImage = topLevel->createComponentSnapshot(topLevel->getLocalBounds(), false, 1.0f);
-        colourDisplayer.setCentrePosition(topLevel->localPointToGlobal(position));
-        colourDisplayer.setROI(componentImage, position);
-        setColour(componentImage.getPixelAt(position.x, position.y));
+        auto const positionInTopLevel = topLevel->getMouseXYRelative();
+        colourDisplayer.setCentrePosition(topLevel->localPointToGlobal(positionInTopLevel));
+
+        if (!editor)
+            return;
+
+        // The whole editor is rendered through OpenGL/Metal, so an ordinary
+        // component snapshot comes back empty. Sample the rendered framebuffer
+        // instead. We only read a small region around the cursor to keep the
+        // per-tick GPU read-back cheap.
+        auto const positionInEditor = editor->getLocalPoint(topLevel, positionInTopLevel);
+
+        constexpr int regionSize = 48;
+        auto const region = Rectangle<int>(0, 0, regionSize, regionSize)
+                                .withCentre(positionInEditor)
+                                .getIntersection(editor->getLocalBounds());
+        if (region.isEmpty())
+            return;
+
+        auto const image = editor->nvgSurface.renderToImage(region);
+        if (image.isNull())
+            return;
+
+        auto const positionInImage = positionInEditor - region.getTopLeft();
+        colourDisplayer.setROI(image, positionInImage);
+        setColour(image.getPixelAt(positionInImage.x, positionInImage.y));
     }
 
     std::function<void(Colour)> callback;
@@ -156,9 +179,8 @@ private:
     Component* topLevel = nullptr;
 
     EyedropperDisplayComponnent colourDisplayer;
-    Image componentImage;
     Colour currentColour;
-    PluginEditor* editor;
+    PluginEditor* editor = nullptr;
 };
 
 class ColourPicker final : public Component
@@ -211,6 +233,7 @@ public:
         _topLevelComponent = topLevelComponent;
 
         setCurrentColour(currentColour);
+        lookAndFeelChanged();
 
         // we need to put the selector into a holder, as launchAsynchronously will delete the component when its done
         auto selectorHolder = std::make_unique<SelectorHolder>(this);
@@ -283,8 +306,6 @@ public:
         update(dontSendNotification);
 
         updateMode();
-
-        lookAndFeelChanged();
     }
 
     ~ColourPicker() override
