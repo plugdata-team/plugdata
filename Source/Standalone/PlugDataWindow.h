@@ -620,6 +620,7 @@ public:
             pluginEditor->updateStandaloneWindowControls();
 
         repaint();
+        editor->repaint();
     }
 
     void resized() override
