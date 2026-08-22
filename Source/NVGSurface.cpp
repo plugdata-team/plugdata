@@ -103,6 +103,14 @@ void NVGSurface::initialise()
         startThread(Thread::Priority::high);
         notify();
     }
+
+    if (!renderPacer) {
+        renderPacer = std::make_unique<VBlankAttachment>(this, [this](double) {
+            if (auto* asyncNvg = nvg.load())
+                if (nanovg::hasPendingFrame(asyncNvg))
+                    requestBackendRender();
+        });
+    }
 #elif NANOVG_GL_IMPLEMENTATION
     if (glContext && !glContext->isAttached()) {
         glContext->attachTo(*this);
@@ -344,6 +352,8 @@ void NVGSurface::renderOpenGL()
 void NVGSurface::detachContext()
 {
 #if NANOVG_METAL_IMPLEMENTATION && (JUCE_MAC || JUCE_IOS)
+    renderPacer.reset();
+
     if (isThreadRunning()) {
         backendRenderRequested.store(true);
         stopThread(5000);
@@ -608,7 +618,15 @@ void NVGSurface::recordFrame()
 
     invalidArea = {};
     frameReadyForReplay.store(true);
+
+#if NANOVG_METAL_IMPLEMENTATION && (JUCE_MAC || JUCE_IOS)
+    // Metal: don't wake the render thread here. renderPacer wakes it once per
+    // vblank and presents the newest pending frame; waking per input event lets a
+    // high-rate input stream stack up the drawable queue and lag the drag.
+#else
+    // GL: the OpenGL context has its own vsync-paced render thread; trigger it.
     requestBackendRender();
+#endif
 }
 
 void NVGSurface::serviceReadbackRequest()

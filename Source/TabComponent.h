@@ -31,8 +31,6 @@ public:
 
     void openInPluginMode(pd::Patch::Ptr patch);
 
-    void renderArea(NVGcontext* nvg, Rectangle<int> bounds);
-
     void nextTab();
     void previousTab();
 

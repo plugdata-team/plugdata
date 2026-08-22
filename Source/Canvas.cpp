@@ -508,11 +508,6 @@ void Canvas::updateFramebuffers(NVGcontext* nvg)
     }
 }
 
-void Canvas::render(NVGcontext* nvg)
-{
-    performRender(nvg, getLocalBounds());
-}
-
 void Canvas::renderResizeHandle(NVGcontext* nvg, NVGcolor const colour)
 {
     nanovg::nvgFillColor(nvg, colour);

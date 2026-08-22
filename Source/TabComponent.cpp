@@ -72,7 +72,7 @@ public:
         updater.addAnimator(tabAnimator);
     }
 
-    // Tabs are sized to their content rather than stretched to fill the bar
+    // Tabs are sized to their content, but shrink to fill the bar once it runs out of space
     int getIdealWidth() const
     {
         if (!cnv)
@@ -1022,37 +1022,6 @@ SmallArray<Canvas*> TabComponent::getCanvases()
     return allCanvases;
 }
 
-void TabComponent::renderArea(NVGcontext* nvg, Rectangle<int> area)
-{
-    if (splits[0]) {
-        NVGScopedState scopedState(nvg);
-        nanovg::nvgScissor(nvg, 0, 0, splits[1] ? splitSize - 3 : getWidth(), getHeight());
-        splits[0]->performRender(nvg, area);
-    }
-    if (splits[1]) {
-        NVGScopedState scopedState(nvg);
-        nanovg::nvgTranslate(nvg, splitSize + 3, 0);
-        nanovg::nvgScissor(nvg, 0, 0, getWidth() - (splitSize + 3), getHeight());
-        splits[1]->performRender(nvg, area.translated(-(splitSize + 3), 0));
-    }
-
-    if (!splitDropBounds.isEmpty()) {
-        nanovg::nvgFillColor(nvg, nvgColour(PlugDataColours::dataColour.withAlpha(0.1f)));
-        nanovg::nvgFillRect(nvg, splitDropBounds.getX(), splitDropBounds.getY(), splitDropBounds.getWidth(), splitDropBounds.getHeight());
-    }
-
-    if (splits[1]) {
-        nanovg::nvgFillColor(nvg, nvgColour(PlugDataColours::canvasBackgroundColour));
-        nanovg::nvgFillRect(nvg, splitSize - 3, 0, 6, getHeight());
-
-        auto const activeSplitBounds = activeSplitIndex ? Rectangle<int>(splitSize, 0, getWidth() - splitSize, getHeight() - 31) : Rectangle<int>(0, 0, splitSize, getHeight() - 31);
-
-        nanovg::nvgStrokeWidth(nvg, 3.0f);
-        nanovg::nvgStrokeColor(nvg, nvgColour(PlugDataColours::objectSelectedOutlineColour.withAlpha(0.25f)));
-        nanovg::nvgStrokeRect(nvg, activeSplitBounds.getX(), activeSplitBounds.getY(), activeSplitBounds.getWidth(), activeSplitBounds.getHeight());
-    }
-}
-
 void TabComponent::paintOverChildren(Graphics& g)
 {
     if (!splitDropBounds.isEmpty()) {
@@ -1062,10 +1031,10 @@ void TabComponent::paintOverChildren(Graphics& g)
 
     if (splits[1]) {
         g.setColour(PlugDataColours::canvasBackgroundColour);
-        g.fillRect(splitSize - 3, 0, 6, getHeight());
+        g.fillRect(splitSize - 3, 31, 6, getHeight());
 
-        auto const activeSplitBounds = activeSplitIndex ? Rectangle<int>(splitSize, 0, getWidth() - splitSize, getHeight() - 31)
-                                                        : Rectangle<int>(0, 0, splitSize, getHeight() - 31);
+        auto const activeSplitBounds = activeSplitIndex ? Rectangle<int>(splitSize, 31, getWidth() - splitSize, getHeight() - 31)
+                                                        : Rectangle<int>(0, 31, splitSize, getHeight() - 31);
 
         g.setColour(PlugDataColours::objectSelectedOutlineColour.withAlpha(0.25f));
         g.drawRect(activeSplitBounds, 3);
@@ -1127,29 +1096,57 @@ void TabComponent::resized()
         auto const fullWidth = splitBounds.getWidth();
         constexpr int overflowButtonWidth = 30;
         constexpr int newTabButtonWidth = 30;
+        constexpr int minTabWidth = 80;
+
+        int const numTabs = tabButtons.size();
 
         int totalIdeal = 0;
         for (auto const* tabButton : tabButtons)
             totalIdeal += tabButton->getIdealWidth();
 
-        bool const overflow = totalIdeal > fullWidth - newTabButtonWidth;
-        int const available = fullWidth - newTabButtonWidth - (overflow ? overflowButtonWidth : 0);
+        int const availableNoOverflow = fullWidth - newTabButtonWidth;
 
-        int used = 0;
-        bool wasOverflown = false;
-        for (auto* tabButton : tabButtons) {
-            int const tabWidth = tabButton->getIdealWidth();
+        bool const fillArea = numTabs > 0 && totalIdeal > availableNoOverflow;
+        bool const overflow = fillArea && numTabs * minTabWidth > availableNoOverflow;
+        int const available = availableNoOverflow - (overflow ? overflowButtonWidth : 0);
+        int const visibleCount = overflow ? jmax(1, available / minTabWidth) : numTabs;
 
-            if (!wasOverflown && used + tabWidth > available)
-                wasOverflown = true;
+        SmallArray<int> tabWidths;
+        tabWidths.reserve(numTabs);
+        if (fillArea) {
+            int visibleIdealSum = 0;
+            for (int t = 0; t < visibleCount; t++)
+                visibleIdealSum += tabButtons[t]->getIdealWidth();
 
-            if (wasOverflown) {
+            int assigned = 0;
+            for (int t = 0; t < visibleCount; t++) {
+                int w;
+                if (t == visibleCount - 1) {
+                    w = jmax(0, available - assigned); // last visible tab fills the remainder exactly
+                } else {
+                    int const ideal = tabButtons[t]->getIdealWidth();
+                    w = jmax(minTabWidth, roundToInt(static_cast<double>(ideal) * available / jmax(1, visibleIdealSum)));
+                    // Leave enough room for the remaining tabs to keep their minimum width
+                    w = jmin(w, available - assigned - (visibleCount - 1 - t) * minTabWidth);
+                }
+                tabWidths.add(w);
+                assigned += w;
+            }
+        } else {
+            for (int t = 0; t < numTabs; t++)
+                tabWidths.add(tabButtons[t]->getIdealWidth());
+        }
+
+        for (int t = 0; t < numTabs; t++) {
+            auto* tabButton = tabButtons[t];
+
+            if (t >= visibleCount) {
                 tabButton->setVisible(false);
                 continue;
             }
             tabButton->setVisible(true);
-            used += tabWidth;
 
+            int const tabWidth = tabWidths[t];
             auto targetBounds = splitBounds.removeFromLeft(tabWidth);
             if (tabButton->isDragging) {
                 tabButton->setSize(tabWidth, 30);
@@ -1159,7 +1156,7 @@ void TabComponent::resized()
                 continue; // We reserve space for it, but don't set the bounds to create a ghost tab
             }
 
-            if (boundsChanged || !animateTabs) {
+            if (boundsChanged || draggingSplitResizer || !animateTabs) {
                 tabButton->setBounds(targetBounds);
             } else {
                 tabButton->animate(targetBounds);
@@ -1167,10 +1164,10 @@ void TabComponent::resized()
         }
 
         tabOverflowButtons[i].setVisible(overflow);
-        tabOverflowButtons[i].setBounds(splitBounds.removeFromLeft(overflow ? overflowButtonWidth : 0));
+        tabOverflowButtons[i].setBounds(splitBounds.removeFromRight(overflow ? overflowButtonWidth : 0));
 
         auto const newTabBounds = splitBounds.removeFromLeft(newTabButtonWidth).translated(2, 0);
-        newTabButtons[i]->updateBounds(newTabBounds, animateTabs && !boundsChanged);
+        newTabButtons[i]->updateBounds(newTabBounds, animateTabs && !boundsChanged && !draggingSplitResizer);
     }
 
     // go over all canvases in each split (a split is simply a pointer to the active canvas)

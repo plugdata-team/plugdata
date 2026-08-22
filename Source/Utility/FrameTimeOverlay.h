@@ -129,6 +129,9 @@ public:
         auto const budgetMs = std::max(vsyncMs, snapshot.currentRenderMs);
         auto const maxFps = budgetMs > 0.0 ? 1000.0 / budgetMs : 0.0;
 
+        auto const renderCpu = vsyncMs > 0.0 ? snapshot.currentRenderMs / vsyncMs * 100.0 : 0.0;
+        auto const prepareCpu = vsyncMs > 0.0 ? snapshot.currentPrepareMs / vsyncMs * 100.0 : 0.0;
+
         auto const drawRow = [&](char const* name, char const* val, NVGcolor valCol) {
             rowY += 12.0f * u;
             drawText(nvg, left, rowY, u, name, label);
@@ -144,11 +147,17 @@ public:
         std::snprintf(buf, sizeof(buf), "%.2f MS", snapshot.peakRenderMs);
         drawRow("RENDER MAX", buf, value);
 
-        std::snprintf(buf, sizeof(buf), "%i FPS", static_cast<int>(1000 / snapshot.peakRenderMs));
+        std::snprintf(buf, sizeof(buf), "%i FPS", snapshot.peakRenderMs > 0.0 ? static_cast<int>(1000.0 / snapshot.peakRenderMs) : 0);
         drawRow("RENDER FPS", buf, value);
+
+        std::snprintf(buf, sizeof(buf), "%.0f%%", renderCpu);
+        drawRow("RENDER CPU", buf, value);
 
         std::snprintf(buf, sizeof(buf), "%.2f MS", snapshot.currentPrepareMs);
         drawRow("PREPARE", buf, value);
+
+        std::snprintf(buf, sizeof(buf), "%.0f%%", prepareCpu);
+        drawRow("PREPARE CPU", buf, value);
         if (vsyncFps > 0.0)
             std::snprintf(buf, sizeof(buf), "%.1f FPS", vsyncFps);
         else
@@ -200,7 +209,7 @@ public:
 private:
     static constexpr int historySize = 96;
     static constexpr float panelCells = 128.0f;   // width  in font-pixel units
-    static constexpr float panelRows = 128.f;     // height in font-pixel units
+    static constexpr float panelRows = 150.0f;    // height in font-pixel units
 
     // One font-pixel, in device pixels, at the given render scale.
     static float unit(float scale) { return std::max(1.0f, std::round(scale)); }
@@ -275,6 +284,7 @@ private:
         case '.': { static const std::uint8_t g[7] = { 0b00000, 0b00000, 0b00000, 0b00000, 0b00000, 0b01100, 0b01100 }; return g; }
         case '-': { static const std::uint8_t g[7] = { 0b00000, 0b00000, 0b00000, 0b11111, 0b00000, 0b00000, 0b00000 }; return g; }
         case '#': { static const std::uint8_t g[7] = { 0b01010, 0b01010, 0b11111, 0b01010, 0b11111, 0b01010, 0b01010 }; return g; }
+        case '%': { static const std::uint8_t g[7] = { 0b11000, 0b11001, 0b00010, 0b00100, 0b01000, 0b10011, 0b00011 }; return g; }
         default: return nullptr; // space / unknown: advance only
         }
     }

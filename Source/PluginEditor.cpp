@@ -532,7 +532,7 @@ void PluginEditor::paint(Graphics& g)
 void PluginEditor::paintOverChildren(Graphics& g)
 {
     // Never want to be drawing over a dialog window
-    if (openedDialog)
+    if (openedDialog || pluginMode)
         return;
 
     auto const welcomePanelVisible = !getCurrentCanvas();
@@ -553,33 +553,6 @@ void PluginEditor::paintOverChildren(Graphics& g)
     }
 }
 
-void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> const area)
-{
-    getOrCreateNanoLLGC(nvg, nvgSurface.getRenderScale());
-
-    if (isInPluginMode()) {
-        nanovg::nvgDrawRoundedRect(nvg, 0, -Corners::windowCornerRadius, getWidth(), getHeight() + Corners::windowCornerRadius, nvgColour(PlugDataColours::canvasBackgroundColour), nvgColour(PlugDataColours::canvasBackgroundColour), Corners::windowCornerRadius);
-
-        pluginMode->render(nvg, area);
-    } else {
-        if (welcomePanel->isVisible()) {
-            NVGScopedState scopedState(nvg);
-            welcomePanel->render(nvg);
-        } else {
-            NVGScopedState scopedState(nvg);
-            tabComponent.renderArea(nvg, area);
-        }
-    }
-
-    if (isDraggingFile) {
-        auto toolbarHeight = welcomePanel->isVisible() ? 42 : 67;
-        nanovg::nvgBeginPath(nvg);
-        nanovg::nvgRoundedRect(nvg, 1, -toolbarHeight, getWidth() - 2, getHeight() + 3, Corners::windowCornerRadius - 3);
-        nanovg::nvgStrokeColor(nvg, nvgColour(PlugDataColours::dataColour));
-        nanovg::nvgStrokeWidth(nvg, 2.0f);
-        nanovg::nvgStroke(nvg);
-    }
-}
 
 NVGGraphicsContext& PluginEditor::getOrCreateNanoLLGC(NVGcontext* nvg, float const renderScale)
 {

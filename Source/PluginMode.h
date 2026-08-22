@@ -51,7 +51,6 @@ public:
         }
 
         editor->nvgSurface.invalidateAll();
-        cnv->setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, cnv.get(), true));
         patch->openInPluginMode = true;
 
         // Titlebar
@@ -219,7 +218,7 @@ public:
         });
     }
 
-    void render(NVGcontext* nvg, Rectangle<int> const area)
+    void render(NVGcontext* nvg) override
     {
         NVGScopedState scopedState(nvg);
         auto const scale = pluginModeScale;
@@ -228,11 +227,13 @@ public:
 #endif
             nanovg::nvgScissor(nvg, (getWidth() - (width * scale)) / 2, (getHeight() - height * scale) / 2, width * scale, height * scale);
 
-        nanovg::nvgTranslate(nvg, 0, isWindowFullscreen() ? 0 : -titlebarHeight);
+        nanovg::nvgFillColor(nvg, nvgColour(PlugDataColours::canvasBackgroundColour));
+        nanovg::nvgFillRect(nvg, 0, titlebarHeight, getWidth(), getHeight() - titlebarHeight);
+
         nanovg::nvgScale(nvg, scale, scale);
         nanovg::nvgTranslate(nvg, cnv->getX(), cnv->getY());
 
-        cnv->performRender(nvg, cnv->getLocalArea(this, area.translated(0, 40)));
+        cnv->performRender(nvg, cnv->getLocalArea(editor, editor->nvgSurface.getInvalidArea()));
     }
 
     void closePluginMode()
@@ -276,14 +277,19 @@ public:
             // Fill background for Fullscreen / Kiosk Mode
             g.setColour(PlugDataColours::canvasBackgroundColour);
             g.fillRect(editor->getTopLevelComponent()->getLocalBounds());
+            render(editor->getNanoLLGC()->getContext());
             return;
         }
+
+        render(editor->getNanoLLGC()->getContext());
 
         auto const baseColour = PlugDataColours::toolbarBackgroundColour;
         if (editor->wantsRoundedCorners()) {
             // TitleBar background
             g.setColour(baseColour);
-            g.fillRoundedRectangle(0.0f, 0.0f, getWidth(), titlebarHeight, Corners::windowCornerRadius);
+            Path toolbarPath;
+            toolbarPath.addRoundedRectangle(0.0f, 0.0f, getWidth(), titlebarHeight, Corners::windowCornerRadius, Corners::windowCornerRadius, true, true, false, false);
+            g.fillPath(toolbarPath);
         } else {
             // TitleBar background
             g.setColour(baseColour);

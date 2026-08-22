@@ -143,6 +143,10 @@ private:
     AffineTransform currentTransform;
     RectangleList<int> clipRegion;
     std::vector<SavedState> stateStack;
+
+    // Reused scratch for batching a glyph run in drawGlyphs (message-thread only).
+    std::vector<uint64_t> glyphRunHashes;
+    std::vector<float> glyphRunXforms;
     UnorderedSegmentedMap<uint64, NvgImage> images;
     UnorderedSegmentedMap<uint64_t, NVGCachedPath> pathCache;
 };

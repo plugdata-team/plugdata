@@ -130,35 +130,7 @@ static uint64_t getSDFGlyphHash(Typeface const* typeface, int glyph)
     return pathHash;
 }
 
-static void renderSDFGlyph(NVGcontext* nvg, Typeface& typeface, Font const& font, int glyph, Point<float> const position)
-{
-    auto const scale = font.getHeightInPoints();
-    auto const tx = AffineTransform::scale(scale * font.getHorizontalScale(), scale).translated(position);
-    auto const pathHash = getSDFGlyphHash(&typeface, glyph);
-    auto const fillColour = ::nvgCurrentFillColor(nvg);
-
-    ::nvgSave(nvg);
-    ::nvgTransform(nvg, tx.mat00, tx.mat10, tx.mat01, tx.mat11, tx.mat02, tx.mat12);
-
-    if (!::nvgFillSDFGlyph(nvg, pathHash, fillColour)) {
-        constexpr float referenceEmPx = 32.0f;
-
-        Path path;
-        typeface.getOutlineForGlyph(glyph, path);
-
-        ::nvgSave(nvg);
-        ::nvgResetTransform(nvg);
-        ::nvgScale(nvg, referenceEmPx, referenceEmPx);
-        setRawNvgPath(nvg, std::move(path));
-        ::nvgSaveSDFGlyph(nvg, pathHash);
-        ::nvgRestore(nvg);
-
-        ::nvgFillSDFGlyph(nvg, pathHash, fillColour);
-    }
-
-    ::nvgRestore(nvg);
-}
-
+// Function to prepare text layouts on the render thread, to reduce text layouting load on the message thread
 static std::unique_ptr<PreparedText> prepareDeferredText(DeferredTextPayload const& payload)
 {
     auto prepared = std::make_unique<PreparedText>();
@@ -208,12 +180,44 @@ static std::unique_ptr<PreparedText> prepareDeferredText(DeferredTextPayload con
 
 static void renderPreparedText(NVGcontext* nvg, PreparedText const& prepared)
 {
-    if (prepared.typeface == nullptr)
+    if (prepared.typeface == nullptr || prepared.glyphs.empty())
         return;
 
+    auto const scale = prepared.font.getHeightInPoints();
+    auto const hscale = prepared.font.getHorizontalScale();
+    auto const color = ::nvgCurrentFillColor(nvg);
+
+    // Reused across calls on the render thread (no per-call allocation).
+    static thread_local std::vector<uint64_t> hashes;
+    static thread_local std::vector<float> xforms;
+    hashes.clear();
+    xforms.clear();
+
     for (auto const& glyph : prepared.glyphs) {
-        renderSDFGlyph(nvg, *prepared.typeface, prepared.font, glyph.glyph, glyph.position);
+        auto const hash = getSDFGlyphHash(prepared.typeface.get(), glyph.glyph);
+
+        if (!::nvgSDFGlyphCached(nvg, hash)) {
+            constexpr float referenceEmPx = 32.0f;
+
+            Path path;
+            prepared.typeface->getOutlineForGlyph(glyph.glyph, path);
+
+            ::nvgSave(nvg);
+            ::nvgResetTransform(nvg);
+            ::nvgScale(nvg, referenceEmPx, referenceEmPx);
+            setRawNvgPath(nvg, std::move(path));
+            ::nvgSaveSDFGlyph(nvg, hash);
+            ::nvgRestore(nvg);
+        }
+
+        auto const tx = AffineTransform::scale(scale * hscale, scale).translated(glyph.position);
+        hashes.push_back(hash);
+        xforms.push_back(tx.mat00); xforms.push_back(tx.mat10);
+        xforms.push_back(tx.mat01); xforms.push_back(tx.mat11);
+        xforms.push_back(tx.mat02); xforms.push_back(tx.mat12);
     }
+
+    ::nvgFillSDFGlyphRun(nvg, hashes.data(), xforms.data(), static_cast<int>(hashes.size()), color);
 }
 
 static void renderDeferredText(NVGcontext* nvg, DeferredTextPayload& payload)
@@ -717,22 +721,30 @@ void NVGGraphicsContext::drawText(StringRef const text, Rectangle<float> const a
 
 void NVGGraphicsContext::drawGlyphs(Span<uint16_t const> glyphs, Span<Point<float> const> positions, AffineTransform const& t)
 {
+    if (glyphs.empty())
+        return;
+
+    auto const typeface = font.getTypefacePtr();
+    if (typeface == nullptr)
+        return;
+
+    auto const scale = font.getHeightInPoints();
+    auto const hscale = font.getHorizontalScale();
+
+    glyphRunHashes.clear();
+    glyphRunXforms.clear();
+    glyphRunHashes.reserve(glyphs.size());
+    glyphRunXforms.reserve(glyphs.size() * 6);
+
     for (auto const [i, glyph] : enumerate(glyphs, size_t { })) {
-        auto const scale = font.getHeightInPoints();
-        auto tx = AffineTransform::scale(scale * font.getHorizontalScale(), scale).translated(positions[i]).followedBy(t);
+        auto const tx = AffineTransform::scale(scale * hscale, scale).translated(positions[i]).followedBy(t);
+        auto const pathHash = getSDFGlyphHash(typeface.get(), glyph);
 
-        nanovg::nvgSave(nvg);
-        nanovg::nvgTransform(nvg, tx.mat00, tx.mat10, tx.mat01, tx.mat11, tx.mat02, tx.mat12);
-
-        uint64_t pathHash = (uint64_t)font.getTypefacePtr().get();
-        pathHash ^= (uint64_t)glyph + 0x9e3779b97f4a7c15ULL + (pathHash << 6) + (pathHash >> 2);
-
-        // SDF text rendering: upload JUCE glyph paths into nanovg and render using SDF (much better than regular nanovg AA)
         if (!nanovg::nvgSDFGlyphCached(nvg, pathHash)) {
             constexpr float referenceEmPx = 32.0f;
 
             Path p;
-            font.getTypefacePtr()->getOutlineForGlyph(glyph, p);
+            typeface->getOutlineForGlyph(glyph, p);
 
             nanovg::nvgSave(nvg);
             nanovg::nvgResetTransform(nvg);
@@ -742,12 +754,14 @@ void NVGGraphicsContext::drawGlyphs(Span<uint16_t const> glyphs, Span<Point<floa
             nanovg::nvgRestore(nvg);
         }
 
-        // Draw the tile at the glyph transform. On the miss frame the tile was just generated
-        // earlier in this same command buffer, so this still draws it.
-        nanovg::nvgFillSDFGlyph(nvg, pathHash, lastColour);
-
-        nanovg::nvgRestore(nvg);
+        glyphRunHashes.push_back(pathHash);
+        glyphRunXforms.push_back(tx.mat00); glyphRunXforms.push_back(tx.mat10);
+        glyphRunXforms.push_back(tx.mat01); glyphRunXforms.push_back(tx.mat11);
+        glyphRunXforms.push_back(tx.mat02); glyphRunXforms.push_back(tx.mat12);
     }
+
+    nanovg::nvgFillSDFGlyphRun(nvg, glyphRunHashes.data(), glyphRunXforms.data(),
+                              static_cast<int>(glyphRunHashes.size()), lastColour);
 }
 
 NVGGraphicsContext::ScopedAnchoredDraw::ScopedAnchoredDraw(NVGGraphicsContext& context, Rectangle<float> clipBounds)

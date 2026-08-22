@@ -238,5 +238,7 @@ private:
     void* metalLayer = nullptr;   // the view's CAMetalLayer, cached on the message
                                   // thread so the render thread never touches the view
     AtomicValue<bool> backendRenderRequested { false };
+
+    std::unique_ptr<VBlankAttachment> renderPacer;
 #endif
 };
