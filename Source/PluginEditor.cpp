@@ -483,26 +483,16 @@ void PluginEditor::updateStandaloneWindowControls()
 {
 #if JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD
     auto* window = ProjectInfo::isStandalone ? dynamic_cast<PlugDataWindow*>(getTopLevelComponent()) : nullptr;
-    auto const visible = window && !window->useNativeTitlebar() && !isInPluginMode();
-    auto const enabled = visible && standaloneWindowControlsEnabled && window->isActiveWindow();
-
     for (auto* button : { standaloneWindowMinimiseButton.get(), standaloneWindowMaximiseButton.get(), standaloneWindowCloseButton.get() }) {
-        if (button) {
-            button->setVisible(visible);
-            button->setEnabled(enabled);
-
-            if (visible)
-                button->toFront(false);
-        }
+        button->setVisible(true);
+        button->toFront(false);
     }
 
     if (standaloneWindowMaximiseButton && window)
         standaloneWindowMaximiseButton->setToggleState(window->isMaximised(), dontSendNotification);
 
-    if (visible) {
-        auto const titleBarArea = Rectangle<int>(0, 7, getWidth() - 6, 23);
-        getLookAndFeel().positionDocumentWindowButtons(*window, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), standaloneWindowMinimiseButton.get(), standaloneWindowMaximiseButton.get(), standaloneWindowCloseButton.get(), false);
-    }
+    auto const titleBarArea = Rectangle<int>(0, 7, getWidth() - 6, 23);
+    getLookAndFeel().positionDocumentWindowButtons(*window, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), standaloneWindowMinimiseButton.get(), standaloneWindowMaximiseButton.get(), standaloneWindowCloseButton.get(), false);
 #else
     ignoreUnused(standaloneWindowControlsEnabled);
 #endif

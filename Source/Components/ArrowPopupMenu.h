@@ -46,7 +46,10 @@ public:
         // Apply a slight offset to the menu, so we have enough space for the arrow
         // change offset if arrow should be top/bottom or left/right
         if (direction == ArrowDirection::TopBottom) {
-            menuToAttachTo->setBounds(menuToAttachTo->getBounds().translated(-15, menuMargin - 3));
+            auto bounds = menuToAttachTo->getBounds().translated(-15, menuMargin - 3);
+            if (menuParent)
+                bounds.setX(jmax(menuMargin, bounds.getX()));
+            menuToAttachTo->setBounds(bounds);
         } else {
             menuToAttachTo->setBounds(menuToAttachTo->getBounds().translated(30, -40));
         }
