@@ -302,7 +302,6 @@ void PaletteItem::paint(Graphics& g)
     Path p;
     p.startNewSubPath(x, lineBounds.getY());
 
-    auto ioletStroke = PathStrokeType(1.0f);
     SmallArray<std::tuple<Path, Colour>, 8> ioletPaths;
 
     for (int i = 0; i < inlets.size(); i++) {
