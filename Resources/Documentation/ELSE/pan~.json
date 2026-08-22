@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float/signal",
-          "description": "azimuth  (normalized from 0-1 or radians)"
+          "description": "position (normalized from 0-1)"
         }
       ],
       "repeat": false
@@ -75,8 +75,12 @@
   ],
   "flags": [
     {
-      "name": "-radians",
-      "description": "change 3rd inlet input from degrees to radians"
+      "name": "-open",
+      "description": "set to open mode (default circular)"
+    },
+    {
+      "name": "-cartesian",
+      "description": "sets to cartesian mode"
     }
   ],
   "methods": [
@@ -85,8 +89,24 @@
       "description": "set offset angle in degrees"
     },
     {
-      "type": "radians <float>",
-      "description": "set offset angle in radians"
+      "type": "open <float>",
+      "description": "sets to open mode"
+    },
+    {
+      "type": "cartesian <float>",
+      "description": "non zero sets cartesian mode"
+    },
+    {
+      "type": "pos <list>",
+      "description": "position value(s)"
+    },
+    {
+      "type": "gain <list>",
+      "description": "gain value(s)"
+    },
+    {
+      "type": "spread <list>",
+      "description": "spread value(s)"
     }
   ],
   "body": "[pan~] pans an input signal to 'n' specified outlets with equal power crossfading between adjacent channels according to a spread parameter. The speakers are supposedly disposed in a circular setting with equidistant angles. The output selection can then be considered an azimuth angle input whose range is normalized from 0 to 1, where 1 goes back to 0!"

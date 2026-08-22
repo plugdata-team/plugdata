@@ -87,7 +87,7 @@
       "description": "set number of frames over which to measure growth"
     },
     {
-      "type": "minlevel <float>",
+      "type": "minvel <float>",
       "description": "set minimum \"velocity\" to output (ignore quieter notes)"
     },
     {

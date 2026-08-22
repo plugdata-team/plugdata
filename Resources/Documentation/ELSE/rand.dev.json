@@ -1,0 +1,69 @@
+{
+  "title": [
+    "rand.dev"
+  ],
+  "description": "generate random deviations",
+  "origin": "ELSE",
+  "categories": [
+    "Random and Noise"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "set start value and generate list"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/list",
+          "description": "deviation range"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "the generated incremented list"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float/list",
+      "description": "deviation range, default '0 0'",
+      "default": ""
+    }
+  ],
+  "flags": [
+    {
+      "name": "-n",
+      "description": "sets number of elements in the output (default 1)"
+    },
+    {
+      "name": "-int",
+      "description": "sets to random integer modes (default 'float')"
+    }
+  ],
+  "methods": [
+    {
+      "type": "n <float>",
+      "description": "sets number of output list"
+    },
+    {
+      "type": "int <float>",
+      "description": "sets to integer random mode"
+    }
+  ],
+  "body": "Use [rand.dev] to generate random numbers that deviate within a given range. If only one 'x' float is given as an argument or via the right inlet, then the range is input-x, input+x. If you have a 'x, y' list input via the argument or inlet, then the range is input+x, input+y."
+}

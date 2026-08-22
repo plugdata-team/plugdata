@@ -39,7 +39,13 @@
       "repeat": false
     }
   ],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "alpha threshold",
+      "default": ""
+    }
+  ],
   "flags": [],
   "methods": [],
   "body": ""

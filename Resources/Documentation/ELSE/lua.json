@@ -1,0 +1,16 @@
+{
+  "title": [
+    "lua"
+  ],
+  "description": "load lua scripts",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [],
+  "outlets": [],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "When you load 'ELSE' via startup or [declare], it registers a loader that allows Pd externals written in Lua (with the \"*.pd_lua\" extension) to be loaded. One such object provided in ELSE is the lua object that allows you to load scripts into an object.\nThe [lua] object allows inline scripting in Lua and is one example of an object that is coded in lua. It is still an experimental object though that is not really functional and ready yet. So stay tuned!"
+}

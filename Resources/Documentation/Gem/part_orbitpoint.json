@@ -52,6 +52,15 @@
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "grav <float>",
+      "description": "set the gravity towards the orbit point"
+    },
+    {
+      "type": "vector <float, float, float>",
+      "description": "set the orbit point position"
+    }
+  ],
   "body": ""
 }

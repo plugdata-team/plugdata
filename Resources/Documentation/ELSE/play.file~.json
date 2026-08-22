@@ -68,6 +68,10 @@
     {
       "name": "-loop",
       "description": "turns loop mode on"
+    },
+    {
+      "name": "-mc",
+      "description": "sets to multichannel output"
     }
   ],
   "methods": [
@@ -90,6 +94,14 @@
     {
       "type": "loop <float>",
       "description": "loop on <1> or off <0>"
+    },
+    {
+      "type": "pause",
+      "description": "pause playing the sample"
+    },
+    {
+      "type": "continue",
+      "description": "continue playing the sample after pause"
     }
   ],
   "body": "[play.file~] is a convenient abstraction based on [readsf~] to read files from your computer. Note that the file sample needs to be at the same sample rate as Pd's. The object can open files with absolute paths and is also able to search for files relative to the parent patch."

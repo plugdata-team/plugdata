@@ -45,6 +45,24 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "polyphonic aftertouch normalized to 0-1 range"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "release velocity normalized to 0-1 range"
+        }
+      ],
+      "repeat": false
     }
   ],
   "arguments": [

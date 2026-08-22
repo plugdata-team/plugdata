@@ -31,7 +31,7 @@
   ],
   "arguments": [
     {
-      "type": "<symbol>",
+      "type": "symbol",
       "description": "name of an OBJ-file to be loaded",
       "default": ""
     }
@@ -69,6 +69,14 @@
     {
       "type": "loader <symbol>",
       "description": "choose which backend to use first to open the model"
+    },
+    {
+      "type": "blend <float>",
+      "description": "enable/disable blending"
+    },
+    {
+      "type": "width <float>",
+      "description": "set line width for line rendering"
     }
   ],
   "body": ""

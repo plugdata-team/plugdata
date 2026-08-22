@@ -49,10 +49,37 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "vertical \"mouse wheel\" scrolling delta"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "horizontal \"mouse wheel\" scrolling delta"
+        }
+      ],
+      "repeat": false
     }
   ],
   "arguments": [],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "zero",
+      "description": "sets coordinates to zero"
+    },
+    {
+      "type": "reset",
+      "description": "resets mouse coordinates"
+    }
+  ],
   "body": "[mouse] grabs mouse interaction (click and coordinates). Click and see. This works for any click Pd receives in any window, not only this patch's."
 }

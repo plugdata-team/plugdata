@@ -1,0 +1,72 @@
+{
+  "title": [
+    "textextruded"
+  ],
+  "description": "render a line of extruded 3D text",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "font size"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "initial text",
+      "default": "gem"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "text <list>",
+      "description": "render the given text"
+    },
+    {
+      "type": "string <list>",
+      "description": "render the given text"
+    },
+    {
+      "type": "font <symbol>",
+      "description": "load a TrueType (.ttf) font"
+    },
+    {
+      "type": "justify <symbol, symbol>",
+      "description": "horizontal justification (left/right/center/base) and vertical justification (top/bottom/middle/base)"
+    },
+    {
+      "type": "depth <float>",
+      "description": "set the extrusion depth"
+    }
+  ],
+  "body": "[textextruded] renders one line of extruded (3D) text with the current color and transformations. Any TrueType font can be used; by default 'vera.ttf' is searched in the paths."
+}

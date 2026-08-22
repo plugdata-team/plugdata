@@ -36,9 +36,24 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "number of stored values matching a 'count' query"
+        }
+      ],
+      "repeat": false
     }
   ],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "'-u' sets to unique mode (only stores unique values)",
+      "default": ""
+    }
+  ],
   "flags": [],
   "methods": [
     {
@@ -48,6 +63,14 @@
     {
       "type": "clear",
       "description": "clear stored values from the bag (no output)"
+    },
+    {
+      "type": "count <float>",
+      "description": "count the number of stored values that correspond to the given float (output on the 2nd outlet)"
+    },
+    {
+      "type": "unique <float>",
+      "description": "non-zero only stores unique values (same as the -u flag), zero allows duplicates"
     }
   ],
   "body": "The bag object adds a value to or removes it from a collection of numbers depending on the flag. The left inlet takes the value and the right inlet takes the flag. If the flag is true (non-0), the value is added to the collection and removed otherwise. The example here takes a list input, which gets spread at inlets (as is common in Pd).\n\nThe collection may have many copies of the same value. You can output the collection (and empty it) with a \"flush\" message, or just empty it with \"clear.\" You can use this to mimic a sustain pedal, for example."

@@ -40,14 +40,9 @@
   ],
   "arguments": [
     {
-      "type": "symbol",
-      "description": "draw [line|fill|point]",
-      "default": ""
-    },
-    {
       "type": "float",
       "description": "size of the square",
-      "default": ""
+      "default": "1"
     }
   ],
   "flags": [],

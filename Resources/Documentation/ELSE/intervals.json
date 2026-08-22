@@ -1,0 +1,36 @@
+{
+  "title": [
+    "intervals"
+  ],
+  "description": "get intervals from note symbols",
+  "origin": "ELSE",
+  "categories": [
+    "Tuning"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "note symbols"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "interval list"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[intervals] outputs a list of intervals in relation to the first pitch."
+}

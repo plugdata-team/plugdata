@@ -41,8 +41,23 @@
   "arguments": [
     {
       "type": "symbol",
-      "description": "filename (with wildcard *) for images to load",
+      "description": "base filename (use * as wildcard for the image number)",
       "default": ""
+    },
+    {
+      "type": "float",
+      "description": "number of first image",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "number of last image",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "skip rate",
+      "default": "1"
     }
   ],
   "flags": [],
@@ -50,6 +65,10 @@
     {
       "type": "open <symbol> <float>",
       "description": "open images"
+    },
+    {
+      "type": "img_num <float>",
+      "description": "set the current image number"
     }
   ],
   "body": ""

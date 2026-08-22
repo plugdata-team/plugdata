@@ -11,12 +11,21 @@
     {
       "messages": [
         {
+          "type": "anything",
+          "description": "messages are passed through to the left outlet (like the bound receive names)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
           "type": "symbol/list",
-          "description": "set the receive names"
+          "description": "set receive names"
         },
         {
           "type": "bang",
-          "description": "clears the receive names"
+          "description": "spits receive names"
         }
       ],
       "repeat": false
@@ -31,17 +40,26 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "learnt send symbol"
+        }
+      ],
+      "repeat": false
     }
   ],
   "arguments": [
     {
-      "type": "optional depth value",
-      "description": "receive names",
+      "type": "float",
+      "description": "optional depth value",
       "default": "1"
     },
     {
       "type": "list",
-      "description": "receive names",
+      "description": "up to two receive names",
       "default": ""
     }
   ],
@@ -49,7 +67,19 @@
   "methods": [
     {
       "type": "clear",
-      "description": "clears the receive names"
+      "description": "clears the receive names (right inlet)"
+    },
+    {
+      "type": "learn",
+      "description": "activate 'learn' (right inlet)"
+    },
+    {
+      "type": "deactivate",
+      "description": "deactivate 'learn' (right inlet)"
+    },
+    {
+      "type": "forget",
+      "description": "forget and clear the learnt symbol (right inlet)"
     }
   ],
   "body": "[receiver] is like vanilla's [receive]. It can have up to two names, has an inlet to set the receive names and at load time can expand dollar symbols according to parent patches."

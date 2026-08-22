@@ -1,6 +1,6 @@
 {
   "title": [
-    "pqtorusknot"
+    "pqtorusknots"
   ],
   "description": "renders a 3D knot",
   "origin": "Gem",
@@ -31,40 +31,49 @@
   ],
   "arguments": [
     {
-      "type": "gemlist",
-      "description": "",
+      "type": "float",
+      "description": "width/size of the knot",
       "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Q parameter of the knot",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [
     {
       "type": "draw [line|fill|points]",
-      "description": ""
+      "description": "drawing style"
     },
     {
       "type": "steps <float>",
-      "description": ""
+      "description": "set the number of steps along the knot (default 256)"
     },
     {
       "type": "facets <float>",
-      "description": ""
+      "description": "set the number of facets around the tube (default 16)"
     },
     {
       "type": "thick <float>",
-      "description": ""
+      "description": "set the thickness of the tube (default 0.2)"
     },
     {
       "type": "clump <float> <float> <float>",
-      "description": ""
+      "description": "set clumping: number of clumps (default 12), clump offset (0) and clump scale (0.5)"
     },
     {
-      "type": "pq <float> <yWifloatnding>",
-      "description": ""
+      "type": "pq <float, float>",
+      "description": "set the P and Q (winding) parameters of the knot"
     },
     {
-      "type": "ivScale <float> <float>",
-      "description": "for texturing"
+      "type": "uvScale <float, float>",
+      "description": "set the u/v texture coordinate scaling"
+    },
+    {
+      "type": "scale <float>",
+      "description": "set the scale of the knot"
     }
   ],
   "body": ""

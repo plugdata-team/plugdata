@@ -25,6 +25,15 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the s, t, and r texture coordinates."
+        }
+      ],
+      "repeat": false
     }
   ],
   "outlets": [
@@ -39,6 +48,11 @@
     }
   ],
   "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the s, t, and r texture coordinates.",
+      "default": ""
+    },
     {
       "type": "float",
       "description": "Specifies the s, t, and r texture coordinates.",

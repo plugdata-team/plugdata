@@ -96,6 +96,18 @@
     {
       "type": "equal <pointer>",
       "description": "compare an incoming pointer with the stored pointer"
+    },
+    {
+      "type": "get <list>",
+      "description": "get one or more field values (result as a list out the rightmost outlet)"
+    },
+    {
+      "type": "set <symbol, float>",
+      "description": "set the value of one or more fields: <field, value>"
+    },
+    {
+      "type": "nearest <float, float>",
+      "description": "outputs a pointer to the scalar nearest to the given (x, y) position"
     }
   ],
   "body": ""

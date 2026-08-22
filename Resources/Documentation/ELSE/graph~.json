@@ -63,6 +63,18 @@
     {
       "name": "-ext",
       "description": "set to external bang source"
+    },
+    {
+      "name": "-bgcolor <f, f, f>",
+      "description": "background color in RGB (default 223 223 223)"
+    },
+    {
+      "name": "-fgcolor <f, f, f>",
+      "description": "foreground color in RGB (default 0 0 0)"
+    },
+    {
+      "name": "-width <float>",
+      "description": "set signal width (default 1)"
     }
   ],
   "methods": [

@@ -44,6 +44,10 @@
     {
       "type": "mode <float>",
       "description": "duplicate or draw only"
+    },
+    {
+      "type": "interlace <float>",
+      "description": "set interlace factor"
     }
   ],
   "body": ""

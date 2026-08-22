@@ -1,0 +1,74 @@
+{
+  "title": [
+    "width~"
+  ],
+  "description": "stereo widening",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal(s)",
+          "description": "left signal input(s)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "right signal input(s)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "width value from -1 to 1"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal(s)",
+          "description": "left channel(s)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal(s)",
+          "description": "right channel(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initial width value",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "width <list>",
+      "description": "width value(s) from -1 to 1"
+    }
+  ],
+  "body": "[width~] sets the stereo width, At '1' the output is the same as the input. At '0', both outputs become the same ('mono'). At -1 the channels are swaped."
+}

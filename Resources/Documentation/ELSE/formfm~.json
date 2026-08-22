@@ -1,0 +1,70 @@
+{
+  "title": [
+    "formfm~"
+  ],
+  "description": "FM formant oscillator",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal(s)",
+          "description": "fundamental frequency (f0) in hz"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal(s)",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal(s)",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal(s)",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "fundamental frequency",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "formant frequency ratio",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "bandwidth or fm index",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[formfm~] is a FM formant oscillator (actually phase modulation) where you specify the fundamental (f0) frequency, the center (or formant) frequency as a ratio and the bandwidth (as the modulation index). This is an abstraction based on Pd's F10 example (sweepable FM). The object has support for multichannels."
+}

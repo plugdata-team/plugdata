@@ -1,0 +1,60 @@
+{
+  "title": [
+    "glsl_tesseval"
+  ],
+  "description": "load a GLSL tessellation evaluation shader",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "shader ID, to be linked with [glsl_program]"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "tessellation evaluation shader file to load",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "open <symbol>",
+      "description": "load a tessellation evaluation shader file"
+    },
+    {
+      "type": "print",
+      "description": "print shader info log"
+    }
+  ],
+  "body": "[glsl_tesseval] loads a GLSL tessellation evaluation shader. Send the resulting shader ID to [glsl_program] to link it into a shader program."
+}

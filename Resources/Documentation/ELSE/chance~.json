@@ -15,6 +15,19 @@
         {
           "type": "signal",
           "description": "impulse input"
+        },
+        {
+          "type": "list",
+          "description": "updates histogram if more than 1 argument is given"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets chance number if only one argument is given"
         }
       ],
       "repeat": false

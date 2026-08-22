@@ -25,6 +25,33 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies whether red, green, blue, and alpha can be written into the frame buffer."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies whether red, green, blue, and alpha can be written into the frame buffer."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies whether red, green, blue, and alpha can be written into the frame buffer."
+        }
+      ],
+      "repeat": false
     }
   ],
   "outlets": [
@@ -42,7 +69,22 @@
     {
       "type": "float",
       "description": "Specifies whether red, green, blue, and alpha can be written into the frame buffer.",
-      "default": "[true, true, true, true]"
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies whether red, green, blue, and alpha can be written into the frame buffer.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies whether red, green, blue, and alpha can be written into the frame buffer.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies whether red, green, blue, and alpha can be written into the frame buffer.",
+      "default": ""
     }
   ],
   "flags": [],

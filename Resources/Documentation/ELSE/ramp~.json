@@ -83,7 +83,7 @@
     {
       "type": "float",
       "description": "maximum value",
-      "default": "1"
+      "default": "2^32 - 1"
     },
     {
       "type": "float",
@@ -93,24 +93,12 @@
   ],
   "flags": [
     {
-      "name": "-set <float>",
-      "description": "sets the reset point value"
-    },
-    {
       "name": "-mode <float>",
       "description": "0 - wrap, 1 - clip, 2 - reset"
     },
     {
-      "name": "-stop",
-      "description": "stops incrementing"
-    },
-    {
-      "name": "-start",
-      "description": "(re)starts incrementing"
-    },
-    {
-      "name": "-reset",
-      "description": "stops and goes back to the reset point"
+      "name": "-off",
+      "description": "prevents the ramp from automatically starting"
     }
   ],
   "methods": [
@@ -119,8 +107,20 @@
       "description": "0 - wrap, 1 - clip, 2 - reset"
     },
     {
-      "type": "off",
-      "description": "prevents the ramp from automatically starting"
+      "type": "set <float>",
+      "description": "sets the reset point value"
+    },
+    {
+      "type": "stop",
+      "description": "stops incrementing"
+    },
+    {
+      "type": "start",
+      "description": "(re)starts incrementing"
+    },
+    {
+      "type": "reset",
+      "description": "stops and goes back to the reset point"
     }
   ],
   "body": "[ramp~] is a resettable linear ramp between a minimum and maximum value. You can trigger it with a bang or with a trigger signal (non-positive to positive transition)."

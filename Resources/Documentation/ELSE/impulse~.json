@@ -60,7 +60,20 @@
       "default": "0"
     }
   ],
-  "flags": [],
+  "flags": [
+    {
+      "name": "-mc <list>",
+      "description": "sets multichannel output with a list of frequencies"
+    },
+    {
+      "name": "-midi",
+      "description": "sets frequency input in MIDI pitch (default hertz)"
+    },
+    {
+      "name": "-soft",
+      "description": "sets to soft sync mode (default hard)"
+    }
+  ],
   "methods": [],
   "body": "The [impulse~] object (or [imp~] for short) is an impulse oscillator that accepts negative frequencies, has inlets for phase sync and phase modulation."
 }

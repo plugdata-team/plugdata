@@ -37,6 +37,11 @@
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "set <list>",
+      "description": "set input channels"
+    }
+  ],
   "body": "adc~ and dac~ provide real-time audio input and output for Pd, respectively, whether analog or digital. By default they are stereo (with channel numbers 1, 2"
 }

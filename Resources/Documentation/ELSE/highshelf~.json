@@ -83,6 +83,22 @@
     {
       "type": "bypass <float>",
       "description": "1 (bypasses input signal) or 0 (doesn't bypass)"
+    },
+    {
+      "type": "freq <list>",
+      "description": "shelving frequency in Hertz for each channel"
+    },
+    {
+      "type": "slope <list>",
+      "description": "filter slope for each channel"
+    },
+    {
+      "type": "db <list>",
+      "description": "gain in db for each channel"
+    },
+    {
+      "type": "bw",
+      "description": "sets resonance parameter to bandwidth in octaves"
     }
   ],
   "body": "[highshelf~] is a 2nd order highshelf filter."

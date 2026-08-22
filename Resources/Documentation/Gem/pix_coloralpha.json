@@ -30,13 +30,7 @@
       "repeat": false
     }
   ],
-  "arguments": [
-    {
-      "type": "float",
-      "description": "turn on/off",
-      "default": "1"
-    }
-  ],
+  "arguments": [],
   "flags": [],
   "methods": [],
   "body": ""

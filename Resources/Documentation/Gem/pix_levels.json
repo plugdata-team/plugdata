@@ -97,6 +97,26 @@
     {
       "type": "auto <float>",
       "description": "turns automatic level-correction on/off"
+    },
+    {
+      "type": "red <float, float, float, float>",
+      "description": "set input low/high and output low/high for the red channel"
+    },
+    {
+      "type": "green <float, float, float, float>",
+      "description": "set input low/high and output low/high for the green channel"
+    },
+    {
+      "type": "blue <float, float, float, float>",
+      "description": "set input low/high and output low/high for the blue channel"
+    },
+    {
+      "type": "lowP <float>",
+      "description": "set low percentile for auto-levels"
+    },
+    {
+      "type": "hiP <float>",
+      "description": "set high percentile for auto-levels"
     }
   ],
   "body": ""

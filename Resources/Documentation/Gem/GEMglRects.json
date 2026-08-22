@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "GLshort",
+          "type": "float",
           "description": "Specifies the x, y, and z window coordinates of the first corner of the rectangle."
         }
       ],
@@ -29,7 +29,7 @@
     {
       "messages": [
         {
-          "type": "GLshort",
+          "type": "float",
           "description": "Specifies the x, y, and z window coordinates of the second corner of the rectangle."
         }
       ],
@@ -38,7 +38,7 @@
     {
       "messages": [
         {
-          "type": "GLshort",
+          "type": "float",
           "description": "Specifies the x, y, and z window coordinates of the second corner of the rectangle."
         }
       ],
@@ -47,7 +47,7 @@
     {
       "messages": [
         {
-          "type": "GLshort",
+          "type": "float",
           "description": "Specifies the x, y, and z window coordinates of the second corner of the rectangle."
         }
       ],
@@ -67,13 +67,23 @@
   ],
   "arguments": [
     {
-      "type": "GLshort",
-      "description": "Specifies the x, y, and z window coordinates of the first corner of the rectangle.",
+      "type": "float",
+      "description": "x1",
       "default": ""
     },
     {
-      "type": "GLshort",
-      "description": "Specifies the x, y, and z window coordinates of the second corner of the rectangle.",
+      "type": "float",
+      "description": "y1",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "x2",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "y2",
       "default": ""
     }
   ],

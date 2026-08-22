@@ -1,0 +1,168 @@
+{
+  "title": [
+    "messcoll"
+  ],
+  "description": "collection of messages accessed via keys",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "outputs current/next address and its data"
+        },
+        {
+          "type": "list",
+          "description": "store address (1st element) and message (others)"
+        },
+        {
+          "type": "atom (float/symbol)",
+          "description": "set address atom and output it and its data"
+        },
+        {
+          "type": "anything",
+          "description": "store address (1st element) and message"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "set name to access data from another [messcoll]"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "the stored message(s) at a given address"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/symbol",
+          "description": "integer or symbol atom address of the stored message"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "information output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "object name to bind to",
+      "default": "none"
+    },
+    {
+      "type": "symbol",
+      "description": "filename to load",
+      "default": "none"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-k",
+      "description": "keep/saves contents with the patch"
+    },
+    {
+      "name": "-t",
+      "description": "threaded mode for the reading operation"
+    }
+  ],
+  "methods": [
+    {
+      "type": "delete <atom>",
+      "description": "delete address and its data"
+    },
+    {
+      "type": "set <symbol>",
+      "description": "set name to access data from another [messcoll]"
+    },
+    {
+      "type": "clear",
+      "description": "delete all data"
+    },
+    {
+      "type": "dump",
+      "description": "dumps all values (1st outlet) and addresses (2nd)"
+    },
+    {
+      "type": "goto <atom>",
+      "description": "goto an address (without output)"
+    },
+    {
+      "type": "prev",
+      "description": "outputs previous address and its data"
+    },
+    {
+      "type": "next",
+      "description": "same as bang: outputs next address and its data"
+    },
+    {
+      "type": "start",
+      "description": "sets the pointer to the first entry/address"
+    },
+    {
+      "type": "end",
+      "description": "sets the pointer to the last entry/address"
+    },
+    {
+      "type": "size",
+      "description": "sends number of stored values to the left outlet"
+    },
+    {
+      "type": "read <symbol>",
+      "description": "read a file (no symbol opens dialog window)"
+    },
+    {
+      "type": "write <symbol>",
+      "description": "save a file (no symbol opens dialog window)"
+    },
+    {
+      "type": "import <anything>",
+      "description": "import data from a list"
+    },
+    {
+      "type": "export",
+      "description": "export data as a list to the rightmost outlet"
+    },
+    {
+      "type": "show",
+      "description": "open editing window"
+    },
+    {
+      "type": "hide",
+      "description": "closes editing window"
+    },
+    {
+      "type": "keep <float>",
+      "description": "non zero sets to save contents with the patch"
+    },
+    {
+      "type": "threaded <float>",
+      "description": "non zero sets to threaded mode"
+    }
+  ],
+  "body": "[messcoll] stores a collection of messages accessed via keys (addresses). Messages can be stored, edited, navigated, imported/exported and saved to files."
+}

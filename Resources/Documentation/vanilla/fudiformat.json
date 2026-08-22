@@ -29,7 +29,13 @@
       "repeat": false
     }
   ],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "'-u' switches to UDP mode (packets not terminated with semicolons)",
+      "default": ""
+    }
+  ],
   "flags": [
     {
       "name": "-u",

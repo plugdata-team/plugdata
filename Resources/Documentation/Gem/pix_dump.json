@@ -48,6 +48,18 @@
     {
       "type": "bytemode <float>",
       "description": "set normalization on or off"
+    },
+    {
+      "type": "RGB",
+      "description": "output RGB values only"
+    },
+    {
+      "type": "RGBA",
+      "description": "output RGBA values (default)"
+    },
+    {
+      "type": "mode <symbol>",
+      "description": "set output color space (RGB, RGBA)"
     }
   ],
   "body": ""

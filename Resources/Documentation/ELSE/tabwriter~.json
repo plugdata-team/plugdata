@@ -80,19 +80,19 @@
   "flags": [
     {
       "name": "-continue <f>",
-      "description": ""
+      "description": "non-0 continue recording from where it last stopped"
     },
     {
       "name": "-loop <f>",
-      "description": ""
+      "description": "non-0 enables loop recording, 0 disables it"
     },
     {
       "name": "-start <f>",
-      "description": ""
+      "description": "start point in ms (default 0)"
     },
     {
       "name": "-end <f>",
-      "description": ""
+      "description": "end point in ms (default array's initial size)"
     },
     {
       "name": "-ch <f>",
@@ -127,6 +127,14 @@
     {
       "type": "loop <float>",
       "description": "non-0 enables loop recording, 0 disables it"
+    },
+    {
+      "type": "rec",
+      "description": "(re)starts recording"
+    },
+    {
+      "type": "stop",
+      "description": "stops recording"
     }
   ],
   "body": "[tabwriter~] records up to 64 signal channels into arrays and can be triggered with sample accuracy."

@@ -31,8 +31,18 @@
   ],
   "arguments": [
     {
-      "type": "list",
-      "description": "default position (x y z)",
+      "type": "float",
+      "description": "X position",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Y position",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Z position",
       "default": ""
     }
   ],

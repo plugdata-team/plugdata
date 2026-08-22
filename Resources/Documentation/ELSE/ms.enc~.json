@@ -1,0 +1,54 @@
+{
+  "title": [
+    "ms.enc~"
+  ],
+  "description": "mid/side encoding",
+  "origin": "ELSE",
+  "categories": [
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal(s)",
+          "description": "left input signal(s)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal(s)",
+          "description": "right input signal(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal(s)",
+          "description": "mid signal(s)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal(s)",
+          "description": "side signal(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[ms.enc~] takes a stereo input and encodes into mid and side signals. It has support for multichannel signals."
+}

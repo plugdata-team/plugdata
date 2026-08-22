@@ -23,7 +23,7 @@
           "description": "loop start and end points in ms"
         }
       ],
-      "repeat": false
+      "repeat": true
     },
     {
       "messages": [

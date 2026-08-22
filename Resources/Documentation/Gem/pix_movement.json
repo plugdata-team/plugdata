@@ -46,6 +46,11 @@
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "thresh <float>",
+      "description": "set the motion detection threshold"
+    }
+  ],
   "body": ""
 }

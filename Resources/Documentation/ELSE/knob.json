@@ -36,72 +36,120 @@
   "arguments": [],
   "flags": [
     {
-      "name": "-set <float>",
-      "description": "sets value (no output)"
-    },
-    {
-      "name": "-load <float>",
-      "description": "sets load value, no float sets current\ndefault: 0"
-    },
-    {
       "name": "-size <float>",
-      "description": "sets size in pixels\ndefault: 50"
+      "description": "sets size in pixels"
     },
     {
-      "name": "-arc <float>",
-      "description": "non zero sets to arc drawing mode\ndefault: 1"
-    },
-    {
-      "name": "-nosquare <float>",
-      "description": "don't draw square\ndefault: 0"
-    },
-    {
-      "name": "-nooutline <float>",
-      "description": "don't draw outline\ndefault: 0"
+      "name": "-range <float, float>",
+      "description": "sets minimum and maximum values"
     },
     {
       "name": "-bgcolor <list>",
-      "description": "sets background color in hexdecimal or RGB list\ndefault: #dfdfdf"
+      "description": "sets background color in hexdecimal or RGB list"
     },
     {
       "name": "-fgcolor <list>",
-      "description": "sets foreground color in hexdecimal or RGB list\ndefault: #000000"
+      "description": "sets foreground color in hexdecimal or RGB list"
     },
     {
-      "name": "-circular <float>",
-      "description": "non zero sets to circular dragging mode\ndefault: 0"
+      "name": "-arccolor <list>",
+      "description": "sets the arc color of the knob"
+    },
+    {
+      "name": "-arc <float>",
+      "description": "non zero sets to arc drawing mode"
+    },
+    {
+      "name": "-arcstart <float>",
+      "description": "sets arc start value, no float sets current"
+    },
+    {
+      "name": "-nosquare",
+      "description": "doesn't draw the square background"
     },
     {
       "name": "-angle <float>",
-      "description": "sets angular range value in degrees\ndefault: 320"
+      "description": "sets angular range value in degrees"
     },
     {
       "name": "-offset <float>",
-      "description": "sets angular offset in degrees\ndefault: 0"
+      "description": "sets angular offset in degrees"
+    },
+    {
+      "name": "-circular <float>",
+      "description": "non zero sets to circular dragging mode"
+    },
+    {
+      "name": "-jump",
+      "description": "sets to jump on click mode"
+    },
+    {
+      "name": "-discrete",
+      "description": "sets to discrete mode"
+    },
+    {
+      "name": "-steps <float>",
+      "description": "sets number of steps (0 for none)"
+    },
+    {
+      "name": "-number <float>",
+      "description": "sets number mode"
+    },
+    {
+      "name": "-numbersize <float>",
+      "description": "sets the size of the displayed number"
+    },
+    {
+      "name": "-numberpos <f, f>",
+      "description": "sets the position of the displayed number"
     },
     {
       "name": "-send <symbol>",
-      "description": "sets send symbol\ndefault: empty"
+      "description": "sets send symbol"
     },
     {
       "name": "-receive <symbol>",
-      "description": "sets receive symbol\ndefault: empty"
+      "description": "sets receive symbol"
+    },
+    {
+      "name": "-param <symbol>",
+      "description": "sets a parameter for the knob"
+    },
+    {
+      "name": "-var <symbol>",
+      "description": "assigns a variable to the knob"
+    },
+    {
+      "name": "-log",
+      "description": "sets to logarithmic scaling"
     },
     {
       "name": "-exp <float>",
-      "description": "sets exponential value\ndefault: 1"
+      "description": "sets exponential value"
     },
     {
-      "name": "-ticks <float>",
-      "description": "sets number of ticks\ndefault: 0"
+      "name": "-load <float>",
+      "description": "sets load value, no float sets current"
     },
     {
-      "name": "-discrete <float>",
-      "description": "non zero sets to discrete mode\ndefault: 0"
+      "name": "-savestate",
+      "description": "saves the current state"
     },
     {
-      "name": "-jump <float>",
-      "description": "non zero sets to jump on click mode\ndefault: 0"
+      "name": "-noloadbang",
+      "description": "doesn't send the value when loading the patch"
+    },
+    {
+      "name": "-readonly",
+      "description": "sets read-only mode"
+    },
+    {
+      "name": "-notheme",
+      "description": "doesn't follow the color theme"
+    },
+    {
+      "name": "-transparent",
+      "description": "sets to transparent background"
     }
   ],
   "methods": [
@@ -216,6 +264,22 @@
     {
       "type": "arccolor <list>",
       "description": "sets the arc color of the knob"
+    },
+    {
+      "type": "range <float, float>",
+      "description": "sets minimum and maximum values"
+    },
+    {
+      "type": "log <float>",
+      "description": "non zero sets to logarithmic scaling"
+    },
+    {
+      "type": "steps <float>",
+      "description": "sets number of steps (0 for none)"
+    },
+    {
+      "type": "transparent <float>",
+      "description": "non zero sets to transparent background"
     }
   ],
   "body": ""

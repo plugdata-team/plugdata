@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "double",
+          "type": "float",
           "description": "Specifies an array containing the x and y coordinates of the vertex."
         }
       ],
@@ -40,9 +40,14 @@
   ],
   "arguments": [
     {
-      "type": "double",
+      "type": "float",
       "description": "Specifies an array containing the x and y coordinates of the vertex.",
-      "default": "[0, 0]"
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies an array containing the x and y coordinates of the vertex.",
+      "default": ""
     }
   ],
   "flags": [],

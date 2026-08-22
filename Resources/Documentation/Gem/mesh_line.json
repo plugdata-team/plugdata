@@ -50,6 +50,10 @@
     {
       "type": "draw <symbol>",
       "description": "line, default or point"
+    },
+    {
+      "type": "grid <float>",
+      "description": "set the number of grid segments"
     }
   ],
   "body": ""

@@ -71,6 +71,11 @@
       "type": "float",
       "description": "Q",
       "default": ""
+    },
+    {
+      "type": "float",
+      "description": "initial gain (optional)",
+      "default": ""
     }
   ],
   "flags": [],

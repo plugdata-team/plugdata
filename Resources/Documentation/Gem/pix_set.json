@@ -75,6 +75,18 @@
     {
       "type": "set <float> <float>",
       "description": "set the size of the image"
+    },
+    {
+      "type": "gray",
+      "description": "interpret incoming data as greyscale"
+    },
+    {
+      "type": "yuv",
+      "description": "interpret incoming data as YUV"
+    },
+    {
+      "type": "bytemode <float>",
+      "description": "set values as bytes (0-255) instead of floats (0-1)"
     }
   ],
   "body": ""

@@ -62,7 +62,7 @@
   ],
   "methods": [
     {
-      "type": "-ext <float>",
+      "type": "ext <float>",
       "description": "non zero sets to listen only to external input source"
     }
   ],

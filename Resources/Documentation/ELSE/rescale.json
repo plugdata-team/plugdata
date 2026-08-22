@@ -103,6 +103,10 @@
     {
       "type": "rlog <float>",
       "description": "nonzero sets to reverse log mode"
+    },
+    {
+      "type": "in <float, float>",
+      "description": "set input range"
     }
   ],
   "body": "By default, [rescale] rescales MIDI input values from 0 to 127 (including floats) into another range of values (0-1 by default). You can also set to log or exponential factor (0 by default - linear)."

@@ -36,6 +36,15 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the page count (from 0 to maximum - 1)"
+        }
+      ],
+      "repeat": false
     }
   ],
   "arguments": [
@@ -50,6 +59,18 @@
     {
       "type": "max <float>",
       "description": "sets maximum count value"
+    },
+    {
+      "type": "pages <float>",
+      "description": "sets maximum number of pages"
+    },
+    {
+      "type": "set <float>",
+      "description": "sets current count value"
+    },
+    {
+      "type": "setpage <float>",
+      "description": "sets current page number"
     }
   ],
   "body": "[pulsecount~] counts pulse triggers. A trigger happens at transitions from non positive to positive. A trigger in the right inlet resets the counter to zero. The argument sets a maximum count value (if greater than 0)."

@@ -1,0 +1,42 @@
+{
+  "title": [
+    "listspread"
+  ],
+  "description": "distribute lists to outlets",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float/symbol",
+          "description": ""
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets the number of outlets",
+      "default": "2"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[listpread] accepts lists where the 1st element is a float that indicates the outlet number (starting at 1) and the other elements are sent to outlets starting from that inlet number. If there's no remaining elements, a bang is output."
+}

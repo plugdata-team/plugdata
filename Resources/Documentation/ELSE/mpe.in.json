@@ -33,7 +33,12 @@
         {
           "type": "list",
           "description": "voice number, type and data\nend:"
-        },
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
         {
           "type": "float",
           "description": "port number"

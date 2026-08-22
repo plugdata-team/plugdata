@@ -92,6 +92,10 @@
     {
       "type": "seed <float>",
       "description": "a float sets seed, no float sets a unique internal"
+    },
+    {
+      "type": "ch <float>",
+      "description": "set number of output channels"
     }
   ],
   "body": "[velvet~] is a velvet noise generator, which randomly chooses either positive (1) or negative (-1) impulses at random positions in a given period set in Hz. A polarity bias is possible to set the amount of positive and negative impulses. A time regularity parameter forces a impulses with less randomness. An amplitude irregularity forces random values (different than 1 or -1). The object has support for multichannel."

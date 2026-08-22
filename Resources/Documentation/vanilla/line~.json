@@ -45,6 +45,11 @@
   ],
   "arguments": [],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "stop",
+      "description": "stop the ramp and keep the current value"
+    }
+  ],
   "body": "The line~ object generates linear ramps whose levels and timing are determined by messages you send it. A list of two floats distributes the value over the inlets, as usual in Pd. Note that the right inlet (that sets the ramp time in milliseconds) does not remember old values (unlike every other inlet in Pd). Thus, if you don't priorly specify a time in the right inlet and sent line~ a float, it jumps immediately to the target value."
 }

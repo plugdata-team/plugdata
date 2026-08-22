@@ -35,6 +35,11 @@
       "type": "symbol",
       "description": "array name (optional)",
       "default": "none"
+    },
+    {
+      "type": "float",
+      "description": "set initial loaded channel",
+      "default": "1"
     }
   ],
   "flags": [
@@ -69,6 +74,10 @@
     {
       "name": "-loop",
       "description": "sets to loop mode"
+    },
+    {
+      "name": "-index",
+      "description": "sets to indexed mode"
     }
   ],
   "methods": [
@@ -103,6 +112,14 @@
     {
       "type": "hermite <f, f>",
       "description": "sets to Hermite interpolation"
+    },
+    {
+      "type": "index <float>",
+      "description": "non-0 sets to index mode"
+    },
+    {
+      "type": "spline",
+      "description": "sets to spline interpolation"
     }
   ],
   "body": "[tabreader~] accepts indexes from 0 to 1 by default and reads an array with different interpolation methods with multi channel support. There's no need to have guard points in the array as these are taken care of internally."

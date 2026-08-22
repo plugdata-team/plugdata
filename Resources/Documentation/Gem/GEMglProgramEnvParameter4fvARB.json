@@ -39,34 +39,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the new parameter value."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Specifies the new parameter value."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Specifies the new parameter value."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Specifies the new parameter value."
+          "description": "params"
         }
       ],
       "repeat": false
@@ -96,22 +69,7 @@
     },
     {
       "type": "float",
-      "description": "Specifies the new parameter value.",
-      "default": ""
-    },
-    {
-      "type": "float",
-      "description": "Specifies the new parameter value.",
-      "default": ""
-    },
-    {
-      "type": "float",
-      "description": "Specifies the new parameter value.",
-      "default": ""
-    },
-    {
-      "type": "float",
-      "description": "Specifies the new parameter value.",
+      "description": "params",
       "default": ""
     }
   ],

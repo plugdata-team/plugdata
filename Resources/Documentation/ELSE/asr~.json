@@ -38,7 +38,7 @@
       "messages": [
         {
           "type": "float/signal",
-          "description": "decay time in ms"
+          "description": "release time in ms"
         }
       ],
       "repeat": false
@@ -47,7 +47,7 @@
       "messages": [
         {
           "type": "float/signal",
-          "description": "sustain amplitude (ratio to gate value)"
+          "description": "time multiplier"
         }
       ],
       "repeat": false
@@ -81,12 +81,17 @@
     },
     {
       "type": "float",
-      "description": "release time in  ms",
+      "description": "release time in ms",
       "default": "10"
     },
     {
       "type": "float",
       "description": "curve parameter",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "time multiplier",
       "default": "1"
     }
   ],
@@ -106,6 +111,14 @@
     {
       "name": "-rel",
       "description": "sets to immediate release mode"
+    },
+    {
+      "name": "-minsus <float>",
+      "description": "zero or above sets minimum sustain time (default -1)"
+    },
+    {
+      "name": "-maxsus <float>",
+      "description": "zero or above sets maximum sustain time (default -1)"
     }
   ],
   "methods": [
@@ -128,6 +141,14 @@
     {
       "type": "gate <float>",
       "description": "control gate values"
+    },
+    {
+      "type": "minsus <float>",
+      "description": "zero or above sets minimum sustain time"
+    },
+    {
+      "type": "maxsus <float>",
+      "description": "zero or above sets maximum sustain time"
     }
   ],
   "body": "[asr~] is an attack/sustain/release gated envelope. At gate on (transition from 0 to any value), [asr~] goes from 0 to the gate value at the specified attack time in ms. At gate off (transition from any value to 0) [asr~] goes to 0 at the specified release time in ms."

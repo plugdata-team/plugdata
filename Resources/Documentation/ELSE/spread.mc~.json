@@ -16,6 +16,15 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "spread parameter"
+        }
+      ],
+      "repeat": false
     }
   ],
   "outlets": [
@@ -34,6 +43,11 @@
       "type": "float",
       "description": "number of output channels",
       "default": "2"
+    },
+    {
+      "type": "float",
+      "description": "spread",
+      "default": "1"
     }
   ],
   "flags": [],

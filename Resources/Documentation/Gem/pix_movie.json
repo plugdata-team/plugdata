@@ -64,6 +64,19 @@
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "mode <float>",
+      "description": "use rectangle texture mode (1) or power-of-two (0)"
+    },
+    {
+      "type": "quality <float>",
+      "description": "set texture quality (interpolation on/off)"
+    },
+    {
+      "type": "rectangle <float>",
+      "description": "use rectangle texture mode (1/0)"
+    }
+  ],
   "body": ""
 }

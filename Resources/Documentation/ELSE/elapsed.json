@@ -1,0 +1,56 @@
+{
+  "title": [
+    "elapsed"
+  ],
+  "description": "get elapsed time",
+  "origin": "ELSE",
+  "categories": [
+    "Triggers and Clocks"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "output elapsed time"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "reset time to zero"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "elapsed time"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "nonzero resets and arms the timer when creating the object",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "reset",
+      "description": "reset time to zero"
+    }
+  ],
+  "body": "The [elapsed] object detects the frequency/period between bangs. By default, the first bang into the left input resets and arms the timer. If you give it a nonzero argument, the object is reset and armed at creation. The right inlet takes a bang that resets the timer. This is way too dimilar to Vanilla's [timer], but with a different (and more intuitive/regular hot left inlet) design."
+}

@@ -40,6 +40,11 @@
   ],
   "arguments": [],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "coords <list>",
+      "description": "set texture coordinates"
+    }
+  ],
   "body": ""
 }

@@ -35,6 +35,10 @@
     {
       "type": "mode <float>",
       "description": "enforce (1) or not (0)"
+    },
+    {
+      "type": "adaptive <float>",
+      "description": "use motion-adaptive deinterlacing (1/0)"
     }
   ],
   "body": ""

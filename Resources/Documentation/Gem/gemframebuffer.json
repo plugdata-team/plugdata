@@ -68,6 +68,30 @@
     {
       "type": "format <symbol>",
       "description": "color format of the framebuffer (RGB|RGBA|RGB32|RGBA32F|YUV)"
+    },
+    {
+      "type": "dim <float, float>",
+      "description": "set framebuffer dimensions"
+    },
+    {
+      "type": "mode <float>",
+      "description": "use rectangle texture mode (1) or power-of-two (0)"
+    },
+    {
+      "type": "quality <float>",
+      "description": "set texture quality (interpolation)"
+    },
+    {
+      "type": "clear <float>",
+      "description": "0 disables the clearing of the color and depth buffers at every rendering (default 1)"
+    },
+    {
+      "type": "repeat <float>",
+      "description": "texture wrapping: REPEAT (1) or CLAMP_TO_EDGE (0, default)"
+    },
+    {
+      "type": "verbose <float>",
+      "description": "verbose printout when rebuilding the framebuffer (1/0)"
     }
   ],
   "body": ""

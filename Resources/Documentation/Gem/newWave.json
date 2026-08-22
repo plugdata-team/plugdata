@@ -1,6 +1,6 @@
 {
   "title": [
-    "newWaves"
+    "newWave"
   ],
   "description": "renders a waving square (mass-spring-system)",
   "origin": "Gem",

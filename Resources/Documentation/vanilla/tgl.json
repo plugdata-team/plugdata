@@ -76,6 +76,14 @@
     {
       "type": "delta <float, float>",
       "description": "changes the position by a x/y delta in pixels"
+    },
+    {
+      "type": "set <float>",
+      "description": "set value without output"
+    },
+    {
+      "type": "nonzero <float>",
+      "description": "set the non-zero value sent when toggled on"
     }
   ],
   "body": ""

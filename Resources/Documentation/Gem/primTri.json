@@ -83,7 +83,13 @@
       "repeat": false
     }
   ],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "size",
+      "default": ""
+    }
+  ],
   "flags": [],
   "methods": [
     {
@@ -92,7 +98,7 @@
     },
     {
       "type": "draw [line|fill|point]",
-      "description": ""
+      "description": "drawing style"
     }
   ],
   "body": ""

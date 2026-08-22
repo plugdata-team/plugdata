@@ -14,6 +14,10 @@
   "flags": [],
   "methods": [
     {
+      "type": "size <float>",
+      "description": "set size of the selectable area"
+    },
+    {
       "type": "vis_size <float>",
       "description": "sets the GUI size"
     },

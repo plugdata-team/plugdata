@@ -62,6 +62,22 @@
     {
       "type": "style <float>",
       "description": "selects a style"
+    },
+    {
+      "type": "angle <float>",
+      "description": "set the screen angle in radians"
+    },
+    {
+      "type": "angleDEG <float>",
+      "description": "set the screen angle in degrees"
+    },
+    {
+      "type": "smooth <float>",
+      "description": "set smoothness (0-1)"
+    },
+    {
+      "type": "smoothN <float>",
+      "description": "set smoothness normalized to cell size"
     }
   ],
   "body": ""

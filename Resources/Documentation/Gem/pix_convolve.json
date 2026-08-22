@@ -44,12 +44,26 @@
   ],
   "arguments": [
     {
-      "type": "list",
-      "description": "matrix dimensions",
+      "type": "float",
+      "description": "number of rows of the convolution kernel",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "number of columns of the convolution kernel",
       "default": ""
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "chroma <float>",
+      "description": "only convolve the luminance channel (0) or all channels (1)"
+    },
+    {
+      "type": "matrix <list>",
+      "description": "set the convolution matrix (row*col values)"
+    }
+  ],
   "body": ""
 }

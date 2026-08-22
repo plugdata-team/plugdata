@@ -13,6 +13,10 @@
         {
           "type": "float/signal",
           "description": "pitch input"
+        },
+        {
+          "type": "list",
+          "description": "note on/off messages with pitch and velocity"
         }
       ],
       "repeat": false
@@ -31,6 +35,42 @@
         {
           "type": "signal",
           "description": "level for built-in VCA or excitation signal"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "frequency modulation input"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "timbre modulation input"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "harmonics modulation input"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "morph modulation input"
         }
       ],
       "repeat": false
@@ -95,6 +135,21 @@
       "type": "float",
       "description": "decay",
       "default": "0.5"
+    },
+    {
+      "type": "float",
+      "description": "timbre attenuverter",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "frequency attenuverter",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "morph attenuverter",
+      "default": "0"
     }
   ],
   "flags": [
@@ -107,12 +162,16 @@
       "description": "set model number\ndefault: 0"
     },
     {
-      "name": "-trigger",
-      "description": "set to trigger mode\ndefault: regular"
+      "name": "-tr_active/-lvl_active",
+      "description": "enable trigger/level input (default disabled)"
     },
     {
-      "name": "-level",
-      "description": "enables level input\ndefault: disabled"
+      "name": "-midi_active",
+      "description": "force MIDI mode (default disabled)"
+    },
+    {
+      "name": "-timbre_active/-freq_active/-morph_active",
+      "description": "enable modulation inputs (default disabled)"
     }
   ],
   "methods": [
@@ -127,10 +186,6 @@
     {
       "type": "cv",
       "description": "set frequency mode to CV"
-    },
-    {
-      "type": "trigger <float>",
-      "description": "non-0 sets to trigger mode"
     },
     {
       "type": "model <float>",

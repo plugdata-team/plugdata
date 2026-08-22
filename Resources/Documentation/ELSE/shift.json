@@ -1,0 +1,68 @@
+{
+  "title": [
+    "shift"
+  ],
+  "description": "shift from outlet to outlet",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the input number"
+        },
+        {
+          "type": "bang",
+          "description": "outputs all stored values without shifting"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "numbers being passed"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets number of outlets",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "non zero sets to reverse",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <float>",
+      "description": "sets output value for all outlets (without output)"
+    },
+    {
+      "type": "rev <float>",
+      "description": "non zero sets to revers (from right to left)"
+    },
+    {
+      "type": "freeze <float>",
+      "description": "non zero freezes: input still shifts the stored values, but nothing is output"
+    },
+    {
+      "type": "shift",
+      "description": "shifts stored values in loop (according to direction)"
+    }
+  ],
+  "body": "[shift] outputs floats by shiftting them from outlet to outlet in a rotational pattern."
+}

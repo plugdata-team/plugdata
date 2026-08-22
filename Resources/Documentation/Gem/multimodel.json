@@ -29,12 +29,65 @@
       "repeat": false
     }
   ],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "base filename (use * as wildcard for the model number)",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "number of first model",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "number of last model",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "skip rate",
+      "default": "1"
+    }
+  ],
   "flags": [],
   "methods": [
     {
       "type": "open <symbol> <float> <float> <float>",
       "description": "load models with a specified file name pattern, base number, top number, and skip rate."
+    },
+    {
+      "type": "draw <symbol>",
+      "description": "drawing style: fill, line or point"
+    },
+    {
+      "type": "group <float>",
+      "description": "render only the given group of the model"
+    },
+    {
+      "type": "material <float>",
+      "description": "use the model's material (1/0)"
+    },
+    {
+      "type": "rescale <float>",
+      "description": "normalize the model size (1/0)"
+    },
+    {
+      "type": "revert <float>",
+      "description": "revert face winding (1/0)"
+    },
+    {
+      "type": "smooth <float>",
+      "description": "set smoothing factor for normals"
+    },
+    {
+      "type": "texture <float>",
+      "description": "texture mapping type: 0 linear, 1 spheremap, 2 from model file"
+    },
+    {
+      "type": "mdl_num <float>",
+      "description": "set the model number to display"
     }
   ],
   "body": ""

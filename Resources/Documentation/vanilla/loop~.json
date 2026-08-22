@@ -50,6 +50,11 @@
   ],
   "arguments": [],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "set <float>",
+      "description": "set phase (0 to 1)"
+    }
+  ],
   "body": "loop~ takes input signals to set transposition and window size, and outputs a phase and a sampled window size. The window size only changes at phase zero crossings and the phase output is adjusted so that changing window size doesn't change the transposition.\n\nYou can send \"bang\" or \"set\" message to force the phase to zero--you should mute the output before doing so. This may be desirable if you've set a large window size but then want to decrease it without waiting for the next phase crossing."
 }

@@ -61,7 +61,16 @@
     }
   ],
   "arguments": [],
-  "flags": [],
+  "flags": [
+    {
+      "name": "@repeatmode <float>",
+      "description": ""
+    },
+    {
+      "name": "@sustain <float>",
+      "description": ""
+    }
+  ],
   "methods": [
     {
       "type": "clear",

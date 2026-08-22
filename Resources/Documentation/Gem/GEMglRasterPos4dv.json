@@ -21,34 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the x, y, and z window coordinates."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Specifies the x, y, and z window coordinates."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Specifies the x, y, and z window coordinates."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Specifies the x, y, and z window coordinates."
+          "description": "v"
         }
       ],
       "repeat": false
@@ -66,6 +39,21 @@
     }
   ],
   "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the x, y, and z window coordinates.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies the x, y, and z window coordinates.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies the x, y, and z window coordinates.",
+      "default": ""
+    },
     {
       "type": "float",
       "description": "Specifies the x, y, and z window coordinates.",

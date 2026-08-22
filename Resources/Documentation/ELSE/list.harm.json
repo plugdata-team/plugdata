@@ -1,0 +1,84 @@
+{
+  "title": [
+    "list.harm"
+  ],
+  "description": "generate harmonic series",
+  "origin": "ELSE",
+  "categories": [
+    "Tuning"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "set fundamental and generate series"
+        },
+        {
+          "type": "bang",
+          "description": "generate harmonic series with current values"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "number of harmonics"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "harmonic index"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "the generated harmonic series"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "fundamental",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "number of harmonics",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "harmonic index",
+      "default": "1"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-sub",
+      "description": "sets to subharmonic mode"
+    }
+  ],
+  "methods": [
+    {
+      "type": "sub <float>",
+      "description": "sets to subharmonic mode"
+    }
+  ],
+  "body": "Use [list.harm] to generate a list of harmonics. The left inlet sets the fundamental, the mid inlet sets the number of partials, and the right inlet sets the harmonic index. The default harmonic index is '1', so the generated harmonic series is '1 2 3 4 etc...' and an index of '0.5' generates '1 1.5 2 2.5 etc...', the fundamental value is then multiplied by this series."
+}

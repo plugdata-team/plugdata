@@ -63,6 +63,10 @@
     {
       "name": "-bw",
       "description": "sets resonance parameter to bandwidth in octaves"
+    },
+    {
+      "name": "-t60",
+      "description": "sets resonance parameter to 't60'"
     }
   ],
   "methods": [
@@ -81,6 +85,18 @@
     {
       "type": "q",
       "description": "sets resonance parameter to Q (default)"
+    },
+    {
+      "type": "freq <list>",
+      "description": "cutoff frequency in Hertz for each channel"
+    },
+    {
+      "type": "reson <list>",
+      "description": "filter resonance for each channel"
+    },
+    {
+      "type": "t60",
+      "description": "sets resonance parameter to 't60'"
     }
   ],
   "body": "[lowpass~] is a 2nd order lowpass resonant filter."

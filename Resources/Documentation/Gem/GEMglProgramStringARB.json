@@ -39,7 +39,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the number of strings in the program."
+          "description": "len"
         }
       ],
       "repeat": false
@@ -47,17 +47,8 @@
     {
       "messages": [
         {
-          "type": "float",
-          "description": "Specifies an array of pointers to the source code strings."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Specifies the length of the source code strings."
+          "type": "symbol",
+          "description": "string"
         }
       ],
       "repeat": false

@@ -54,7 +54,17 @@
       "default": "0"
     }
   ],
-  "flags": [],
-  "methods": [],
+  "flags": [
+    {
+      "name": "-lin",
+      "description": "sets crossfade to linear"
+    }
+  ],
+  "methods": [
+    {
+      "type": "lin <float>",
+      "description": "non zero sets to linear crossfade"
+    }
+  ],
   "body": "[xfade.mc~] performs an equal power crossfade between two multichannel sources."
 }

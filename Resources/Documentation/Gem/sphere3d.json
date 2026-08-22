@@ -49,13 +49,18 @@
   ],
   "arguments": [
     {
-      "type": "symbol",
-      "description": "draw [line|fill|point]",
+      "type": "float",
+      "description": "size",
       "default": ""
     },
     {
       "type": "float",
-      "description": "size of the sphere3d",
+      "description": "number of slices",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "number of stacks",
       "default": ""
     }
   ],

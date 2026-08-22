@@ -37,47 +37,47 @@
   "flags": [
     {
       "name": "-fgcolor <f f f>",
-      "description": ""
+      "description": "sets front/signal RGB color (values 0-255)"
     },
     {
       "name": "-bgcolor <f f f>",
-      "description": ""
+      "description": "sets background RGB color (values 0-255)"
     },
     {
       "name": "-gridcolor <f f f>",
-      "description": ""
+      "description": "sets grid RGB color (values 0-255)"
     },
     {
       "name": "-range <f f>",
-      "description": ""
+      "description": "sets vertical range (default -1 1)"
     },
     {
       "name": "-trigger <f>",
-      "description": ""
+      "description": "sets trigger mode: 0 (none, default), 1 (up) or 2 (down)"
     },
     {
       "name": "-triglevel <f>",
-      "description": ""
+      "description": "sets threshold level for the trigger mode (default 0)"
     },
     {
       "name": "-nsamples <f>",
-      "description": ""
+      "description": "sets number of samples per line (2-8192, default 256)"
     },
     {
       "name": "-nlines <f>",
-      "description": ""
+      "description": "sets number of lines in buffer (8-256, default 128)"
     },
     {
       "name": "-delay <f>",
-      "description": ""
+      "description": "onset time delay between displays (default 0)"
     },
     {
       "name": "-dim <f f>",
-      "description": ""
+      "description": "sets width/height (default 200 100)"
     },
     {
       "name": "-receive <sym>",
-      "description": ""
+      "description": "receive symbol (default empty)"
     }
   ],
   "methods": [

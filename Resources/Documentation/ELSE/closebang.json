@@ -1,0 +1,26 @@
+{
+  "title": [
+    "closebang"
+  ],
+  "description": "bang at closing/deleting",
+  "origin": "ELSE",
+  "categories": [
+    "Triggers and Clocks"
+  ],
+  "inlets": [],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "bang messages at closing an abstraction/subpatch"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[closebang] sends a bang when deleting an abstraction or subpatch or if you close the main patch with it. It doesn't work on top level. You can test by simply closing this help file and see \"subpatch: bang\" at the terminal window (from the [pd test] subpatch below)."
+}

@@ -45,7 +45,7 @@
       "messages": [
         {
           "type": "bang",
-          "description": "swing deviation parameter (in %)"
+          "description": "bangs at given tempo"
         }
       ],
       "repeat": false
@@ -60,6 +60,11 @@
     {
       "type": "float",
       "description": "swing deviation in %",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "swing cycle",
       "default": "0"
     }
   ],
@@ -99,20 +104,40 @@
       "description": "turn the metronome off"
     },
     {
-      "type": "ms <f, f>",
+      "type": "ms <f, f, f>",
       "description": "sets time to ms, optional floats set tempo and swing"
     },
     {
-      "type": "hz <f, f>",
+      "type": "hz <f, f, f>",
       "description": "sets time to Hz, optional floats set tempo and swing"
     },
     {
-      "type": "bpm <f, f>",
+      "type": "bpm <f, f, f>",
       "description": "sets time to bpm, optional floats set tempo and swing"
     },
     {
       "type": "seed <float>",
       "description": "a float sets seed, no float sets a unique internal"
+    },
+    {
+      "type": "set <float>",
+      "description": "set tempo in bpm, hz or ms for the next beat"
+    },
+    {
+      "type": "tempo <float>",
+      "description": "set tempo in bpm, hz or ms"
+    },
+    {
+      "type": "swing <float>",
+      "description": "set swing deviation parameter (in %)"
+    },
+    {
+      "type": "cycle <float>",
+      "description": "set swing cycle"
+    },
+    {
+      "type": "sync <float>",
+      "description": "non zero sets to sync mode"
     }
   ],
   "body": "The [tempo] object sends bang at a time specified in bpm or ms. It has a swing parameter and is turned on and off by a toggle."

@@ -50,7 +50,17 @@
       "default": "0"
     }
   ],
-  "flags": [],
-  "methods": [],
+  "flags": [
+    {
+      "name": "-lin",
+      "description": "sets crossfade to linear"
+    }
+  ],
+  "methods": [
+    {
+      "type": "lin <float>",
+      "description": "non zero sets to linear crossfade"
+    }
+  ],
   "body": "[xfade~] performs an equal power crossfade between two sources that can have 1 to 64 channels each."
 }

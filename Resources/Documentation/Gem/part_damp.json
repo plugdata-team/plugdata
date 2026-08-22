@@ -64,6 +64,11 @@
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "vector <float, float, float>",
+      "description": "set damping factors for X, Y and Z"
+    }
+  ],
   "body": ""
 }

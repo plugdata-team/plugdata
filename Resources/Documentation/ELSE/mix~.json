@@ -1,0 +1,89 @@
+{
+  "title": [
+    "mix~"
+  ],
+  "description": "mixdown a multichannel input into a stereo output",
+  "origin": "ELSE",
+  "categories": [
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "multichannel input to mix"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal(s)",
+          "description": "gain value(s) (linear only, no dB)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal(s)",
+          "description": "pan value(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "left mix output"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "right mix output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [
+    {
+      "name": "-gain <list>",
+      "description": "sets gain values (default 1)"
+    },
+    {
+      "name": "-db <list>",
+      "description": "sets gain values in db (default 0)"
+    },
+    {
+      "name": "-pan <list>",
+      "description": "sets gain values (default 0)"
+    }
+  ],
+  "methods": [
+    {
+      "type": "gain <list>",
+      "description": "gain value(s)"
+    },
+    {
+      "type": "db <list>",
+      "description": "gain value(s) in dB"
+    },
+    {
+      "type": "pan <list>",
+      "description": "pan value(s) from -1 (L) to 1 (R)"
+    }
+  ],
+  "body": "[mix~], for now, takes a MC input and considers them as mono channels that you can set the gain and stereo panning. Later it might take other configurations. The outputs are MC signals for Left and Right channels."
+}

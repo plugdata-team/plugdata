@@ -65,8 +65,16 @@
       "description": "sets to retrigger mode <0, 1 or 2>\n(default: 0)"
     },
     {
-      "name": "-split",
-      "description": "split mode allocates outputs the given number of voices via separate outlets"
+      "name": "-n <float>",
+      "description": "sets number of voices (default 1)"
+    },
+    {
+      "name": "-offset <float>",
+      "description": "sets index offset (default 0)"
+    },
+    {
+      "name": "-steal",
+      "description": "sets to voice stealing mode (default no stealing)"
     }
   ],
   "methods": [
@@ -91,8 +99,12 @@
       "description": "clears memory and output hanging notes"
     },
     {
-      "type": "voices <float>",
+      "type": "n <float>",
       "description": "sets number of voices (in list mode only)"
+    },
+    {
+      "type": "noteoff <float, float>",
+      "description": "sets a note off with note off release velocity"
     }
   ],
   "body": "[voices] is used to implement polyphonic synths. It's like Pd Vanilla's [poly] object, but with more functionalities. By default, it routes the voices to different outlets, but it also has a list mode similar to [poly]."

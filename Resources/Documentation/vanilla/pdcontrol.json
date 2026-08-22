@@ -44,6 +44,23 @@
   ],
   "arguments": [],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "dir <float, symbol>",
+      "description": "outputs the patch's directory. Optional float sets level of enclosing patch, optional symbol appends a path"
+    },
+    {
+      "type": "args <float>",
+      "description": "outputs the patch's invocation arguments. Float sets level of enclosing patch"
+    },
+    {
+      "type": "browse <symbol>",
+      "description": "opens a URL in a web browser"
+    },
+    {
+      "type": "isvisible",
+      "description": "outputs 1 if the patch is visible, 0 otherwise"
+    }
+  ],
   "body": "pdcontrol lets you open a URL in a web browser or communicate with the patch to get its owning directory, arguments or its visible/invisible state.\n\nOptional argument to specify this patch (0), owning patch (1), its own owner (2), and so on, and optionally also a filename relative to the patch's directory. (Ownership number is silently reduced if owners don't exist, so here anything greater than zero is ignored.)"
 }

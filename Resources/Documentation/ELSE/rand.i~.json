@@ -68,12 +68,20 @@
     {
       "name": "-seed <float>",
       "description": "seed value"
+    },
+    {
+      "name": "-ch <float>",
+      "description": "set number of output channels (default: 1)"
     }
   ],
   "methods": [
     {
       "type": "seed <float>",
       "description": "a float sets seed, no float sets a unique internal"
+    },
+    {
+      "type": "ch <float>",
+      "description": "set number of output channels"
     }
   ],
   "body": "[rand.i~] generates random integer values for a given range when triggered. A trigger happens at positive to negative or negative to positive transitions. Use the seed message if you want a reproducible output."

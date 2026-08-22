@@ -50,7 +50,7 @@
   "arguments": [
     {
       "type": "symbol",
-      "description": "array name (required)",
+      "description": "array name (optional)",
       "default": "none"
     },
     {

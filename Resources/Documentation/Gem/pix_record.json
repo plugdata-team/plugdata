@@ -71,7 +71,7 @@
       "description": "codeclist: enumerate a list of available codecs to the outlet#3"
     },
     {
-      "type": "codex <float>",
+      "type": "codec <float>",
       "description": "select codec"
     },
     {

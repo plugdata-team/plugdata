@@ -70,6 +70,10 @@
     {
       "type": "GREY",
       "description": "set colourspace"
+    },
+    {
+      "type": "gray",
+      "description": "set to greyscale noise"
     }
   ],
   "body": ""

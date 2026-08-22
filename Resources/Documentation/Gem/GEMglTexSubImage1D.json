@@ -21,15 +21,6 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the target texture."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
           "description": "Specifies the level-of-detail number."
         }
       ],
@@ -52,33 +43,6 @@
         }
       ],
       "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Specifies the format of the pixel data."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Specifies the data type of the pixel data."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "const GLvoid*",
-          "description": "Specifies a pointer to the image data in memory."
-        }
-      ],
-      "repeat": false
     }
   ],
   "outlets": [
@@ -95,11 +59,6 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the target texture.",
-      "default": ""
-    },
-    {
-      "type": "float",
       "description": "Specifies the level-of-detail number.",
       "default": ""
     },
@@ -111,21 +70,6 @@
     {
       "type": "float",
       "description": "Specifies the width of the subregion.",
-      "default": ""
-    },
-    {
-      "type": "float",
-      "description": "Specifies the format of the pixel data.",
-      "default": ""
-    },
-    {
-      "type": "float",
-      "description": "Specifies the data type of the pixel data.",
-      "default": ""
-    },
-    {
-      "type": "const GLvoid*",
-      "description": "Specifies a pointer to the image data in memory.",
       "default": ""
     }
   ],

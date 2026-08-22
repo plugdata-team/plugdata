@@ -11,28 +11,12 @@
     {
       "messages": [
         {
-          "type": "dim <f, f>",
-          "description": "sets horizontal and vertical size in pixels"
+          "type": "bang",
+          "description": "in bang mode, activates bang, otherwise changes state"
         },
         {
-          "type": "size <float>",
-          "description": "sets both horizontal and vertical size in pixels"
-        },
-        {
-          "type": "width <float>",
-          "description": "sets horizontal size in pixels"
-        },
-        {
-          "type": "height <float>",
-          "description": "sets vertical size in pixels"
-        },
-        {
-          "type": "bgcolor <f, f, f>",
-          "description": "sets background color in RGB"
-        },
-        {
-          "type": "fgcolor <f, f, f>",
-          "description": "sets foreground color in RGB"
+          "type": "float",
+          "description": "when not in bang mode, sets state"
         }
       ],
       "repeat": false
@@ -52,42 +36,50 @@
   "arguments": [],
   "flags": [
     {
-      "name": "-bang",
-      "description": "sets to bang mode (default latch)"
+      "name": "-bng/-tgl/-click",
+      "description": "set mode (default: latch)"
     },
     {
-      "name": "-toggle",
-      "description": "sets to toggle mode (default latch)"
+      "name": "-oval",
+      "description": "sets to oval style"
+    },
+    {
+      "name": "-readonly",
+      "description": "sets to readonly mode"
     },
     {
       "name": "-dim <float, float>",
-      "description": "x/y dimensions (default = 20, 20)"
+      "description": "x/y dimensions (default 20, 20)"
     },
     {
-      "name": "size <float>",
+      "name": "-size <float>",
       "description": "sets both horizontal and vertical size in pixels"
     },
     {
-      "name": "-bgcolor <float, float>",
+      "name": "-send <symbol>",
+      "description": "set send name"
+    },
+    {
+      "name": "-receive <symbol>",
+      "description": "set receive name"
+    },
+    {
+      "name": "-transparent <float>",
+      "description": "set transparency level"
+    },
+    {
+      "name": "-bgcolor <f, f, f>",
       "description": "background color in RGB (default 255 255 255)"
     },
     {
-      "name": "-fgcolor <float, float>",
+      "name": "-fgcolor <f, f, f>",
       "description": "foreground color in RGB (default 255 255 255)"
     }
   ],
   "methods": [
     {
-      "type": "latch",
-      "description": "sets to latch mode"
-    },
-    {
-      "type": "toggle",
-      "description": "sets to toggle mode"
-    },
-    {
-      "type": "bang",
-      "description": "sets to bang mode"
+      "type": "<latch/tgl/bng>",
+      "description": "sets mode ('latch', 'toggle' or 'bang')"
     },
     {
       "type": "dim <f, f>",
@@ -104,6 +96,26 @@
     {
       "type": "height <float>",
       "description": "sets vertical size in pixels"
+    },
+    {
+      "type": "send <symbol>",
+      "description": "set send symbol"
+    },
+    {
+      "type": "receive <symbol>",
+      "description": "set receive symbol"
+    },
+    {
+      "type": "oval <float>",
+      "description": "non zero sets to oval style, 0 hides it"
+    },
+    {
+      "type": "transparent <float>",
+      "description": "set transparency level"
+    },
+    {
+      "type": "readonly <float>",
+      "description": "non zero sets to 'read only'"
     },
     {
       "type": "bgcolor <f, f, f>",

@@ -50,6 +50,10 @@
     {
       "type": "set <symbol>",
       "description": "write to another buffer"
+    },
+    {
+      "type": "frame <float>",
+      "description": "set the frame slot to write to"
     }
   ],
   "body": ""

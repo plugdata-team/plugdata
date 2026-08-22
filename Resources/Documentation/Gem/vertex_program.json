@@ -29,7 +29,13 @@
       "repeat": false
     }
   ],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "vertex program file to load",
+      "default": ""
+    }
+  ],
   "flags": [],
   "methods": [
     {

@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "signal",
-          "description": "modulation frequency in hz"
+          "description": "modulation frequency as ratio of carrier"
         }
       ],
       "repeat": false
@@ -64,8 +64,8 @@
     },
     {
       "type": "float",
-      "description": "modulation frequency in hertz or ratio",
-      "default": "0"
+      "description": "modulation frequency as ratio of carrier",
+      "default": "1"
     },
     {
       "type": "float",
@@ -78,17 +78,7 @@
       "default": "0"
     }
   ],
-  "flags": [
-    {
-      "name": "-ratio",
-      "description": "sets to ratio mode"
-    }
-  ],
-  "methods": [
-    {
-      "type": "ratio <float>",
-      "description": "non zero sets to ratio mode"
-    }
-  ],
+  "flags": [],
+  "methods": [],
   "body": "[pm~] is a very basic and simple phase modulation unit, which consists of a pair of sinusoidal oscillators, where one modulates the phase input of another."
 }

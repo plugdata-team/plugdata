@@ -41,13 +41,8 @@
   "arguments": [
     {
       "type": "float",
-      "description": "turn alpha blending on/off",
-      "default": "1"
-    },
-    {
-      "type": "float",
-      "description": "blending function",
-      "default": "GL_ONE_MINUS_SRC_ALPHA"
+      "description": "alpha blending function",
+      "default": ""
     }
   ],
   "flags": [],

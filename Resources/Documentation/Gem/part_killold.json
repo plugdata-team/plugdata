@@ -37,6 +37,11 @@
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "age <float>",
+      "description": "kill particles older than this age"
+    }
+  ],
   "body": ""
 }

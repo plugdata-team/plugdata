@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the number of partitions in the grid."
+          "description": "un"
         }
       ],
       "repeat": false
@@ -30,7 +30,16 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the coordinates of the two end points of the grid."
+          "description": "u1"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "u2"
         }
       ],
       "repeat": false
@@ -50,12 +59,17 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the number of partitions in the grid.",
-      "default": "1"
+      "description": "un",
+      "default": ""
     },
     {
       "type": "float",
-      "description": "Specifies the coordinates of the two end points of the grid.",
+      "description": "u1",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "u2",
       "default": ""
     }
   ],

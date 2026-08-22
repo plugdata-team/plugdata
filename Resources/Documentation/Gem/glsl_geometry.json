@@ -38,7 +38,13 @@
       "repeat": false
     }
   ],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "geometry shader file to load",
+      "default": ""
+    }
+  ],
   "flags": [],
   "methods": [
     {

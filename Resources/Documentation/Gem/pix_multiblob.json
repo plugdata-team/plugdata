@@ -54,6 +54,10 @@
     {
       "type": "blobSize <float>",
       "description": "minimum relative size of a blob"
+    },
+    {
+      "type": "thresh <float>",
+      "description": "set the blob detection threshold"
     }
   ],
   "body": ""

@@ -61,6 +61,15 @@
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "div <float>",
+      "description": "sets the division value (minimum: 1)"
+    },
+    {
+      "type": "start <float>",
+      "description": "sets the start value"
+    }
+  ],
   "body": "[pulsediv~] outputs impulses when receiving triggers (signal changes from non-positive to positive). The left outlet outputs impulses according to the division value and the right outlet outputs impulses for the other trigger inputs."
 }

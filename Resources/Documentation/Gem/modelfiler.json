@@ -1,0 +1,75 @@
+{
+  "title": [
+    "modelfiler"
+  ],
+  "description": "load a model file into tables",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "number of vertices"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "name of an OBJ file to be loaded (optional)",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "open <symbol>",
+      "description": "open a model file"
+    },
+    {
+      "type": "backend <symbol>",
+      "description": "choose which backend to use first to open the model"
+    },
+    {
+      "type": "position <symbol, symbol, symbol>",
+      "description": "set tables to write the vertex positions (x, y, z) to"
+    },
+    {
+      "type": "color <symbol, symbol, symbol>",
+      "description": "set tables to write the vertex colors to"
+    },
+    {
+      "type": "normal <symbol, symbol, symbol>",
+      "description": "set tables to write the vertex normals to"
+    },
+    {
+      "type": "texture <symbol, symbol>",
+      "description": "set tables to write the texture coordinates to"
+    },
+    {
+      "type": "enumProps",
+      "description": "print available properties (for reading and/or writing)"
+    },
+    {
+      "type": "clearProps",
+      "description": "clear stored properties"
+    }
+  ],
+  "body": "[modelfiler] loads an Alias/Wavefront model file and writes its vertex data into Pd arrays/tables."
+}

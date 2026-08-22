@@ -47,27 +47,16 @@
       "repeat": false
     }
   ],
-  "arguments": [
-    {
-      "type": "float",
-      "description": "number of tiles in x-direction",
-      "default": "16"
-    },
-    {
-      "type": "float",
-      "description": "number of tiles in y-direction",
-      "default": "16"
-    }
-  ],
+  "arguments": [],
   "flags": [],
   "methods": [
     {
-      "type": "float",
-      "description": "number of tiles"
+      "type": "tiles <float, float>",
+      "description": "set number of tiles in x and y direction"
     },
     {
-      "type": "float",
-      "description": "contrast. if the (max-min)<contrast, values are clamped to 0"
+      "type": "contrast <float>",
+      "description": "set contrast threshold: if (max-min) < contrast, values are clamped to 0/255"
     }
   ],
   "body": ""

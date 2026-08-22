@@ -50,6 +50,10 @@
     {
       "type": "symbol",
       "description": "file name"
+    },
+    {
+      "type": "open <symbol>",
+      "description": "open .scl file and convert (no symbol opens dialog box)"
     }
   ],
   "body": "[scala] imports scales saved in the .scl format and outputs the scale as a list as understood by objects in ELSE. The Scala software is used to create and archive musical scales amongst other things. They provide a database of scales with over 5100 tunings. Check links:"

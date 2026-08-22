@@ -56,7 +56,7 @@
           "description": "any message to be recorded in that inlet/track"
         }
       ],
-      "repeat": false
+      "repeat": true
     }
   ],
   "outlets": [
@@ -64,7 +64,16 @@
       "messages": [
         {
           "type": "anything",
-          "description": "the reversed message/list"
+          "description": "recorded messages from the corresponding inlet/track"
+        }
+      ],
+      "repeat": true
+    },
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "bang when reaching end of recording"
         }
       ],
       "repeat": false

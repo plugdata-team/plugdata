@@ -1,0 +1,111 @@
+{
+  "title": [
+    "pix_cubemap"
+  ],
+  "description": "apply a cubemap texture",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": "image for cube face 1"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": "image for cube face 2"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": "image for cube face 3"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": "image for cube face 4"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": "image for cube face 5"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": "image for cube face 6"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "map <float>",
+      "description": "perform the texture mapping (1/0)"
+    },
+    {
+      "type": "env <float>",
+      "description": "set texture environment mode"
+    },
+    {
+      "type": "quality <float>",
+      "description": "set texture quality (interpolation on/off)"
+    },
+    {
+      "type": "repeat <float>",
+      "description": "repeat (1) or clamp (0) the texture"
+    },
+    {
+      "type": "texunit <float>",
+      "description": "set the texture unit"
+    }
+  ],
+  "body": "[pix_cubemap] applies cube mapping: six images (one per inlet) form a texture cube used for environment mapping on subsequent geos."
+}

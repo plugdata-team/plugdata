@@ -70,10 +70,6 @@
       "description": "first element sets background color and third sets font color (either floats or symbols in hexadecimal format)"
     },
     {
-      "type": "send <symbol>",
-      "description": "sets send symbol"
-    },
-    {
       "type": "receive <symbol>",
       "description": "sets receive symbol"
     },

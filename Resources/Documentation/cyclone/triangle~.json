@@ -53,6 +53,14 @@
     {
       "name": "hi <float>",
       "description": "highest point\ndefault: 1"
+    },
+    {
+      "name": "@lo <float>",
+      "description": "same as \"lo\" message (default -1)"
+    },
+    {
+      "name": "@hi <float>",
+      "description": "same as \"hi\" message (default 1)"
     }
   ],
   "methods": [

@@ -39,7 +39,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the internal format of the texture image."
+          "description": "internalFormat"
         }
       ],
       "repeat": false
@@ -48,7 +48,16 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the xoffset parameter, the lower left corner of the texture image is (xoffset, 0)."
+          "description": "x"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "y"
         }
       ],
       "repeat": false

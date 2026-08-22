@@ -21,16 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the information to return."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "gemlist",
-          "description": "Returns a string describing the current GL connection."
+          "description": "name"
         }
       ],
       "repeat": false

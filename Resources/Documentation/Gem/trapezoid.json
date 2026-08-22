@@ -50,8 +50,13 @@
   "arguments": [
     {
       "type": "float",
-      "description": "dimensions of the trapezoid (size topline)",
-      "default": "1 1"
+      "description": "bottom size",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "top size",
+      "default": ""
     }
   ],
   "flags": [],

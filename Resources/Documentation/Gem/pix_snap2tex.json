@@ -82,6 +82,26 @@
     {
       "type": "quality <float>",
       "description": "turn texture-resampling on/off"
+    },
+    {
+      "type": "pos <float, float>",
+      "description": "set position of the snapped area"
+    },
+    {
+      "type": "size <float, float>",
+      "description": "set size of the snapped area"
+    },
+    {
+      "type": "snap",
+      "description": "snap the framebuffer into the texture"
+    },
+    {
+      "type": "rectangle <float>",
+      "description": "use rectangle texture mode (1/0)"
+    },
+    {
+      "type": "texunit <float>",
+      "description": "set the texture unit"
     }
   ],
   "body": ""

@@ -49,6 +49,11 @@
   ],
   "arguments": [],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "coord <list>",
+      "description": "set rectangle coordinates"
+    }
+  ],
   "body": ""
 }

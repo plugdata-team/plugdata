@@ -38,7 +38,13 @@
       "repeat": false
     }
   ],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initial base (optional, natural logarithm if not given)",
+      "default": "e"
+    }
+  ],
   "flags": [],
   "methods": [],
   "body": "Signal rate logarithm operation. The left inlet must be a signal and the right inlet takes the base. The base may optionally also be initialised with the object. If no base is supplied, then the natural logarithm is assumed (base e)."

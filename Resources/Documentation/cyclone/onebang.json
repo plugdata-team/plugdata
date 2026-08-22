@@ -63,6 +63,11 @@
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "stop",
+      "description": "ignores the last bang sent to the right inlet"
+    }
+  ],
   "body": "[onebang] allows a bang in the left inlet to pass through the left outlet once ONLY if a bang has been previously received in the right inlet. The bang goes to the right outlet otherwise."
 }

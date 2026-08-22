@@ -45,6 +45,10 @@
     {
       "type": "stride <float>",
       "description": "stride distance"
+    },
+    {
+      "type": "seed <float>",
+      "description": "set random seed"
     }
   ],
   "body": ""

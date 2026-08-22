@@ -1,0 +1,41 @@
+{
+  "title": [
+    "GemSplash"
+  ],
+  "description": "draw the Gem splash",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "debugGL <float>",
+      "description": "turn OpenGL error debugging on/off for all Gem objects"
+    }
+  ],
+  "body": "[GemSplash] renders the Gem splash graphic into the current render chain."
+}

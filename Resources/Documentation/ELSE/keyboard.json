@@ -130,6 +130,14 @@
     {
       "type": "receive <symbol>",
       "description": "sets receive symbol"
+    },
+    {
+      "type": "play <list>",
+      "description": "flush notes and plays a list of Note On keys"
+    },
+    {
+      "type": "show <list>",
+      "description": "flush notes and sets a list of Note On keys"
     }
   ],
   "body": "[keyboard] is a GUI that receives MIDI notes and also generates them from mouse clicking. Right click it for properties!"

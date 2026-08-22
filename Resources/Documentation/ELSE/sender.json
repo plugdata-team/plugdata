@@ -42,12 +42,12 @@
     {
       "type": "float",
       "description": "optional depth value",
-      "default": "0"
+      "default": "1"
     },
     {
       "type": "list",
       "description": "up to two send names",
-      "default": "0"
+      "default": "none"
     }
   ],
   "flags": [],

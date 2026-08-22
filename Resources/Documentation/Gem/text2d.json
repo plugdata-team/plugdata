@@ -40,7 +40,7 @@
   ],
   "arguments": [
     {
-      "type": "<symbol>",
+      "type": "symbol",
       "description": "initial text (defaults to \"gem\")",
       "default": ""
     }
@@ -62,6 +62,10 @@
     {
       "type": "alias <float>",
       "description": "Anti-aliasing on/off ("
+    },
+    {
+      "type": "antialias <float>",
+      "description": "enable/disable antialiasing"
     }
   ],
   "body": ""

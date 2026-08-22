@@ -29,18 +29,7 @@
       "repeat": false
     }
   ],
-  "arguments": [
-    {
-      "type": "float",
-      "description": "number of bandpass filters",
-      "default": "1"
-    },
-    {
-      "type": "float",
-      "description": "ramp time in ms",
-      "default": "10"
-    }
-  ],
+  "arguments": [],
   "flags": [
     {
       "name": "-freq <list>",
@@ -61,6 +50,10 @@
     {
       "name": "-rampall <float>",
       "description": "sets ramp time for all filters"
+    },
+    {
+      "name": "-mc",
+      "description": "sets to multichannel output"
     }
   ],
   "methods": [
@@ -81,12 +74,8 @@
       "description": "list of ramp time for all filters in the bank"
     },
     {
-      "type": "rampal <float>",
+      "type": "rampall <float>",
       "description": "ramp time for all filters in the bank"
-    },
-    {
-      "type": "-mc <float>",
-      "description": "sets to multichannel output"
     }
   ],
   "body": "[bpbank~] is a bank made of [bandpass~] objects. You can set any number of filters with the first argument and control the parameters for each filter. If you use flags, the number of elements in the list (such as the frequency list) sets the number of filters in the bank (you shouldn't use arguments if you use flags)."

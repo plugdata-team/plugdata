@@ -35,6 +35,11 @@
   "outlets": [],
   "arguments": [],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "coeff <list>",
+      "description": "list of coefficients as taken by [biquad~]"
+    }
+  ],
   "body": "[zbiplot] plots the biquad coefficients as poles and zeros on the Z-Plane."
 }

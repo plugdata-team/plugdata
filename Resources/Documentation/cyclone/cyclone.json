@@ -5,13 +5,36 @@
   "description": "",
   "origin": "cyclone",
   "categories": [],
-  "inlets": [],
+  "inlets": [
+    {
+      "messages": [],
+      "repeat": false
+    }
+  ],
   "outlets": [
     {
       "messages": [
         {
-          "type": "",
-          "description": ""
+          "type": "list",
+          "description": "Cyclone version (major, minor, bugfix)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "Pd version (major, minor, bugfix)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "Pd flavor information"
         }
       ],
       "repeat": false
@@ -19,6 +42,15 @@
   ],
   "arguments": [],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "about",
+      "description": "prints library information on the terminal"
+    },
+    {
+      "type": "version",
+      "description": "outputs version information as a list"
+    }
+  ],
   "body": ""
 }

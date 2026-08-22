@@ -1,0 +1,41 @@
+{
+  "title": [
+    "Gem"
+  ],
+  "description": "Gem library info and global settings",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "debugGL <float>",
+      "description": "turn OpenGL error debugging on/off for all Gem objects"
+    }
+  ],
+  "body": "The [Gem] object gives access to library-wide settings. Use the 'debugGL' message to track down which object triggers OpenGL errors (costly, disabled by default). When placed in a render chain, [Gem] draws the Gem splash graphic (it is an alias of [GemSplash])."
+}

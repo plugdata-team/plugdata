@@ -60,7 +60,17 @@
       "default": "0"
     }
   ],
-  "flags": [],
-  "methods": [],
+  "flags": [
+    {
+      "name": "-mc <list>",
+      "description": "sets multichannel output with a list of frequencies"
+    }
+  ],
+  "methods": [
+    {
+      "type": "coeffs <list>",
+      "description": "up to 4 floats set 'a', 'b', 'c' and y[n-1]"
+    }
+  ],
   "body": "[quad~] generates a chaotic signal from the difference equation;\ny[n] = a * y[n-1]^2 + b * y[n-1] + c"
 }

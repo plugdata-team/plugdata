@@ -24,7 +24,7 @@
           "description": "inputs to select from"
         }
       ],
-      "repeat": false
+      "repeat": true
     }
   ],
   "outlets": [

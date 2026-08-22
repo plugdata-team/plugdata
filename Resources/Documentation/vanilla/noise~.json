@@ -32,6 +32,11 @@
   ],
   "arguments": [],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "seed <float>",
+      "description": "set seed for the random number generator"
+    }
+  ],
   "body": "Noise~ is a random number generator that outputs white noise from a pseudo-random number generator at the audio rate (with output from -1 to 1)."
 }

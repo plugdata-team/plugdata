@@ -50,26 +50,16 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Turn light on/off",
-      "default": "1"
-    },
-    {
-      "type": "debug <float>",
-      "description": "Show debugging object",
-      "default": ""
-    },
-    {
-      "type": "list",
-      "description": "Set the color of the light-source",
-      "default": ""
-    },
-    {
-      "type": "list",
-      "description": "Set the attenuation parameters",
+      "description": "light number",
       "default": ""
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "debug <float>",
+      "description": "show debugging object (1/0)"
+    }
+  ],
   "body": ""
 }

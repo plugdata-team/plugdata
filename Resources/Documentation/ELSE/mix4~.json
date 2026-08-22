@@ -76,7 +76,7 @@
   "flags": [],
   "methods": [
     {
-      "type": "gain <float>",
+      "type": "gain1 <float>",
       "description": "sets gain for channel 1"
     },
     {
@@ -92,7 +92,7 @@
       "description": "sets gain for channel 4"
     },
     {
-      "type": "pan <float>",
+      "type": "pan1 <float>",
       "description": "sets pan for channel 1"
     },
     {

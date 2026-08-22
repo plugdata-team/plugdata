@@ -64,6 +64,15 @@
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clears the memory (the list of already generated numbers)"
+    },
+    {
+      "type": "seed <float>",
+      "description": "reseeds the random number generator"
+    }
+  ],
   "body": "[urn] generates random numbers in a range defined by the 'n' size (from 0 to n-1) without repeating them. When all numbers have been output, a bang is sent to the right outlet and it stops generating numbers unless it receives a clear message."
 }

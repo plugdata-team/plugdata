@@ -48,10 +48,19 @@
     }
   ],
   "arguments": [],
-  "flags": [],
+  "flags": [
+    {
+      "name": "-lin",
+      "description": "sets output to linear (default dB)"
+    }
+  ],
   "methods": [
     {
       "type": "-lin <float>",
+      "description": "non zero sets to linear output"
+    },
+    {
+      "type": "lin <float>",
       "description": "non zero sets to linear output"
     }
   ],

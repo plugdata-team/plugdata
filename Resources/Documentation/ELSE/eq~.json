@@ -97,6 +97,18 @@
     {
       "type": "q",
       "description": "sets resonance parameter to Q (default)"
+    },
+    {
+      "type": "freq <list>",
+      "description": "cutoff frequency in Hertz for each channel"
+    },
+    {
+      "type": "reson <list>",
+      "description": "filter resonance for each channel"
+    },
+    {
+      "type": "db <list>",
+      "description": "gain in db for each channel"
     }
   ],
   "body": "[eq~] is a 2nd order parametric equalizer filter, it can be used as a peak and a notch filter."

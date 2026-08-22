@@ -1,0 +1,69 @@
+{
+  "title": [
+    "pix_tIIRf"
+  ],
+  "description": "time-base IIR filter (float precision)",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": "image to set the filter state ('set' messages)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of feedback coefficients",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "number of feedforward coefficients",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "list <list>",
+      "description": "set all filter coefficients (feedback then feedforward)"
+    },
+    {
+      "type": "set",
+      "description": "set the filter state to the next incoming image"
+    },
+    {
+      "type": "set <float>",
+      "description": "set the filter state to the given value"
+    }
+  ],
+  "body": "[pix_tIIRf] applies an IIR filter over time on a series of images, like [pix_tIIR] but with floating-point precision."
+}

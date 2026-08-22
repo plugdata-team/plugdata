@@ -1,0 +1,96 @@
+{
+  "title": [
+    "formlet~"
+  ],
+  "description": "FOF-like resonator filter",
+  "origin": "ELSE",
+  "categories": [
+    "Filters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal(s)",
+          "description": "excitation signal"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "central frequency in Hertz"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal(s)",
+          "description": "attack time in ms"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal(s)",
+          "description": "decay time in ms"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "resonator/filtered signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "central frequency in hertz",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "attack time in ms",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "decay time in ms",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clears filter's memory if you blow it up"
+    },
+    {
+      "type": "freq <list>",
+      "description": "resonant frequency in Hertz for each channel"
+    },
+    {
+      "type": "attack <list>",
+      "description": "attack time in ms for each channel"
+    },
+    {
+      "type": "decay <list>",
+      "description": "decay time in ms for each channel"
+    }
+  ],
+  "body": "Based on SuperCollider's Formlet UGen, [formlet~] is a resonant filter similar to [resonator~] in bandpass mode (and [resonant~] by extension). The difference is that you you can also specify an attack time besides the decay time. An advantage to this filter over FOF is that there is no limit to the number of overlapping grains."
+}

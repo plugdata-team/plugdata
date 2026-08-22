@@ -93,6 +93,14 @@
     {
       "name": "-soft",
       "description": "sets to soft sync mode\ndefault: hard"
+    },
+    {
+      "name": "-mc <list>",
+      "description": "sets multichannel output with a list of frequencies"
+    },
+    {
+      "name": "-n",
+      "description": "sets number of slices (default 1)"
     }
   ],
   "methods": [
@@ -103,14 +111,6 @@
     {
       "type": "set <float, float>",
       "description": "sets a single frequency channel"
-    },
-    {
-      "type": "size <float>",
-      "description": "sets size in number of points"
-    },
-    {
-      "type": "offset <float>",
-      "description": "sets offset in table"
     },
     {
       "type": "midi <float>",
@@ -139,6 +139,10 @@
     {
       "type": "spline",
       "description": "sets to spline interpolation mode (default)"
+    },
+    {
+      "type": "n <float>",
+      "description": "sets number of slices to scan through"
     }
   ],
   "body": "[wavetable~] is an interpolating wavetable oscillator like Pd Vanilla's [tabosc4~]. It accepts negative frequencies, has inlets for phase sync and phase modulation."

@@ -62,7 +62,20 @@
       "default": "none\n\nclick: clicking on the object opens data/edit window (same as 'open')"
     }
   ],
-  "flags": [],
+  "flags": [
+    {
+      "name": "-k",
+      "description": "keeps contents with the patch"
+    },
+    {
+      "name": "-loop",
+      "description": "sets to looping mode"
+    },
+    {
+      "name": "-speed <float>",
+      "description": "sets speed in percentage (default 100)"
+    }
+  ],
   "methods": [
     {
       "type": "pause",
@@ -87,6 +100,18 @@
     {
       "type": "save <symbol>",
       "description": "write score to file, no symbol opens dialog window"
+    },
+    {
+      "type": "bar <float>",
+      "description": "set starting bar"
+    },
+    {
+      "type": "loop <float>",
+      "description": "non zero sets to loop mode"
+    },
+    {
+      "type": "speed <float>",
+      "description": "sets speed in percentage"
     }
   ],
   "body": "[score] is an abstraction based on [text] with its own syntax. A variation of the object ([score2]) has the same rhythmic notation syntax as [pattern]."

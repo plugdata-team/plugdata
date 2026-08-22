@@ -1,0 +1,60 @@
+{
+  "title": [
+    "pix_test"
+  ],
+  "description": "create test images",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "image width (a single float sets both dimensions)",
+      "default": "128"
+    },
+    {
+      "type": "float",
+      "description": "image height",
+      "default": "128"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "dimen <float, float>",
+      "description": "set image dimensions"
+    },
+    {
+      "type": "colorspace <symbol>",
+      "description": "set colorspace of the image (RGBA, YUV or GREY)"
+    },
+    {
+      "type": "noise <float>",
+      "description": "enable/disable the noise section of the test image"
+    }
+  ],
+  "body": "[pix_test] creates a test image with SMPTE colorbars, gradients and (optionally) grey noise."
+}

@@ -49,19 +49,14 @@
   ],
   "arguments": [
     {
-      "type": "symbol",
-      "description": "draw [line|fill|point]",
-      "default": "fill"
-    },
-    {
       "type": "float",
       "description": "width",
-      "default": "1"
+      "default": ""
     },
     {
       "type": "float",
       "description": "height",
-      "default": "1"
+      "default": ""
     }
   ],
   "flags": [],

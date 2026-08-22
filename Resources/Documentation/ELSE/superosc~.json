@@ -1,0 +1,146 @@
+{
+  "title": [
+    "superosc~"
+  ],
+  "description": "\"Super oscillator\" inspired by JP-8000's supersaw",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal(s)",
+          "description": "frequency in hz or midi"
+        },
+        {
+          "type": "<square>/<saw>",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "width modulation"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "detune in cents"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "impulses to sync the oscillator"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal(s)",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal(s)",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "frequency in midi pitch or hertz",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "width/shape",
+      "default": "0 if saw or sine, 0.5 if square"
+    },
+    {
+      "type": "float",
+      "description": "detune factor in cents",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-midi",
+      "description": "sets frequency input in MIDI pitch (default hertz)"
+    },
+    {
+      "name": "-square",
+      "description": "sets to square oscillatot (default variable saw)"
+    },
+    {
+      "name": "-n <float>",
+      "description": "sets number of oscillators from 1 to 16 (default 7)"
+    },
+    {
+      "name": "-mix <float>",
+      "description": "mix value from 0 to 1 (default 0.5)"
+    },
+    {
+      "name": "-mixmode <float>",
+      "description": "mix mode from 0 to 2 (default 0)"
+    },
+    {
+      "name": "-syncmode <float>",
+      "description": "sync mode from 0 to 3 (default 0)"
+    },
+    {
+      "name": "-detmode <float>",
+      "description": "detune sync mode: 0 (default) or 1/2 (random)"
+    },
+    {
+      "name": "-detcurve <float>",
+      "description": "detune factor curve (default 1)"
+    },
+    {
+      "name": "-spread <float>",
+      "description": "pan spread value from 0 to 1 (default 1)"
+    },
+    {
+      "name": "-spreadcurve <float>",
+      "description": "pan spread curve (default 1)"
+    }
+  ],
+  "methods": [
+    {
+      "type": "midi <float>",
+      "description": "non zero sets to frequency input in MIDI pitch"
+    },
+    {
+      "type": "curve <float>",
+      "description": "set detune factor curve"
+    },
+    {
+      "type": "<square>/<saw>",
+      "description": "set oscillator type"
+    }
+  ],
+  "body": "[superosc~], by default, recreates JP-8000's supersaw oscillator, summing 7 detunable sawtooth Waves. The oscillator is based on [bl.vsaw~] so you can also set the width of the variable sawtooth and turn it into a triangular wave. Additionaly, you can also set it to a square wave with PWM."
+}

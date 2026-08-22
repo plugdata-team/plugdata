@@ -21,15 +21,6 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the target texture."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
           "description": "Specifies the level-of-detail number. Level 0 is the base image level."
         }
       ],
@@ -39,7 +30,16 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the internal format of the texture."
+          "description": "xoffset"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "yoffset"
         }
       ],
       "repeat": false
@@ -58,42 +58,6 @@
         {
           "type": "float",
           "description": "Specifies the height of the texture image."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Specifies the border of the texture."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Specifies the format of the pixel data."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Specifies the data type of the pixel data."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "const GLvoid*",
-          "description": "Specifies a pointer to the image data in memory."
         }
       ],
       "repeat": false
@@ -149,11 +113,6 @@
     {
       "type": "float",
       "description": "Specifies the data type of the pixel data.",
-      "default": ""
-    },
-    {
-      "type": "const GLvoid*",
-      "description": "Specifies a pointer to the image data in memory.",
       "default": ""
     }
   ],

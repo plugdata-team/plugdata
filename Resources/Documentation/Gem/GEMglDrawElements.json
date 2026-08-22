@@ -68,23 +68,18 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies what kind of primitives to render.",
-      "default": "GL_TRIANGLES"
+      "description": "mode",
+      "default": ""
     },
     {
       "type": "float",
-      "description": "Specifies the number of indices to be rendered.",
-      "default": "0"
+      "description": "count",
+      "default": ""
     },
     {
       "type": "float",
       "description": "Specifies the type of the values in indices.",
-      "default": "GL_UNSIGNED_INT"
-    },
-    {
-      "type": "float",
-      "description": "Specifies an offset in the array buffer bound to GL_ELEMENT_ARRAY_BUFFER.",
-      "default": "0"
+      "default": ""
     }
   ],
   "flags": [],

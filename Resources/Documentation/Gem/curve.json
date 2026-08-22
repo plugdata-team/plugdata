@@ -40,12 +40,17 @@
   ],
   "arguments": [
     {
-      "type": "<float>",
+      "type": "float",
       "description": "number of control-points of the curve (mandatory)",
       "default": ""
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "res <float>",
+      "description": "set the resolution of the curve"
+    }
+  ],
   "body": ""
 }

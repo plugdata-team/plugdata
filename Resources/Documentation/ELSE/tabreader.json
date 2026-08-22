@@ -110,6 +110,10 @@
     {
       "type": "hermite <f, f>",
       "description": "sets to Hermite interpolation"
+    },
+    {
+      "type": "spline",
+      "description": "sets to spline interpolation"
     }
   ],
   "body": "[tabreader] accepts indexes from 0 to 1 by default and reads an array with different interpolation methods with multi channel support. There's no need to have guard points in the array as these are taken care of internally."

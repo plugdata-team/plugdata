@@ -64,6 +64,10 @@
     {
       "name": "-seed <float>",
       "description": "seed value"
+    },
+    {
+      "name": "-n <float>",
+      "description": "snumber of elements to output (default: 1)"
     }
   ],
   "methods": [

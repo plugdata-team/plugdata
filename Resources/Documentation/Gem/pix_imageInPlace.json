@@ -41,8 +41,23 @@
   "arguments": [
     {
       "type": "symbol",
-      "description": "filename (with wildcard *) for images to load",
+      "description": "base filename (use * as wildcard for the image number)",
       "default": ""
+    },
+    {
+      "type": "float",
+      "description": "number of first image",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "number of last image",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "skip rate",
+      "default": "1"
     }
   ],
   "flags": [],
@@ -58,6 +73,10 @@
     {
       "type": "purge",
       "description": "delete images from texture-RAM"
+    },
+    {
+      "type": "quality <float>",
+      "description": "set texture quality (interpolation on/off)"
     }
   ],
   "body": ""

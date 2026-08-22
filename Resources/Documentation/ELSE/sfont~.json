@@ -31,7 +31,7 @@
     {
       "messages": [
         {
-          "type": "anything",
+          "type": "signal",
           "description": "right output signal of stereo output"
         }
       ],

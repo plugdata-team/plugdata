@@ -28,7 +28,13 @@
     }
   ],
   "outlets": [],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "MIDI port number",
+      "default": "1"
+    }
+  ],
   "flags": [],
   "methods": [],
   "body": ""

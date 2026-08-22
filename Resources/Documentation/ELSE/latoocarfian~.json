@@ -70,7 +70,12 @@
       "default": "0.5"
     }
   ],
-  "flags": [],
+  "flags": [
+    {
+      "name": "-mc <list>",
+      "description": "sets multichannel output with a list of frequencies"
+    }
+  ],
   "methods": [
     {
       "type": "coeffs <f, f, f, f>",

@@ -1,0 +1,110 @@
+{
+  "title": [
+    "camera"
+  ],
+  "description": "controls the view point within a render chain",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "camera position/orientation info (on bang)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "bang",
+      "description": "output current camera info on the right outlet"
+    },
+    {
+      "type": "mode <float>",
+      "description": "0 sets to 'local' mode, 1 to 'gemwin' mode"
+    },
+    {
+      "type": "reset",
+      "description": "reset the camera position and orientation"
+    },
+    {
+      "type": "forward <float>",
+      "description": "move forward at the given speed"
+    },
+    {
+      "type": "reverse <float>",
+      "description": "move backwards at the given speed"
+    },
+    {
+      "type": "left <float>",
+      "description": "turn left"
+    },
+    {
+      "type": "right <float>",
+      "description": "turn right"
+    },
+    {
+      "type": "up <float>",
+      "description": "turn up"
+    },
+    {
+      "type": "down <float>",
+      "description": "turn down"
+    },
+    {
+      "type": "speed <float>",
+      "description": "set the movement speed"
+    },
+    {
+      "type": "distance <float>",
+      "description": "set the distance to the look-at point"
+    },
+    {
+      "type": "hAngle <float>",
+      "description": "set the horizontal angle"
+    },
+    {
+      "type": "vAngle <float>",
+      "description": "set the vertical angle"
+    },
+    {
+      "type": "lookX <float>",
+      "description": "set the X coordinate of the look-at point"
+    },
+    {
+      "type": "lookY <float>",
+      "description": "set the Y coordinate of the look-at point"
+    },
+    {
+      "type": "lookZ <float>",
+      "description": "set the Z coordinate of the look-at point"
+    }
+  ],
+  "body": "[camera] provides a controllable camera that sets the view point, either for the objects below it ('local' mode) or for the whole window ('gemwin' mode)."
+}

@@ -45,7 +45,17 @@
       "default": "1"
     }
   ],
-  "flags": [],
-  "methods": [],
+  "flags": [
+    {
+      "name": "-ext",
+      "description": "only output to outlet"
+    }
+  ],
+  "methods": [
+    {
+      "type": "ext <float>",
+      "description": "non zero sets to listen only to external mode"
+    }
+  ],
   "body": "[touch.out] formats and sends raw MIDI aftertouch messages. An argument sets channel number (the default is 1)."
 }

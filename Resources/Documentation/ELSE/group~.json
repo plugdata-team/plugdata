@@ -1,0 +1,52 @@
+{
+  "title": [
+    "group~"
+  ],
+  "description": "group multi-channel inputs",
+  "origin": "ELSE",
+  "categories": [
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal(s)",
+          "description": "MC signal input"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal(s)",
+          "description": "grouped MC signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of output channels",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "gain compensation factor",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "gain <float>",
+      "description": "non zero sets to gain compensation mode"
+    }
+  ],
+  "body": "[group~] groups 'n' channels from a multichannel input and sums it. The argument sets the number of output channels. The input is then broken into groups of n channels and summed. For instance \"1, 2, 3, 4, 5, 6\" grouped in a 3 channel output gives us \"1+4, 2+5, 3+6\" (5, 7, 9). There's a gain compensation factor, set via the 2nd argument or the 'gain' message, which divides by the number of summed channels. In the same example we then divide the output by 2 (giving us \"2.5 3.5 4.5\")."
+}

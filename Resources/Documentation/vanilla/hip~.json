@@ -50,6 +50,11 @@
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clear the filter's internal state"
+    }
+  ],
   "body": "hip~ is a one-pole highpass filter with a specified cutoff frequency. Left (audio"
 }

@@ -13,6 +13,10 @@
         {
           "type": "gemlist",
           "description": "debug 1|0: show debugging object (default: 0), f 66"
+        },
+        {
+          "type": "float",
+          "description": "turn light on/off (1/0)"
         }
       ],
       "repeat": false
@@ -41,11 +45,16 @@
   "arguments": [
     {
       "type": "float",
-      "description": "turn light on/off (",
-      "default": "1)"
+      "description": "light number",
+      "default": ""
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "debug <float>",
+      "description": "show debugging object (1/0)"
+    }
+  ],
   "body": ""
 }

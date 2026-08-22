@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "double",
+          "type": "float",
           "description": "Specifies the x-coordinate of the vertex."
         }
       ],
@@ -29,7 +29,7 @@
     {
       "messages": [
         {
-          "type": "double",
+          "type": "float",
           "description": "Specifies the y-coordinate of the vertex."
         }
       ],
@@ -49,12 +49,12 @@
   ],
   "arguments": [
     {
-      "type": "double",
+      "type": "float",
       "description": "Specifies the x-coordinate of the vertex.",
       "default": "0"
     },
     {
-      "type": "double",
+      "type": "float",
       "description": "Specifies the y-coordinate of the vertex.",
       "default": "0"
     }

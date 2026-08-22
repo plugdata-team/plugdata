@@ -11,8 +11,12 @@
     {
       "messages": [
         {
-          "type": "set <anything>",
-          "description": "sets a new text note"
+          "type": "signal",
+          "description": "input signal to be repeated"
+        },
+        {
+          "type": "float",
+          "description": "sets 'n' times to repeat"
         }
       ],
       "repeat": false
@@ -22,8 +26,8 @@
     {
       "messages": [
         {
-          "type": "set <anything>",
-          "description": "sets a new text note"
+          "type": "signal",
+          "description": "repeated signal"
         }
       ],
       "repeat": false
@@ -32,29 +36,11 @@
   "arguments": [
     {
       "type": "float",
-      "description": "minimum",
-      "default": "0"
+      "description": "'n' times to repeat",
+      "default": "1"
     }
   ],
-  "flags": [
-    {
-      "name": "-font <symbol>",
-      "description": "default 'dejavu sans mono' or 'menlo' for mac"
-    },
-    {
-      "name": "-bold",
-      "description": ""
-    }
-  ],
-  "methods": [
-    {
-      "type": "set <anything>",
-      "description": "sets a new text note"
-    },
-    {
-      "type": "append <anything>",
-      "description": "appends a message to the note"
-    }
-  ],
+  "flags": [],
+  "methods": [],
   "body": "[repeat~] takes an input signal of any channel size and repeats it 'n' times."
 }

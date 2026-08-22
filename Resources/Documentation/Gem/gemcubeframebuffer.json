@@ -38,7 +38,18 @@
       "repeat": false
     }
   ],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "color buffer format (e.g. RGB, RGBA, YUV)",
+      "default": ""
+    },
+    {
+      "type": "symbol",
+      "description": "data type (e.g. BYTE, FLOAT, INT)",
+      "default": ""
+    }
+  ],
   "flags": [],
   "methods": [
     {
@@ -52,6 +63,26 @@
     {
       "type": "color <float> <float> <float> <float>",
       "description": "set the background color of the framebuffer"
+    },
+    {
+      "type": "dim <float, float>",
+      "description": "set framebuffer dimensions"
+    },
+    {
+      "type": "face <float>",
+      "description": "select the cube face to render to"
+    },
+    {
+      "type": "mode <float>",
+      "description": "use rectangle texture mode (1/0)"
+    },
+    {
+      "type": "rectangle <float>",
+      "description": "use rectangle texture mode (1/0)"
+    },
+    {
+      "type": "texunit <float>",
+      "description": "set the texture unit"
     }
   ],
   "body": ""

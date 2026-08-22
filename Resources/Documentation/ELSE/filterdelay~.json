@@ -89,6 +89,22 @@
     {
       "type": "-wet <float>",
       "description": "sets dry/wet mix"
+    },
+    {
+      "type": "cutoff <float>",
+      "description": "resonant filter cutoff in hz, default 20Khz"
+    },
+    {
+      "type": "reson <float>",
+      "description": "filter resonance (0-1), default 0"
+    },
+    {
+      "type": "wet <float>",
+      "description": "dry wet ratio (0-1), default 0.5"
+    },
+    {
+      "type": "freeze <float>",
+      "description": "non zero freezes the delay"
     }
   ],
   "body": "[filterdelay~] is a high level delay unit that goes thgouh a resonant lowpass filter, a soft clipper and a DC filter. The processed delay output is also fed back into the delay line."

@@ -18,16 +18,21 @@
       "repeat": false
     }
   ],
-  "outlets": [],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "current frame rate (in response to the 'fps' message)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
   "arguments": [
     {
       "type": "float",
       "description": "frames per second",
-      "default": "20"
-    },
-    {
-      "type": "symbol",
-      "description": "context name",
       "default": "20"
     }
   ],
@@ -68,6 +73,94 @@
     {
       "type": "print",
       "description": "print information"
+    },
+    {
+      "type": "border 1|0",
+      "description": "create a window with/out borders (default 1)"
+    },
+    {
+      "type": "buffer 2|1",
+      "description": "set buffer-rendering mode to double (default) or single (not clearing buffer)"
+    },
+    {
+      "type": "cursor 0/1",
+      "description": "turn the cursor on/off"
+    },
+    {
+      "type": "fog num",
+      "description": "the fog density"
+    },
+    {
+      "type": "fogcolor R G B",
+      "description": "the color of the fog"
+    },
+    {
+      "type": "fogmode 0/1/2/3",
+      "description": "set the fog mode (OFF/LINEAR/EXP/EXP^2)"
+    },
+    {
+      "type": "fullscreen 0|1",
+      "description": "make fullscreen-window"
+    },
+    {
+      "type": "lighting 0|1",
+      "description": "turn lighting off/on (default:0)"
+    },
+    {
+      "type": "menubar -1/0/1",
+      "description": "hide or show the Mac OS X menubar, 1 shows, 0 hides, and -1 hides by default and shows on mouseover"
+    },
+    {
+      "type": "stereo 0|1|2|3",
+      "description": "set 3D stereo-mode to off(0), 2-screen-mode(1), Red/Green-mode(2)"
+    },
+    {
+      "type": "topmost 0/1",
+      "description": "make the gemwin the top most window, on top of everything else (Windows only?)"
+    },
+    {
+      "type": "view <x> <y> <z>",
+      "description": "translate the camera (default: 0 0 4)"
+    },
+    {
+      "type": "fps",
+      "description": "output the current frame rate on the outlet"
+    },
+    {
+      "type": "render",
+      "description": "render one single frame"
+    },
+    {
+      "type": "perspec <float*6>",
+      "description": "set the viewing frustum: left, right, bottom, top, near, far"
+    },
+    {
+      "type": "ambient <float, float, float>",
+      "description": "set the global ambient lighting color (RGB)"
+    },
+    {
+      "type": "specular <float, float, float>",
+      "description": "set the global specular lighting color (RGB)"
+    },
+    {
+      "type": "shininess <float>",
+      "description": "set the global material shininess"
+    },
+    {
+      "type": "blur <float>",
+      "description": "set motion blur amount (0-1)"
+    },
+    {
+      "type": "stereoSep <float>",
+      "description": "set the stereo separation"
+    },
+    {
+      "type": "stereoFoc <float>",
+      "description": "set the stereo focal distance"
+    },
+    {
+      "type": "stereoLine <float>",
+      "description": "set the position of the dividing line in split-screen stereo mode"
     }
   ],
   "body": ""

@@ -31,17 +31,7 @@
       "repeat": false
     }
   ],
-  "outlets": [
-    {
-      "messages": [
-        {
-          "type": "",
-          "description": ""
-        }
-      ],
-      "repeat": false
-    }
-  ],
+  "outlets": [],
   "arguments": [
     {
       "type": "symbol",

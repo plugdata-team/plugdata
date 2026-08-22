@@ -13,10 +13,6 @@
         {
           "type": "float/signal",
           "description": "frequency in Hz (negative values accepted)"
-        },
-        {
-          "type": "list",
-          "description": "3 floats set x[n-1], y[n-1] and z[n-1] respectively"
         }
       ],
       "repeat": false
@@ -75,15 +71,20 @@
       "default": "0"
     }
   ],
-  "flags": [],
+  "flags": [
+    {
+      "name": "-mc <list>",
+      "description": "sets multichannel output with a list of frequencies"
+    }
+  ],
   "methods": [
     {
-      "type": "coeffs <f,f,f,f>",
-      "description": "list sets values of 's', 'r', 'b' and 'h'"
+      "type": "coeffs <list>",
+      "description": "up to 7 floats set 's', 'r', 'b', 'h', x[n-1], y[n-1] and z[n-1]"
     },
     {
-      "type": "clear",
-      "description": "clears values of z, y and z"
+      "type": "set <float, float>",
+      "description": "<channel, freq> sets a single frequency channel"
     }
   ],
   "body": "The [lorenz~] is a strange attractor discovered by Edward N. Lorenz while studying mathematical models of the atmosphere."

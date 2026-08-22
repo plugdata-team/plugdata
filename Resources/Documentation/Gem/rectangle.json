@@ -49,18 +49,13 @@
   ],
   "arguments": [
     {
-      "type": "symbol",
-      "description": "draw [line|fill|point]",
-      "default": "fill"
-    },
-    {
       "type": "float",
-      "description": "width (default to 1)",
+      "description": "width",
       "default": "1"
     },
     {
       "type": "float",
-      "description": "height (default to 1)",
+      "description": "height",
       "default": "1"
     }
   ],
@@ -68,7 +63,7 @@
   "methods": [
     {
       "type": "draw [line|fill|point]",
-      "description": ""
+      "description": "drawing style"
     }
   ],
   "body": ""

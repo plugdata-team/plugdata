@@ -7,7 +7,17 @@
   "categories": [
     "Signal Generators"
   ],
-  "inlets": [],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "center frequency in hertz (default 440)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
   "outlets": [
     {
       "messages": [
@@ -23,31 +33,39 @@
   "flags": [
     {
       "name": "-n <f>",
-      "description": ""
+      "description": "set number of points (default 12)"
     },
     {
       "name": "-frange <f f>",
-      "description": ""
+      "description": "set minimum and maximum frequencies (default 220, 440)"
     },
     {
-      "name": "-freq_step <f>",
-      "description": ""
+      "name": "-fstep <f>",
+      "description": "set maximum frequency step in % (default 50)"
     },
     {
-      "name": "-amp_step <f>",
-      "description": ""
+      "name": "-astep <f>",
+      "description": "set maximum amplitude step in % (default 25)"
     },
     {
       "name": "-interp <f>",
-      "description": ""
+      "description": "sets interpolation mode (default 1, linear)"
     },
     {
       "name": "-seed <f>",
-      "description": ""
+      "description": "sets seed, no float sets unique internal (default)"
     },
     {
       "name": "-dist <f f f f>",
-      "description": ""
+      "description": "sets distributions and parameters, see [pd distributions]"
+    },
+    {
+      "name": "-bw <f>",
+      "description": "set bandwidth in cents or hz (default 1200 cents)"
+    },
+    {
+      "name": "-cents <f>",
+      "description": "non zero (default) sets bandwidth in cents instead of hz"
     }
   ],
   "methods": [
@@ -78,6 +96,14 @@
     {
       "type": "dist <f, f, f, f>",
       "description": "sets distributions and parameters, see [pd distributions]"
+    },
+    {
+      "type": "bw <float>",
+      "description": "set bandwidth in cents or hz (default 1200 cents)"
+    },
+    {
+      "type": "cents <float>",
+      "description": "non zero (default) sets bandwidth in cents instead of hz"
     }
   ],
   "body": "[gendyn~] implements \"Dynamic Stochastic Synthesis\" based on Xenakis' 'GenDyn' algorithm. The waveform has a given number of points (linearly interpolated by default). The period of each point and its value changes according to a random walk (a.k.a. Brownian motion) with given distributions."

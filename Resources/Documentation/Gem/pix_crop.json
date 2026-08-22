@@ -88,6 +88,27 @@
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "dimen <float, float>",
+      "description": "set dimensions of the cropped area"
+    },
+    {
+      "type": "dimenX <float>",
+      "description": "set width of the cropped area"
+    },
+    {
+      "type": "dimenY <float>",
+      "description": "set height of the cropped area"
+    },
+    {
+      "type": "offsetX <float>",
+      "description": "set X offset of the cropped area"
+    },
+    {
+      "type": "offsetY <float>",
+      "description": "set Y offset of the cropped area"
+    }
+  ],
   "body": ""
 }

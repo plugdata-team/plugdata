@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the number of partitions in the u direction of the grid."
+          "description": "un"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the coordinates of the two end points of the u grid."
+          "description": "u1"
         }
       ],
       "repeat": false
@@ -39,7 +39,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the number of partitions in the v direction of the grid."
+          "description": "u2"
         }
       ],
       "repeat": false
@@ -48,7 +48,25 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the coordinates of the two end points of the v grid."
+          "description": "vn"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "v1"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "v2"
         }
       ],
       "repeat": false

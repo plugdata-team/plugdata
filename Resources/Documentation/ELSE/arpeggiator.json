@@ -1,0 +1,119 @@
+{
+  "title": [
+    "arpeggiator"
+  ],
+  "description": "arpeggiator",
+  "origin": "ELSE",
+  "categories": [
+    "MIDI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "non zero turns arpeggiator on, zero turns off"
+        },
+        {
+          "type": "list",
+          "description": "note message <pitch, velocity>"
+        },
+        {
+          "type": "<forward/rev/alt/random>",
+          "description": ""
+        },
+        {
+          "type": "bang",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "set BPM"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "set relative gate/note duration"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "<pitch, velocity> of arpeggiated notes",
+          "description": ""
+        },
+        {
+          "type": "list",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "bpm",
+      "default": "120"
+    },
+    {
+      "type": "float",
+      "description": "relative gate duration",
+      "default": "0.75"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-on",
+      "description": "initialize arpeggiator to 'on'"
+    },
+    {
+      "name": "-mul <float>",
+      "description": "sets BPM multiplier (default 4)"
+    },
+    {
+      "name": "-rev/-alt/-ramdom",
+      "description": "sets mode (default up)"
+    },
+    {
+      "name": "-sort",
+      "description": "sets to sort mode"
+    },
+    {
+      "name": "-ext",
+      "description": "sets to external mode"
+    }
+  ],
+  "methods": [
+    {
+      "type": "<forward/rev/alt/random>",
+      "description": "set mode"
+    },
+    {
+      "type": "ext <float>",
+      "description": "non zero sets to external trigger mode"
+    },
+    {
+      "type": "mul <float>",
+      "description": "sets bpm multiplier"
+    },
+    {
+      "type": "sort <float>",
+      "description": "non zero sets to sort mode"
+    }
+  ],
+  "body": "[arpeggiator] takes note messages and arpeggiates on the currently held notes according to a BPM and a relative note duration."
+}

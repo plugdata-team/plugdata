@@ -82,6 +82,10 @@
     {
       "type": "set <float, float>",
       "description": "<channel, freq> set a single density channel"
+    },
+    {
+      "type": "ch <float>",
+      "description": "set number of output channels"
     }
   ],
   "body": "[randpulse~] is a random pulse train oscillator (which alternates between a random value and 0, or on/off). It accepts negative frequencies, has inlets for pulse width and sync."

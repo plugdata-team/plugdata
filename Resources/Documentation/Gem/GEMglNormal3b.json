@@ -21,7 +21,25 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the x, y, and z components of the current normal vector."
+          "description": "nx"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "ny"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "nz"
         }
       ],
       "repeat": false
@@ -41,8 +59,18 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the x, y, and z components of the current normal vector.",
-      "default": "0"
+      "description": "nx",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "ny",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "nz",
+      "default": ""
     }
   ],
   "flags": [],

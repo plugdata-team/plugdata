@@ -68,12 +68,22 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the x, y, and z window coordinates of the first corner of the rectangle.",
+      "description": "x1",
       "default": ""
     },
     {
       "type": "float",
-      "description": "Specifies the x, y, and z window coordinates of the second corner of the rectangle.",
+      "description": "y1",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "x2",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "y2",
       "default": ""
     }
   ],

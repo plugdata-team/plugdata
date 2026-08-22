@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the starting grid coordinates."
+          "description": "i"
         }
       ],
       "repeat": false
@@ -30,16 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the number of steps in the grid."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Specifies the number of steps in the grid."
+          "description": "j"
         }
       ],
       "repeat": false

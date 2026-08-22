@@ -50,22 +50,17 @@
   "arguments": [
     {
       "type": "float",
-      "description": "number of channels (min 2, max 500)",
-      "default": "2"
-    },
-    {
-      "type": "float",
       "description": "spread",
       "default": "1"
     }
   ],
   "flags": [
     {
-      "name": "index",
+      "name": "-index",
       "description": "sets to indexed mode"
     },
     {
-      "name": "circular",
+      "name": "-circular",
       "description": "sets to circular mode"
     }
   ],

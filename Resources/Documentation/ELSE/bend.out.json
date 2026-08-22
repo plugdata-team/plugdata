@@ -49,8 +49,17 @@
     {
       "name": "-raw",
       "description": "sets to raw input mode (0-16383)"
+    },
+    {
+      "name": "-ext",
+      "description": "only output to outlet"
     }
   ],
-  "methods": [],
+  "methods": [
+    {
+      "type": "ext <float>",
+      "description": "non zero sets to listen only to external mode"
+    }
+  ],
   "body": "[bend.out] formats and sends raw MIDI pitch bend messages. By default, it takes normalized values (floats from -1 to 1). An argument sets channel number (the default is 1)."
 }

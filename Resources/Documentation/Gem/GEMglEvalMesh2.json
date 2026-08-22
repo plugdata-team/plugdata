@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the mesh type."
+          "description": "mode"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the starting grid coordinates."
+          "description": "i1"
         }
       ],
       "repeat": false
@@ -39,7 +39,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the number of steps in the grid."
+          "description": "i2"
         }
       ],
       "repeat": false
@@ -48,7 +48,16 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the number of steps in the grid."
+          "description": "j1"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "j2"
         }
       ],
       "repeat": false

@@ -63,12 +63,16 @@
     {
       "name": "index",
       "description": "sets to indexed mode"
+    },
+    {
+      "name": "-index",
+      "description": "sets to indexed mode"
     }
   ],
   "methods": [
     {
       "type": "index <float>",
-      "description": "<1> \u2014 indexed mode, <0> \u2014 non-indexed (default)"
+      "description": "<1> — indexed mode, <0> — non-indexed (default)"
     }
   ],
   "body": "[xgate2.mc~] routes an input signal to 'n' multichannel outlet with equal power crossfade between two adjacent channels."

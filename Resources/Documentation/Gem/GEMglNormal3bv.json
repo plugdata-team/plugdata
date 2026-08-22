@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "pointer",
+          "type": "list",
           "description": "Specifies a pointer to an array of three signed bytes."
         }
       ],
@@ -40,7 +40,17 @@
   ],
   "arguments": [
     {
-      "type": "pointer",
+      "type": "float",
+      "description": "Specifies a pointer to an array of three signed bytes.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies a pointer to an array of three signed bytes.",
+      "default": ""
+    },
+    {
+      "type": "float",
       "description": "Specifies a pointer to an array of three signed bytes.",
       "default": ""
     }

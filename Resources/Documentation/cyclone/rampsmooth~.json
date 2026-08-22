@@ -62,11 +62,11 @@
   "flags": [],
   "methods": [
     {
-      "type": "ramp_down <float>",
+      "type": "rampdown <float>",
       "description": "set the ramp-down time in samples"
     },
     {
-      "type": "ramp_up <float>",
+      "type": "rampup <float>",
       "description": "set the ramp-up time in samples"
     },
     {

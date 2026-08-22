@@ -39,13 +39,18 @@
       "type": "float",
       "description": "up/down-sampling factor",
       "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "block phase offset",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [
     {
-      "type": "set <list>",
-      "description": "set argument values (size, overlap, up/downsampling)"
+      "type": "set <float, float, float, float>",
+      "description": "set block size, overlap, up/down-sampling factor and block phase offset"
     }
   ],
   "body": ""

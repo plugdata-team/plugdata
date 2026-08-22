@@ -68,10 +68,23 @@
     {
       "type": "symbol",
       "description": "score file to load",
-      "default": "none\n\nclick: clicking on the object opens data/edit window (same as 'open')"
+      "default": "none"
     }
   ],
-  "flags": [],
+  "flags": [
+    {
+      "name": "-k",
+      "description": "keeps contents with the patch"
+    },
+    {
+      "name": "-loop",
+      "description": "sets to looping mode"
+    },
+    {
+      "name": "-speed <float>",
+      "description": "sets speed in percentage (default 100)"
+    }
+  ],
   "methods": [
     {
       "type": "pause",
@@ -86,7 +99,7 @@
       "description": "opens edit window"
     },
     {
-      "type": "hind",
+      "type": "hide",
       "description": "closes edit window"
     },
     {
@@ -98,5 +111,5 @@
       "description": "write score to file, no symbol opens dialog window"
     }
   ],
-  "body": "[score2] is a variant of [score] that has the same rhythmic notation syntax as [pattern]."
+  "body": "[score2] is a variant of [score] that has the same rhythmic notation syntax as [pattern]. Clicking on the object opens the data/edit window (same as 'open')."
 }

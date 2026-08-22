@@ -51,10 +51,6 @@
     {
       "name": "-size <float>",
       "description": "sets buffer size"
-    },
-    {
-      "name": "-abs",
-      "description": "sets to absolute average mode"
     }
   ],
   "methods": [

@@ -1,0 +1,74 @@
+{
+  "title": [
+    "vca~"
+  ],
+  "description": "mono VCA module",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal(s)",
+          "description": "input signal(s)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal(s)",
+          "description": "CV input"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal(s)",
+          "description": "VCA output"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "level (VU) of the output signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "master gain",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "sum flag",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "master <float>",
+      "description": "overall gain compensation"
+    },
+    {
+      "type": "sum <float>",
+      "description": "non zero sum polyphonic (MC) channels into a single one"
+    }
+  ],
+  "body": "[vca~] is a mono (one in/out) VCA. It is the basis of the [vca.m~] MERDA module. For convenience, it sums polyphonic (multichannel connections) inputs into a single channel by default. You also have a general gain compensation and a right output to feed a [vu] object. Yeah, not much different than just using [*~]."
+}

@@ -25,6 +25,15 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "window size in ms"
+        }
+      ],
+      "repeat": false
     }
   ],
   "outlets": [

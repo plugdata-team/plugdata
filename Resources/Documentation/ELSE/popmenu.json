@@ -86,6 +86,14 @@
     {
       "name": "-mode <float>",
       "description": "set oputput mode, 0=index, 1=item, 2=both\ndefault: 0"
+    },
+    {
+      "name": "-nooutline",
+      "description": "don't draw outline"
+    },
+    {
+      "name": "-pos <float>",
+      "description": "popup position: 0-bottom (default), 1-top, 2-left, 3-right, 4-over"
     }
   ],
   "methods": [
@@ -168,6 +176,10 @@
     {
       "type": "loadbang <float>",
       "description": "triggers when the object is loaded"
+    },
+    {
+      "type": "set <float>",
+      "description": "sets index (no output)"
     }
   ],
   "body": "[popup] is a popup menu GUI. When you click on it, you get a popup menu to choose elements from (symbols or floats). You can choose by clicking on the selected item or via up/down arrow keys and hitting 'enter'. By default, the output is the index, but can also be the element or both."

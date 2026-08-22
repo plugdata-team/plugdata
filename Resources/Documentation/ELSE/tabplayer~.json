@@ -21,7 +21,7 @@
         },
         {
           "type": "signal",
-          "description": "gate on/impulse \u2014 starts, gate off \u2014 stops (not in trigger mode)"
+          "description": "gate on/impulse — starts, gate off — stops (not in trigger mode)"
         }
       ],
       "repeat": false
@@ -62,19 +62,11 @@
   "flags": [
     {
       "name": "-fade <float>",
-      "description": ""
+      "description": "sets fade time in ms"
     },
     {
       "name": "-speed <float>",
-      "description": ""
-    },
-    {
-      "name": "-tr",
-      "description": "sets to trigger mode"
-    },
-    {
-      "name": "-loop",
-      "description": "sets to loop mode"
+      "description": "sets playing speed in %"
     },
     {
       "name": "-tr",
@@ -90,11 +82,15 @@
     },
     {
       "name": "-sr <float>",
-      "description": ""
+      "description": "sets sample rate of sample (default, Pd's sample rate)"
     },
     {
       "name": "-range <f, f>",
-      "description": ""
+      "description": "sets start and end point range proportionally (from 0 to 1)"
+    },
+    {
+      "name": "-lagrange",
+      "description": "sets to lagrange interpolation mode (default spline)"
     }
   ],
   "methods": [
@@ -135,15 +131,15 @@
       "description": "start playing, optional <start in ms, end in ms, speed rate>"
     },
     {
-      "type": "<stop>",
+      "type": "stop",
       "description": "stops playing and outputs 0 (cannot be resumed)"
     },
     {
-      "type": "<pause>",
+      "type": "pause",
       "description": "pauses at a particular point (can be resumed)"
     },
     {
-      "type": "<resume>",
+      "type": "resume",
       "description": "resumes playing after being paused"
     },
     {
@@ -161,6 +157,10 @@
     {
       "type": "sr <float>",
       "description": "sets sample rate of sample (default, Pd's sample rate)"
+    },
+    {
+      "type": "lagrange/spline",
+      "description": "set interpolation mode (default spline)"
     }
   ],
   "body": "[tabplayer~] plays arrays, it's more powerful than [tabplay~] as it has multichannel support and can play backwards and in different speeds. It can also loop."

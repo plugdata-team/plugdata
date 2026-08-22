@@ -30,6 +30,15 @@
       "messages": [
         {
           "type": "float",
+          "description": "Specifies the coordinates for the left and right vertical clipping planes."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
           "description": "Specifies the coordinates for the bottom and top horizontal clipping planes."
         }
       ],
@@ -39,7 +48,25 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the distances to the near and far depth clipping planes."
+          "description": "Specifies the coordinates for the bottom and top horizontal clipping planes."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "zNear"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "zFar"
         }
       ],
       "repeat": false

@@ -76,6 +76,34 @@
     {
       "type": "enumProps",
       "description": "interact with driver/device properties"
+    },
+    {
+      "type": "channel <list>",
+      "description": "set the input channel"
+    },
+    {
+      "type": "close",
+      "description": "close the video device"
+    },
+    {
+      "type": "color <list>",
+      "description": "set the color space (RGBA, YUV, GREY)"
+    },
+    {
+      "type": "mode <list>",
+      "description": "set video mode/standard"
+    },
+    {
+      "type": "norm <symbol>",
+      "description": "set video norm (PAL, NTSC, ...)"
+    },
+    {
+      "type": "quality <float>",
+      "description": "set capture quality"
+    },
+    {
+      "type": "reset",
+      "description": "reset the video device"
     }
   ],
   "body": ""

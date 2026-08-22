@@ -52,6 +52,11 @@
       "description": "sets the separator character\ndefault: \"space"
     }
   ],
-  "methods": [],
+  "methods": [
+    {
+      "type": "separator <symbol>",
+      "description": "sets the separator character"
+    }
+  ],
   "body": "[fromsymbol] converts a symbol message to anything (any kind of message). Start by typing a float in the atom symbol box below and see how it converts to a float message, then check more examples to the right."
 }

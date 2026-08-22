@@ -1,0 +1,75 @@
+{
+  "title": [
+    "follow~"
+  ],
+  "description": "envelope follower",
+  "origin": "ELSE",
+  "categories": [
+    "Analysis"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal(s)",
+          "description": "input signal follow envelope"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "attack time in ms"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "release time in ms"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal(s)",
+          "description": "envelope following signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "attack time in ms",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "release time in ms",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-f",
+      "description": "sets to float output mode"
+    }
+  ],
+  "methods": [
+    {
+      "type": "reset",
+      "description": "clears the memory"
+    }
+  ],
+  "body": "[follow~] is like [lag2~] being fed a signal passing through [abs~]. But Secondary inlets are float only and it can output floats instead. Instead of up/down lag times we now have attack and release times. By default, the object outputs audio signals, but you can set a float output with the '-f' flag."
+}

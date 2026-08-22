@@ -54,7 +54,12 @@
       "default": "0"
     }
   ],
-  "flags": [],
+  "flags": [
+    {
+      "name": "-mode <float>",
+      "description": "sets approximation mode <0, 1, 2, 3 or 4>"
+    }
+  ],
   "methods": [
     {
       "type": "mode <float>",

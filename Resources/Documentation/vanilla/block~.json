@@ -35,9 +35,19 @@
       "type": "float",
       "description": "up/down-sampling factor",
       "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "block phase offset",
+      "default": "0"
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "set <float, float, float, float>",
+      "description": "set block size, overlap, up/down-sampling factor and block phase offset"
+    }
+  ],
   "body": "set block size and on/off control for DSP"
 }

@@ -49,12 +49,36 @@
   ],
   "arguments": [
     {
-      "type": "list",
-      "description": "default dimensions (x y z height)",
+      "type": "float",
+      "description": "X velocity",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Y velocity",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Z velocity",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "radius of the cone",
       "default": ""
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "vector <float, float, float>",
+      "description": "set the velocity direction"
+    },
+    {
+      "type": "vel <float>",
+      "description": "set the radius of the velocity cone"
+    }
+  ],
   "body": ""
 }

@@ -1,0 +1,91 @@
+{
+  "title": [
+    "pvretune~"
+  ],
+  "description": "retune partials",
+  "origin": "ELSE",
+  "categories": [
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal(s)",
+          "description": "input(s) to be retuned"
+        },
+        {
+          "type": "list",
+          "description": "list of frequencies to retune to"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal(s)",
+          "description": "resynthesised output(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "FFT window",
+      "default": "2048"
+    },
+    {
+      "type": "float",
+      "description": "FFT ovrerlap",
+      "default": "8"
+    },
+    {
+      "type": "float",
+      "description": "transposition ratio",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "amplitude synthesis threshold",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "interpolation",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "transp <float>",
+      "description": "transposition ratio"
+    },
+    {
+      "type": "thresh <float>",
+      "description": "amplitude synthesis threshold (0 to 1)"
+    },
+    {
+      "type": "interp <float>",
+      "description": "interpolation (0 to 1)"
+    },
+    {
+      "type": "bypass <float>",
+      "description": "non zero bypasses the input signal"
+    },
+    {
+      "type": "fft <f, f>",
+      "description": "resets FFT window and overlap"
+    },
+    {
+      "type": "frange <f, f>",
+      "description": "sets frequency range"
+    }
+  ],
+  "body": "[pvretune~] retunes partials of an input sound and resynthesises via a phase vocoder oscilattor bank. The default is the 12-tone equal temperament but you can set any arbitrary scale with a list of frequencies. This is based on Eric Lyon's [fftease/pvtuner~]. There's support for multichanels."
+}

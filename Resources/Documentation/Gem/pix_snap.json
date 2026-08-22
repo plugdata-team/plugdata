@@ -75,6 +75,10 @@
     {
       "type": "offset <float> <float>",
       "description": "set offset (x, y)"
+    },
+    {
+      "type": "pbo <float>",
+      "description": "use pixel buffer objects (1/0)"
     }
   ],
   "body": ""

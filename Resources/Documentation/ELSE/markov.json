@@ -18,6 +18,24 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "feed memory with new information"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets order"
+        }
+      ],
+      "repeat": false
     }
   ],
   "outlets": [
@@ -45,8 +63,8 @@
   ],
   "flags": [
     {
-      "name": "seed <float>",
-      "description": "sets seed"
+      "name": "-seed <float>",
+      "description": "sets seed (default: unique internal)"
     }
   ],
   "methods": [
@@ -63,10 +81,6 @@
       "description": "feed memory with new information"
     },
     {
-      "type": "savesate <float>",
-      "description": ""
-    },
-    {
       "type": "reset",
       "description": "go to the start of the chain"
     },
@@ -81,6 +95,10 @@
     {
       "type": "seed <float>",
       "description": "a float sets seed, no float sets a unique internal"
+    },
+    {
+      "type": "savestate <float>",
+      "description": "non zero sets to savestate mode (saves contents with the patch)"
     }
   ],
   "body": "[markov] creates Markov chains of any order out of progressions of floats, symbols or lists (which can be used to create polyphonic chains). You can change the order and recreate the chain. You can keep feeding information after the chain was created and recreate with the new information. You can also clear the memory to restart from scratch. State saving is possible with the 2nd argument, where the chain is saved with the patch."

@@ -44,12 +44,17 @@
   ],
   "arguments": [
     {
-      "type": "<list>",
+      "type": "list",
       "description": "gain vector",
       "default": ""
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "saturate <float>",
+      "description": "enable/disable saturation (clamping) of the result"
+    }
+  ],
   "body": ""
 }

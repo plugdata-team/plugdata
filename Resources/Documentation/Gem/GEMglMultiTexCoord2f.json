@@ -21,7 +21,16 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the texture unit."
+          "description": "texUnit"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the s and t texture coordinates."
         }
       ],
       "repeat": false
@@ -50,13 +59,18 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the texture unit.",
-      "default": "GL_TEXTURE0"
+      "description": "texUnit",
+      "default": ""
     },
     {
       "type": "float",
       "description": "Specifies the s and t texture coordinates.",
-      "default": "0.0\nmin: 0.0\nmax: 1.0"
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies the s and t texture coordinates.",
+      "default": ""
     }
   ],
   "flags": [],

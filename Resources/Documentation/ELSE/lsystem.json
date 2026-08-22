@@ -1,0 +1,89 @@
+{
+  "title": [
+    "lsystem"
+  ],
+  "description": "L-system generator",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "generate output from start step"
+        },
+        {
+          "type": "float",
+          "description": "set start step and generate output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "the fractal pattern"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "number of steps"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "textfile containing the rules",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "start number of generation steps",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "step",
+      "description": "iterates and outputs a new generation step (from 0 when reset or from the last generated pattern)"
+    },
+    {
+      "type": "reset",
+      "description": "reset 'step' message to zero"
+    },
+    {
+      "type": "open <symbol>",
+      "description": "open textfile, no symbol opens dialog window"
+    },
+    {
+      "type": "save <symbol>",
+      "description": "save textfile, no symbol saves to current name"
+    },
+    {
+      "type": "import <list>",
+      "description": "import text from a list"
+    },
+    {
+      "type": "show",
+      "description": "show text window (same as clicking on the object)"
+    },
+    {
+      "type": "hide",
+      "description": "hide text window"
+    }
+  ],
+  "body": "An L-system (Lindenmayer system) is a formal grammar used to generate recursive, self-similar fractal patterns. It takes a textfile containing generation rules and a start number of generation steps as arguments.\ngenerates the pattern with the start step number (given as argument or float input)"
+}

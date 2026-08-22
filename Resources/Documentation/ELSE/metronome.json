@@ -74,6 +74,11 @@
       "type": "float",
       "description": "tempo in BPM",
       "default": "120"
+    },
+    {
+      "type": "list",
+      "description": "allowed time signature syntax",
+      "default": "4/4"
     }
   ],
   "flags": [

@@ -58,7 +58,16 @@
       "default": "1"
     }
   ],
-  "flags": [],
+  "flags": [
+    {
+      "name": "-maxtime <float>",
+      "description": "(default 0)"
+    },
+    {
+      "name": "-fade <float>",
+      "description": "(default 10)"
+    }
+  ],
   "methods": [
     {
       "type": "set <symbol>",
@@ -75,6 +84,14 @@
     {
       "type": "maxtime <float>",
       "description": "sets maximum recording in ms"
+    },
+    {
+      "type": "start",
+      "description": "starts recording the sample"
+    },
+    {
+      "type": "stop",
+      "description": "stops recording the sample"
     }
   ],
   "body": "[rec.file~] is a convenient abstraction based on [writesf~], so it records sample files that you can load with other objects, such as [sample~], [play.file~], [player~] and others."

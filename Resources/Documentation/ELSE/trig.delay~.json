@@ -43,9 +43,19 @@
       "type": "float",
       "description": "delay time in ms",
       "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "non zero sets to ignore mode",
+      "default": "0"
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "ignore <float>",
+      "description": "non zero sets to ignore mode (ignores triggers while a delayed trigger is pending)"
+    }
+  ],
   "body": "After receiving a trigger (non-positive to positive transition), [trig.delay~] sends an impulse delayed by a given time in ms. Any triggers which arrive before the delayed output resets and reschedules the delay, in the same way as the [delay] object."
 }

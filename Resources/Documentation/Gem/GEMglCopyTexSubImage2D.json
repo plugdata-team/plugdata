@@ -48,6 +48,42 @@
       "messages": [
         {
           "type": "float",
+          "description": "Specifies the xoffset and yoffset parameters. The lower left corner of the texture image is (xoffset, yoffset)."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the x, y, width, and height parameters, which specify a subregion of the framebuffer."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the x, y, width, and height parameters, which specify a subregion of the framebuffer."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the x, y, width, and height parameters, which specify a subregion of the framebuffer."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
           "description": "Specifies the x, y, width, and height parameters, which specify a subregion of the framebuffer."
         }
       ],

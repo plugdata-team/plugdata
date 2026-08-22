@@ -29,7 +29,18 @@
       "repeat": false
     }
   ],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "buffer name",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "number of frames",
+      "default": "100"
+    }
+  ],
   "flags": [],
   "methods": [
     {
@@ -51,6 +62,10 @@
     {
       "type": "save <symbol> <float>",
       "description": "save image in a given slot to hard disk"
+    },
+    {
+      "type": "load <symbol, float>",
+      "description": "load an image file into the given frame slot"
     }
   ],
   "body": ""

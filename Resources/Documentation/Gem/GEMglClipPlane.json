@@ -51,12 +51,22 @@
     {
       "type": "float",
       "description": "Specifies which clipping plane is being specified.",
-      "default": "0"
+      "default": ""
     },
     {
       "type": "float",
       "description": "Specifies the equation coefficients of the clipping plane.",
-      "default": "[0, 0, 0, 0]"
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies the equation coefficients of the clipping plane.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies the equation coefficients of the clipping plane.",
+      "default": ""
     }
   ],
   "flags": [],

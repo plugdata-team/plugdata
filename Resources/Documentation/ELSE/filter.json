@@ -1,0 +1,60 @@
+{
+  "title": [
+    "filter"
+  ],
+  "description": "filter an element from a message",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "a message to filter"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/symbol",
+          "description": "element to filter"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "the message with the element removed"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/symbol",
+          "description": "the removed element(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float/symbol",
+      "description": "element to filter",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[filter] removes/filters an element given as an argument or via the right inlet from a list."
+}

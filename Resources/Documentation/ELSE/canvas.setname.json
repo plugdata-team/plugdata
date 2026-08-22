@@ -29,6 +29,11 @@
       "type": "float",
       "description": "depth level",
       "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "non zero sets to abstraction mode",
+      "default": "0"
     }
   ],
   "flags": [],
@@ -40,6 +45,10 @@
     {
       "type": "mode <float>",
       "description": "non zero sets to abstraction mode"
+    },
+    {
+      "type": "name <symbol>",
+      "description": "set canvas name"
     }
   ],
   "body": "[canvas.setname] sets a symbol name to a canvas so you can send it messages. It's similar to [namecanvas] but it also allows you to set the name of a parent patch with the second optional depth argument - (1) is parent patch (2) is parent's parent patch and so on..."

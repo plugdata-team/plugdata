@@ -53,6 +53,11 @@
   ],
   "arguments": [],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "saturate <float>",
+      "description": "enable/disable saturation (clamping) of the result"
+    }
+  ],
   "body": ""
 }

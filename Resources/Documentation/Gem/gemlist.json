@@ -49,6 +49,15 @@
   ],
   "arguments": [],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "lighting <float>",
+      "description": "enable/disable lighting for this gemlist"
+    },
+    {
+      "type": "ticktime <float>",
+      "description": "set the tick time in ms"
+    }
+  ],
   "body": ""
 }

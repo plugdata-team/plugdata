@@ -30,16 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies which of the ambient, diffuse, specular, and emission material parameters are being set."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "If GL_TRUE, the material parameter is set to the corresponding current color. If GL_FALSE, the corresponding material parameter is set to the value specified by params."
+          "description": "mode"
         }
       ],
       "repeat": false

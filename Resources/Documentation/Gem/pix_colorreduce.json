@@ -65,6 +65,19 @@
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "count <float>",
+      "description": "number of colors to reduce to"
+    },
+    {
+      "type": "persist <float>",
+      "description": "set persistence of the color table"
+    },
+    {
+      "type": "smooth <float>",
+      "description": "set smoothing"
+    }
+  ],
   "body": ""
 }

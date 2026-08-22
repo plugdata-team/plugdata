@@ -49,6 +49,11 @@
   ],
   "arguments": [],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "gain <list>",
+      "description": "set channel gains (1 or 3 values)"
+    }
+  ],
   "body": ""
 }

@@ -41,7 +41,12 @@
       "default": "1, max 64"
     }
   ],
-  "flags": [],
+  "flags": [
+    {
+      "name": "-time <float>",
+      "description": "sets time in ms (default 0)"
+    }
+  ],
   "methods": [
     {
       "type": "rec <float>",

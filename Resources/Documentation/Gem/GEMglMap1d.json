@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the kind of values being mapped."
+          "description": "target"
         }
       ],
       "repeat": false
@@ -30,7 +30,43 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the coefficients for the map."
+          "description": "u1"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "u2"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "stride"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "order"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "points"
         }
       ],
       "repeat": false

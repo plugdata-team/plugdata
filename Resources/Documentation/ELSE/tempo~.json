@@ -58,6 +58,15 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the tempo's phase output"
+        }
+      ],
+      "repeat": false
     }
   ],
   "arguments": [
@@ -69,6 +78,11 @@
     {
       "type": "float",
       "description": "swing deviation in %",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "swing cycle",
       "default": "0"
     }
   ],
@@ -92,6 +106,10 @@
     {
       "name": "-seed <float>",
       "description": "sets seed\ndefault: no float sets a unique internal"
+    },
+    {
+      "name": "-sync",
+      "description": "sets to sync mode"
     }
   ],
   "methods": [
@@ -100,20 +118,48 @@
       "description": "sets multiplier"
     },
     {
-      "type": "ms <f, f>",
+      "type": "ms <f, f, f>",
       "description": "sets time to ms, optional floats set tempo and swing"
     },
     {
-      "type": "hz <f, f>",
+      "type": "hz <f, f, f>",
       "description": "sets time to Hz, optional floats set tempo and swing"
     },
     {
-      "type": "bpm <f, f>",
+      "type": "bpm <f, f, f>",
       "description": "sets time to bpm, optional floats set tempo and swing"
     },
     {
       "type": "seed <float>",
       "description": "a float sets seed, no float sets a unique internal"
+    },
+    {
+      "type": "start",
+      "description": "control rate start (gate on)"
+    },
+    {
+      "type": "stop",
+      "description": "control rate stop (gate off)"
+    },
+    {
+      "type": "set <float>",
+      "description": "set tempo in bpm, hz or ms for the next beat"
+    },
+    {
+      "type": "tempo <float>",
+      "description": "set tempo in bpm, hz or ms"
+    },
+    {
+      "type": "swing <f, f>",
+      "description": "set swing deviation parameter (in %)"
+    },
+    {
+      "type": "cycle <float>",
+      "description": "set swing cycle"
+    },
+    {
+      "type": "sync <float>",
+      "description": "non zero sets to sync mode"
     }
   ],
   "body": "The [tempo~] object is like [imp~], but sends impulses at a time specified in bpm as in a metronome and is turned on/off by a gate input."

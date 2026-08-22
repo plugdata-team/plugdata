@@ -21,16 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the parametric coordinates at which to evaluate the maps."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Specifies the parametric coordinates at which to evaluate the maps."
+          "description": "v"
         }
       ],
       "repeat": false
@@ -51,7 +42,12 @@
     {
       "type": "float",
       "description": "Specifies the parametric coordinates at which to evaluate the maps.",
-      "default": "0\ndefault: 0"
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies the parametric coordinates at which to evaluate the maps.",
+      "default": ""
     }
   ],
   "flags": [],

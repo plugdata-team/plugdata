@@ -62,7 +62,7 @@
       "description": "sets message"
     },
     {
-      "type": "append",
+      "type": "append <anything>",
       "description": "appends to the message"
     },
     {
@@ -74,7 +74,7 @@
       "description": "sets font size"
     },
     {
-      "type": "bold",
+      "type": "bold <float>",
       "description": "non-0 sets to bold"
     },
     {

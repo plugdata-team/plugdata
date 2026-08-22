@@ -7,7 +7,53 @@
   "categories": [
     "Graphics"
   ],
-  "inlets": [],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the angle of rotation, in degrees."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the x, y, and z coordinates of a vector, respectively."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the x, y, and z coordinates of a vector, respectively."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the x, y, and z coordinates of a vector, respectively."
+        }
+      ],
+      "repeat": false
+    }
+  ],
   "outlets": [
     {
       "messages": [
@@ -21,18 +67,23 @@
   ],
   "arguments": [
     {
-      "type": "GLdouble",
+      "type": "float",
       "description": "Specifies the angle of rotation, in degrees.",
       "default": ""
     },
     {
-      "type": "GLdouble",
+      "type": "float",
       "description": "Specifies the x, y, and z coordinates of a vector, respectively.",
       "default": ""
     },
     {
-      "type": "GLdouble",
-      "description": "Specifies the angle of rotation, in degrees.",
+      "type": "float",
+      "description": "Specifies the x, y, and z coordinates of a vector, respectively.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies the x, y, and z coordinates of a vector, respectively.",
       "default": ""
     }
   ],

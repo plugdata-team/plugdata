@@ -51,6 +51,11 @@
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "set <anything>",
+      "description": "set any input message without output"
+    }
+  ],
   "body": "[bondo] synchronizes and outputs messages when any inlet gets a message. It can wait a time interval for input messages (see [pd sync time]) or send them automatically."
 }

@@ -74,6 +74,11 @@
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "scale <float>",
+      "description": "set scaling of the backlight effect"
+    }
+  ],
   "body": ""
 }

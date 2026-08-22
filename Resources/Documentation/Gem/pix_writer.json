@@ -43,6 +43,10 @@
     {
       "type": "file <symbol> <float>",
       "description": "set basefilename and type/quality"
+    },
+    {
+      "type": "auto <float>",
+      "description": "automatically write each frame (1/0)"
     }
   ],
   "body": ""

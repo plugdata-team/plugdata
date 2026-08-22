@@ -25,6 +25,19 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "release velocity if -both flag is given"
+        },
+        {
+          "type": "float",
+          "description": "rightmost inlet is MIDI channel"
+        }
+      ],
+      "repeat": false
     }
   ],
   "outlets": [
@@ -53,8 +66,17 @@
     {
       "name": "-both",
       "description": "sets the object to output both note on and off velocity"
+    },
+    {
+      "name": "-ext",
+      "description": "only output to outlet"
     }
   ],
-  "methods": [],
+  "methods": [
+    {
+      "type": "ext <float>",
+      "description": "non zero sets to listen only to external mode"
+    }
+  ],
   "body": "[note.out] formats and sends raw MIDI pitch messages to Pd's MIDI output and its outlet. An argument sets channel number (the default is 1)."
 }

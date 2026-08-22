@@ -37,6 +37,11 @@
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "accel <float>",
+      "description": "set the acceleration of following particles"
+    }
+  ],
   "body": ""
 }

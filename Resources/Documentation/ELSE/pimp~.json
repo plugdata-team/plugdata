@@ -76,6 +76,10 @@
     {
       "name": "-soft",
       "description": "sets to soft sync mode\ndefault: hard"
+    },
+    {
+      "name": "-mc <list>",
+      "description": "sets multichannel output with a list of frequencies"
     }
   ],
   "methods": [

@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the width of the bitmap image."
+          "description": "xorig"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the height of the bitmap image."
+          "description": "yorig"
         }
       ],
       "repeat": false
@@ -39,7 +39,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the x and y offsets from the current raster position."
+          "description": "xmove"
         }
       ],
       "repeat": false
@@ -48,34 +48,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the x and y scales applied to the bitmap."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Specifies the left and right boundary values for the bitmap."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Specifies the minimum and maximum values of the map function."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float*",
-          "description": "Specifies a pointer to the bitmap image."
+          "description": "ymove"
         }
       ],
       "repeat": false
@@ -95,38 +68,23 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the width of the bitmap image.",
-      "default": "0"
+      "description": "xorig",
+      "default": ""
     },
     {
       "type": "float",
-      "description": "Specifies the height of the bitmap image.",
-      "default": "0"
+      "description": "yorig",
+      "default": ""
     },
     {
       "type": "float",
-      "description": "Specifies the x and y offsets from the current raster position.",
-      "default": "[0, 0]"
+      "description": "xmove",
+      "default": ""
     },
     {
       "type": "float",
-      "description": "Specifies the x and y scales applied to the bitmap.",
-      "default": "[1, 1]"
-    },
-    {
-      "type": "float",
-      "description": "Specifies the left and right boundary values for the bitmap.",
-      "default": "[0, 0]"
-    },
-    {
-      "type": "float",
-      "description": "Specifies the minimum and maximum values of the map function.",
-      "default": "[0, 0]"
-    },
-    {
-      "type": "float*",
-      "description": "Specifies a pointer to the bitmap image.",
-      "default": "null"
+      "description": "ymove",
+      "default": ""
     }
   ],
   "flags": [],

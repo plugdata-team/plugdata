@@ -25,6 +25,15 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the x and y coordinates of the vertex."
+        }
+      ],
+      "repeat": false
     }
   ],
   "outlets": [
@@ -39,6 +48,11 @@
     }
   ],
   "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the x and y coordinates of the vertex.",
+      "default": ""
+    },
     {
       "type": "float",
       "description": "Specifies the x and y coordinates of the vertex.",

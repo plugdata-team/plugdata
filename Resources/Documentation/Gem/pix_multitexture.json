@@ -46,6 +46,23 @@
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "dimen <float, float>",
+      "description": "set texture dimensions"
+    },
+    {
+      "type": "mode <float>",
+      "description": "use rectangle texture mode (1/0)"
+    },
+    {
+      "type": "rectangle <float>",
+      "description": "use rectangle texture mode (1/0)"
+    },
+    {
+      "type": "texunit <float, float>",
+      "description": "set the texture unit"
+    }
+  ],
   "body": ""
 }

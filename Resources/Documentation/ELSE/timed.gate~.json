@@ -52,6 +52,15 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "impulse when gate isn't finished"
+        }
+      ],
+      "repeat": false
     }
   ],
   "arguments": [
@@ -59,11 +68,6 @@
       "type": "float",
       "description": "gate time in ms",
       "default": "0, no gate"
-    },
-    {
-      "type": "float",
-      "description": "initial gate amplitude",
-      "default": "1"
     },
     {
       "type": "float",

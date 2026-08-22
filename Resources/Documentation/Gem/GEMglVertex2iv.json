@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "const float*",
+          "type": "list",
           "description": "Specifies a pointer to an array of two elements, which are the x and y coordinates of the vertex."
         }
       ],
@@ -40,7 +40,12 @@
   ],
   "arguments": [
     {
-      "type": "const float*",
+      "type": "float",
+      "description": "Specifies a pointer to an array of two elements, which are the x and y coordinates of the vertex.",
+      "default": ""
+    },
+    {
+      "type": "float",
       "description": "Specifies a pointer to an array of two elements, which are the x and y coordinates of the vertex.",
       "default": ""
     }

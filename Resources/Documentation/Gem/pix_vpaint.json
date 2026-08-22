@@ -1,0 +1,41 @@
+{
+  "title": [
+    "pix_vpaint"
+  ],
+  "description": "paint into an image with vectors",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "vert_size <float, float>",
+      "description": "set the size of the paint area"
+    }
+  ],
+  "body": "[pix_vpaint] is an experimental object to paint into an image using vertex data."
+}

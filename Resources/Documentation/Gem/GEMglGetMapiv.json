@@ -21,15 +21,6 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the map to query."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
           "description": "Specifies the target coordinate space."
         }
       ],
@@ -39,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Returns the coefficients of the specified map."
+          "description": "Specifies the map to query."
         }
       ],
       "repeat": false

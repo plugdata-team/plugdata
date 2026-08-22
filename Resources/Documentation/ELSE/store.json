@@ -54,7 +54,7 @@
   "arguments": [
     {
       "type": "float",
-      "description": "float - non-0 sets to store elements with the patch",
+      "description": "non-0 sets to store elements with the patch",
       "default": "0"
     }
   ],

@@ -79,12 +79,12 @@
       "description": "nonzero sets frequency input in MIDI pitch"
     },
     {
-      "type": "-set <float, float>",
-      "description": "<channel, freq> set a single frequency channel"
+      "type": "set <float, float>",
+      "description": "<channel, freq> sets a single frequency channel"
     },
     {
-      "type": "-soft <float>",
-      "description": "nonzero sets to soft sync mode"
+      "type": "soft <float>",
+      "description": "non zero sets to soft sync mode"
     }
   ],
   "body": "[parabolic~] is a parabolic oscillator that accepts negative frequencies, has inlets for phase sync and phase modulation. A parabolic waveform is similar to a sinusoid but it is not band limited (has aliasing)."

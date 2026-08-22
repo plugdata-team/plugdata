@@ -1,0 +1,65 @@
+{
+  "title": [
+    "crush~"
+  ],
+  "description": "bitcrush/decimator",
+  "origin": "ELSE",
+  "categories": [
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal(s)",
+          "description": "signal(s) to be crushed (resampled and quantized)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal(s)",
+          "description": "bit reduction from 0-1"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal(s)",
+          "description": "decimation (sample rate reduction) from 0-1"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal(s)",
+          "description": "resampled and quantized signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "bit reduction",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "decimation",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[crush~] is a bit-crusher/reducer and decimator abstraction based on the objects [quantizer~] (mode 4) and [downsample~], where an input signal quantized and downsampled to generate distortion and aliasing. The parameters vary from 0 to 1, where 0 is the original sound and the higher the parameter is, the more crushing/decimation we have."
+}

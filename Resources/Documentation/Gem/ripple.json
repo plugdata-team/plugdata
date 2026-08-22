@@ -76,9 +76,14 @@
   ],
   "arguments": [
     {
-      "type": "message",
-      "description": "draw [line|fill|point]",
-      "default": "fill"
+      "type": "float",
+      "description": "number of grid segments in X",
+      "default": "32"
+    },
+    {
+      "type": "float",
+      "description": "number of grid segments in Y",
+      "default": "32"
     }
   ],
   "flags": [],

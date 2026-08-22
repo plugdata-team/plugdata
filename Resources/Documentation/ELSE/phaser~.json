@@ -25,6 +25,24 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "q"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "wet"
+        }
+      ],
+      "repeat": false
     }
   ],
   "outlets": [

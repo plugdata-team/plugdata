@@ -20,15 +20,6 @@
         }
       ],
       "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "signal",
-          "description": "incoming signal routed to right channel output: [dac~ 2]"
-        }
-      ],
-      "repeat": false
     }
   ],
   "outlets": [],

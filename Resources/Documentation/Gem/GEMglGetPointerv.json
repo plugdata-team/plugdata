@@ -21,16 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the pointer to be returned."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "gemlist",
-          "description": "Returns the address of the specified pointer."
+          "description": "v"
         }
       ],
       "repeat": false

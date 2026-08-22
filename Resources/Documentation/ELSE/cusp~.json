@@ -66,6 +66,11 @@
       "description": "sets multichannel output with a list of frequencies"
     }
   ],
-  "methods": [],
+  "methods": [
+    {
+      "type": "coeffs <list>",
+      "description": "up to 3 floats set 'a', 'b' and y[n-1]"
+    }
+  ],
   "body": "[cusp~] is a chaotic generator using the difference equation;\ny[n] = a - b * sqrt(abs(y[n-1]))\nThe output rate of the equation is given in Hz (default: Nyquist).\nObject based on SuperCollider's \"CuspN\" UGEN."
 }

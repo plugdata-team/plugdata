@@ -40,9 +40,14 @@
   ],
   "arguments": [
     {
-      "type": "list",
-      "description": "size of the control matrix",
-      "default": "4 4"
+      "type": "float",
+      "description": "number of control points in X (minimum 4)",
+      "default": "4"
+    },
+    {
+      "type": "float",
+      "description": "number of control points in Y (minimum 4)",
+      "default": "4"
     }
   ],
   "flags": [],

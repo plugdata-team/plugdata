@@ -56,11 +56,20 @@
       "default": "0"
     }
   ],
-  "flags": [],
+  "flags": [
+    {
+      "name": "-mc <list>",
+      "description": "sets multichannel output with a list of frequencies"
+    }
+  ],
   "methods": [
     {
       "type": "k <float>",
       "description": "sets the value of k"
+    },
+    {
+      "type": "coeffs <list>",
+      "description": "up to 7 floats set 'a', 'b', 'c', 'd', 'xn' and 'yn'"
     }
   ],
   "body": "This object was based on SuperCollider's \"StandardN\" UGEN;\nThe standard map is an area preserving map of a cylinder discovered by the plasma physicist Boris Chirikov.\n\n[standard~] is a standard map chaotic generator. The sound is generated with the difference equations;\ny[n] = (y[n-1] + k * sin(x[n-1])) % 2pi;\nx[n] = (x[n-1] + y[n]) % 2pi;\nout = (x[n] - pi) / pi;\nThe output rate of the equation is given in Hz (default: Nyquist)."

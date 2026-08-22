@@ -55,6 +55,11 @@
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "numToAdd <float>",
+      "description": "set the number of particles added per frame"
+    }
+  ],
   "body": ""
 }

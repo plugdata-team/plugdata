@@ -59,17 +59,7 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the number of texture names in textures.",
-      "default": ""
-    },
-    {
-      "type": "float",
-      "description": "Specifies an array containing the texture names to be prioritized.",
-      "default": ""
-    },
-    {
-      "type": "float",
-      "description": "Specifies an array of priorities for the corresponding texture names in textures.",
+      "description": "n",
       "default": ""
     }
   ],

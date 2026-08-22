@@ -62,12 +62,12 @@
       "description": "sets ramp time in ms"
     },
     {
-      "type": "dump",
-      "description": "outputs state of all cells"
-    },
-    {
       "type": "clear",
       "description": "clears all connections"
+    },
+    {
+      "type": "print",
+      "description": "prints state off all cells in pd window"
     }
   ],
   "body": "[mtx~] routes signals from any inlets to one or more outlets. If more than one inlet connects to an outlet, the output is the sum of the inlets' signals. Use [mtx.ctl] to control it."

@@ -55,6 +55,11 @@
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "pan <list>",
+      "description": "pan value(s) from -1 (L) to 1 (R)"
+    }
+  ],
   "body": "[pan2~] performs an equal power (sin/cos) panning."
 }

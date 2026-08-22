@@ -38,7 +38,18 @@
       "repeat": false
     }
   ],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of control points in X (minimum 2)",
+      "default": "2"
+    },
+    {
+      "type": "float",
+      "description": "number of control points in Y (minimum 2)",
+      "default": "2"
+    }
+  ],
   "flags": [],
   "methods": [
     {

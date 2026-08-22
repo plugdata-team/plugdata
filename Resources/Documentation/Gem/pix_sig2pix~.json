@@ -1,0 +1,91 @@
+{
+  "title": [
+    "pix_sig2pix~"
+  ],
+  "description": "convert signals to images",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        },
+        {
+          "type": "signal",
+          "description": "red channel"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "green channel"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "blue channel"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "alpha channel"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "image width",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "image height",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "dimen <float, float>",
+      "description": "set image dimensions"
+    },
+    {
+      "type": "colorspace <symbol>",
+      "description": "set colorspace (RGBA, YUV or GREY)"
+    },
+    {
+      "type": "upsidedown <float>",
+      "description": "fill the image from top (1) or bottom (0)"
+    }
+  ],
+  "body": "[pix_sig2pix~] writes incoming signals into the color channels of an image, one pixel per sample."
+}

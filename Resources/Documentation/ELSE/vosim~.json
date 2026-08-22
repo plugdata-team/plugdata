@@ -1,0 +1,87 @@
+{
+  "title": [
+    "vosim~"
+  ],
+  "description": "VOSIM oscillator",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list/signal(s)",
+          "description": "frequency in hz or midi"
+        },
+        {
+          "type": "list of center frequencies",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "center/formant frequency"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "vosim oscillator signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "fundamental frequency in hertz",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "center/formant frequency in hertz",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "decay",
+      "default": "0.8"
+    },
+    {
+      "type": "float",
+      "description": "duty cycle",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "cf <list>",
+      "description": "list of center frequencies"
+    },
+    {
+      "type": "reset",
+      "description": "resets phase"
+    },
+    {
+      "type": "decay <float>",
+      "description": "decay (from 0-1)"
+    },
+    {
+      "type": "duty <float>",
+      "description": "duty cycle (from 0-1)"
+    }
+  ],
+  "body": "[vosim~] implements a VOSIM synthesis algorithm. This is an oscillator that you specify the fundamental (f0) frequency and the center (or formant) frequency (both parameters in hertz). This technique is used to synthesize vocal sounds. The object has support for multichannels."
+}

@@ -38,7 +38,18 @@
       "repeat": false
     }
   ],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "receive name",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "priority",
+      "default": ""
+    }
+  ],
   "flags": [],
   "methods": [],
   "body": ""

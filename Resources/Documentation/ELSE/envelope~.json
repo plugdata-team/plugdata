@@ -49,6 +49,10 @@
     {
       "name": "phase <float>",
       "description": "phase offset\ndefault: 0"
+    },
+    {
+      "name": "-phase <float>",
+      "description": "phase offset (default 0)"
     }
   ],
   "methods": [

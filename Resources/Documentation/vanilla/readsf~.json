@@ -60,6 +60,22 @@
     {
       "type": "open <list>",
       "description": "sets a filename, an onset in samples, header size to skip, number of channels, bytes per sample, and endianness"
+    },
+    {
+      "type": "start",
+      "description": "start playback (same as float 1)"
+    },
+    {
+      "type": "stop",
+      "description": "stop playback (same as float 0)"
+    },
+    {
+      "type": "channels <float>",
+      "description": "set number of output channels for multichannel output"
+    },
+    {
+      "type": "print",
+      "description": "print info to the Pd window"
     }
   ],
   "body": "The readsf~ object reads a soundfile into its signal outputs. You must open the soundfile in advance (a couple of seconds before you'll need it"

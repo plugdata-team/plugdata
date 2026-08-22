@@ -38,13 +38,7 @@
       "repeat": false
     }
   ],
-  "arguments": [
-    {
-      "type": "float",
-      "description": "Specifies the handle of the program object whose executables are to be used as part of rendering state.",
-      "default": ""
-    }
-  ],
+  "arguments": [],
   "flags": [],
   "methods": [],
   "body": ""

@@ -29,7 +29,13 @@
       "repeat": false
     }
   ],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "buffer size",
+      "default": "65536"
+    }
+  ],
   "flags": [],
   "methods": [
     {

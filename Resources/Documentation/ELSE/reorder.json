@@ -1,0 +1,51 @@
+{
+  "title": [
+    "reorder"
+  ],
+  "description": "reorder messages",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "index reorder map",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[reorder] reorders messages according to a given index map via arguments or the second inlet."
+}

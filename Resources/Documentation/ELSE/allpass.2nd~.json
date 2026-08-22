@@ -81,6 +81,14 @@
     {
       "type": "q",
       "description": "sets resonance parameter to Q (default)"
+    },
+    {
+      "type": "freq <list>",
+      "description": "center frequency in Hertz for each channel"
+    },
+    {
+      "type": "reson <list>",
+      "description": "filter resonance for each channel"
     }
   ],
   "body": "[allpass.2nd~] is a 2nd order allpass filter."

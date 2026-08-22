@@ -1,0 +1,51 @@
+{
+  "title": [
+    "gatemin"
+  ],
+  "description": "release gate values",
+  "origin": "ELSE",
+  "categories": [
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "gate value"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "minimum time in ms"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the gate with a minimum time"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "minimum time in ms",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[gatemin] allows you to set a minimum gate time value, so if the gate is released before that, it waits for that minimum gate time. If you release after the minimum gate time, then the gate is immediately released. If the gate is reopened before the minimum time, the object is reset and the new gate value takes over."
+}

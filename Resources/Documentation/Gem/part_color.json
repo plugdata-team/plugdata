@@ -49,6 +49,15 @@
   ],
   "arguments": [],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "color1 <list>",
+      "description": "first color (RGB or RGBA) of the random color range"
+    },
+    {
+      "type": "color2 <list>",
+      "description": "second color (RGB or RGBA) of the random color range"
+    }
+  ],
   "body": ""
 }

@@ -35,12 +35,26 @@
   ],
   "arguments": [
     {
-      "type": "anything",
-      "description": "address/port to connect to at load time",
+      "type": "symbol",
+      "description": "address (optional)",
+      "default": "localhost"
+    },
+    {
+      "type": "float",
+      "description": "port (obligatory, no default)",
       "default": ""
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "disconnect",
+      "description": "disconnects from network"
+    },
+    {
+      "type": "connect <symbol, float>",
+      "description": "connects to address/port (address optional)"
+    }
+  ],
   "body": "[osc.send] sends OSC messages over the network and is an abstraction based on [osc.format] and [netsend]."
 }

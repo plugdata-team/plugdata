@@ -33,6 +33,15 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "set time multiplier"
+        }
+      ],
+      "repeat": false
     }
   ],
   "outlets": [
@@ -58,15 +67,11 @@
   "arguments": [
     {
       "type": "list",
-      "description": "<f> \u2014 initial output value, <f,f,..> sets the envelope",
+      "description": "<f> — initial output value, <f,f,..> sets the envelope",
       "default": "0 0"
     }
   ],
   "flags": [
-    {
-      "name": "-exp <list>",
-      "description": "sets function with an extra exponential element for each segment"
-    },
     {
       "name": "-init <float>",
       "description": "default 0"
@@ -84,8 +89,20 @@
       "description": "default 0"
     },
     {
-      "name": "curve <float/symbol>",
+      "name": "-curve <float/symbol>",
       "description": "sets curve for all segments (default linear)"
+    },
+    {
+      "name": "-samps",
+      "description": "sets time to samples (default ms)"
+    },
+    {
+      "name": "-loop",
+      "description": "sets to loop mode"
+    },
+    {
+      "name": "-mul <float>",
+      "description": "sets time multiplier (default: 1)"
     }
   ],
   "methods": [

@@ -93,12 +93,12 @@
       "description": "nonzero sets frequency input in MIDI pitch"
     },
     {
-      "type": "-set <float, float>",
-      "description": "<channel, freq> set a single frequency channel"
+      "type": "set <float, float>",
+      "description": "<channel, freq> sets a single frequency channel"
     },
     {
-      "type": "-soft <float>",
-      "description": "nonzero sets to soft sync mode"
+      "type": "soft <float>",
+      "description": "non zero sets to soft sync mode"
     }
   ],
   "body": "[square~] is a square oscillator that accepts negative frequencies, has inlets for pulse width, phase sync and phase modulation."

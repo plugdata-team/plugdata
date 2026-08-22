@@ -58,6 +58,14 @@
     {
       "name": "circular",
       "description": "sets to circular mode"
+    },
+    {
+      "name": "-index",
+      "description": "sets to indexed mode"
+    },
+    {
+      "name": "-circular",
+      "description": "sets to circular mode"
     }
   ],
   "methods": [

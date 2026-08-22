@@ -84,6 +84,14 @@
     {
       "type": "loader <symbol>",
       "description": "open the film using only the specified backend(s)"
+    },
+    {
+      "type": "img_num <float>",
+      "description": "set the current frame number"
+    },
+    {
+      "type": "thread <float>",
+      "description": "enable/disable threaded decoding"
     }
   ],
   "body": ""

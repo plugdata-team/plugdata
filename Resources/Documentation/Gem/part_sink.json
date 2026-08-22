@@ -60,6 +60,11 @@
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "kill <float>",
+      "description": "kill particles that reach the sink (1/0)"
+    }
+  ],
   "body": ""
 }

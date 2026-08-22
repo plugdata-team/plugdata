@@ -21,7 +21,7 @@
   "outlets": [],
   "arguments": [
     {
-      "type": "float",
+      "type": "symbol",
       "description": "send symbol",
       "default": "none"
     }

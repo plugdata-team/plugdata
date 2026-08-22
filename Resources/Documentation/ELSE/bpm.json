@@ -17,6 +17,15 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/symbol",
+          "description": "beat length (as decimal or fraction, default '1/4')"
+        }
+      ],
+      "repeat": false
     }
   ],
   "outlets": [

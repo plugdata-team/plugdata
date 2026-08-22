@@ -29,7 +29,7 @@
     {
       "messages": [
         {
-          "type": "float",
+          "type": "float/signal",
           "description": "speed limit downwards"
         }
       ],
@@ -40,7 +40,7 @@
     {
       "messages": [
         {
-          "type": "float",
+          "type": "signal",
           "description": "slew limited values"
         }
       ],

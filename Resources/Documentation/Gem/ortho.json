@@ -37,8 +37,8 @@
       "description": "turn orthographic rendering ON (default) or OFF"
     },
     {
-      "type": "float",
-      "description": "switch aspect ratio ("
+      "type": "compat <float>",
+      "description": "enable compatibility mode (1/0)"
     }
   ],
   "body": ""

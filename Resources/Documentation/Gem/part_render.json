@@ -31,6 +31,15 @@
   ],
   "arguments": [],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "colorize <float>",
+      "description": "use the particles' colors when rendering (1/0)"
+    },
+    {
+      "type": "size <float>",
+      "description": "use the particles' size when rendering (1/0)"
+    }
+  ],
   "body": ""
 }

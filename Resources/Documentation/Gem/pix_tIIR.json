@@ -40,8 +40,13 @@
   ],
   "arguments": [
     {
-      "type": "list",
-      "description": "IIR coefficients",
+      "type": "float",
+      "description": "number of feedback coefficients",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "number of feedforward coefficients",
       "default": ""
     }
   ],

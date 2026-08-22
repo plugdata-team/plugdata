@@ -28,12 +28,7 @@
         {
           "type": "list",
           "description": "slider number / slider value in the default mode or all values as a list in the \"list mode"
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
+        },
         {
           "type": "list",
           "description": "list of values when receiving export message"
@@ -173,6 +168,10 @@
     {
       "type": "linecolor <f, f, f>",
       "description": "sets line color in RGB"
+    },
+    {
+      "type": "rename <symbol>",
+      "description": "sets internal array name"
     }
   ],
   "body": "[multi.vsl] is a multi slider GUI abstraction."

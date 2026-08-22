@@ -61,6 +61,10 @@
     {
       "type": "file <symbol> <float>",
       "description": "set basefilename and type/quality"
+    },
+    {
+      "type": "auto <float>",
+      "description": "automatically write each rendered frame (1/0)"
     }
   ],
   "body": ""

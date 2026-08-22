@@ -42,7 +42,17 @@
     {
       "type": "float",
       "description": "Specifies an array containing the red, green, and blue components of the current color.",
-      "default": "[0, 0, 0]"
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies an array containing the red, green, and blue components of the current color.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies an array containing the red, green, and blue components of the current color.",
+      "default": ""
     }
   ],
   "flags": [],

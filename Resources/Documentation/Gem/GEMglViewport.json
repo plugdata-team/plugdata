@@ -21,7 +21,25 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the lower left corner of the viewport rectangle, in pixels. The initial value is (0,0)."
+          "description": "x"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "y"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the width and height of the viewport. Values for width and height must be greater than 0."
         }
       ],
       "repeat": false
@@ -50,13 +68,23 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the lower left corner of the viewport rectangle, in pixels. The initial value is (0,0).",
-      "default": "0"
+      "description": "x",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "y",
+      "default": ""
     },
     {
       "type": "float",
       "description": "Specifies the width and height of the viewport. Values for width and height must be greater than 0.",
-      "default": "0"
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies the width and height of the viewport. Values for width and height must be greater than 0.",
+      "default": ""
     }
   ],
   "flags": [],

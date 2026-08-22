@@ -25,15 +25,6 @@
         }
       ],
       "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Specifies an array of textures to be deleted."
-        }
-      ],
-      "repeat": false
     }
   ],
   "outlets": [

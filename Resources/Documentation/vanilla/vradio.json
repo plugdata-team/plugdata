@@ -80,6 +80,10 @@
     {
       "type": "delta <float, float>",
       "description": "changes the position by a x/y delta in pixels"
+    },
+    {
+      "type": "set <float>",
+      "description": "set value without output"
     }
   ],
   "body": ""

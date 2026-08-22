@@ -76,29 +76,14 @@
   ],
   "arguments": [
     {
-      "type": "bang",
-      "description": "grab/release",
-      "default": ""
+      "type": "float",
+      "description": "number of grid segments in X",
+      "default": "32"
     },
     {
       "type": "float",
-      "description": "size",
-      "default": ""
-    },
-    {
-      "type": "float",
-      "description": "height",
-      "default": ""
-    },
-    {
-      "type": "float",
-      "description": "posX (centered)",
-      "default": ""
-    },
-    {
-      "type": "float",
-      "description": "posY (centered)",
-      "default": ""
+      "description": "number of grid segments in Y",
+      "default": "32"
     }
   ],
   "flags": [],

@@ -57,6 +57,10 @@
     {
       "type": "smooth <float>",
       "description": "do smooth fill"
+    },
+    {
+      "type": "gap <float>",
+      "description": "set the gap between lines"
     }
   ],
   "body": ""

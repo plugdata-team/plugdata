@@ -41,8 +41,13 @@
   "arguments": [
     {
       "type": "float",
-      "description": "resolution of the mesh",
-      "default": "1"
+      "description": "grid resolution in X (number of segments)",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "grid resolution in Y (number of segments)",
+      "default": ""
     }
   ],
   "flags": [],

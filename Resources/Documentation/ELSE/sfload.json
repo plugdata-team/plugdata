@@ -22,7 +22,17 @@
       "repeat": false
     }
   ],
-  "outlets": [],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "<size, sample rate, channels, bits>"
+        }
+      ],
+      "repeat": false
+    }
+  ],
   "arguments": [
     {
       "type": "symbol",
@@ -30,7 +40,29 @@
       "default": "none"
     }
   ],
-  "flags": [],
-  "methods": [],
+  "flags": [
+    {
+      "name": "-t",
+      "description": "sets to threaded mode"
+    }
+  ],
+  "methods": [
+    {
+      "type": "set <symbol>",
+      "description": "set array name"
+    },
+    {
+      "type": "load <symbol, float>",
+      "description": "file to load and optional channel, size, start"
+    },
+    {
+      "type": "download <symbol, float>",
+      "description": "link to download and same optionals"
+    },
+    {
+      "type": "threaded <float>",
+      "description": "non zero sets to threaded mode"
+    }
+  ],
   "body": "[sfload] is similar to [soundfiler] but supports MP3, FLAC, WAV, AIF, AAC, OGG & OPUS audio files"
 }

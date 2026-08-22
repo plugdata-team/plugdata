@@ -1,0 +1,98 @@
+{
+  "title": [
+    "streamout~"
+  ],
+  "description": "stream audio via an icecast server",
+  "origin": "ELSE",
+  "categories": [
+    "Networking"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "non zerto connects, zero disconnects"
+        },
+        {
+          "type": "signal",
+          "description": "other channels input"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "additional input channels"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "connection status: 1 <on>, 2 <off>"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "information output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "channels",
+      "default": "2"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-bufsize <float>",
+      "description": "turns loop mode on"
+    }
+  ],
+  "methods": [
+    {
+      "type": "connect <sym, f>",
+      "description": "connect to given hostname and port #"
+    },
+    {
+      "type": "disconnect",
+      "description": "disconnects"
+    },
+    {
+      "type": "password <symbol>",
+      "description": "set password"
+    },
+    {
+      "type": "mount <symbol>",
+      "description": "set mount point"
+    },
+    {
+      "type": "set <anything>",
+      "description": "sets header info"
+    },
+    {
+      "type": "codec <anything>",
+      "description": "sets codec type"
+    },
+    {
+      "type": "print",
+      "description": "prints information on Pd window"
+    }
+  ],
+  "body": "[streamout~] streams ogg files via an icecast server. Support for more formats is comming."
+}

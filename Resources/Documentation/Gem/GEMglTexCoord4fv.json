@@ -7,7 +7,26 @@
   "categories": [
     "Graphics"
   ],
-  "inlets": [],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "v"
+        }
+      ],
+      "repeat": false
+    }
+  ],
   "outlets": [
     {
       "messages": [
@@ -20,6 +39,21 @@
     }
   ],
   "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the s, t, r, and q texture coordinates.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies the s, t, r, and q texture coordinates.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies the s, t, r, and q texture coordinates.",
+      "default": ""
+    },
     {
       "type": "float",
       "description": "Specifies the s, t, r, and q texture coordinates.",

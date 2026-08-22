@@ -59,7 +59,7 @@
       "messages": [
         {
           "type": "signal",
-          "description": "Left-Back channel"
+          "description": "Right-Front channel"
         }
       ],
       "repeat": false
@@ -86,7 +86,12 @@
       "default": "0"
     }
   ],
-  "flags": [],
+  "flags": [
+    {
+      "name": "-mc",
+      "description": "sets to multichannel output"
+    }
+  ],
   "methods": [],
   "body": "[pan4~] is a 4-channel equal power (sin/cos) panner."
 }

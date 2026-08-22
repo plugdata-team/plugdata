@@ -21,16 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the parameter value to retrieve."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Returns the value or values of the specified parameter."
+          "description": "pname"
         }
       ],
       "repeat": false

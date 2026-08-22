@@ -33,8 +33,19 @@
       "repeat": false
     }
   ],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of vertices",
+      "default": ""
+    }
+  ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "vertex <float, float, float, float>",
+      "description": "set vertex number N to position (x, y, z)"
+    }
+  ],
   "body": ""
 }

@@ -50,6 +50,14 @@
     {
       "type": "set <symbol>",
       "description": "read from another buffer"
+    },
+    {
+      "type": "auto <float>",
+      "description": "automatically advance frames at each render cycle (1/0)"
+    },
+    {
+      "type": "loop <float>",
+      "description": "loop when auto-advancing (1/0)"
     }
   ],
   "body": ""

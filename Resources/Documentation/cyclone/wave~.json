@@ -99,6 +99,14 @@
     {
       "type": "@interp_tension <float>",
       "description": "hermite interpolation tension"
+    },
+    {
+      "type": "interp_bias <float>",
+      "description": "hermite interpolation bias (default 0)"
+    },
+    {
+      "type": "interp_tension <float>",
+      "description": "hermite interpolation tension (default 0)"
     }
   ],
   "body": "With a phase signal input (from 0 and 1), [wave~] reads a given table. It has many interpolation options and can set a start and end point in the array."

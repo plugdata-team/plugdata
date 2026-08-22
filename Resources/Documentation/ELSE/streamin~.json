@@ -1,0 +1,89 @@
+{
+  "title": [
+    "streamin~"
+  ],
+  "description": "stream and play sound files from network",
+  "origin": "ELSE",
+  "categories": [
+    "Networking"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "(re)start playing a file stream"
+        },
+        {
+          "type": "float",
+          "description": "non-0 (re)starts playing, zero stops"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the sample signal of the corresponding channel"
+        }
+      ],
+      "repeat": true
+    },
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "a bang when finishing playing the sample"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "(optional) number of channels (max 64)",
+      "default": "1 or sound file's"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-loop",
+      "description": "turns loop mode on"
+    }
+  ],
+  "methods": [
+    {
+      "type": "start",
+      "description": "same as bang"
+    },
+    {
+      "type": "stop",
+      "description": "stop playing the sample"
+    },
+    {
+      "type": "pause",
+      "description": "pauses playing"
+    },
+    {
+      "type": "continue",
+      "description": "continues playing"
+    },
+    {
+      "type": "open <symbol>",
+      "description": "open a link for streaming (uploaded files as well as live streams); no symbol opens a dialog"
+    },
+    {
+      "type": "set <symbol>",
+      "description": "don't stop playing and set a link/file for the next time it starts"
+    },
+    {
+      "type": "loop <float>",
+      "description": "loop on <1> or off <0>"
+    }
+  ],
+  "body": "[streamin~] browses and plays files from web links. It supports AAC, AIF, CAF, FLAC, MP3, OGG, OPUS & WAV. It works for either for live stream or files hosted online (in which case the object works just like [play.file~])."
+}

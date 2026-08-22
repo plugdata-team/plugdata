@@ -39,6 +39,10 @@
     {
       "type": "mode <float>",
       "description": "clamp the discontinuity to the edge or not"
+    },
+    {
+      "type": "clear",
+      "description": "clear the time buffer"
     }
   ],
   "body": ""

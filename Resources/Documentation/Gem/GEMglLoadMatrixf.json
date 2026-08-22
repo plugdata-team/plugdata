@@ -25,6 +25,15 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "list"
+        }
+      ],
+      "repeat": false
     }
   ],
   "outlets": [

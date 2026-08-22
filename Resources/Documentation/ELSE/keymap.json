@@ -52,6 +52,11 @@
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "toggle <float>",
+      "description": "non zero turns toggle mode on, zero turns it off"
+    }
+  ],
   "body": "[keymap] maps your computer keyboard to MIDI pitches and generates note\non/off messages when keys get pressed and released. It works for any\nkeyboard layout. It does not work when in edit mode and autorepeated\nkeys get filtered."
 }

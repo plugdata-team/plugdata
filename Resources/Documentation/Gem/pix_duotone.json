@@ -58,6 +58,19 @@
   ],
   "arguments": [],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "color1 <float, float, float>",
+      "description": "set first replacement color (RGB)"
+    },
+    {
+      "type": "color2 <float, float, float>",
+      "description": "set second replacement color (RGB)"
+    },
+    {
+      "type": "thresh <float, float, float>",
+      "description": "set threshold per channel"
+    }
+  ],
   "body": ""
 }

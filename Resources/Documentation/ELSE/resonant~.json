@@ -76,7 +76,16 @@
       "default": "0"
     }
   ],
-  "flags": [],
+  "flags": [
+    {
+      "name": "-bw",
+      "description": "sets resonance parameter to bandwidth in octaves"
+    },
+    {
+      "name": "-t60",
+      "description": "sets resonance parameter to 't60'"
+    }
+  ],
   "methods": [
     {
       "type": "clear",
@@ -93,6 +102,18 @@
     {
       "type": "t60",
       "description": "sets resonance parameter to decay time in ms"
+    },
+    {
+      "type": "freq <list>",
+      "description": "cutoff frequency in Hertz for each channel"
+    },
+    {
+      "type": "reson <list>",
+      "description": "filter resonance for each channel"
+    },
+    {
+      "type": "bypass <float>",
+      "description": "1 (bypasses input signal) or 0 (doesn't bypass)"
     }
   ],
   "body": "[resonant~] is a bandpass resonator filter like [bandpass~], but it doesn't have a maximum dB value of 0, so changing the Q increases the gain of the filter. Besides 'Q' and 'bw' you can also set the resonance as 't60' (like with [resonator~])."

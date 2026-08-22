@@ -49,6 +49,15 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "trigger / retrigger"
+        }
+      ],
+      "repeat": false
     }
   ],
   "arguments": [
@@ -93,6 +102,10 @@
     {
       "type": "clear",
       "description": "clears memory"
+    },
+    {
+      "type": "glide <float>",
+      "description": "set glide time in ms"
     }
   ],
   "body": "[mono] takes note messages and handles them to emulate monophonic synth behavior. Its internal memory can remember up to the last 10 input voices *and pitches need to be >= 0)."
