@@ -41,6 +41,11 @@ public:
             yLabels.add(String::fromUTF8(glist->gl_ylabel[i]->s_name));
     }
 
+    static Font getLabelFont()
+    {
+        return Fonts::getCurrentFont().withPointHeight(12.0f);
+    }
+
     int getSizeOfTicksAndLabels() const
     {
         int size = (xTicksPerBig || yTicksPerBig) ? 4 : 0;
@@ -49,7 +54,7 @@ public:
             size = std::max(size, 14);
 
         if (yLabels.size() > 0) {
-            auto const font = Fonts::getCurrentFont().withHeight(10);
+            auto const font = getLabelFont();
             int labelWidth = 0;
             for (auto const& label : yLabels)
                 labelWidth = std::max(labelWidth, Fonts::getStringWidthInt(label, font));
@@ -70,8 +75,6 @@ public:
 
     void renderLabel(NVGGraphicsContext& llgc) override
     {
-        auto* nvg = llgc.getContext();
-
         if (!isVisible())
             return;
 
@@ -81,20 +84,40 @@ public:
         auto const x1 = static_cast<float>(localGraphBounds.getX());
         auto const x2 = static_cast<float>(localGraphBounds.getRight());
 
-        nanovg::nvgFillColor(nvg, nvgColour(getThemeColours(*this).canvasTextColour));
+        auto const font = getLabelFont();
+        auto const colour = getThemeColours(*this).canvasTextColour;
+
+        auto anchor = [&font](String const& text, Point<float> const pos, Justification const align) {
+            auto const w = Fonts::getStringWidth(text, font) + 2.0f;
+            auto const h = font.getHeight();
+
+            auto x = pos.x;
+            if (align.testFlags(Justification::horizontallyCentred))
+                x -= w * 0.5f;
+            else if (align.testFlags(Justification::right))
+                x -= w;
+
+            auto y = pos.y;
+            if (align.testFlags(Justification::bottom))
+                y -= h;
+            else if (!align.testFlags(Justification::top))
+                y -= h * 0.5f;
+
+            return Rectangle<float>(x, y, w, h);
+        };
 
         for (auto const& text : xLabels) {
             auto const xpos = jmap<float>(text.getFloatValue(), gl_x1, gl_x2, x1, x2);
             auto const ypos = jmap<float>(xLabelY, gl_y1, gl_y2, y1, y2);
             auto const align = xLabelY > 0.5f * (gl_y1 + gl_y2) ? Justification::centredBottom : Justification::centredTop;
-            llgc.drawText(text, Point<float>(xpos, ypos), align);
+            Fonts::drawText(&llgc, text, anchor(text, { xpos, ypos }, align), font, colour, align);
         }
 
         for (auto const& text : yLabels) {
             auto const xpos = jmap<float>(yLabelX, gl_x1, gl_x2, x1, x2);
             auto const ypos = jmap<float>(text.getFloatValue(), gl_y1, gl_y2, y1, y2);
-            auto const align = yLabelX > 0.5f * (gl_x1 + gl_x2) ? Justification::centredLeft :  Justification::centredRight;
-            llgc.drawText(text, Point<float>(xpos, ypos), align);
+            auto const align = yLabelX > 0.5f * (gl_x1 + gl_x2) ? Justification::centredLeft : Justification::centredRight;
+            Fonts::drawText(&llgc, text, anchor(text, { xpos, ypos }, align), font, colour, align);
         }
     }
 

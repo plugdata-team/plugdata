@@ -161,7 +161,6 @@ NVGcolor Connection::getConnectionColour() const
 void Connection::render(NVGcontext* nvg)
 {
     auto connectionColour = getConnectionColour();
-    nanovg::nvgSave(nvg);
     nanovg::nvgTranslate(nvg, getX(), getY());
 
     bool isSignalCable = cableType == SignalCable && connectionStyle != PlugDataLook::ConnectionStyleVanilla;
@@ -209,8 +208,6 @@ void Connection::render(NVGcontext* nvg)
         nanovg::nvgStroke(nvg);
         cachedPath.save(nvg);
     }
-
-    nanovg::nvgRestore(nvg);
 
     if (isSelected() && isHovering) {
         auto expandedStartHandle = isInStartReconnectHandle ? startReconnectHandle.expanded(3.0f) : startReconnectHandle;

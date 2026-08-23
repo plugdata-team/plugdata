@@ -744,7 +744,7 @@ void PluginEditor::resized()
             resizerSize, resizerSize);
     }
 
-    sidebarToggleButton.setBounds(audioToolbar->getX() - buttonSize + 12, 0, buttonSize, buttonSize);
+    sidebarToggleButton.setBounds(audioToolbar->getX() - buttonSize + 4, 0, buttonSize, buttonSize);
     welcomePanelSearchButton.setBounds(sidebarToggleButton.getX() - buttonSize - 2, 0, buttonSize, buttonSize);
 
     welcomePanelSearchInput.setBounds(libraryPanelSelector.getRight() + 10, 4, welcomePanelSearchButton.getX() - libraryPanelSelector.getRight() - 20, toolbarHeight - 4);
