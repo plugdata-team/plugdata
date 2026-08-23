@@ -71,11 +71,13 @@ public:
 
     class InvalidationChecker final : public CachedComponentImage {
     public:
-        InvalidationChecker(std::function<void()> invalidate) : invalidateCache(invalidate)
+        InvalidationChecker(std::function<void()> invalidate, std::function<void(Graphics& g)> repaint = nullptr) : invalidateCache(invalidate), performPaint(repaint)
         {
         }
 
-        void paint(Graphics& g) override {};
+        void paint(Graphics& g) override {
+            if(performPaint) performPaint(g);
+        };
 
         bool invalidate(Rectangle<int> const& rect) override
         {
@@ -92,6 +94,7 @@ public:
         void releaseResources() override {}
 
         std::function<void()> invalidateCache;
+        std::function<void(Graphics& g)> performPaint;
     };
 
     class InvalidationListener final : public CachedComponentImage {

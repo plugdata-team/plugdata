@@ -8,6 +8,7 @@
 #include "Utility/Autosave.h"
 #include "Utility/Fonts.h"
 #include "Utility/NVGUtils.h"
+#include "Utility/NVGGraphicsContext.h"
 #include "Components/BouncingViewport.h"
 #include "Utility/PatchInfo.h"
 
@@ -219,6 +220,9 @@ class WelcomePanel final : public Component
     private:
         WelcomePanel& parent;
         bool isHovered = false;
+        bool commandBufferDirty = true;
+        nanovg::CommandBuffer commandBuffer;
+
         String tileName, tileSubtitle;
         std::unique_ptr<Drawable> snapshot = nullptr;
         Image snapshotImage;
@@ -249,6 +253,12 @@ class WelcomePanel final : public Component
             , thumbnailFile(thumbnail)
             , patchFile(patchFile)
         {
+            setCachedComponentImage(new NVGSurface::InvalidationChecker([this](){
+                commandBufferDirty = true;
+            }, [this](Graphics& g){
+                paint(g);
+            }));
+
             tileName = patchFile.getFileNameWithoutExtension();
             tileSubtitle = patchAuthor;
             tileType = LibraryPatch;
@@ -261,6 +271,12 @@ class WelcomePanel final : public Component
             , thumbnailFile(thumbnail)
             , patchFile(patchFile)
         {
+            setCachedComponentImage(new NVGSurface::InvalidationChecker([this](){
+                commandBufferDirty = true;
+            }, [this](Graphics& g){
+                paint(g);
+            }));
+
             tileName = patchFile.getFileNameWithoutExtension();
 
             auto is24Hour = OSUtils::is24HourTimeFormat();
@@ -336,12 +352,6 @@ class WelcomePanel final : public Component
                     previousVersions["Added " + file.getCreationTime().toString(true, false)] = file;
                 }
             }
-        }
-
-        void setHovered()
-        {
-            isHovered = true;
-            repaint();
         }
 
         void mouseDown(MouseEvent const& e) override
@@ -472,7 +482,7 @@ class WelcomePanel final : public Component
             setVisible(tileName.containsIgnoreCase(searchQuery));
         }
 
-        void paint(Graphics& g) override
+        void performPaint(Graphics& g)
         {
             auto const& colours = getThemeColours(*this);
 
@@ -592,6 +602,21 @@ class WelcomePanel final : public Component
                     g.drawText(Icons::HeartStroked, favouriteIconBounds, Justification::centred, false);
                 }
             }
+        }
+
+        void paint(Graphics& g) override
+        {
+            auto& llgc = reinterpret_cast<NVGGraphicsContext&>(g.getInternalContext());
+            auto* nvg = llgc.getContext();
+
+            if(commandBufferDirty) {
+                commandBuffer.clear();
+                nanovg::ScopedCommandRecorder recorder(nvg, commandBuffer);
+                performPaint(g);
+                commandBufferDirty = false;
+            }
+
+            nanovg::replay(nvg, commandBuffer);
         }
 
         Rectangle<int> getHeartIconBounds() const
