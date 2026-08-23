@@ -81,7 +81,7 @@ public:
     void paint(Graphics& g) override
     {
         if (!ProjectInfo::canUseSemiTransparentWindows()) {
-            g.fillAll(PlugDataColours::popupMenuBackgroundColour);
+            g.fillAll(getThemeColours(*this).popupMenuBackgroundColour);
         }
     }
 
@@ -115,6 +115,10 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , recentlyOpenedPanelSelector(Icons::Home, "Home")
     , libraryPanelSelector(Icons::ItemGrid, "Library")
 {
+    editorLookAndFeel.setTheme(SettingsFile::getInstance()->getTheme(p.currentThemeName));
+    setLookAndFeel(&editorLookAndFeel);
+    auto const& colours = getThemeColours(*this);
+
     keyboardLayout = OSUtils::getKeyboardLayout();
 
     setCachedComponentImage(new NVGSurface::InvalidationListener(nvgSurface, this));
@@ -169,7 +173,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         }
     };
 
-    welcomePanelSearchInput.setTextToShowWhenEmpty("Type to search patches", PlugDataColours::panelTextColour.withAlpha(0.5f));
+    welcomePanelSearchInput.setTextToShowWhenEmpty("Type to search patches", colours.panelTextColour.withAlpha(0.5f));
     welcomePanelSearchInput.setBorder({ 1, 3, 5, 1 });
     welcomePanelSearchInput.setJustification(Justification::centredLeft);
     addChildComponent(welcomePanelSearchInput);
@@ -179,6 +183,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     auto* settingsFile = SettingsFile::getInstance();
     PlugDataLook::setDefaultFont(settingsFile->getProperty<String>("default_font"));
+    updateDefaultFont();
 
     if (auto const elt = XmlDocument(settingsFile->getKeyMap()).getDocumentElement()) {
         commandManager.getKeyMappings()->restoreFromXml(*elt);
@@ -309,7 +314,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     connectionMessageDisplay = std::make_unique<ConnectionMessageDisplay>(this);
 
-    ObjectThemeManager::get()->updateTheme(pd);
+    ObjectThemeManager::get()->updateTheme(pd, colours);
 
     addChildComponent(nvgSurface);
     nvgSurface.toBehind(&tabComponent);
@@ -410,7 +415,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     });
 
 #if JUCE_IOS
-    pd->lnf->setMainComponent(this);
+    editorLookAndFeel.setMainComponent(this);
 #endif
 
     MessageManager::callAsync([_this = SafePointer(this)](){
@@ -442,6 +447,21 @@ PluginEditor::~PluginEditor()
         pd->messageDispatcher->setBlockMessages(true);
     }
     stopTimer();
+    setLookAndFeel(nullptr);
+}
+
+void PluginEditor::setTheme(DynamicObject::Ptr themeTree)
+{
+    editorLookAndFeel.setTheme(themeTree);
+}
+
+void PluginEditor::updateDefaultFont()
+{
+    editorLookAndFeel.applyDefaultFont();
+
+    auto& activeLookAndFeel = ::getPlugDataLook(*this);
+    if (&activeLookAndFeel != &editorLookAndFeel)
+        activeLookAndFeel.applyDefaultFont();
 }
 
 void PluginEditor::setUseBorderResizer(bool const shouldUse)
@@ -500,7 +520,7 @@ void PluginEditor::updateStandaloneWindowControls()
 
 void PluginEditor::paint(Graphics& g)
 {
-    auto baseColour = PlugDataColours::toolbarBackgroundColour;
+    auto baseColour = getThemeColours(*this).toolbarBackgroundColour;
 
     if (ProjectInfo::isStandalone && !isActiveWindow()) {
         baseColour = baseColour.brighter(baseColour.getBrightness() / 2.5f);
@@ -521,6 +541,8 @@ void PluginEditor::paint(Graphics& g)
 // Paint file drop outline
 void PluginEditor::paintOverChildren(Graphics& g)
 {
+    auto const& colours = getThemeColours(*this);
+
     // Never want to be drawing over a dialog window
     if (openedDialog || pluginMode)
         return;
@@ -534,11 +556,11 @@ void PluginEditor::paintOverChildren(Graphics& g)
     auto const sidebarLeft = drawToolbarOutlineAcrossDockedSidebars && rightSidebarCollapsed ? static_cast<float>(rightSidebar->getX()) : (rightSidebar && rightSidebar->isVisible()) ? rightSidebar->getX() + 1.0f : static_cast<float>(getWidth());
     auto const sidebarRight = drawToolbarOutlineAcrossDockedSidebars && leftSidebarCollapsed ? static_cast<float>(leftSidebar->getRight()) : (leftSidebar && leftSidebar->isVisible()) ? leftSidebar->getWidth() + 1.0f : 0.0f;
 
-    g.setColour(PlugDataColours::toolbarOutlineColour);
+    g.setColour(colours.toolbarOutlineColour);
     g.drawLine(sidebarRight, tabbarDepth, sidebarLeft, tabbarDepth);
 
     if (isDraggingFile) {
-        g.setColour(PlugDataColours::dataColour);
+        g.setColour(colours.dataColour);
         g.drawRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius - 1, 2.0f);
     }
 }
@@ -2008,7 +2030,7 @@ void PluginEditor::timerCallback()
 
 void PluginEditor::lookAndFeelChanged()
 {
-    ObjectThemeManager::get()->updateTheme(pd);
+    ObjectThemeManager::get()->updateTheme(pd, getThemeColours(*this));
 }
 
 void PluginEditor::commandKeyChanged(bool const isHeld)

@@ -23,6 +23,7 @@
 
 #include "Utility/ObjectThemeManager.h"
 #include "NVGSurface.h"
+#include "LookAndFeel.h"
 
 class ConnectionMessageDisplay;
 class Sidebar;
@@ -55,6 +56,8 @@ class PluginEditor final : public AudioProcessorEditor
     , public AsyncUpdater
     , public Timer
     , public SettingsFileListener {
+    PlugDataLook editorLookAndFeel;
+
 public:
     explicit PluginEditor(PluginProcessor&);
 
@@ -73,6 +76,13 @@ public:
     void timerCallback() override;
 
     void lookAndFeelChanged() override;
+
+    PlugDataLook& getPlugDataLook() noexcept { return ::getPlugDataLook(*this); }
+    PlugDataLook const& getPlugDataLook() const noexcept { return ::getPlugDataLook(*this); }
+    PlugDataLook& getEditorLookAndFeel() noexcept { return editorLookAndFeel; }
+    PlugDataLook const& getEditorLookAndFeel() const noexcept { return editorLookAndFeel; }
+    void setTheme(DynamicObject::Ptr themeTree);
+    void updateDefaultFont();
 
     // For dragging parent window
     void mouseDrag(MouseEvent const& e) override;

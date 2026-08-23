@@ -119,9 +119,11 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        auto const& colours = getThemeColours();
+
         auto b = getLocalBounds().toFloat();
 
-        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), bgCol, object->isSelected() ? nvgColour(PlugDataColours::objectSelectedOutlineColour) : nvgColour(PlugDataColours::objectOutlineColour), Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), bgCol, object->isSelected() ? nvgColour(colours.objectSelectedOutlineColour) : nvgColour(colours.objectOutlineColour), getPlugDataLook(*this).getObjectCornerRadius());
 
         b = b.reduced(1);
         auto const width = std::max(b.getWidth(), b.getHeight());
@@ -135,7 +137,7 @@ public:
 
         nanovg::nvgBeginPath(nvg);
         nanovg::nvgCircle(nvg, b.getCentreX(), b.getCentreY(), outerCircleBounds.getWidth() / 2.0f);
-        nanovg::nvgStrokeColor(nvg, nvgColour(PlugDataColours::guiObjectInternalOutlineColour));
+        nanovg::nvgStrokeColor(nvg, nvgColour(colours.guiObjectInternalOutlineColour));
         nanovg::nvgStrokeWidth(nvg, circleThickness);
         nanovg::nvgStroke(nvg);
 

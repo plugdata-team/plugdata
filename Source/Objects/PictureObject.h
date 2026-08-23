@@ -169,6 +169,8 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        auto const& colours = getThemeColours();
+
         handleUpdateNowIfNeeded();
 
         if (imageNeedsReload || !imageBuffer.isValid())
@@ -180,7 +182,7 @@ public:
         nanovg::nvgIntersectScissor(nvg, 0, 0, getWidth(), getHeight());
 
         if (!imageBuffer.isValid()) {
-            Fonts::drawText(cnv->editor->getNanoLLGC(), "?", b, Fonts::getCurrentFont().withHeight(20), PlugDataColours::canvasTextColour, Justification::centred);
+            Fonts::drawText(cnv->editor->getNanoLLGC(), "?", b, Fonts::getCurrentFont().withHeight(20), colours.canvasTextColour, Justification::centred);
         } else {
             NVGScopedState scopedState(nvg);
             nanovg::nvgTranslate(nvg, offsetX, offsetY);
@@ -188,10 +190,10 @@ public:
         }
 
         bool const selected = object->isSelected() && !cnv->isGraph;
-        auto const outlineColour = selected ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour;
+        auto const outlineColour = selected ? colours.objectSelectedOutlineColour : colours.objectOutlineColour;
 
         if (getValue<bool>(outline)) {
-            nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nanovg::nvgRGBA(0, 0, 0, 0), nvgColour(outlineColour), Corners::objectCornerRadius);
+            nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nanovg::nvgRGBA(0, 0, 0, 0), nvgColour(outlineColour), getPlugDataLook(*this).getObjectCornerRadius());
         }
     }
 

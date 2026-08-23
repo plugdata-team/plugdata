@@ -48,6 +48,8 @@ public:
 
     void paint(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
         g.setColour(Colours::black.withAlpha(0.5f));
 
         auto const bounds = getLocalBounds().toFloat().reduced(backgroundMargin);
@@ -59,10 +61,10 @@ public:
         }
 
         if (viewedComponent) {
-            g.setColour(PlugDataColours::dialogBackgroundColour);
+            g.setColour(colours.dialogBackgroundColour);
             g.fillRoundedRectangle(viewedComponent->getBounds().toFloat(), isIphone() ? 0 : Corners::windowCornerRadius);
 
-            g.setColour(PlugDataColours::outlineColour);
+            g.setColour(colours.outlineColour);
             g.drawRoundedRectangle(viewedComponent->getBounds().toFloat(), isIphone() ? 0 : Corners::windowCornerRadius, 1.0f);
         }
     }

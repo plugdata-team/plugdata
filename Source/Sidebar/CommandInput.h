@@ -462,7 +462,7 @@ public:
         auto markupDisplay = std::make_unique<MarkupDisplay::MarkupDisplayComponent>();
         markupDisplay->setURLHandler(this);
         markupDisplay->setFont(Fonts::getDefaultFont());
-        markupDisplay->setColour(PlugDataColour::canvasBackgroundColourId, PlugDataColours::popupMenuActiveBackgroundColour);
+        markupDisplay->setColour(PlugDataColour::canvasBackgroundColourId, getThemeColours(*this).popupMenuActiveBackgroundColour);
         markupDisplay->setMarkupString(documentationString);
         markupDisplay->setSize(250, 200);
         markupDisplay->setVisible(true);
@@ -793,14 +793,16 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
         auto bounds = getLocalBounds();
         int const inputHeight = std::max(commandInput.getTextHeight() + 4, 30);
         auto const inputRow = bounds.removeFromBottom(inputHeight);
 
-        g.setColour(PlugDataColours::toolbarOutlineColour.withAlpha(0.8f));
+        g.setColour(colours.toolbarOutlineColour.withAlpha(0.8f));
         g.drawHorizontalLine(getHeight() - inputHeight, 0, getWidth());
 
-        g.setColour(PlugDataColours::sidebarTextColour);
+        g.setColour(colours.sidebarTextColour);
         g.setFont(Fonts::getSemiBoldFont().withHeight(15));
         g.drawText(consoleTargetName, inputRow.getX() + 9, inputRow.getY(),
             consoleTargetLength, inputRow.getHeight() - 1, Justification::centredLeft);

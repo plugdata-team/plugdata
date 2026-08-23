@@ -117,7 +117,7 @@ struct TextObjectHelper {
         editor->applyFontToAllText(f);
 
         object->copyAllExplicitColoursTo(*editor);
-        editor->setColour(TextEditor::textColourId, PlugDataColours::canvasTextColour);
+        editor->setColour(TextEditor::textColourId, getThemeColours(*object).canvasTextColour);
         editor->setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
         editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
 
@@ -184,22 +184,24 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto const b = getLocalBounds();
-        auto const bg = PlugDataColours::textObjectBackgroundColour;
+        auto const& colours = getThemeColours();
 
-        auto finalOutlineColour = nvgColour(object->isSelected() ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
-        auto finalBackgroundColour = nvgColour(PlugDataColours::textObjectBackgroundColour);
-        auto const outlineCol = object->isSelected() ? nvgColour(PlugDataColours::objectSelectedOutlineColour) : finalOutlineColour;
+        auto const b = getLocalBounds();
+        auto const bg = colours.textObjectBackgroundColour;
+
+        auto finalOutlineColour = nvgColour(object->isSelected() ? colours.objectSelectedOutlineColour : colours.objectOutlineColour);
+        auto finalBackgroundColour = nvgColour(colours.textObjectBackgroundColour);
+        auto const outlineCol = object->isSelected() ? nvgColour(colours.objectSelectedOutlineColour) : finalOutlineColour;
 
         // render invalid text objects with red outline & semi-transparent background
         if (!isValid) {
             finalOutlineColour = nvgColour(object->isSelected() ? Colours::red.brighter(1.5f) : Colours::red);
-            finalBackgroundColour = nvgColour(PlugDataColours::objectOutlineColour.withMultipliedAlpha(0.2f));
+            finalBackgroundColour = nvgColour(colours.objectOutlineColour.withMultipliedAlpha(0.2f));
         } else if ((canBeClicked || getPatch()) && isMouseOver() && getValue<bool>(cnv->locked)) {
             finalBackgroundColour = nvgColour(bg.contrasting(bg.getBrightness() > 0.5f ? 0.03f : 0.05f));
         }
 
-        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), finalBackgroundColour, finalOutlineColour, Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), finalBackgroundColour, finalOutlineColour, getPlugDataLook(*this).getObjectCornerRadius());
 
         // if the object is valid & iolet area colour is differnet from background colour
         // draw two non-rounded rectangles at top / bottom
@@ -214,7 +216,7 @@ public:
         //   │┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼│
         //   └──────────────────┘
 
-        auto ioletAreaColour = nvgColour(PlugDataColours::ioletAreaColour);
+        auto ioletAreaColour = nvgColour(colours.ioletAreaColour);
         bool const hasIoletArea = ioletAreaColour.r != bg.getRed() || ioletAreaColour.g != bg.getGreen() || ioletAreaColour.b != bg.getBlue() || ioletAreaColour.a != bg.getAlpha();
 
         if (isValid && hasIoletArea) {
@@ -224,7 +226,7 @@ public:
             nanovg::nvgRoundedRectVarying(nvg, 0, getHeight() - 3.5f, getWidth(), 3.5f, 0.0f, 0.0f, Corners::defaultCornerRadius, Corners::defaultCornerRadius);
             nanovg::nvgFill(nvg);
 
-            nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nanovg::nvgRGBA(0, 0, 0, 0), outlineCol, Corners::objectCornerRadius);
+            nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nanovg::nvgRGBA(0, 0, 0, 0), outlineCol, getPlugDataLook(*this).getObjectCornerRadius());
         }
 
         auto& llgc = *cnv->editor->getNanoLLGC();
@@ -316,12 +318,12 @@ public:
     // Builds an AttributedString that colours the tokens of a Pd object's text like the editor does
     // (object name, flags, math-expression arguments). Shared by text-based objects so they can build
     // their TextLayout directly.
-    static AttributedString getSyntaxHighlightedString(String const& text, Font const& font, Colour const& colour, Colour const& nameColour)
+    static AttributedString getSyntaxHighlightedString(Component const& context, String const& text, Font const& font, Colour const& colour, Colour const& nameColour)
     {
         auto attributedText = AttributedString();
         auto lines = StringArray::fromLines(text);
 
-        auto const flagColour = colour.interpolatedWith(PlugDataColours::signalColour, 0.7f);
+        auto const flagColour = colour.interpolatedWith(::getThemeColours(context).signalColour, 0.7f);
         auto const mathColour = colour.interpolatedWith(Colours::purple, 0.5f);
 
         bool firstToken = true;
@@ -360,6 +362,8 @@ public:
 
     virtual void updateTextLayout()
     {
+        auto const& colours = getThemeColours();
+
         if (cnv->isGraph)
             return; // Text layouting is expensive, so skip if it's not necessary
 
@@ -368,14 +372,14 @@ public:
             objText = cnv->suggestor->getText();
         }
 
-        auto const colour = PlugDataColours::canvasTextColour;
+        auto const colour = colours.canvasTextColour;
         auto const font = Fonts::getCurrentFont().withHeight(15);
-        bool const highlightObjectSyntax = PlugDataLook::getUseSyntaxHighlighting() && isValid;
+        bool const highlightObjectSyntax = getPlugDataLook(*this).getUseSyntaxHighlighting() && isValid;
 
         AttributedString attributedText;
         if (highlightObjectSyntax) {
-            auto const nameColour = colour.interpolatedWith(PlugDataColours::dataColour, 0.7f);
-            attributedText = getSyntaxHighlightedString(objText, font, colour, nameColour);
+            auto const nameColour = colour.interpolatedWith(colours.dataColour, 0.7f);
+            attributedText = getSyntaxHighlightedString(*this, objText, font, colour, nameColour);
         } else {
             attributedText = AttributedString(objText);
             attributedText.setColour(colour);

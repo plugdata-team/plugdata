@@ -166,12 +166,14 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        auto const& colours = getThemeColours(*this);
+
         // draw background and outline
         auto const b = getBounds().reduced(tabMargin);
-        auto iCol = nvgColour(PlugDataColours::objectSelectedOutlineColour);
+        auto iCol = nvgColour(colours.objectSelectedOutlineColour);
 
         iCol.a = 5; // Make the inner colour semi-transparent
-        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), iCol, nvgColour(PlugDataColours::objectSelectedOutlineColour), Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), iCol, nvgColour(colours.objectSelectedOutlineColour), getPlugDataLook(*this).getObjectCornerRadius());
 
         // Draw handles at edge
         auto getCorners = [this] {
@@ -192,7 +194,7 @@ public:
             nanovg::nvgRotate(nvg, degreesToRadians<float>(angle));
             nanovg::nvgTranslate(nvg, -4.5f, -4.5f);
 
-            cnv->renderResizeHandle(nvg, nvgColour(PlugDataColours::objectSelectedOutlineColour));
+            cnv->renderResizeHandle(nvg, nvgColour(colours.objectSelectedOutlineColour));
             angle -= 90;
         }
     }
@@ -436,7 +438,9 @@ void Canvas::updateFramebuffers(NVGcontext* nvg)
     if (dotsLargeImage.needsUpdate(gridBufferSize, gridBufferSize) || lastObjectGridSize != gridLogicalSize) {
         lastObjectGridSize = gridLogicalSize;
 
-        dotsLargeImage.renderToFramebuffer(nvg, gridBufferSize, gridBufferSize, [gridBufferSize, gridLogicalSize, zoom, pixelScale](NVGcontext* nvg){
+        dotsLargeImage.renderToFramebuffer(nvg, gridBufferSize, gridBufferSize, [this, gridBufferSize, gridLogicalSize, zoom, pixelScale](NVGcontext* nvg){
+            auto const& colours = getThemeColours(*this);
+
 
             nanovg::viewport(nvg, 0, 0, gridBufferSize, gridBufferSize);
             nanovg::clear(nvg);
@@ -476,7 +480,7 @@ void Canvas::updateFramebuffers(NVGcontext* nvg)
             default: break;
             }
 
-            auto markingColour = PlugDataColours::canvasDotsColour.interpolatedWith(PlugDataColours::canvasBackgroundColour, 0.2f);
+            auto markingColour = colours.canvasDotsColour.interpolatedWith(colours.canvasBackgroundColour, 0.2f);
             auto const majorDotColour = markingColour.withAlpha(std::min(zoom * 0.8f, 1.0f));
 
             nanovg::nvgFillColor(nvg, nvgColour(majorDotColour));
@@ -517,7 +521,7 @@ void Canvas::renderResizeHandle(NVGcontext* nvg, NVGcolor const colour)
         constexpr float kappa = 0.5522847498307936f;
         auto const innerOffset = static_cast<float>(Object::margin) / 2.0f;
         auto const outerRadius = jlimit(0.0f, resizerLogicalSize * 0.5f, Corners::resizeHanleCornerRadius);
-        auto const innerRadius = jlimit(0.0f, resizerLogicalSize - innerOffset, Corners::objectCornerRadius);
+        auto const innerRadius = jlimit(0.0f, resizerLogicalSize - innerOffset, getPlugDataLook(*this).getObjectCornerRadius());
         auto const outerControl = outerRadius * (1.0f - kappa);
         auto const innerControl = innerRadius * (1.0f - kappa);
 
@@ -546,6 +550,8 @@ void Canvas::renderResizeHandle(NVGcontext* nvg, NVGcolor const colour)
 // Callback from canvasViewport to perform actual rendering
 void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
 {
+    auto const& colours = getThemeColours(*this);
+
     constexpr auto halfSize = infiniteCanvasSize / 2;
     auto const zoom = getValue<float>(zoomScale);
     bool const isLocked = getValue<bool>(locked);
@@ -558,7 +564,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         invalidRegion /= zoom;
 
         if (isLocked) {
-            nanovg::nvgFillColor(nvg, nvgColour(PlugDataColours::canvasBackgroundColour));
+            nanovg::nvgFillColor(nvg, nvgColour(colours.canvasBackgroundColour));
             nanovg::nvgFillRect(nvg, invalidRegion.getX(), invalidRegion.getY(), invalidRegion.getWidth(), invalidRegion.getHeight());
         } else {
             nanovg::nvgBeginPath(nvg);
@@ -574,7 +580,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
                 // offset image texture by 2.5f so no dots are on the edge of the texture
                 nanovg::nvgTranslate(nvg, canvasOrigin.x - 2.5f, canvasOrigin.x - 2.5f);
 
-                nanovg::nvgFillColor(nvg, nvgColour(PlugDataColours::canvasBackgroundColour)); // This fixes some glitches but I'm not sure why
+                nanovg::nvgFillColor(nvg, nvgColour(colours.canvasBackgroundColour)); // This fixes some glitches but I'm not sure why
                 nanovg::nvgFill(nvg);
 
                 nanovg::nvgFillPaint(nvg, nanovg::nvgImagePattern(nvg, 0, 0, gridSizeCommon, gridSizeCommon, 0, dotsLargeImage.getImage(), 1));
@@ -586,6 +592,8 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     currentRenderArea = invalidRegion;
 
     auto drawBorder = [this, nvg](bool const bg, bool const fg) {
+        auto const& colours = getThemeColours(*this);
+
         if (viewport && (showOrigin || showBorder) && !::getValue<bool>(presentationMode)) {
             NVGScopedState scopedState(nvg);
             nanovg::nvgBeginPath(nvg);
@@ -607,15 +615,15 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
                     nanovg::nvgLineTo(nvg, pos.x, pos.y + borderHeight);
                 }
                 nanovg::nvgLineStyle(nvg, NVG_LINE_SOLID);
-                nanovg::nvgStrokeColor(nvg, nvgColour(PlugDataColours::canvasBackgroundColour));
+                nanovg::nvgStrokeColor(nvg, nvgColour(colours.canvasBackgroundColour));
                 nanovg::nvgStrokeWidth(nvg, 8.0f);
                 nanovg::nvgStroke(nvg);
 
-                nanovg::nvgFillColor(nvg, nvgColour(PlugDataColours::canvasBackgroundColour));
+                nanovg::nvgFillColor(nvg, nvgColour(colours.canvasBackgroundColour));
                 nanovg::nvgFillRect(nvg, pos.x - 1.0f, pos.y - 1.0f, 2, 2);
             }
 
-            nanovg::nvgStrokeColor(nvg, nvgColour(PlugDataColours::canvasDotsColour.interpolatedWith(PlugDataColours::canvasBackgroundColour, 0.2f)));
+            nanovg::nvgStrokeColor(nvg, nvgColour(colours.canvasDotsColour.interpolatedWith(colours.canvasBackgroundColour, 0.2f)));
             nanovg::nvgStrokeWidth(nvg, 1.5f);
             nanovg::nvgDashLength(nvg, 8.0f);
             nanovg::nvgLineStyle(nvg, NVG_LINE_DASHED);
@@ -679,7 +687,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             nanovg::nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
             nanovg::nvgPathWinding(nvg, NVG_HOLE);
             nanovg::nvgRoundedRect(nvg, pos.getX(), pos.getY(), borderWidth, borderHeight, windowCorner);
-            nanovg::nvgFillColor(nvg, nvgColour(PlugDataColours::presentationBackgroundColour));
+            nanovg::nvgFillColor(nvg, nvgColour(colours.presentationBackgroundColour));
             nanovg::nvgFill(nvg);
 
             // background drop shadow to simulate a virtual plugin
@@ -695,7 +703,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             }
             auto const shadowImage = nanovg::nvgImageAlphaPattern(nvg, pos.getX() - shadowSize, pos.getY() - shadowSize, borderArea.getWidth(), borderArea.getHeight(), 0, presentationShadowImage.getImageId(), nvgColour(Colours::black));
 
-            nanovg::nvgStrokeColor(nvg, nvgColour(PlugDataColours::presentationBackgroundColour.contrasting(0.3f)));
+            nanovg::nvgStrokeColor(nvg, nvgColour(colours.presentationBackgroundColour.contrasting(0.3f)));
             nanovg::nvgStrokeWidth(nvg, 0.5f / scale);
             nanovg::nvgFillPaint(nvg, shadowImage);
             nanovg::nvgFill(nvg);
@@ -729,7 +737,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     if (viewport && lasso.isVisible() && !lasso.getBounds().isEmpty()) {
         auto lassoBounds = lasso.getBounds();
         lassoBounds = lassoBounds.withSize(jmax(lasso.getWidth(), 2), jmax(lasso.getHeight(), 2));
-        nanovg::nvgDrawRoundedRect(nvg, lassoBounds.getX(), lassoBounds.getY(), lassoBounds.getWidth(), lassoBounds.getHeight(), nvgColour(PlugDataColours::objectSelectedOutlineColour.withAlpha(0.075f)), nvgColour(PlugDataColours::canvasBackgroundColour.interpolatedWith(PlugDataColours::objectSelectedOutlineColour, 0.65f)), 0.0f);
+        nanovg::nvgDrawRoundedRect(nvg, lassoBounds.getX(), lassoBounds.getY(), lassoBounds.getWidth(), lassoBounds.getHeight(), nvgColour(colours.objectSelectedOutlineColour.withAlpha(0.075f)), nvgColour(colours.canvasBackgroundColour.interpolatedWith(colours.objectSelectedOutlineColour, 0.65f)), 0.0f);
     }
 
     suggestor->renderAutocompletion(nvg);

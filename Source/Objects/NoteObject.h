@@ -38,6 +38,8 @@ public:
     NoteObject(pd::WeakReference obj, Object* object)
         : ObjectBase(obj, object)
     {
+        auto const& colours = getThemeColours();
+
         locked = getValue<bool>(object->locked);
 
         if (auto note = ptr.get<t_fake_note>()) {
@@ -51,8 +53,8 @@ public:
 
         noteEditor.getProperties().set("NoBackground", true);
         noteEditor.getProperties().set("NoOutline", true);
-        noteEditor.setColour(TextEditor::textColourId, PlugDataColours::canvasTextColour);
-        noteEditor.setColour(ScrollBar::thumbColourId, PlugDataColours::scrollbarThumbColour);
+        noteEditor.setColour(TextEditor::textColourId, colours.canvasTextColour);
+        noteEditor.setColour(ScrollBar::thumbColourId, colours.scrollbarThumbColour);
 
         noteEditor.setAlwaysOnTop(true);
         noteEditor.setMultiLine(true);
@@ -126,14 +128,16 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        auto const& colours = getThemeColours();
+
         if (getValue<bool>(fillBackground) || getValue<bool>(outline)) {
             auto const fillColour = getValue<bool>(fillBackground) ? nvgColour(getValue<Colour>(secondaryColour)) : nanovg::nvgRGBA(0, 0, 0, 0);
             auto outlineColour = nanovg::nvgRGBA(0, 0, 0, 0);
             if (getValue<bool>(outline)) {
                 bool const selected = object->isSelected() && !cnv->isGraph;
-                outlineColour = nvgColour(selected ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
+                outlineColour = nvgColour(selected ? colours.objectSelectedOutlineColour : colours.objectOutlineColour);
             }
-            nanovg::nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), fillColour, outlineColour, Corners::objectCornerRadius);
+            nanovg::nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), fillColour, outlineColour, getPlugDataLook(*this).getObjectCornerRadius());
         }
 
         cnv->editor->getNanoLLGC()->renderComponent(noteEditor);

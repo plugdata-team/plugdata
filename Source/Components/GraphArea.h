@@ -54,9 +54,11 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        auto const& colours = getThemeColours(*this);
+
         auto lineBounds = getLocalBounds().toFloat().reduced(4.0f);
 
-        nanovg::nvgDrawRoundedRect(nvg, lineBounds.getX(), lineBounds.getY(), lineBounds.getWidth(), lineBounds.getHeight(), nanovg::nvgRGBA(0, 0, 0, 0), nvgColour(PlugDataColours::graphAreaColour), Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, lineBounds.getX(), lineBounds.getY(), lineBounds.getWidth(), lineBounds.getHeight(), nanovg::nvgRGBA(0, 0, 0, 0), nvgColour(colours.graphAreaColour), getPlugDataLook(*this).getObjectCornerRadius());
 
         if (!getValue<bool>(canvas->locked)) {
             int angle = 360;
@@ -83,7 +85,7 @@ public:
                 nanovg::nvgRotate(nvg, degreesToRadians<float>(angle));
                 nanovg::nvgTranslate(nvg, -3.0f, -3.0f);
 
-                canvas->renderResizeHandle(nvg, nvgColour(PlugDataColours::graphAreaColour));
+                canvas->renderResizeHandle(nvg, nvgColour(colours.graphAreaColour));
                 angle -= 90;
             }
         }

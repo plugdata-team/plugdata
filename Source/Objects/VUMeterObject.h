@@ -209,6 +209,8 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        auto const& colours = getThemeColours();
+
         if (!ptr.isValid())
             return;
 
@@ -217,7 +219,7 @@ public:
         auto const b = getLocalBounds();
         auto const bS = b.reduced(0.5f);
         // Object background
-        nanovg::nvgDrawRoundedRect(nvg, bS.getX(), bS.getY(), bS.getWidth(), bS.getHeight(), bgCol, bgCol, Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, bS.getX(), bS.getY(), bS.getWidth(), bS.getHeight(), bgCol, bgCol, getPlugDataLook(*this).getObjectCornerRadius());
 
         auto const rms = Decibels::decibelsToGain(values[1] - 10.0f);
         auto const peak = Decibels::decibelsToGain(values[0] - 10.0f);
@@ -240,7 +242,7 @@ public:
         // VU Bar
         nanovg::nvgFillColor(nvg, barColour);
         nanovg::nvgBeginPath(nvg);
-        nanovg::nvgRoundedRectVarying(nvg, 4, getHeight() - barLength, getWidth() - 8, barLength, 0.0f, 0.0f, Corners::objectCornerRadius, Corners::objectCornerRadius);
+        nanovg::nvgRoundedRectVarying(nvg, 4, getHeight() - barLength, getWidth() - 8, barLength, 0.0f, 0.0f, getPlugDataLook(*this).getObjectCornerRadius(), getPlugDataLook(*this).getObjectCornerRadius());
         nanovg::nvgFill(nvg);
 
         nanovg::nvgBeginPath(nvg);
@@ -259,7 +261,7 @@ public:
         nanovg::nvgFillRect(nvg, 0, getHeight() - peakPosition - 5.0f, getWidth(), 5.0f);
 
         // Object outline
-        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nanovg::nvgRGBA(0, 0, 0, 0), nvgColour(object->isSelected() ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour), Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nanovg::nvgRGBA(0, 0, 0, 0), nvgColour(object->isSelected() ? colours.objectSelectedOutlineColour : colours.objectOutlineColour), getPlugDataLook(*this).getObjectCornerRadius());
     }
 
     void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override

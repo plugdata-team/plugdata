@@ -56,7 +56,7 @@ public:
         g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::defaultCornerRadius);
 
         if (hasKeyboardFocus(false)) {
-            g.setColour(PlugDataColours::toolbarActiveColour);
+            g.setColour(getThemeColours(*this).toolbarActiveColour);
             g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), Corners::defaultCornerRadius, 2.0f);
         }
     }

@@ -167,7 +167,7 @@ private:
 
         auto const editorText = editor->getText();
         auto const xOffset = Fonts::getStringWidth(editorText, editor->getFont()) + 7.5f;
-        auto const colour = PlugDataColours::canvasTextColour.withAlpha(0.5f);
+        auto const colour = getThemeColours(*this).canvasTextColour.withAlpha(0.5f);
 
         Fonts::drawText(g, ghostText,
             getLocalBounds().toFloat().withTrimmedLeft(xOffset).translated(-1.25f, 0),
@@ -225,17 +225,19 @@ class SuggestionComponent final
     private:
         void paint(Graphics& g) override
         {
+            auto const& colours = getThemeColours(*this);
+
             auto const scrollbarIndent = owner->port->canScrollVertically() ? 6 : 0;
             auto const buttonArea = getLocalBounds().withTrimmedRight(2 + scrollbarIndent).toFloat().reduced(4, 2);
 
             // When toggled, draw the highlight; otherwise stay transparent so
             // the popup's unified rounded rectangle shows through.
             if (getToggleState()) {
-                g.setColour(PlugDataColours::popupMenuActiveBackgroundColour);
+                g.setColour(colours.popupMenuActiveBackgroundColour);
                 g.fillRoundedRectangle(buttonArea, Corners::defaultCornerRadius);
             }
 
-            auto const textColour = PlugDataColours::popupMenuTextColour;
+            auto const textColour = colours.popupMenuTextColour;
             auto const yIndent = jmin(4, proportionOfHeight(0.3f));
             auto leftIndent = current.icon != SuggestionEntry::IconType::None ? 36 : 11;
             constexpr auto rightIndent = 14;
@@ -264,22 +266,24 @@ class SuggestionComponent final
 
         void drawIcon(Graphics& g)
         {
+            auto const& colours = getThemeColours(*this);
+
             Colour iconColour;
             String iconText;
             int textSize = 12;
 
             switch (current.icon) {
             case SuggestionEntry::IconType::Data:
-                iconColour = PlugDataColours::dataColour;
+                iconColour = colours.dataColour;
                 iconText = "pd";
                 textSize = 10;
                 break;
             case SuggestionEntry::IconType::Signal:
-                iconColour = PlugDataColours::signalColour;
+                iconColour = colours.signalColour;
                 iconText = "~";
                 break;
             case SuggestionEntry::IconType::Gem:
-                iconColour = PlugDataColours::gemColour;
+                iconColour = colours.gemColour;
                 iconText = "g";
                 break;
             default:
@@ -358,7 +362,7 @@ class SuggestionComponent final
             int const w = jmax(40, width - 16);
             int y = 12;
 
-            auto const text = PlugDataColours::popupMenuTextColour;
+            auto const text = getThemeColours(*this).popupMenuTextColour;
             auto const muted = text.withAlpha(0.55f);
 
             // Origin / category label
@@ -489,6 +493,13 @@ class SuggestionComponent final
     };
 
     class ResizerLookAndFeel : public LookAndFeel_V2 {
+    public:
+        explicit ResizerLookAndFeel(SuggestionComponent& owner)
+            : owner(owner)
+        {
+        }
+
+    private:
         void drawCornerResizer(Graphics& g, int const w, int const h, bool const isMouseOver, bool /*isMouseDragging*/) override
         {
             float const cornerSize = Corners::defaultCornerRadius;
@@ -502,16 +513,19 @@ class SuggestionComponent final
             Path triangle;
             triangle.addTriangle(Point<float>(0, h), Point<float>(w, h), Point<float>(w, 0));
 
-            g.setColour(PlugDataColours::objectSelectedOutlineColour.withAlpha(isMouseOver ? 1.0f : 0.6f));
+            g.setColour(getThemeColours(owner).objectSelectedOutlineColour.withAlpha(isMouseOver ? 1.0f : 0.6f));
             g.fillPath(triangle);
 
             g.restoreState();
         }
+
+        SuggestionComponent& owner;
     };
 
 public:
     SuggestionComponent()
-        : resizer(this, &constrainer)
+        : resizerLookAndFeel(*this)
+        , resizer(this, &constrainer)
     {
         resizer.setLookAndFeel(&resizerLookAndFeel);
         resizer.setAllowHostManagedResize(false);
@@ -531,7 +545,7 @@ public:
             auto* row = new Row(this);
             rows.add(row);
             buttonHolder->addAndMakeVisible(row);
-            row->setColour(TextButton::buttonColourId, PlugDataColours::dialogBackgroundColour);
+            row->setColour(TextButton::buttonColourId, getThemeColours(*this).dialogBackgroundColour);
         }
 
         // Viewport
@@ -1275,28 +1289,32 @@ private:
 
     void paint(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
         if (!canBeTransparent()) {
-            g.fillAll(PlugDataColours::canvasBackgroundColour);
+            g.fillAll(colours.canvasBackgroundColour);
         } else {
             StackShadow::drawShadowForRect(g, getLocalBounds().reduced(12), 12, Corners::defaultCornerRadius, 0.44f);
         }
 
         // Single rounded rectangle that covers list + header + detail panel.
-        g.setColour(PlugDataColours::popupMenuBackgroundColour);
+        g.setColour(colours.popupMenuBackgroundColour);
         g.fillRoundedRectangle(getWindowBounds().toFloat(), Corners::defaultCornerRadius);
     }
 
     void paintOverChildren(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
         auto const winBounds = getWindowBounds().toFloat();
 
-        g.setColour(PlugDataColours::outlineColour.darker(0.1f));
+        g.setColour(colours.outlineColour.darker(0.1f));
         g.drawRoundedRectangle(winBounds, Corners::defaultCornerRadius, 1.0f);
 
         // Subtle separator between list and detail panel when both are visible.
         if (layoutMode == LayoutMode::ListWithDetail) {
             auto const sepX = static_cast<float>(detailViewport->getX()) - 0.5f;
-            g.setColour(PlugDataColours::outlineColour.darker(0.1f).withAlpha(0.5f));
+            g.setColour(colours.outlineColour.darker(0.1f).withAlpha(0.5f));
             g.drawLine(sepX, winBounds.getY() + 6.0f, sepX, winBounds.getBottom() - 6.0f, 1.0f);
         }
     }

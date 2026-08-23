@@ -21,10 +21,12 @@ public:
     Point<int> offset;
 };
 
+struct PlugDataLook;
+
 class OfflineObjectRenderer {
 public:
-    static String patchToSVG(String const& patch);
-    static ImageWithOffset patchToMaskedImage(String const& patch, float scale, bool makeInvalidImage = false);
+    static String patchToSVG(PlugDataLook const& look, String const& patch);
+    static ImageWithOffset patchToMaskedImage(PlugDataLook const& look, String const& patch, float scale, bool makeInvalidImage = false);
 
     static std::pair<SmallArray<bool>, SmallArray<bool>> countIolets(String const& patch);
     static bool checkIfPatchIsValid(String const& patch);

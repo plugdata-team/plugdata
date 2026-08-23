@@ -121,11 +121,13 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        auto const& colours = getThemeColours();
+
         auto const b = getLocalBounds().toFloat();
 
-        auto const outlineColour = nvgColour(object->isSelected() ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
+        auto const outlineColour = nvgColour(object->isSelected() ? colours.objectSelectedOutlineColour : colours.objectOutlineColour);
 
-        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgColour(getValue<Colour>(secondaryColour)), outlineColour, Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgColour(getValue<Colour>(secondaryColour)), outlineColour, getPlugDataLook(*this).getObjectCornerRadius());
 
         auto const dx = getWidth() * 0.125f;
         auto const dy = getHeight() * 0.25f;

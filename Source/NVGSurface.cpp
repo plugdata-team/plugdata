@@ -260,7 +260,7 @@ void NVGSurface::presentFramebuffer(int viewWidth, int viewHeight)
     if (mainFramebuffer) {
         nvgBlitFramebuffer(baseNvg, reinterpret_cast<NVGframebuffer*>(mainFramebuffer), 0, 0, viewWidth, viewHeight);
     } else {
-        nvgClearWithColor(baseNvg, nvgColour(PlugDataColours::canvasBackgroundColour));
+        nvgClearWithColor(baseNvg, nvgColour(getThemeColours(*this).canvasBackgroundColour));
     }
 }
 

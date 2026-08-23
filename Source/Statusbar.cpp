@@ -154,6 +154,8 @@ public:
 private:
     void updateText()
     {
+        auto const& colours = getThemeColours(*this);
+
         String icon;
         String text;
         bool active = false;
@@ -179,7 +181,7 @@ private:
 
         // The icon and label share the mode's colour; the mainButton brightens itself on hover.
         // The chevron keeps the regular colour and brightens on its own hover (it's a SmallIconButton)
-        auto const colour = active ? PlugDataColours::toolbarActiveColour : PlugDataColours::toolbarTextColour;
+        auto const colour = active ? colours.toolbarActiveColour : colours.toolbarTextColour;
         mainButton.setContent(icon, text, colour);
     }
 
@@ -232,11 +234,13 @@ public:
 private:
     void paint(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
         g.setFont(Fonts::getTabularNumbersFont().withHeight(14));
         if (isEnabled()) {
-            g.setColour(PlugDataColours::toolbarTextColour.contrasting(isMouseOver() ? 0.35f : 0.0f));
+            g.setColour(colours.toolbarTextColour.contrasting(isMouseOver() ? 0.35f : 0.0f));
         } else {
-            g.setColour(PlugDataColours::toolbarTextColour.withAlpha(0.65f));
+            g.setColour(colours.toolbarTextColour.withAlpha(0.65f));
         }
         g.drawFittedText(String(std::clamp<int>(statusbar->currentZoomLevel, 25, 300)) + "%", 6, 0, getWidth() - 2, getHeight(), Justification::centredLeft, 1, 0.95f);
     }
@@ -493,12 +497,14 @@ void Statusbar::showTouchSelectionHelper(bool const shouldShow)
 
 void Statusbar::paint(Graphics& g)
 {
-    g.setColour(PlugDataColours::toolbarOutlineColour);
+    auto const& colours = getThemeColours(*this);
+
+    g.setColour(colours.toolbarOutlineColour);
     auto outlineLeft = editor->leftSidebar->isHidden() ? editor->leftSidebar->getRight() - 1.0f : 0.0f;
     auto outlineRight = editor->rightSidebar->isHidden() ? editor->rightSidebar->getX() + 1.0f : getWidth();
     g.drawLine(outlineLeft, 0.5f, outlineRight, 0.5f);
 
-    g.setColour(PlugDataColours::toolbarOutlineColour);
+    g.setColour(colours.toolbarOutlineColour);
 
     // Separator
     auto const x = static_cast<float>(zoomSelector->getRight() + 3);

@@ -19,7 +19,7 @@ public:
 
         nameEditor.setJustification(Justification::centredLeft);
 
-        auto const backgroundColour = PlugDataColours::dialogBackgroundColour;
+        auto const backgroundColour = getThemeColours(*this).dialogBackgroundColour;
         ok.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
         ok.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
         ok.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
@@ -128,7 +128,7 @@ struct ThemeSelectorProperty final : public PropertiesPanelProperty {
 
         addAndMakeVisible(comboBox);
 
-        setLookAndFeel(&LookAndFeel::getDefaultLookAndFeel());
+        setLookAndFeel(nullptr);
         lookAndFeelChanged();
     }
 
@@ -144,7 +144,7 @@ struct ThemeSelectorProperty final : public PropertiesPanelProperty {
     {
         comboBox.setColour(ComboBox::backgroundColourId, Colours::transparentBlack);
         comboBox.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-        comboBox.setColour(ComboBox::textColourId, PlugDataColours::panelTextColour);
+        comboBox.setColour(ComboBox::textColourId, getThemeColours(*this).panelTextColour);
     }
 
     String getText() const
@@ -269,7 +269,7 @@ public:
 
         std::function<void(int, String)> onThemeChange = [this](int const themeSlot, String const& newThemeName) {
             auto allThemes = PlugDataLook::getAllThemes();
-            int const themeIdx = PlugDataLook::selectedThemes.indexOf(PlugDataLook::currentTheme);
+            int const themeIdx = PlugDataLook::selectedThemes.indexOf(pd->currentThemeName);
 
             if (newThemeName.isEmpty())
                 return;
@@ -531,9 +531,9 @@ public:
             panel.addSection(sectionName, sectionColours);
         }
 
-        if (!PlugDataLook::selectedThemes.contains(PlugDataLook::currentTheme)) {
-            PlugDataLook::currentTheme = PlugDataLook::selectedThemes[0];
-            SettingsFile::getInstance()->setProperty("theme", PlugDataLook::currentTheme);
+        if (!PlugDataLook::selectedThemes.contains(pd->currentThemeName)) {
+            pd->currentThemeName = PlugDataLook::selectedThemes[0];
+            SettingsFile::getInstance()->setProperty("theme", pd->currentThemeName);
         }
 
         updateThemeNames(primaryThemeSelector->getText(), secondaryThemeSelector->getText());
@@ -551,8 +551,11 @@ public:
             PlugDataLook::setDefaultFont(fontValue.toString());
             SettingsFile::getInstance()->setProperty("default_font", fontValue.getValue());
 
-            if (previousFontName != Fonts::getCurrentFont().toString())
+            if (previousFontName != Fonts::getCurrentFont().toString()) {
+                for (auto* editor : pd->getEditors())
+                    editor->updateDefaultFont();
                 pd->updateAllEditorsLNF();
+            }
 
             CachedStringWidth<14>::clearCache();
             CachedStringWidth<15>::clearCache();
@@ -603,7 +606,7 @@ public:
                 }
             }
 
-            pd->setTheme(PlugDataLook::currentTheme, true);
+            pd->setTheme(pd->currentThemeName, true);
 
             if (ioletGeometryNeedsUpdate)
                 PluginEditor::updateIoletGeometryForAllObjects(pd);
@@ -620,7 +623,7 @@ public:
 
                 if (v.refersToSameSourceAs(swatches[themeName][colourName])) {
                     theme->setProperty(colourName, v.toString());
-                    pd->setTheme(PlugDataLook::currentTheme, true);
+                    pd->setTheme(pd->currentThemeName, true);
                     sendLookAndFeelChange();
                     return;
                 }
@@ -636,7 +639,7 @@ public:
 
     void resetDefaults()
     {
-        auto const currentIoletSpacing = getValue<bool>(swatches[PlugDataLook::currentTheme]["iolet_spacing_edge"]);
+        auto const currentIoletSpacing = getValue<bool>(swatches[pd->currentThemeName]["iolet_spacing_edge"]);
 
         PlugDataLook::resetColours();
 
@@ -644,6 +647,8 @@ public:
         fontValue = "Inter";
 
         PlugDataLook::setDefaultFont(fontValue.toString());
+        for (auto* editor : pd->getEditors())
+            editor->updateDefaultFont();
         SettingsFile::getInstance()->setProperty("default_font", fontValue.getValue());
 
         auto const allThemes = PlugDataLook::getAllThemes();
@@ -664,7 +669,7 @@ public:
         pd->setTheme(PlugDataLook::selectedThemes[0], true);
         sendLookAndFeelChange();
 
-        auto const newIoletSpacing = getValue<bool>(swatches[PlugDataLook::currentTheme]["iolet_spacing_edge"]);
+        auto const newIoletSpacing = getValue<bool>(swatches[pd->currentThemeName]["iolet_spacing_edge"]);
         if (currentIoletSpacing != newIoletSpacing)
             PluginEditor::updateIoletGeometryForAllObjects(pd);
     }

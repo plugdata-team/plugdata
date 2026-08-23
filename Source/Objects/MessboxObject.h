@@ -24,10 +24,12 @@ public:
     MessboxObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
     {
-        editor.setColour(TextEditor::textColourId, PlugDataColours::canvasTextColour);
+        auto const& colours = getThemeColours();
+
+        editor.setColour(TextEditor::textColourId, colours.canvasTextColour);
         editor.getProperties().set("NoBackground", true);
         editor.getProperties().set("NoOutline", true);
-        editor.setColour(ScrollBar::thumbColourId, PlugDataColours::scrollbarThumbColour);
+        editor.setColour(ScrollBar::thumbColourId, colours.scrollbarThumbColour);
         editor.onFocusLost = [this] {
             needsRepaint = true;
             repaint();
@@ -123,9 +125,11 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        auto const& colours = getThemeColours();
+
         bool const selected = object->isSelected() && !cnv->isGraph;
-        auto const outlineColour = selected ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour;
-        nanovg::nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), nvgColour(getValue<Colour>(secondaryColour)), nvgColour(outlineColour), Corners::objectCornerRadius);
+        auto const outlineColour = selected ? colours.objectSelectedOutlineColour : colours.objectOutlineColour;
+        nanovg::nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), nvgColour(getValue<Colour>(secondaryColour)), nvgColour(outlineColour), getPlugDataLook(*this).getObjectCornerRadius());
 
         cnv->editor->getNanoLLGC()->renderComponent(editor);
     }

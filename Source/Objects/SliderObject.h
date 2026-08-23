@@ -159,7 +159,7 @@ public:
         auto const b = getLocalBounds().toFloat().reduced(1.0f);
 
         constexpr auto thumbSize = 4.0f;
-        auto const cornerSize = Corners::objectCornerRadius / 2.0f;
+        auto const cornerSize = getPlugDataLook(*this).getObjectCornerRadius() / 2.0f;
 
         Rectangle<float> bounds;
         if (isHorizontal()) {
@@ -379,11 +379,13 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        auto const& colours = getThemeColours();
+
         auto const b = getLocalBounds().toFloat();
         bool const selected = object->isSelected() && !cnv->isGraph;
-        auto const outlineColour = nvgColour(selected ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
+        auto const outlineColour = nvgColour(selected ? colours.objectSelectedOutlineColour : colours.objectOutlineColour);
 
-        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, outlineColour, Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, outlineColour, getPlugDataLook(*this).getObjectCornerRadius());
 
         slider.render(nvg);
     }

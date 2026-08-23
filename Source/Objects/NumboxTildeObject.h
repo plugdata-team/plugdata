@@ -241,12 +241,14 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        auto const& colours = getThemeColours();
+
         auto const b = getLocalBounds().toFloat();
         auto const backgroundColour = ::getValue<Colour>(secondaryColour);
         bool const selected = object->isSelected() && !cnv->isGraph;
-        auto const outlineColour = selected ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour;
+        auto const outlineColour = selected ? colours.objectSelectedOutlineColour : colours.objectOutlineColour;
 
-        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgColour(backgroundColour), nvgColour(outlineColour), Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgColour(backgroundColour), nvgColour(outlineColour), getPlugDataLook(*this).getObjectCornerRadius());
 
         {
             NVGScopedState scopedState(nvg);

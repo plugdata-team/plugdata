@@ -216,8 +216,7 @@ public:
     // Global flag to find out if any GUI object is currently being interacted with
     static bool isBeingEdited();
 
-    // Gets the scale factor we need to use of we want to draw images inside the component
-    float getImageScale();
+    PlugDataColours const& getThemeColours() const;
 
     ComponentBoundsConstrainer* getConstrainer() const;
 

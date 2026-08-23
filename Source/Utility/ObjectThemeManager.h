@@ -33,12 +33,12 @@ public:
         return col & 0xFFFFFF;
     }
 
-    void updateTheme(pd::Instance* instance)
+    void updateTheme(pd::Instance* instance, PlugDataColours const& colours)
     {
-        bg = PlugDataColours::guiObjectBackgroundColour;
-        fg = PlugDataColours::canvasTextColour;
-        lbl = PlugDataColours::commentTextColour;
-        ln = PlugDataColours::guiObjectInternalOutlineColour;
+        bg = colours.guiObjectBackgroundColour;
+        fg = colours.canvasTextColour;
+        lbl = colours.commentTextColour;
+        ln = colours.guiObjectInternalOutlineColour;
 
         instance->setThis();
         instance->lockAudioThread();
@@ -46,7 +46,7 @@ public:
         gui->i_foregroundcolor = normalise(fg);
         gui->i_backgroundcolor = normalise(bg);
         gui->i_selectcolor = normalise(ln);
-        gui->i_gopcolor = normalise(PlugDataColours::graphAreaColour);
+        gui->i_gopcolor = normalise(colours.graphAreaColour);
         instance->unlockAudioThread();
     }
 

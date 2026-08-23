@@ -296,8 +296,10 @@ void Sidebar::showButtonContextMenu(SidebarSelectorButton* button, SidePanel pan
 
 void Sidebar::paint(Graphics& g)
 {
+    auto const& colours = getThemeColours(*this);
+
     if (sidebarHidden) {
-        auto baseColour = PlugDataColours::toolbarBackgroundColour;
+        auto baseColour = colours.toolbarBackgroundColour;
         if (ProjectInfo::isStandalone && !editor->isActiveWindow())
             baseColour = baseColour.brighter(baseColour.getBrightness() / 2.5f);
 
@@ -305,7 +307,7 @@ void Sidebar::paint(Graphics& g)
         g.fillRect(0, 30, getWidth(), getHeight() - 42);
         g.fillRoundedRectangle(0.0f, 30.0f, getWidth(), getHeight() - 30.0f, Corners::windowCornerRadius);
         
-        g.setColour(PlugDataColours::toolbarOutlineColour);
+        g.setColour(colours.toolbarOutlineColour);
 
         auto lineBottom = static_cast<float>(sidebarHidden ? getHeight() - 30 : getHeight());
         if (side == Side::Right)
@@ -318,7 +320,7 @@ void Sidebar::paint(Graphics& g)
     if (sidebarHidden || !hasAnyPanel())
         return;
 
-    g.setColour(PlugDataColours::sidebarBackgroundColour);
+    g.setColour(colours.sidebarBackgroundColour);
     g.fillRect(0, 30, getWidth(), getHeight() - 60);
     g.fillRoundedRectangle(0.0f, getHeight() - 50.f, getWidth(), 50.f, Corners::windowCornerRadius);
 
@@ -331,18 +333,20 @@ void Sidebar::paint(Graphics& g)
 
     Fonts::drawStyledText(g, panelName,
         Rectangle<int>(0, 0, getWidth(), 30),
-        PlugDataColours::toolbarTextColour, Bold, 15, Justification::centred);
+        colours.toolbarTextColour, Bold, 15, Justification::centred);
 }
 
 void Sidebar::paintOverChildren(Graphics& g)
 {
+    auto const& colours = getThemeColours(*this);
+
     if (!hasAnyPanel())
         return;
 
     if (sidebarHidden)
         return;
 
-    g.setColour(PlugDataColours::toolbarOutlineColour);
+    g.setColour(colours.toolbarOutlineColour);
 
     if(side == Side::Right) {
         g.drawLine(0.5f, 30, 0.5f, getHeight() + 0.5f);
@@ -354,7 +358,7 @@ void Sidebar::paintOverChildren(Graphics& g)
 
     if(currentPanel == InspectorPanel && !inspectorPtr->isVisible())
     {
-        g.setColour(PlugDataColours::sidebarTextColour.withAlpha(0.55f));
+        g.setColour(colours.sidebarTextColour.withAlpha(0.55f));
         g.drawText("(no object selected)", getLocalBounds().withTrimmedTop(40), Justification::centredTop);
     }
 }

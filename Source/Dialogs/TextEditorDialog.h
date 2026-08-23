@@ -1442,19 +1442,21 @@ inline void GutterComponent::updateSelections()
 
 inline void GutterComponent::paint(Graphics& g)
 {
-    auto const ln = PlugDataColours::sidebarBackgroundColour;
+    auto const& colours = getThemeColours(*this);
+
+    auto const ln = colours.sidebarBackgroundColour;
     auto const scaleFactor = std::sqrt(std::abs(transform.getDeterminant()));
 
     g.setColour(ln);
     g.fillRect(getLocalBounds().removeFromLeft(48.f * scaleFactor));
-    g.setColour(PlugDataColours::toolbarOutlineColour);
+    g.setColour(colours.toolbarOutlineColour);
     g.drawVerticalLine(47.f * scaleFactor, 0.f, getHeight());
 
     auto const area = g.getClipBounds().toFloat().transformedBy(transform.inverted());
     auto rowData = document.findRowsIntersecting(area);
     auto const verticalTransform = transform.withAbsoluteTranslation(0.f, transform.getTranslationY());
 
-    g.setColour(PlugDataColours::sidebarActiveBackgroundColour);
+    g.setColour(colours.sidebarActiveBackgroundColour);
 
     for (int i = 0; i < rowData.size(); i++) {
         if (rowData[i].isRowSelected) {
@@ -1472,7 +1474,7 @@ inline void GutterComponent::paint(Graphics& g)
     int lastLineNumber = -1;
     for (auto const& r : rowData) {
         if (lastLineNumber != r.lineNumber) {
-            g.setColour(PlugDataColours::panelTextColour);
+            g.setColour(colours.panelTextColour);
             g.setFont(document.getFont().withHeight(12.f * scaleFactor));
             g.drawSingleLineText(String(r.lineNumber), 8.f * scaleFactor, (document.getVerticalPosition(r.rowNumber, TextDocument::Metric::baseline) * scaleFactor) + verticalTransform.getTranslationY());
             lastLineNumber = r.lineNumber;
@@ -2388,7 +2390,7 @@ inline void PlugDataTextEditor::lookAndFeelChanged()
 
 inline void PlugDataTextEditor::paintOverChildren(Graphics& g)
 {
-    g.setColour(PlugDataColours::toolbarOutlineColour);
+    g.setColour(getThemeColours(*this).toolbarOutlineColour);
     g.drawHorizontalLine(0, 0, getWidth());
     g.drawHorizontalLine(getHeight() - 1, 0, getWidth());
 }
@@ -2506,7 +2508,9 @@ inline void PlugDataTextEditor::resized()
 
 inline void PlugDataTextEditor::paint(Graphics& g)
 {
-    g.fillAll(PlugDataColours::canvasBackgroundColour);
+    auto const& colours = getThemeColours(*this);
+
+    g.fillAll(colours.canvasBackgroundColour);
 
     auto const colourScheme = getSyntaxColourScheme();
     auto const originalHeight = document.getFont().getHeight();
@@ -2522,7 +2526,7 @@ inline void PlugDataTextEditor::paint(Graphics& g)
 
         AttributedString s;
         if (!enableSyntaxHighlighting) {
-            s.append(line, font, PlugDataColours::canvasBackgroundColour.contrasting(0.95));
+            s.append(line, font, colours.canvasBackgroundColour.contrasting(0.95));
         } else {
             // Build the full logical line by backtracking to the start
             String fullLine;
@@ -2577,8 +2581,8 @@ inline void PlugDataTextEditor::paint(Graphics& g)
 
     // Draw a scrollbar if content height exceeds visible height
     if (!scrollBarBounds.isEmpty()) {
-        auto const scrollbarColour = PlugDataColours::scrollbarThumbColour;
-        auto const canvasBgColour = PlugDataColours::canvasBackgroundColour;
+        auto const scrollbarColour = colours.scrollbarThumbColour;
+        auto const canvasBgColour = colours.canvasBackgroundColour;
         g.setColour(scrollbarColour.interpolatedWith(canvasBgColour, 0.7f + jmap(scrollbarFadePosition, 0.0f, 1.0f, 0.1f, 0.0f))); // Scrollbar background
         g.fillRoundedRectangle(getWidth() - (fadeWidth + 2.0f), 2, fadeWidth, getHeight() - 4, fadeWidth / 2.0f);
 
@@ -2898,8 +2902,10 @@ inline MouseCursor PlugDataTextEditor::getMouseCursor()
 
 inline CodeEditorComponent::ColourScheme PlugDataTextEditor::getSyntaxColourScheme()
 {
-    auto const textColour = PlugDataColours::canvasTextColour;
-    if (PlugDataColours::canvasBackgroundColour.getPerceivedBrightness() > 0.5f) {
+    auto const& colours = getThemeColours(*this);
+
+    auto const textColour = colours.canvasTextColour;
+    if (colours.canvasBackgroundColour.getPerceivedBrightness() > 0.5f) {
         static CodeEditorComponent::ColourScheme::TokenType const types[] = {
             { "Error", Colour(0xffcc0000) },
             { "Comment", Colour(0xff3c3c9c) },
@@ -3160,11 +3166,13 @@ struct TextEditorDialog final : public Component
 
     void paintOverChildren(Graphics& g) override
     {
-        g.setColour(PlugDataColours::outlineColour);
+        auto const& colours = getThemeColours(*this);
+
+        g.setColour(colours.outlineColour);
         g.drawRoundedRectangle(getLocalBounds().reduced(margin).toFloat(), ProjectInfo::canUseSemiTransparentWindows() ? Corners::windowCornerRadius : 0.0f, 1.0f);
 
         if (searchInput.isVisible() && searchInput.getText().isNotEmpty()) {
-            g.setColour(PlugDataColours::outlineColour);
+            g.setColour(colours.outlineColour);
             g.drawRoundedRectangle(getLocalBounds().reduced(margin).toFloat(), ProjectInfo::canUseSemiTransparentWindows() ? Corners::windowCornerRadius : 0.0f, 1.0f);
 
             auto [selection, total] = editor.getCurrentSearchSelection();
@@ -3173,10 +3181,10 @@ struct TextEditorDialog final : public Component
             auto searchIndexTextWidth = Fonts::getStringWidth(searchIndexText, tabularFont) + 8;
 
             auto searchIndexBounds = searchInput.getBounds().withTrimmedRight(30).removeFromRight(searchIndexTextWidth).reduced(0, 6);
-            g.setColour(PlugDataColours::toolbarBackgroundColour);
+            g.setColour(colours.toolbarBackgroundColour);
             g.fillRoundedRectangle(searchIndexBounds.toFloat(), Corners::defaultCornerRadius);
 
-            g.setColour(PlugDataColours::toolbarTextColour);
+            g.setColour(colours.toolbarTextColour);
             g.setFont(tabularFont);
             g.drawFittedText(searchIndexText, searchIndexBounds.reduced(1), Justification::centred, 1);
         }
@@ -3184,6 +3192,8 @@ struct TextEditorDialog final : public Component
 
     void paint(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
         if (ProjectInfo::canUseSemiTransparentWindows()) {
             StackShadow::drawShadowForRect(g, getLocalBounds().reduced(20), 14, Corners::windowCornerRadius, 0.6f);
         }
@@ -3192,22 +3202,22 @@ struct TextEditorDialog final : public Component
 
         auto const b = getLocalBounds().reduced(margin);
 
-        g.setColour(PlugDataColours::toolbarBackgroundColour);
+        g.setColour(colours.toolbarBackgroundColour);
         g.fillRoundedRectangle(b.toFloat(), radius);
 
-        g.setColour(PlugDataColours::toolbarOutlineColour);
+        g.setColour(colours.toolbarOutlineColour);
         g.drawRoundedRectangle(b.toFloat().reduced(0.5f), radius, 1.0f);
         g.drawHorizontalLine(b.getHeight() - 28, b.getY() + 48, b.getWidth());
 
         g.setFont(Fonts::getTabularNumbersFont().withHeight(14));
-        g.setColour(PlugDataColours::toolbarTextColour);
+        g.setColour(colours.toolbarTextColour);
         g.drawFittedText(String(static_cast<int>(editor.getScale() * 100.f)) + "%", zoomComboButton.getX() - 26, b.getHeight() - 14, 33, 28, Justification::centredRight, 1, 0.95f);
 
         auto caretPos = editor.getCaretPosition();
         g.drawFittedText(String(caretPos.first) + ":" + String(caretPos.second), margin + 8, b.getHeight() - 14, 128, 28, Justification::centredLeft, 1, 0.95f);
 
         if (!title.isEmpty()) {
-            Fonts::drawText(g, title, b.getX(), b.getY(), b.getWidth(), 40, PlugDataColours::toolbarTextColour, 15, Justification::centred);
+            Fonts::drawText(g, title, b.getX(), b.getY(), b.getWidth(), 40, colours.toolbarTextColour, 15, Justification::centred);
         }
     }
 

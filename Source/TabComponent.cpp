@@ -33,9 +33,11 @@ class TabComponent::TabBarButtonComponent final : public Component {
 
         void paint(Graphics& g) override
         {
+            auto const& colours = getThemeColours(*this);
+
             // Rounded hover background behind the close icon
             if (isMouseOver() && isEnabled()) {
-                g.setColour(PlugDataColours::toolbarTextColour.withAlpha(0.14f));
+                g.setColour(colours.toolbarTextColour.withAlpha(0.14f));
                 g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), Corners::defaultCornerRadius);
             }
 
@@ -43,11 +45,11 @@ class TabComponent::TabBarButtonComponent final : public Component {
             if (!isEnabled()) {
                 colour = Colours::grey;
             } else if (getToggleState()) {
-                colour = PlugDataColours::toolbarActiveColour;
+                colour = colours.toolbarActiveColour;
             } else if (isMouseOver()) {
-                colour = PlugDataColours::toolbarTextColour;
+                colour = colours.toolbarTextColour;
             } else {
-                colour = PlugDataColours::toolbarTextColour.withAlpha(0.7f);
+                colour = colours.toolbarTextColour.withAlpha(0.7f);
             }
 
             Fonts::drawIcon(g, getButtonText(), getLocalBounds(), colour, 11);
@@ -85,6 +87,8 @@ public:
 
     void paint(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
         auto const mouseOver = isMouseOver();
         auto const active = isActive();
 
@@ -93,10 +97,10 @@ public:
         if (active) {
             // Subtle shadow to lift the active pill off the bar
             StackShadow::drawShadowForRect(g, pill.toNearestInt(), 5, Corners::defaultCornerRadius, 0.1f, 2);
-            g.setColour(PlugDataColours::activeTabBackgroundColour);
+            g.setColour(colours.activeTabBackgroundColour);
             g.fillRoundedRectangle(pill, Corners::defaultCornerRadius);
         } else if (mouseOver) {
-            g.setColour(PlugDataColours::activeTabBackgroundColour.interpolatedWith(PlugDataColours::toolbarBackgroundColour, 0.5f));
+            g.setColour(colours.activeTabBackgroundColour.interpolatedWith(colours.toolbarBackgroundColour, 0.5f));
             g.fillRoundedRectangle(pill, Corners::defaultCornerRadius);
         }
 
@@ -109,11 +113,11 @@ public:
         // Unsaved-changes indicator on the left
         if (cnv->patch.isDirty()) {
             constexpr float dotSize = 6.0f;
-            g.setColour(PlugDataColours::dataColour);
+            g.setColour(colours.dataColour);
             g.fillEllipse(content.getX() + 8.0f, content.getCentreY() - dotSize * 0.5f, dotSize, dotSize);
         }
 
-        g.setColour(active ? PlugDataColours::toolbarTextColour : PlugDataColours::toolbarTextColour.withAlpha(0.65f));
+        g.setColour(active ? colours.toolbarTextColour : colours.toolbarTextColour.withAlpha(0.65f));
         g.setFont(Fonts::getCurrentFont().withHeight(14.0f));
         g.drawText(cnv->patch.getTitle(), content.reduced(sideReserve, 0), Justification::centred, false);
     }
@@ -125,6 +129,8 @@ public:
 
     ScaledImage generateTabBarButtonImage() const
     {
+        auto const& colours = getThemeColours(*this);
+
         if (!cnv)
             return { };
 
@@ -147,10 +153,10 @@ public:
         StackShadow::drawShadowForRect(g, bounds.reduced(12), 7, Corners::defaultCornerRadius, 0.2f, 1);
         g.setOpacity(1.0f);
 
-        g.setColour(PlugDataColours::activeTabBackgroundColour);
+        g.setColour(colours.activeTabBackgroundColour);
         g.fillRoundedRectangle(textBounds.withPosition(10, 10).reduced(2).toFloat(), Corners::defaultCornerRadius);
 
-        g.setColour(PlugDataColours::toolbarTextColour);
+        g.setColour(colours.toolbarTextColour);
 
         g.setFont(font);
         g.drawText(text, textBounds.withPosition(10, 10), Justification::centred, false);
@@ -1024,19 +1030,21 @@ SmallArray<Canvas*> TabComponent::getCanvases()
 
 void TabComponent::paintOverChildren(Graphics& g)
 {
+    auto const& colours = getThemeColours(*this);
+
     if (!splitDropBounds.isEmpty()) {
-        g.setColour(PlugDataColours::dataColour.withAlpha(0.1f));
+        g.setColour(colours.dataColour.withAlpha(0.1f));
         g.fillRect(splitDropBounds);
     }
 
     if (splits[1]) {
-        g.setColour(PlugDataColours::canvasBackgroundColour);
+        g.setColour(colours.canvasBackgroundColour);
         g.fillRect(splitSize - 3, 31, 6, getHeight());
 
         auto const activeSplitBounds = activeSplitIndex ? Rectangle<int>(splitSize, 31, getWidth() - splitSize, getHeight() - 31)
                                                         : Rectangle<int>(0, 31, splitSize, getHeight() - 31);
 
-        g.setColour(PlugDataColours::objectSelectedOutlineColour.withAlpha(0.25f));
+        g.setColour(colours.objectSelectedOutlineColour.withAlpha(0.25f));
         g.drawRect(activeSplitBounds, 3);
     }
 }
@@ -1581,13 +1589,15 @@ void TabComponent::showHiddenTabsMenu(int const splitIndex)
 
         void paint(Graphics& g) override
         {
+            auto const& colours = getThemeColours(*this);
+
 
             if (tabbar.getVisibleCanvases().contains(cnv)) {
-                g.setColour(PlugDataColours::popupMenuActiveBackgroundColour);
+                g.setColour(colours.popupMenuActiveBackgroundColour);
             } else if (isItemHighlighted()) {
-                g.setColour(PlugDataColours::popupMenuActiveBackgroundColour.interpolatedWith(PlugDataColours::popupMenuBackgroundColour, 0.4f));
+                g.setColour(colours.popupMenuActiveBackgroundColour.interpolatedWith(colours.popupMenuBackgroundColour, 0.4f));
             } else {
-                g.setColour(PlugDataColours::popupMenuBackgroundColour);
+                g.setColour(colours.popupMenuBackgroundColour);
             }
 
             g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::defaultCornerRadius);
@@ -1596,7 +1606,7 @@ void TabComponent::showHiddenTabsMenu(int const splitIndex)
 
             auto const font = Font(FontOptions(14));
 
-            g.setColour(PlugDataColours::toolbarTextColour);
+            g.setColour(colours.toolbarTextColour);
             g.setFont(font);
             g.drawText(tabTitle.trim(), area.reduced(4, 0), Justification::centred, false);
         }

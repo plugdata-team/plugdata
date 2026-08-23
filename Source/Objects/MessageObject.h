@@ -100,7 +100,7 @@ public:
             objText = cnv->suggestor->getText();
         }
 
-        auto const colour = PlugDataColours::canvasTextColour;
+        auto const colour = getThemeColours().canvasTextColour;
         int const textWidth = getTextSize().getWidth() - 12;
 
         AttributedString attributedText(objText);
@@ -141,31 +141,33 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        auto const& colours = getThemeColours();
+
         auto const bounds = getLocalBounds();
         auto const b = bounds.toFloat();
         auto const sb = b.reduced(0.5f); // reduce size of background to stop AA edges from showing through
 
-        auto const bgCol = nvgColour(isDown ? PlugDataColours::guiObjectInternalOutlineColour : PlugDataColours::guiObjectBackgroundColour);
+        auto const bgCol = nvgColour(isDown ? colours.guiObjectInternalOutlineColour : colours.guiObjectBackgroundColour);
 
         // Draw background
         nanovg::nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
             bgCol, bgCol, bgCol,
-            Corners::objectCornerRadius, ObjectFlagType::FlagMessage, PlugDataLook::getUseFlagOutline());
+            getPlugDataLook(*this).getObjectCornerRadius(), ObjectFlagType::FlagMessage, getPlugDataLook(*this).getUseFlagOutline());
 
-        auto const flagCol = isDown && ::getValue<bool>(object->locked) ? nvgColour(PlugDataColours::objectSelectedOutlineColour) : nvgColour(PlugDataColours::guiObjectInternalOutlineColour);
-        auto const outlineCol = nvgColour(object->isSelected() ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
+        auto const flagCol = isDown && ::getValue<bool>(object->locked) ? nvgColour(colours.objectSelectedOutlineColour) : nvgColour(colours.guiObjectInternalOutlineColour);
+        auto const outlineCol = nvgColour(object->isSelected() ? colours.objectSelectedOutlineColour : colours.objectOutlineColour);
 
         // Draw highlight around inner area when box is clicked
         // We do this by drawing an inner area that is bright, while changing the background colour darker
         if (isDown) {
             auto const dB = bounds.reduced(5);
-            nanovg::nvgDrawRoundedRect(nvg, dB.getX(), dB.getY(), dB.getWidth(), dB.getHeight(), nvgColour(PlugDataColours::guiObjectBackgroundColour), nvgColour(PlugDataColours::guiObjectBackgroundColour), 0);
+            nanovg::nvgDrawRoundedRect(nvg, dB.getX(), dB.getY(), dB.getWidth(), dB.getHeight(), nvgColour(colours.guiObjectBackgroundColour), nvgColour(colours.guiObjectBackgroundColour), 0);
         }
 
         // Draw outline & flag with shader
         nanovg::nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),
             nanovg::nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
-            Corners::objectCornerRadius, ObjectFlagType::FlagMessage, PlugDataLook::getUseFlagOutline());
+            getPlugDataLook(*this).getObjectCornerRadius(), ObjectFlagType::FlagMessage, getPlugDataLook(*this).getUseFlagOutline());
 
         auto& llgc = *cnv->editor->getNanoLLGC();
         if (editor) {

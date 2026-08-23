@@ -190,19 +190,21 @@ struct LuaPropertiesPanel {
 
         void paint(Graphics& g) override
         {
-            g.fillAll(PlugDataColours::sidebarBackgroundColour);
+            auto const& colours = getThemeColours(*this);
+
+            g.fillAll(colours.sidebarBackgroundColour);
 
             // Frame background behind all properties
-            g.setColour(PlugDataColours::sidebarActiveBackgroundColour);
+            g.setColour(colours.sidebarActiveBackgroundColour);
             g.fillRoundedRectangle(0.0f, 24.0f, getWidth(), getHeight() - 24, Corners::largeCornerRadius);
 
             // Frame title
             Fonts::drawStyledText(g, frame.title,
                 8, 0, getWidth() - 16, 28,
-                PlugDataColours::sidebarTextColour, Semibold, 14.5f);
+                colours.sidebarTextColour, Semibold, 14.5f);
 
             // Dividers between properties (skip after last)
-            g.setColour(PlugDataColours::toolbarOutlineColour);
+            g.setColour(colours.toolbarOutlineColour);
             for (int i = 0; i < properties.size() - 1; i++) {
                 auto const y = properties[i]->getBottom();
                 g.drawHorizontalLine(y, properties[i]->getX() + 10, properties[i]->getRight() - 10);
@@ -505,7 +507,7 @@ public:
 
 
         auto b = getLocalBounds();
-        nanovg::nvgIntersectRoundedScissor(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+        nanovg::nvgIntersectRoundedScissor(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), getPlugDataLook(*this).getObjectCornerRadius());
 
         for (auto& [layer, layerMessages] : frames) {
             for (auto& guiMessage : layerMessages) {
@@ -627,6 +629,8 @@ public:
 
     void handleGuiMessage(NVGcontext* nvg, int const layer, t_symbol* sym, int const argc, t_atom* argv)
     {
+        auto const& colours = getThemeColours();
+
         auto const hashsym = hash(sym->s_name);
         // First check functions that don't need an active graphics context, of modify the active graphics context
         switch (hashsym) {
@@ -651,9 +655,9 @@ public:
             if (argc == 1) {
                 int const colourID = std::min<int>(atom_getfloat(argv), 2);
 
-                currentColour = StackArray<Colour, 3> { PlugDataColours::guiObjectBackgroundColour,
-                    PlugDataColours::canvasTextColour,
-                    PlugDataColours::guiObjectInternalOutlineColour }[colourID];
+                currentColour = StackArray<Colour, 3> { colours.guiObjectBackgroundColour,
+                    colours.canvasTextColour,
+                    colours.guiObjectInternalOutlineColour }[colourID];
                 nanovg::nvgFillColor(nvg, nvgColour(currentColour));
                 nanovg::nvgStrokeColor(nvg, nvgColour(currentColour));
             }
@@ -868,12 +872,12 @@ public:
         }
         case hash("lua_fill_all"): {
             auto const bounds = getLocalBounds();
-            auto const outlineColour = nvgColour(isSelected ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
+            auto const outlineColour = nvgColour(isSelected ? colours.objectSelectedOutlineColour : colours.objectOutlineColour);
 
-            nanovg::nvgDrawRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), nvgColour(currentColour), outlineColour, Corners::objectCornerRadius);
+            nanovg::nvgDrawRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), nvgColour(currentColour), outlineColour, getPlugDataLook(*this).getObjectCornerRadius());
 
             // Make sure subsequent draw calls cannot render over the outline
-            nanovg::nvgIntersectRoundedScissor(nvg, bounds.getX() + 0.75f, bounds.getY() + 0.75f, bounds.getWidth() - 1.5f, bounds.getHeight() - 1.5f, Corners::objectCornerRadius);
+            nanovg::nvgIntersectRoundedScissor(nvg, bounds.getX() + 0.75f, bounds.getY() + 0.75f, bounds.getWidth() - 1.5f, bounds.getHeight() - 1.5f, getPlugDataLook(*this).getObjectCornerRadius());
             break;
         }
         case hash("lua_draw_svg"): {

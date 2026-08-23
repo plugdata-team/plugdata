@@ -102,7 +102,7 @@ public:
     {
         if (editor == nullptr) {
             editor.reset(TextObjectHelper::createTextEditor(object, Fonts::getCurrentFont().withHeight(14.5).withHorizontalScale(calculateHorizontalScale())));
-            editor->setColour(TextEditor::textColourId, PlugDataColours::commentTextColour);
+            editor->setColour(TextEditor::textColourId, getThemeColours().commentTextColour);
 
             editor->setBorder(border);
             editor->setBounds(getLocalBounds().withTrimmedRight(-4));
@@ -243,7 +243,7 @@ public:
     {
         auto const objText = editor ? editor->getText() : objectText;
 
-        auto const colour = PlugDataColours::commentTextColour;
+        auto const colour = getThemeColours().commentTextColour;
         int const textWidth = getTextSize().getWidth();
 
         AttributedString attributedText(objText);

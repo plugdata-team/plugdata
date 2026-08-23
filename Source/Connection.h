@@ -42,7 +42,7 @@ public:
     Connection(Canvas* parent, Iolet* start, Iolet* end, t_outconnect* oc);
     ~Connection() override;
 
-    static Path getNonSegmentedPath(Point<float> start, Point<float> end);
+    static Path getNonSegmentedPath(Point<float> start, Point<float> end, bool useStraightConnections);
 
     // Manual path/bounds management (previously provided by DrawablePath/DrawableComponent)
     void setPath(Path const& newPath);
@@ -267,7 +267,7 @@ public:
         auto const& endPoint = iolet->isInlet() ? ioletPoint : cursorPoint;
 
         lastMousePos = cursorPoint;
-        auto const connectionPath = Connection::getNonSegmentedPath(startPoint.toFloat(), endPoint.toFloat());
+        auto const connectionPath = Connection::getNonSegmentedPath(startPoint.toFloat(), endPoint.toFloat(), getPlugDataLook(*cnv).getUseStraightConnections());
         setPath(connectionPath);
 
         repaint();
@@ -278,12 +278,14 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto const shadowColour = PlugDataColours::canvasBackgroundColour.contrasting(0.06f).withAlpha(0.24f);
+        auto const& colours = getThemeColours(*this);
+
+        auto const shadowColour = colours.canvasBackgroundColour.contrasting(0.06f).withAlpha(0.24f);
 
         NVGScopedState scopedState(nvg);
         setJUCEPath(nvg, getPath());
 
-        auto const connectionStyle = PlugDataLook::getConnectionStyle();
+        auto const connectionStyle = getPlugDataLook(*this).getConnectionStyle();
         float cableThickness;
         switch (connectionStyle) {
         case PlugDataLook::ConnectionStyleVanilla:
@@ -300,7 +302,7 @@ public:
         nanovg::nvgStrokeWidth(nvg, cableThickness);
 
         if (iolet && iolet->isSignal() && connectionStyle != PlugDataLook::ConnectionStyleVanilla) {
-            auto const lineColour = PlugDataColours::signalColour.brighter(0.6f);
+            auto const lineColour = colours.signalColour.brighter(0.6f);
             auto dashColor = nvgColour(shadowColour);
             dashColor.a = 255;
             dashColor.r *= 0.4f;
@@ -309,7 +311,7 @@ public:
             nanovg::nvgStrokePaint(nvg, nanovg::nvgDoubleStroke(nvg, nvgColour(lineColour), nvgColour(shadowColour), dashColor, 2.5f, false, false, 0.0f));
             nanovg::nvgStroke(nvg);
         } else {
-            auto const lineColour = PlugDataColours::dataColour.brighter(0.6f);
+            auto const lineColour = colours.dataColour.brighter(0.6f);
             nanovg::nvgStrokePaint(nvg, nanovg::nvgDoubleStroke(nvg, nvgColour(lineColour), nvgColour(shadowColour), nvgColour(Colours::transparentBlack), 0.0f, false, false, 0.0f));
             nanovg::nvgStroke(nvg);
         }

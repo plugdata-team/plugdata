@@ -419,7 +419,7 @@ public:
         roundedRectanglePath.addRoundedRectangle(0, 0, getWidth(), getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, roundTop, roundTop, roundBottom, roundBottom);
 
         if (!image.isValid()) {
-            g.setColour(PlugDataColours::panelForegroundColour);
+            g.setColour(getThemeColours(*this).panelForegroundColour);
             g.fillPath(roundedRectanglePath);
             return;
         }
@@ -485,37 +485,39 @@ private:
     void paintOverChildren(Graphics& g) override
     {
         auto const b = getLocalBounds().reduced(6);
-        g.setColour(PlugDataColours::toolbarOutlineColour);
+        g.setColour(getThemeColours(*this).toolbarOutlineColour);
         g.drawRoundedRectangle(b.toFloat(), Corners::largeCornerRadius, 1.0f);
     }
 
     void paint(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
         auto b = getLocalBounds().reduced(6);
 
         StackShadow::drawShadowForRect(g, b.reduced(3.0f), 8, Corners::largeCornerRadius, 0.4f, 1);
 
         if (isMouseOver()) {
-            g.setColour(PlugDataColours::panelActiveBackgroundColour);
+            g.setColour(colours.panelActiveBackgroundColour);
         } else {
-            g.setColour(PlugDataColours::panelForegroundColour);
+            g.setColour(colours.panelForegroundColour);
         }
 
         g.fillRoundedRectangle(b.toFloat(), Corners::largeCornerRadius);
 
-        g.setColour(PlugDataColours::toolbarOutlineColour);
+        g.setColour(colours.toolbarOutlineColour);
         g.drawRoundedRectangle(b.toFloat(), Corners::largeCornerRadius, 1.0f);
 
         b.removeFromTop(171); // space for image
         auto nameArea = b.removeFromTop(24);
 
-        g.setColour(PlugDataColours::panelActiveBackgroundColour.withAlpha(0.5f));
+        g.setColour(colours.panelActiveBackgroundColour.withAlpha(0.5f));
         g.fillRect(nameArea);
 
         auto platformArea = nameArea.removeFromRight(80).reduced(4).toFloat();
         platformArea.removeFromLeft(10);
 
-        auto const textColour = PlugDataColours::panelTextColour;
+        auto const textColour = colours.panelTextColour;
         Fonts::drawText(g, "by " + info.author, nameArea.withTrimmedLeft(10), textColour, 13.5f, Justification::left);
 
         auto textBounds = b.reduced(10, 4);
@@ -671,7 +673,7 @@ class PatchFullDisplay final : public Component
     class Viewport final : public BouncingViewport {
         void paint(Graphics& g) override
         {
-            g.fillAll(PlugDataColours::panelForegroundColour);
+            g.fillAll(getThemeColours(*this).panelForegroundColour);
         }
     };
     Viewport viewport;
@@ -735,18 +737,20 @@ class PatchFullDisplay final : public Component
 
         void paint(Graphics& g) override
         {
+            auto const& colours = getThemeColours(*this);
+
             auto const b = getLocalBounds().reduced(2.0f, 4.0f).toFloat();
 
             auto const mouseOver = isMouseOver();
-            auto fillColour = PlugDataColours::toolbarActiveColour;
+            auto fillColour = colours.toolbarActiveColour;
             auto outlineColour = fillColour;
-            auto const greyColour = PlugDataColours::panelActiveBackgroundColour;
+            auto const greyColour = colours.panelActiveBackgroundColour;
 
             if (type == Cancel) {
                 fillColour = greyColour;
                 outlineColour = greyColour;
             } else if (type == View) {
-                fillColour = mouseOver ? greyColour.contrasting(0.6f) : PlugDataColours::panelBackgroundColour.withAlpha(0.0f);
+                fillColour = mouseOver ? greyColour.contrasting(0.6f) : colours.panelBackgroundColour.withAlpha(0.0f);
                 outlineColour = greyColour.contrasting(0.6f);
             }
 
@@ -900,13 +904,15 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
         // Drag image outline
-        g.setColour(PlugDataColours::toolbarOutlineColour);
+        g.setColour(colours.toolbarOutlineColour);
         g.drawRoundedRectangle(image.getBounds().toFloat(), Corners::largeCornerRadius, 1.0f);
 
         if (downloadProgress != 0.0f) {
             g.setFont(Fonts::getCurrentFont().withHeight(14.0f));
-            g.setColour(PlugDataColours::panelTextColour.withAlpha(0.75f));
+            g.setColour(colours.panelTextColour.withAlpha(0.75f));
             g.drawText("Installing: " + String(downloadProgress) + "%", downloadButton.getBounds().translated(0, 30), Justification::centred);
 
             auto bounds = downloadButton.getBounds().reduced(2, 4);
@@ -916,7 +922,7 @@ public:
             clipPath.addRoundedRectangle(bounds, Corners::defaultCornerRadius);
             g.reduceClipRegion(clipPath);
 
-            g.setColour(PlugDataColours::toolbarActiveColour);
+            g.setColour(colours.toolbarActiveColour);
             g.fillRect(bounds.removeFromBottom(4).withWidth(bounds.getWidth() * (downloadProgress / 100.0f)));
             g.restoreState();
         }
@@ -924,12 +930,14 @@ public:
 
     void paint(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
         auto const b = getLocalBounds().reduced(12);
 
-        g.fillAll(PlugDataColours::panelForegroundColour);
+        g.fillAll(colours.panelForegroundColour);
 
         auto contentArea = b.reduced(20, 6);
-        auto const textColour = PlugDataColours::panelTextColour;
+        auto const textColour = colours.panelTextColour;
         g.setColour(textColour);
 
         g.setFont(Fonts::getBoldFont().withHeight(26));
@@ -960,18 +968,18 @@ public:
         p.addRoundedRectangle(extraInfoBounds, Corners::largeCornerRadius);
         StackShadow::drawShadowForRect(g, extraInfoBounds, 8, Corners::largeCornerRadius, 0.1f, 1);
 
-        g.setColour(PlugDataColours::panelForegroundColour);
+        g.setColour(colours.panelForegroundColour);
         g.fillPath(p); // Adjust the thickness as needed
 
-        g.setColour(PlugDataColours::outlineColour);
+        g.setColour(colours.outlineColour);
         g.strokePath(p, PathStrokeType(0.5f)); // Adjust the thickness as needed
 
         auto const hasSizeInfo = currentPatch.size.isNotEmpty();
         int extraInfoItemWidth = getWidth() / (hasSizeInfo ? 3 : 2);
-        auto drawExtraInfo = [extraInfoItemWidth, &extraInfoBounds](Graphics& g, String const& icon, String const& label, String const& value) mutable {
+        auto drawExtraInfo = [this, extraInfoItemWidth, &extraInfoBounds](Graphics& g, String const& icon, String const& label, String const& value) mutable {
             auto infoBounds = extraInfoBounds.removeFromLeft(extraInfoItemWidth).withSizeKeepingCentre(110, 32).translated(-12, 0);
 
-            g.setColour(PlugDataColours::panelTextColour);
+            g.setColour(getThemeColours(*this).panelTextColour);
             g.setFont(Fonts::getIconFont().withHeight(15));
             g.drawText(icon, infoBounds.removeFromLeft(24), Justification::centredLeft);
 
@@ -989,7 +997,7 @@ public:
         drawExtraInfo(g, Icons::Time, "Release date", currentPatch.releaseDate);
 
         auto const imageBounds = contentArea.removeFromTop(500).withSizeKeepingCentre(getWidth(), 500);
-        g.setColour(PlugDataColours::panelBackgroundColour);
+        g.setColour(colours.panelBackgroundColour);
         g.fillRect(imageBounds);
 
         contentArea.removeFromTop(12);
@@ -1045,6 +1053,8 @@ struct PatchStore final : public Component
 
     PatchStore()
     {
+        auto const& colours = getThemeColours(*this);
+
         contentViewport.setViewedComponent(&patchContainer, false);
         patchContainer.setVisible(true);
         addAndMakeVisible(contentViewport);
@@ -1103,8 +1113,8 @@ struct PatchStore final : public Component
             refreshButton.setEnabled(false);
         };
 
-        input.setTextToShowWhenEmpty("Type to search for patches", PlugDataColours::panelTextColour.withAlpha(0.5f));
-        input.setColour(TextEditor::textColourId, PlugDataColours::panelTextColour);
+        input.setTextToShowWhenEmpty("Type to search for patches", colours.panelTextColour.withAlpha(0.5f));
+        input.setColour(TextEditor::textColourId, colours.panelTextColour);
         input.setBorder({ 1, 3, 5, 1 });
         input.setJustification(Justification::centredLeft);
         input.onTextChange = [this] {
@@ -1134,9 +1144,11 @@ struct PatchStore final : public Component
 
     void paint(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
         OnlineImage::setScreenScale(g.getInternalContext().getPhysicalPixelScaleFactor());
 
-        g.setColour(PlugDataColours::panelBackgroundColour);
+        g.setColour(colours.panelBackgroundColour);
         g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
 
         auto const bounds = getLocalBounds().removeFromTop(40).toFloat();
@@ -1144,12 +1156,12 @@ struct PatchStore final : public Component
         Path p;
         p.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, true, true, false, false);
 
-        g.setColour(PlugDataColours::toolbarBackgroundColour);
+        g.setColour(colours.toolbarBackgroundColour);
         g.fillPath(p);
 
-        Fonts::drawStyledText(g, "Discover", Rectangle<float>(0.0f, 4.0f, getWidth(), 32.0f), PlugDataColours::panelTextColour, Semibold, 15, Justification::centred);
+        Fonts::drawStyledText(g, "Discover", Rectangle<float>(0.0f, 4.0f, getWidth(), 32.0f), colours.panelTextColour, Semibold, 15, Justification::centred);
 
-        g.setColour(PlugDataColours::toolbarOutlineColour);
+        g.setColour(colours.toolbarOutlineColour);
         g.drawLine(0, 40, getWidth(), 40);
 
         if (connectionError) {

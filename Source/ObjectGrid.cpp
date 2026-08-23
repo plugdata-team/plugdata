@@ -83,9 +83,11 @@ void ObjectGrid::startLineFadeAnimation(int idx, float ms, float targetAlpha)
                                  lineAlpha[idx] = makeAnimationLimits(lineAlpha[idx], lineTargetAlpha[idx]).lerp(v);
                                  auto const lineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(lines[idx].getStart(), lines[idx].getEnd()).expanded(2));
 
+                                 cnv->editor->nvgSurface.invalidateArea(lineArea);
+                                 /*
                                  if(cnv->editor->nvgSurface.getLocalBounds().contains(lineArea)) {
                                      cnv->editor->nvgSurface.invalidateArea(lineArea);
-                                 }
+                                 } */
                              })
                              .build();
     updater.addAnimator(lineAnimators[idx], [this, idx]() {
@@ -457,8 +459,10 @@ void ObjectGrid::setIndicator(int const idx, Line<int> const line)
 
 void ObjectGrid::render(NVGcontext* nvg)
 {
+    auto const& colours = getThemeColours(*cnv);
+
     if (lines[0].getLength() != 0) {
-        nanovg::nvgStrokeColor(nvg, nvgColour(PlugDataColours::gridLineColour.withAlpha(lineAlpha[0])));
+        nanovg::nvgStrokeColor(nvg, nvgColour(colours.gridLineColour.withAlpha(lineAlpha[0])));
         nanovg::nvgStrokeWidth(nvg, 1.0f);
 
         nanovg::nvgBeginPath(nvg);
@@ -468,7 +472,7 @@ void ObjectGrid::render(NVGcontext* nvg)
     }
 
     if (lines[1].getLength() != 0) {
-        nanovg::nvgStrokeColor(nvg, nvgColour(PlugDataColours::gridLineColour.withAlpha(lineAlpha[1])));
+        nanovg::nvgStrokeColor(nvg, nvgColour(colours.gridLineColour.withAlpha(lineAlpha[1])));
         nanovg::nvgStrokeWidth(nvg, 1.0f);
 
         nanovg::nvgBeginPath(nvg);

@@ -18,14 +18,15 @@ struct OnboardingMockupColours {
 
     static OnboardingMockupColours fromCurrent(Component const& c)
     {
-        return { PlugDataColours::canvasBackgroundColour,
-                 PlugDataColours::sidebarBackgroundColour,
-                 PlugDataColours::toolbarBackgroundColour,
-                 PlugDataColours::outlineColour,
-                 PlugDataColours::textObjectBackgroundColour,
-                 PlugDataColours::objectOutlineColour,
-                 PlugDataColours::canvasTextColour,
-                 PlugDataColours::toolbarActiveColour };
+        auto const& colours = getThemeColours(c);
+        return { colours.canvasBackgroundColour,
+                 colours.sidebarBackgroundColour,
+                 colours.toolbarBackgroundColour,
+                 colours.outlineColour,
+                 colours.textObjectBackgroundColour,
+                 colours.objectOutlineColour,
+                 colours.canvasTextColour,
+                 colours.toolbarActiveColour };
     }
 
     static OnboardingMockupColours fromTheme(DynamicObject::Ptr tree)
@@ -1052,22 +1053,24 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.setColour(PlugDataColours::panelBackgroundColour);
+        auto const& colours = getThemeColours(*this);
+
+        g.setColour(colours.panelBackgroundColour);
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
 
         auto const titlebarBounds = getLocalBounds().removeFromTop(toolbarHeight).toFloat();
         Path tb;
         tb.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, true, true, false, false);
-        g.setColour(PlugDataColours::toolbarBackgroundColour);
+        g.setColour(colours.toolbarBackgroundColour);
         g.fillPath(tb);
 
-        g.setColour(PlugDataColours::toolbarOutlineColour);
+        g.setColour(colours.toolbarOutlineColour);
         g.drawHorizontalLine(toolbarHeight, 0.0f, (float)getWidth());
 
-        g.setColour(PlugDataColours::toolbarOutlineColour);
+        g.setColour(colours.toolbarOutlineColour);
         g.drawHorizontalLine(getHeight() - footerHeight, 0.0f, (float)getWidth());
 
-        Fonts::drawStyledText(g, "Onboarding", Rectangle<float>(0.0f, 4.0f, (float)getWidth(), (float)toolbarHeight - 8.0f), PlugDataColours::panelTextColour, Semibold, 15, Justification::centred);
+        Fonts::drawStyledText(g, "Onboarding", Rectangle<float>(0.0f, 4.0f, (float)getWidth(), (float)toolbarHeight - 8.0f), colours.panelTextColour, Semibold, 15, Justification::centred);
     }
 
     void resized() override
@@ -1107,7 +1110,7 @@ private:
 
     void styleButton(TextButton& b, String const& text = "")
     {
-        auto const backgroundColour = PlugDataColours::panelBackgroundColour;
+        auto const backgroundColour = getThemeColours(*this).panelBackgroundColour;
         b.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
         b.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.10f));
         b.setColour(ComboBox::outlineColourId, Colours::transparentBlack);

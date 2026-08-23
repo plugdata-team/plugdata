@@ -367,11 +367,13 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        auto const& colours = getThemeColours();
+
         auto const b = getLocalBounds().toFloat();
 
         bool const selected = object->isSelected() && !cnv->isGraph;
 
-        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundCol, nvgColour(selected ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour), Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundCol, nvgColour(selected ? colours.objectSelectedOutlineColour : colours.objectOutlineColour), getPlugDataLook(*this).getObjectCornerRadius());
 
         constexpr float indent = 9.0f;
         Rectangle<float> const iconBounds = { (b.getX() + 4.0f), (b.getY() + 4.0f), (indent - 4.0f), (b.getHeight() - 8.0f) };
@@ -385,7 +387,7 @@ public:
         nanovg::nvgClosePath(nvg);
 
         bool const highlighted = hasKeyboardFocus(true) && getValue<bool>(object->locked);
-        auto const flagCol = highlighted ? nvgColour(PlugDataColours::objectSelectedOutlineColour) : nvgColour(PlugDataColours::guiObjectInternalOutlineColour);
+        auto const flagCol = highlighted ? nvgColour(colours.objectSelectedOutlineColour) : nvgColour(colours.guiObjectInternalOutlineColour);
 
         nanovg::nvgFillColor(nvg, flagCol);
         nanovg::nvgFill(nvg);

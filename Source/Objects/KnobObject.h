@@ -879,15 +879,17 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        auto const& colours = getThemeColours();
+
         auto const b = getLocalBounds().toFloat();
 
         auto const background = ::getValue<bool>(transparent) ? nanovg::nvgRGBA(0, 0, 0, 0) : bgCol;
         if (::getValue<bool>(square)) {
             bool const selected = object->isSelected() && !cnv->isGraph;
-            auto const outlineColour = nvgColour(selected ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
+            auto const outlineColour = nvgColour(selected ? colours.objectSelectedOutlineColour : colours.objectOutlineColour);
             auto const lineThickness = std::max(b.getWidth() * 0.03f, 1.0f);
 
-            nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), background, outlineColour, Corners::objectCornerRadius);
+            nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), background, outlineColour, getPlugDataLook(*this).getObjectCornerRadius());
 
             if (!::getValue<bool>(showArc)) {
                 nanovg::nvgBeginPath(nvg);
@@ -917,7 +919,7 @@ public:
             nanovg::nvgCircle(nvg, circleBounds.getCentreX(), circleBounds.getCentreY(), circleBounds.getWidth() / 2.0f);
             nanovg::nvgFill(nvg);
 
-            nanovg::nvgStrokeColor(nvg, nvgColour(PlugDataColours::objectOutlineColour));
+            nanovg::nvgStrokeColor(nvg, nvgColour(colours.objectOutlineColour));
             nanovg::nvgStrokeWidth(nvg, 1.0f);
             nanovg::nvgStroke(nvg);
 
@@ -976,6 +978,8 @@ public:
 
     void updateLabel() override
     {
+        auto const& colours = getThemeColours();
+
         ObjectLabel* label = nullptr;
         if (labels.isEmpty()) {
             label = labels.add(new ObjectLabel());
@@ -994,9 +998,9 @@ public:
             label->setFont(font);
             label->setBounds(bounds);
 
-            auto textColour = PlugDataColours::canvasTextColour;
-            if (std::abs(textColour.getBrightness() - PlugDataColours::canvasBackgroundColour.getBrightness()) < 0.3f) {
-                textColour = PlugDataColours::canvasBackgroundColour.contrasting();
+            auto textColour = colours.canvasTextColour;
+            if (std::abs(textColour.getBrightness() - colours.canvasBackgroundColour.getBrightness()) < 0.3f) {
+                textColour = colours.canvasBackgroundColour.contrasting();
             }
             label->setLabelColour(textColour);
             label->setText(typeBuffer.isEmpty() ? labelText : typeBuffer, dontSendNotification);

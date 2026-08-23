@@ -76,6 +76,8 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        auto const& colours = getThemeColours();
+
         auto const b = getLocalBounds().toFloat();
 
         auto const bgColour = ::getValue<Colour>(iemHelper.secondaryColour);
@@ -83,10 +85,10 @@ public:
         auto const backgroundColour = nvgColour(bgColour);
         auto const toggledColour = nvgColour(::getValue<Colour>(iemHelper.primaryColour));
         auto const untoggledColour = nvgColour(::getValue<Colour>(iemHelper.primaryColour).interpolatedWith(::getValue<Colour>(iemHelper.secondaryColour), 0.8f));
-        auto const selectedOutlineColour = nvgColour(PlugDataColours::objectSelectedOutlineColour);
-        auto const outlineColour = nvgColour(PlugDataColours::objectOutlineColour);
+        auto const selectedOutlineColour = nvgColour(colours.objectSelectedOutlineColour);
+        auto const outlineColour = nvgColour(colours.objectOutlineColour);
 
-        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, getPlugDataLook(*this).getObjectCornerRadius());
 
         auto const sizeReduction = std::min(1.0f, getWidth() / 20.0f);
         float const margin = (getWidth() * 0.08f + 4.5f) * sizeReduction;

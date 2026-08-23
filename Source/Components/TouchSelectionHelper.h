@@ -258,7 +258,7 @@ private:
     {
         auto const b = getLocalBounds();
 
-        g.setColour(PlugDataColours::toolbarBackgroundColour);
+        g.setColour(getThemeColours(*this).toolbarBackgroundColour);
         g.fillRect(b);
     }
 

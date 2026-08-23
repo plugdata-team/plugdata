@@ -162,32 +162,36 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        auto const& colours = getThemeColours();
+
         auto const b = getLocalBounds().toFloat();
         auto const sb = b.reduced(0.5f);
 
         // Draw background
         nanovg::nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
-            nvgColour(PlugDataColours::guiObjectBackgroundColour), nvgColour(PlugDataColours::guiObjectBackgroundColour), nvgColour(PlugDataColours::guiObjectBackgroundColour),
-            Corners::objectCornerRadius, ObjectFlagType::FlagTopBottom, PlugDataLook::getUseFlagOutline());
+            nvgColour(colours.guiObjectBackgroundColour), nvgColour(colours.guiObjectBackgroundColour), nvgColour(colours.guiObjectBackgroundColour),
+            getPlugDataLook(*this).getObjectCornerRadius(), ObjectFlagType::FlagTopBottom, getPlugDataLook(*this).getUseFlagOutline());
 
         listLabel.render(nvg, cnv->editor->getNanoLLGC());
 
         // Draw outline & flag
         bool const highlighted = editorActive && getValue<bool>(object->locked);
-        auto const flagCol = highlighted ? nvgColour(PlugDataColours::objectSelectedOutlineColour) : nvgColour(PlugDataColours::guiObjectInternalOutlineColour);
-        auto const outlineCol = nvgColour(object->isSelected() || editorActive ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
+        auto const flagCol = highlighted ? nvgColour(colours.objectSelectedOutlineColour) : nvgColour(colours.guiObjectInternalOutlineColour);
+        auto const outlineCol = nvgColour(object->isSelected() || editorActive ? colours.objectSelectedOutlineColour : colours.objectOutlineColour);
 
         // Fill the internal of the shape with transparent colour, draw outline & flag with shader
         nanovg::nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),
             nanovg::nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
-            Corners::objectCornerRadius, ObjectFlagType::FlagTopBottom, PlugDataLook::getUseFlagOutline());
+            getPlugDataLook(*this).getObjectCornerRadius(), ObjectFlagType::FlagTopBottom, getPlugDataLook(*this).getUseFlagOutline());
     }
 
     void lookAndFeelChanged() override
     {
-        listLabel.setColour(Label::textWhenEditingColourId, PlugDataColours::canvasTextColour);
-        listLabel.setColour(Label::textColourId, PlugDataColours::canvasTextColour);
-        listLabel.setColour(TextEditor::textColourId, PlugDataColours::canvasTextColour);
+        auto const& colours = getThemeColours();
+
+        listLabel.setColour(Label::textWhenEditingColourId, colours.canvasTextColour);
+        listLabel.setColour(Label::textColourId, colours.canvasTextColour);
+        listLabel.setColour(TextEditor::textColourId, colours.canvasTextColour);
 
         repaint();
     }

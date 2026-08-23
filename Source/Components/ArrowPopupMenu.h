@@ -57,6 +57,8 @@ public:
 
     void paint(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
         auto const targetArea = getLocalArea(targetComponent, targetComponent->getLocalBounds());
 
         auto constexpr arrowHeight = 12;
@@ -129,11 +131,11 @@ public:
             g.restoreState();
         }
 
-        g.setColour(PlugDataColours::popupMenuBackgroundColour);
+        g.setColour(colours.popupMenuBackgroundColour);
         g.fillRect(extensionBounds);
         g.fillPath(arrow);
 
-        g.setColour(PlugDataColours::outlineColour);
+        g.setColour(colours.outlineColour);
         g.strokePath(arrowOutline, PathStrokeType(1.0f));
     }
 

@@ -20,6 +20,8 @@ class HelpDialog final : public TopLevelWindow
     public:
         explicit IndexComponent(std::function<void(File const&)> loadFile)
         {
+            auto const& colours = getThemeColours(*this);
+
             for (auto const& file : OSUtils::iterateDirectory(manualPath, false, true)) {
                 if (file.hasFileExtension(".md")) {
                     auto* button = buttons.add(new TextButton(file.getFileNameWithoutExtension()));
@@ -27,8 +29,8 @@ class HelpDialog final : public TopLevelWindow
                         loadFile(file);
                     };
 
-                    button->setColour(TextButton::buttonOnColourId, PlugDataColours::sidebarActiveBackgroundColour);
-                    button->setColour(TextButton::buttonColourId, PlugDataColours::sidebarBackgroundColour);
+                    button->setColour(TextButton::buttonOnColourId, colours.sidebarActiveBackgroundColour);
+                    button->setColour(TextButton::buttonColourId, colours.sidebarBackgroundColour);
                     button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
                     contentComponent.addAndMakeVisible(button);
                 }
@@ -165,6 +167,8 @@ public:
 
     void paint(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
         auto constexpr toolbarHeight = 38;
         auto const totalBounds = getLocalBounds().reduced(margin);
         auto b = totalBounds;
@@ -180,28 +184,28 @@ public:
 
         Path toolbarPath;
         toolbarPath.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), cornerRadius, cornerRadius, true, true, false, false);
-        g.setColour(PlugDataColours::toolbarBackgroundColour);
+        g.setColour(colours.toolbarBackgroundColour);
         g.fillPath(toolbarPath);
 
         Path backgroundPath;
         backgroundPath.addRoundedRectangle(bgBounds.getX(), bgBounds.getY(), bgBounds.getWidth(), bgBounds.getHeight(), cornerRadius, cornerRadius, false, false, true, true);
-        g.setColour(PlugDataColours::canvasBackgroundColour);
+        g.setColour(colours.canvasBackgroundColour);
         g.fillPath(backgroundPath);
 
         /*
         Path sidebarPath;
         backgroundPath.addRoundedRectangle(sidebarBounds.getX(), sidebarBounds.getY(), sidebarBounds.getWidth(), sidebarBounds.getHeight(), cornerRadius, cornerRadius, false, false, true, false);
-        g.setColour(PlugDataColours::sidebarBackgroundColour); */
+        g.setColour(getThemeColours(*this).sidebarBackgroundColour); */
         g.fillPath(backgroundPath);
 
-        g.setColour(PlugDataColours::toolbarOutlineColour);
+        g.setColour(colours.toolbarOutlineColour);
         g.drawHorizontalLine(b.getY() + toolbarHeight, b.getX(), b.getWidth());
 
-        g.setColour(PlugDataColours::outlineColour);
+        g.setColour(colours.outlineColour);
         g.drawRoundedRectangle(totalBounds.toFloat().reduced(0.5f), cornerRadius, 1.f);
 
         // g.drawVerticalLine(b.getX() + 200, b.getY() + 40, g.getHeight());
 
-        Fonts::drawStyledText(g, "Help", Rectangle<float>(totalBounds.getX(), totalBounds.getY() + 4.0f, b.getWidth(), 32.0f), PlugDataColours::panelTextColour, Semibold, 15, Justification::centred);
+        Fonts::drawStyledText(g, "Help", Rectangle<float>(totalBounds.getX(), totalBounds.getY() + 4.0f, b.getWidth(), 32.0f), colours.panelTextColour, Semibold, 15, Justification::centred);
     }
 };

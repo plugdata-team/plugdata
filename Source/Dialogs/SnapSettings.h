@@ -17,7 +17,7 @@ public:
             slider->setRange(5, 30, 5);
             slider->setValue(SettingsFile::getInstance()->getProperty<int>("grid_size"));
             slider->setTextBoxStyle(Slider::NoTextBox, false, 0, 0);
-            slider->setColour(Slider::ColourIds::trackColourId, PlugDataColours::panelBackgroundColour);
+            slider->setColour(Slider::ColourIds::trackColourId, getThemeColours(*this).panelBackgroundColour);
 
             slider->onValueChange = [this] {
                 SettingsFile::getInstance()->setProperty("grid_size", static_cast<int>(slider->getValue()));
@@ -32,7 +32,7 @@ public:
 
             for (int i = 5; i <= 30; i += 5) {
                 auto const textBounds = Rectangle<int>(x, b.getY() + 4, spacing, b.getHeight());
-                Fonts::drawStyledText(g, String(i), textBounds, PlugDataColours::toolbarTextColour, Monospace, 10, Justification::centredTop);
+                Fonts::drawStyledText(g, String(i), textBounds, getThemeColours(*this).toolbarTextColour, Monospace, 10, Justification::centredTop);
                 x += spacing;
             }
         }
@@ -100,13 +100,15 @@ public:
 
         void paint(Graphics& g) override
         {
+            auto const& colours = getThemeColours(*this);
+
             if (dragToggledInteraction) {
-                g.setColour(PlugDataColours::toolbarHoverColour);
+                g.setColour(colours.toolbarHoverColour);
                 g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), Corners::defaultCornerRadius);
             }
 
-            auto iconColour = getToggleState() ? PlugDataColours::toolbarActiveColour : PlugDataColours::toolbarTextColour;
-            auto textColour = PlugDataColours::toolbarTextColour;
+            auto iconColour = getToggleState() ? colours.toolbarActiveColour : colours.toolbarTextColour;
+            auto textColour = colours.toolbarTextColour;
 
             if (isMouseOver()) {
                 iconColour = iconColour.contrasting(0.3f);
@@ -215,11 +217,13 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.setColour(PlugDataColours::popupMenuTextColour);
+        auto const& colours = getThemeColours(*this);
+
+        g.setColour(colours.popupMenuTextColour);
         g.setFont(Fonts::getBoldFont().withHeight(15));
         g.drawText("Grid", 0, 0, getWidth(), 24, Justification::centred);
 
-        g.setColour(PlugDataColours::toolbarOutlineColour);
+        g.setColour(colours.toolbarOutlineColour);
         g.drawLine(4, 24, getWidth() - 8, 24);
     }
 

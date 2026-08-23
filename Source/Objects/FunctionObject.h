@@ -102,6 +102,8 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        auto const& colours = getThemeColours();
+
         bool const selected = object->isSelected() && !cnv->isGraph;
         bool const editing = cnv->locked == var(true) || cnv->presentationMode == var(true) || ModifierKeys::getCurrentModifiers().isCtrlDown();
 
@@ -109,10 +111,10 @@ public:
         auto const backgroundColour = nvgColour(getValue<Colour>(secondaryColour));
 
         auto const foregroundColour = nvgColour(getValue<Colour>(primaryColour));
-        auto const selectedOutlineColour = nvgColour(PlugDataColours::objectSelectedOutlineColour);
-        auto const outlineColour = nvgColour(PlugDataColours::objectOutlineColour);
+        auto const selectedOutlineColour = nvgColour(colours.objectSelectedOutlineColour);
+        auto const outlineColour = nvgColour(colours.objectOutlineColour);
 
-        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, selected ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, selected ? selectedOutlineColour : outlineColour, getPlugDataLook(*this).getObjectCornerRadius());
 
         nanovg::nvgStrokeColor(nvg, foregroundColour);
 

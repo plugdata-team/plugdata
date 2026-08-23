@@ -49,8 +49,8 @@ public:
 
         setAlwaysOnTop(true);
 
-        dragImage = OfflineObjectRenderer::patchToMaskedImage(objectName, 3.0f).image;
-        dragInvalidImage = OfflineObjectRenderer::patchToMaskedImage(objectName, 3.0f, true).image;
+        dragImage = OfflineObjectRenderer::patchToMaskedImage(editor->getPlugDataLook(), objectName, 3.0f).image;
+        dragInvalidImage = OfflineObjectRenderer::patchToMaskedImage(editor->getPlugDataLook(), objectName, 3.0f, true).image;
 
         if (ProjectInfo::canUseSemiTransparentWindows()) {
             // Make it larger so we don't accidentally lose track

@@ -229,7 +229,7 @@ public:
         }
         NVGScopedState scopedState(nvg);
         auto const arrB = getLocalBounds().reduced(1);
-        nanovg::nvgIntersectRoundedScissor(nvg, arrB.getX(), arrB.getY(), arrB.getWidth(), arrB.getHeight(), Corners::objectCornerRadius);
+        nanovg::nvgIntersectRoundedScissor(nvg, arrB.getX(), arrB.getY(), arrB.getWidth(), arrB.getHeight(), getPlugDataLook(*this).getObjectCornerRadius());
 
         if (cachedPath.isValid()) {
             auto const contentColour = getContentColour();
@@ -322,18 +322,20 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        auto const& colours = getThemeColours(*this);
+
         if (error) {
             auto const position = getLocalBounds().getCentre();
             auto const errorText = "array " + getUnexpandedName() + " is invalid";
 
-            Fonts::drawText(object->cnv->editor->getNanoLLGC(), errorText, position.toFloat(), Fonts::getCurrentFont().withHeight(11), PlugDataColours::canvasTextColour, Justification::centred);
+            Fonts::drawText(object->cnv->editor->getNanoLLGC(), errorText, position.toFloat(), Fonts::getCurrentFont().withHeight(11), colours.canvasTextColour, Justification::centred);
             error = false;
         } else if (visible) {
             paintGraph(nvg);
         }
 
         if (isDraggingFile) {
-            nanovg::nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), nanovg::nvgRGBA(0, 0, 0, 0), nvgColour(PlugDataColours::dataColour), Corners::objectCornerRadius);
+            nanovg::nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), nanovg::nvgRGBA(0, 0, 0, 0), nvgColour(colours.dataColour), getPlugDataLook(*this).getObjectCornerRadius());
         }
     }
 
@@ -347,8 +349,8 @@ public:
         }
 
         if (isDraggingFile) {
-            g.setColour(PlugDataColours::dataColour);
-            g.drawRoundedRectangle(getLocalBounds().toFloat(), Corners::objectCornerRadius, 1.0f);
+            g.setColour(getThemeColours(*this).dataColour);
+            g.drawRoundedRectangle(getLocalBounds().toFloat(), getPlugDataLook(*this).getObjectCornerRadius(), 1.0f);
         }
     }
 
@@ -522,6 +524,8 @@ public:
 
     Colour getContentColour() const
     {
+        auto const& colours = getThemeColours(*this);
+
         if (auto garray = arr.get<t_fake_garray>()) {
             auto* scalar = garray->x_scalar;
             auto* templ = template_findbyname(scalar->sc_template);
@@ -529,7 +533,7 @@ public:
             int const colour = template_getfloat(templ, gensym("color"), scalar->sc_vec, 1);
 
             if (colour <= 0) {
-                return PlugDataColours::canvasTextColour;
+                return colours.canvasTextColour;
             }
 
             auto rangecolor = [](int const n) /* 0 to 9 in 5 steps */
@@ -548,7 +552,7 @@ public:
             return Colour(red, green, blue);
         }
 
-        return PlugDataColours::guiObjectInternalOutlineColour;
+        return colours.guiObjectInternalOutlineColour;
     }
 
     void valueChanged(Value& value) override
@@ -756,13 +760,15 @@ struct ArrayPropertiesPanel final : public PropertiesPanelProperty
 
         void paint(Graphics& g) override
         {
+            auto const& colours = getThemeColours(*this);
+
             auto const bounds = getLocalBounds();
             auto textBounds = bounds;
             auto const iconBounds = textBounds.removeFromLeft(textBounds.getHeight());
 
-            auto const colour = PlugDataColours::sidebarTextColour;
+            auto const colour = colours.sidebarTextColour;
             if (mouseIsOver) {
-                g.setColour(PlugDataColours::sidebarActiveBackgroundColour);
+                g.setColour(colours.sidebarActiveBackgroundColour);
                 g.fillRoundedRectangle(bounds.toFloat(), Corners::defaultCornerRadius);
             }
 
@@ -865,7 +871,9 @@ struct ArrayPropertiesPanel final : public PropertiesPanelProperty
 
     void paint(Graphics& g) override
     {
-        g.fillAll(PlugDataColours::sidebarBackgroundColour);
+        auto const& colours = getThemeColours(*this);
+
+        g.fillAll(colours.sidebarBackgroundColour);
 
         auto const numGraphs = properties.size() / 5;
         for (int i = 0; i < numGraphs; i++) {
@@ -873,13 +881,13 @@ struct ArrayPropertiesPanel final : public PropertiesPanelProperty
                 continue;
 
             auto const start = i * 184 - 8;
-            g.setColour(PlugDataColours::sidebarActiveBackgroundColour);
+            g.setColour(colours.sidebarActiveBackgroundColour);
             g.fillRoundedRectangle(0.0f, start + 32, getWidth(), 154, Corners::largeCornerRadius);
 
-            Fonts::drawStyledText(g, graphs[i]->name.toString(), 8, start + 2, getWidth() - 16, 32, PlugDataColours::sidebarTextColour, Semibold, 14.5f);
+            Fonts::drawStyledText(g, graphs[i]->name.toString(), 8, start + 2, getWidth() - 16, 32, colours.sidebarTextColour, Semibold, 14.5f);
         }
 
-        g.setColour(PlugDataColours::toolbarOutlineColour);
+        g.setColour(colours.toolbarOutlineColour);
 
         for (int i = 0; i < properties.size(); i++) {
             if (i % 5 == 4)
@@ -1007,7 +1015,7 @@ public:
         }
         selectedArrayCombo.setSelectedItemIndex(0);
         selectedArrayCombo.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-        selectedArrayCombo.setColour(ComboBox::backgroundColourId, PlugDataColours::toolbarHoverColour.withAlpha(0.8f));
+        selectedArrayCombo.setColour(ComboBox::backgroundColourId, getThemeColours(*this).toolbarHoverColour.withAlpha(0.8f));
 
         addAndMakeVisible(selectedArrayCombo);
 
@@ -1116,12 +1124,14 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        g.setColour(PlugDataColours::guiObjectBackgroundColour);
+        g.setColour(getThemeColours(*this).guiObjectBackgroundColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius, 1.0f);
     }
 
     void paint(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
         auto constexpr toolbarHeight = 38;
         auto b = getLocalBounds();
         auto const titlebarBounds = b.removeFromTop(toolbarHeight).toFloat();
@@ -1129,15 +1139,15 @@ public:
 
         Path toolbarPath;
         toolbarPath.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, true, true, false, false);
-        g.setColour(PlugDataColours::toolbarBackgroundColour);
+        g.setColour(colours.toolbarBackgroundColour);
         g.fillPath(toolbarPath);
 
         Path arrayPath;
         arrayPath.addRoundedRectangle(arrayBounds.getX(), arrayBounds.getY(), arrayBounds.getWidth(), arrayBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, false, false, true, true);
-        g.setColour(PlugDataColours::panelBackgroundColour);
+        g.setColour(colours.panelBackgroundColour);
         g.fillPath(arrayPath);
 
-        g.setColour(PlugDataColours::toolbarOutlineColour);
+        g.setColour(colours.toolbarOutlineColour);
         g.drawHorizontalLine(toolbarHeight, 0, getWidth());
     }
 };
@@ -1242,18 +1252,20 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        auto const& colours = getThemeColours();
+
         auto const b = getLocalBounds().toFloat();
         auto const backgroundColour = nanovg::nvgRGBA(0, 0, 0, 0);
-        auto const selectedOutlineColour = nvgColour(PlugDataColours::objectSelectedOutlineColour);
-        auto const outlineColour = nvgColour(PlugDataColours::objectOutlineColour);
+        auto const selectedOutlineColour = nvgColour(colours.objectSelectedOutlineColour);
+        auto const outlineColour = nvgColour(colours.objectOutlineColour);
 
-        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, getPlugDataLook(*this).getObjectCornerRadius());
 
         for (auto* graph : graphs) {
             graph->render(nvg);
         }
 
-        nanovg::nvgStrokeColor(nvg, nvgColour(PlugDataColours::guiObjectInternalOutlineColour));
+        nanovg::nvgStrokeColor(nvg, nvgColour(colours.guiObjectInternalOutlineColour));
         getTicks()->render(nvg, b);
     }
 
@@ -1297,7 +1309,7 @@ public:
             label->setFont(font);
             label->setBounds(bounds);
             label->setText(title, dontSendNotification);
-            label->setLabelColour(PlugDataColours::canvasTextColour);
+            label->setLabelColour(getThemeColours().canvasTextColour);
             label->setVisible(true);
 
             object->cnv->addAndMakeVisible(label);

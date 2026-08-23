@@ -49,7 +49,7 @@ public:
             size = std::max(size, 14);
 
         if (yLabels.size() > 0) {
-            auto const font = Font(FontOptions(10.0f));
+            auto const font = Fonts::getCurrentFont().withHeight(10);
             int labelWidth = 0;
             for (auto const& label : yLabels)
                 labelWidth = std::max(labelWidth, Fonts::getStringWidthInt(label, font));
@@ -65,7 +65,7 @@ public:
         graphBounds = object->getBounds().reduced(Object::margin);
         setBounds(graphBounds.expanded(getSizeOfTicksAndLabels()));
         setVisible(xLabels.size() > 0 || yLabels.size() > 0);
-        setLabelColour(PlugDataColours::canvasTextColour);
+        setLabelColour(getThemeColours(*this).canvasTextColour);
     }
 
     void renderLabel(NVGGraphicsContext& llgc) override
@@ -81,7 +81,7 @@ public:
         auto const x1 = static_cast<float>(localGraphBounds.getX());
         auto const x2 = static_cast<float>(localGraphBounds.getRight());
 
-        nanovg::nvgFillColor(nvg, nvgColour(PlugDataColours::canvasTextColour));
+        nanovg::nvgFillColor(nvg, nvgColour(getThemeColours(*this).canvasTextColour));
 
         for (auto const& text : xLabels) {
             auto const xpos = jmap<float>(text.getFloatValue(), gl_x1, gl_x2, x1, x2);
@@ -462,7 +462,7 @@ public:
 
         auto const b = getPatch()->getGraphBounds() + canvas->canvasOrigin;
         canvas->setBounds(-b.getX(), -b.getY(), b.getWidth() + b.getX(), b.getHeight() + b.getY());
-        canvas->setLookAndFeel(&LookAndFeel::getDefaultLookAndFeel());
+        canvas->setLookAndFeel(&cnv->editor->getLookAndFeel());
         canvas->locked.referTo(cnv->locked);
 
         canvas->performSynchronise();
@@ -478,6 +478,8 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        auto const& colours = getThemeColours();
+
         // Strangly, the title goes below the graph content in pd
         if (!getValue<bool>(hideNameAndArgs)) {
             auto& llgc = *cnv->editor->getNanoLLGC();
@@ -490,7 +492,7 @@ public:
                     auto const textBounds = Rectangle<float>(5, 1, getWidth() - 5, 16);
                     NVGGraphicsContext::ScopedAnchoredDraw anchor(llgc, textBounds);
                     g.setFont(Fonts::getDefaultFont().withHeight(13));
-                    g.setColour(PlugDataColours::canvasTextColour);
+                    g.setColour(colours.canvasTextColour);
                     g.drawText(text, textBounds, Justification::centredLeft);
                 }
             }
@@ -508,7 +510,7 @@ public:
             invalidArea = canvas->getLocalArea(cnv, invalidArea).expanded(1);
 
             NVGScopedState scopedState(nvg);
-            nanovg::nvgIntersectRoundedScissor(nvg, b.getX() + 0.75f, b.getY() + 0.75f, b.getWidth() - 1.5f, b.getHeight() - 1.5f, Corners::objectCornerRadius);
+            nanovg::nvgIntersectRoundedScissor(nvg, b.getX() + 0.75f, b.getY() + 0.75f, b.getWidth() - 1.5f, b.getHeight() - 1.5f, getPlugDataLook(*this).getObjectCornerRadius());
             nanovg::nvgTranslate(nvg, canvas->getX(), canvas->getY());
             canvas->performRender(nvg, invalidArea);
         }
@@ -518,7 +520,7 @@ public:
             auto height = getHeight();
 
             if (openInGopBackground.needsUpdate(width, height)) {
-                auto bgColour = PlugDataColours::guiObjectBackgroundColour;
+                auto bgColour = colours.guiObjectBackgroundColour;
 
                 openInGopBackground = NVGImage(nvg, width, height, [width, height, bgColour](Graphics& g) {
                     AffineTransform rotate;
@@ -536,7 +538,7 @@ public:
             }
             auto const imagePaint = nanovg::nvgImagePattern(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), 0.0f, openInGopBackground.getImageId(), 1.0f);
             nanovg::nvgBeginPath(nvg);
-            nanovg::nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+            nanovg::nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), getPlugDataLook(*this).getObjectCornerRadius());
             nanovg::nvgFillPaint(nvg, imagePaint);
             nanovg::nvgFill(nvg);
 
@@ -544,13 +546,13 @@ public:
 
             auto const stringLength = Fonts::getStringWidth(errorText, 12);
             if (stringLength < getWidth() - Object::doubleMargin - 20 /* 20 is a hack for now */ && getHeight() > 12) {
-                Fonts::drawText(canvas->editor->getNanoLLGC(), errorText, b, Fonts::getCurrentFont().withHeight(12), PlugDataColours::commentTextColour, Justification::centred);
+                Fonts::drawText(canvas->editor->getNanoLLGC(), errorText, b, Fonts::getCurrentFont().withHeight(12), colours.commentTextColour, Justification::centred);
             }
         }
 
-        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nanovg::nvgRGBA(0, 0, 0, 0), nvgColour(object->isSelected() ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour), Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nanovg::nvgRGBA(0, 0, 0, 0), nvgColour(object->isSelected() ? colours.objectSelectedOutlineColour : colours.objectOutlineColour), getPlugDataLook(*this).getObjectCornerRadius());
 
-        nanovg::nvgStrokeColor(nvg, nvgColour(PlugDataColours::guiObjectInternalOutlineColour));
+        nanovg::nvgStrokeColor(nvg, nvgColour(colours.guiObjectInternalOutlineColour));
         getTicks()->render(nvg, b);
     }
 

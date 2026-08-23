@@ -15,7 +15,7 @@ using namespace juce::gl;
 #endif
 
 #ifndef PLUGDATA_NVG_FRAME_TIME_OVERLAY
-#    define PLUGDATA_NVG_FRAME_TIME_OVERLAY 0
+#    define PLUGDATA_NVG_FRAME_TIME_OVERLAY 1
 #endif
 
 #ifndef PLUGDATA_NVG_REPAINT_DEBUG

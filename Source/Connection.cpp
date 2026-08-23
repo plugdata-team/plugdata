@@ -126,12 +126,14 @@ void Connection::changeListenerCallback(ChangeBroadcaster* source)
 
 void Connection::lookAndFeelChanged()
 {
-    handleColour = outlet->isSignal() ? nvgColour(PlugDataColours::dataColour) : nvgColour(PlugDataColours::signalColour);
-    shadowColour = nvgColour(PlugDataColours::canvasBackgroundColour.contrasting(0.06f).withAlpha(0.24f));
-    outlineColour = nvgColour(PlugDataColours::objectOutlineColour);
+    auto const& colours = getThemeColours(*this);
 
-    if (connectionStyle != PlugDataLook::getConnectionStyle()) {
-        connectionStyle = PlugDataLook::getConnectionStyle();
+    handleColour = outlet->isSignal() ? nvgColour(colours.dataColour) : nvgColour(colours.signalColour);
+    shadowColour = nvgColour(colours.canvasBackgroundColour.contrasting(0.06f).withAlpha(0.24f));
+    outlineColour = nvgColour(colours.objectOutlineColour);
+
+    if (connectionStyle != getPlugDataLook(*this).getConnectionStyle()) {
+        connectionStyle = getPlugDataLook(*this).getConnectionStyle();
         cachedPath.clear();
     }
 
@@ -141,14 +143,16 @@ void Connection::lookAndFeelChanged()
 
 NVGcolor Connection::getConnectionColour() const
 {
-    Colour c = PlugDataColours::connectionColour;
+    auto const& colours = getThemeColours(*this);
+
+    Colour c = colours.connectionColour;
     if (isSelected() || isHovering) {
         if (outlet->isSignal()) {
-            c = PlugDataColours::signalColour;
+            c = colours.signalColour;
         } else if (outlet->isGemState()) {
-            c = PlugDataColours::gemColour;
+            c = colours.gemColour;
         } else {
-            c = PlugDataColours::dataColour;
+            c = colours.dataColour;
         }
     }
     return nvgColour(isHovering ? c.brighter() : c);
@@ -191,7 +195,7 @@ void Connection::render(NVGcontext* nvg)
     }
 
     float dashSize = isSignalCable ? numSignalChannels <= 1 ? 2.5f : 1.5f : 0.0f;
-    auto useGradientLook = PlugDataLook::getUseGradientConnectionLook() && !(isSelected() || isHovering);
+    auto useGradientLook = getPlugDataLook(*this).getUseGradientConnectionLook() && !(isSelected() || isHovering);
     auto showActivity = cableType == DataCable && cnv->shouldShowConnectionActivity();
     nanovg::nvgStrokePaint(nvg, nanovg::nvgDoubleStroke(nvg, connectionColour, shadowColour, dashColor, dashSize, useGradientLook, showActivity, offset));
     nanovg::nvgStrokeWidth(nvg, cableThickness);
@@ -305,7 +309,7 @@ void Connection::renderConnectionOrder(NVGcontext* nvg) const
         nanovg::nvgStroke(nvg);
 
         // connection index number
-        Fonts::drawText(cnv->editor->getNanoLLGC(), String(getMultiConnectNumber()), Rectangle<float>(radius, radius).withCentre(pos.toFloat()), Fonts::getCurrentFont().withHeight(9), PlugDataColours::objectSelectedOutlineColour.contrasting(), Justification::centred);
+        Fonts::drawText(cnv->editor->getNanoLLGC(), String(getMultiConnectNumber()), Rectangle<float>(radius, radius).withCentre(pos.toFloat()), Fonts::getCurrentFont().withHeight(9), getThemeColours(*this).objectSelectedOutlineColour.contrasting(), Justification::centred);
     }
 }
 
@@ -438,7 +442,7 @@ bool Connection::intersects(Rectangle<float> const toCheck, int const accuracy) 
 
         // Skip points to reduce accuracy a bit for better performance
         // We can only skip points if there are many points!
-        if (!PlugDataLook::getUseStraightConnections()) {
+        if (!getPlugDataLook(*this).getUseStraightConnections()) {
             for (int n = 0; n < accuracy; n++) {
                 auto const next = i.next();
                 if (!next)
@@ -865,8 +869,8 @@ Point<float> Connection::getStartPoint() const
 {
     auto const outletBounds = outlet->getCanvasBounds().toFloat();
 
-    if (PlugDataLook::isFixedIoletPosition()) {
-        return { outletBounds.getX() + PlugDataLook::getIoletSize() * 0.5f, outletBounds.getCentreY() };
+    if (getPlugDataLook(*this).isFixedIoletPosition()) {
+        return { outletBounds.getX() + getPlugDataLook(*this).getIoletSize() * 0.5f, outletBounds.getCentreY() };
     }
     return outletBounds.getCentre();
 }
@@ -874,17 +878,17 @@ Point<float> Connection::getStartPoint() const
 Point<float> Connection::getEndPoint() const
 {
     auto const inletBounds = inlet->getCanvasBounds().toFloat();
-    if (PlugDataLook::isFixedIoletPosition()) {
-        return Point<float>(inletBounds.getX() + PlugDataLook::getIoletSize() * 0.5f, inletBounds.getCentreY());
+    if (getPlugDataLook(*this).isFixedIoletPosition()) {
+        return Point<float>(inletBounds.getX() + getPlugDataLook(*this).getIoletSize() * 0.5f, inletBounds.getCentreY());
     }
     return inletBounds.getCentre();
 }
 
-Path Connection::getNonSegmentedPath(Point<float> const start, Point<float> const end)
+Path Connection::getNonSegmentedPath(Point<float> const start, Point<float> const end, bool const useStraightConnections)
 {
     Path connectionPath;
     connectionPath.startNewSubPath(start);
-    if (!PlugDataLook::getUseStraightConnections()) {
+    if (!useStraightConnections) {
         float const width = std::max(start.x, end.x) - std::min(start.x, end.x);
         float const height = std::max(start.y, end.y) - std::min(start.y, end.y);
 
@@ -991,7 +995,7 @@ void Connection::updatePath()
     Path toDraw;
 
     if (!segmented) {
-        toDraw = getNonSegmentedPath(pstart, pend);
+        toDraw = getNonSegmentedPath(pstart, pend, getPlugDataLook(*this).getUseStraightConnections());
         currentPlan.clear();
     } else {
         if (currentPlan.empty()) {
@@ -1020,7 +1024,7 @@ void Connection::updatePath()
         connectionPath.lineTo(pend);
         // If theme is straight connections, make the rounded as small as the path width
         // Otherwise the path generation will draw the path on-top of the curve (as path flattening happens from centre out)
-        toDraw = connectionPath.createPathWithRoundedCorners(PlugDataLook::getUseStraightConnections() ? getPathWidth() : 8.0f);
+        toDraw = connectionPath.createPathWithRoundedCorners(getPlugDataLook(*this).getUseStraightConnections() ? getPathWidth() : 8.0f);
     }
 
     if (getPath() == toDraw) {

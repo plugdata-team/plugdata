@@ -116,7 +116,7 @@ class CanvasViewport : public Component
             float const x = cnv->viewport->getWidth() - (width + 10);
             float const y = cnv->viewport->getHeight() - (height + 10);
 
-            auto const canvasBackground = PlugDataColours::canvasBackgroundColour;
+            auto const canvasBackground = getThemeColours(*this).canvasBackgroundColour;
             auto const mapBackground = canvasBackground.contrasting(0.5f);
 
             // draw background
@@ -128,7 +128,7 @@ class CanvasViewport : public Component
             // draw objects
             for (auto const* object : cnv->objects) {
                 auto b = (object->getBounds().reduced(Object::margin).translated(map.offsetX, map.offsetY) - cnv->canvasOrigin).toFloat() * map.scale;
-                nanovg::nvgFillRoundedRect(nvg, x + b.getX(), y + b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius * map.scale);
+                nanovg::nvgFillRoundedRect(nvg, x + b.getX(), y + b.getY(), b.getWidth(), b.getHeight(), getPlugDataLook(*this).getObjectCornerRadius() * map.scale);
             }
 
             // draw visible area
@@ -395,9 +395,11 @@ class CanvasViewport : public Component
 
         void lookAndFeelChanged() override
         {
-            scrollbarCol = nvgColour(PlugDataColours::scrollbarThumbColour);
-            activeScrollbarCol = nvgColour(PlugDataColours::scrollbarThumbColour.interpolatedWith(PlugDataColours::canvasBackgroundColour.contrasting(0.6f), 0.7f));
-            scrollbarBgCol = nvgColour(PlugDataColours::scrollbarThumbColour.interpolatedWith(PlugDataColours::canvasBackgroundColour, 0.7f));
+            auto const& colours = getThemeColours(*this);
+
+            scrollbarCol = nvgColour(colours.scrollbarThumbColour);
+            activeScrollbarCol = nvgColour(colours.scrollbarThumbColour.interpolatedWith(colours.canvasBackgroundColour.contrasting(0.6f), 0.7f));
+            scrollbarBgCol = nvgColour(colours.scrollbarThumbColour.interpolatedWith(colours.canvasBackgroundColour, 0.7f));
 
             repaint();
         }

@@ -477,30 +477,21 @@ void ObjectBase::moveToBack()
 
 void ObjectBase::paint(Graphics& g)
 {
-    g.setColour(PlugDataColours::guiObjectBackgroundColour);
-    g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
+    auto const& colours = getThemeColours();
+
+    g.setColour(colours.guiObjectBackgroundColour);
+    g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), getPlugDataLook(*this).getObjectCornerRadius());
 
     bool const selected = object->isSelected() && !cnv->isGraph;
-    auto const outlineColour = selected ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour;
+    auto const outlineColour = selected ? colours.objectSelectedOutlineColour : colours.objectOutlineColour;
 
     g.setColour(outlineColour);
-    g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+    g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), getPlugDataLook(*this).getObjectCornerRadius(), 1.0f);
 }
 
-float ObjectBase::getImageScale()
+PlugDataColours const& ObjectBase::getThemeColours() const
 {
-    auto const* topLevel = cnv;
-    if (!hideInGraph()) { // No need to do this if we can't be visible in a graph anyway!
-        while (auto const* nextCnv = topLevel->findParentComponentOfClass<Canvas>()) {
-            topLevel = nextCnv;
-        }
-    }
-    if (topLevel->editor->pluginMode) {
-        auto const scale = std::sqrt(std::abs(topLevel->getTransform().getDeterminant()));
-        return object->editor->getRenderScale() * scale;
-    }
-
-    return object->editor->getRenderScale() * getValue<float>(topLevel->zoomScale);
+    return ::getThemeColours(*cnv);
 }
 
 ObjectParameters ObjectBase::getParameters()

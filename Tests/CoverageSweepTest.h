@@ -2407,9 +2407,17 @@ private:
         pluginDirectory.getChildFile("meta.json").replaceWithText(R"({"Scale":1.0,"Zoom":2})");
 
         auto const originalPluginModeTheme = editor->pd->pluginModeTheme;
-        editor->pd->pluginModeTheme = SettingsFile::getInstance()->getTheme(PlugDataLook::currentTheme);
+        auto const normalCanvasColour = editor->getEditorLookAndFeel().getColours().canvasBackgroundColour;
+        auto const normalTheme = editor->getEditorLookAndFeel().getCurrentTheme();
+        auto const pluginModeThemeName = PlugDataLook::selectedThemes[0] == normalTheme ? PlugDataLook::selectedThemes[1] : PlugDataLook::selectedThemes[0];
+        editor->pd->pluginModeTheme = SettingsFile::getInstance()->getTheme(pluginModeThemeName);
+        auto const pluginModeCanvasColour = PlugDataLook::getThemeColour(editor->pd->pluginModeTheme, PlugDataColour::canvasBackgroundColourId);
         {
             auto pluginMode = std::make_unique<PluginMode>(editor, cnv->refCountedPatch);
+            expect(getThemeColours(*pluginMode).canvasBackgroundColour == pluginModeCanvasColour, "Plugin mode must use its editor-local colours");
+            expect(getThemeColours(*pluginMode->getCanvas()).canvasBackgroundColour == pluginModeCanvasColour, "Plugin mode canvas must inherit the custom colours");
+            expect(&pluginMode->getLookAndFeel() == &pluginMode->getCanvas()->getLookAndFeel(), "Plugin mode and its canvas must share the custom look-and-feel");
+            expect(editor->getEditorLookAndFeel().getColours().canvasBackgroundColour == normalCanvasColour, "Plugin mode must not mutate the normal editor colours");
             pluginMode->setBounds(editor->getLocalBounds());
             pluginMode->parentSizeChanged();
             pluginMode->resized();
@@ -2434,7 +2442,7 @@ private:
 
             pluginMode->createComponentSnapshot(pluginMode->getLocalBounds());
             if (auto* context = editor->getNanoLLGC(); context && context->getContext())
-                pluginMode->render(context->getContext(), pluginMode->getLocalBounds());
+                pluginMode->render(context->getContext());
 
             auto const centre = pluginMode->getLocalBounds().getCentre().toFloat();
             pluginMode->mouseDown(mouseEvent(pluginMode.get(), centre));
@@ -2445,11 +2453,12 @@ private:
             pluginMode->setKioskMode(true);
             pluginMode->createComponentSnapshot(pluginMode->getLocalBounds());
             if (auto* context = editor->getNanoLLGC(); context && context->getContext())
-                pluginMode->render(context->getContext(), pluginMode->getLocalBounds());
+                pluginMode->render(context->getContext());
             expect(pluginMode->keyPressed(KeyPress(KeyPress::escapeKey)));
 
             pluginMode->closePluginMode();
         }
+        expect(getThemeColours(*editor).canvasBackgroundColour == normalCanvasColour, "Closing plugin mode must restore the editor-local colours");
         editor->pd->pluginModeTheme = originalPluginModeTheme;
         pluginDirectory.deleteRecursively();
     }

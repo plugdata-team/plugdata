@@ -63,7 +63,7 @@ public:
             b.getX(), b.getY(), b.getWidth(), b.getHeight(),
             nanovg::nvgRGBf(0.05f, 0.05f, 0.05f),
             nanovg::nvgRGBf(0.15f, 0.15f, 0.15f),
-            Corners::objectCornerRadius);
+            getPlugDataLook(*this).getObjectCornerRadius());
 
         if (!gemCanvas)
             return;
@@ -90,7 +90,7 @@ public:
         NVGpaint paint = nanovg::nvgImagePattern(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), 0.0f, nvgImage, 1.0f);
 
         nanovg::nvgBeginPath(nvg);
-        nanovg::nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
+        nanovg::nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), getPlugDataLook(*this).getObjectCornerRadius());
         nanovg::nvgFillPaint(nvg, paint);
         nanovg::nvgFill(nvg);
     }

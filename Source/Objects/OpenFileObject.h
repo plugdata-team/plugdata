@@ -93,10 +93,12 @@ public:
 
     void updateTextLayout() override
     {
+        auto const& colours = getThemeColours();
+
         auto const objText = getLinkText();
         auto const mouseIsOver = isMouseOver();
         bool const locked = getValue<bool>(object->locked) || getValue<bool>(object->commandLocked);
-        auto colour = PlugDataColours::objectSelectedOutlineColour;
+        auto colour = colours.objectSelectedOutlineColour;
         if (locked && mouseIsOver)
             colour = colour.withRotatedHue(0.5f);
 
@@ -112,12 +114,12 @@ public:
         lastColourARGB = static_cast<int32>(colour.getARGB());
 
         auto const font = Fonts::getCurrentFont().withHeight(15);
-        bool const highlightObjectSyntax = PlugDataLook::getUseSyntaxHighlighting() && isValid;
+        bool const highlightObjectSyntax = getPlugDataLook(*this).getUseSyntaxHighlighting() && isValid;
 
         AttributedString attributedText;
         if (highlightObjectSyntax) {
-            auto const nameColour = colour.interpolatedWith(PlugDataColours::dataColour, 0.7f);
-            attributedText = getSyntaxHighlightedString(objText, font, colour, nameColour);
+            auto const nameColour = colour.interpolatedWith(colours.dataColour, 0.7f);
+            attributedText = getSyntaxHighlightedString(*this, objText, font, colour, nameColour);
         } else {
             attributedText = AttributedString(objText);
             attributedText.setColour(colour);
@@ -145,7 +147,7 @@ public:
 
         auto const b = getLocalBounds();
 
-        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgColour(PlugDataColours::textObjectBackgroundColour), nanovg::nvgRGBA(0, 0, 0, 0), Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgColour(getThemeColours().textObjectBackgroundColour), nanovg::nvgRGBA(0, 0, 0, 0), getPlugDataLook(*this).getObjectCornerRadius());
 
         auto& llgc = *cnv->editor->getNanoLLGC();
         if (editor && editor->isVisible()) {

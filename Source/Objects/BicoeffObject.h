@@ -253,14 +253,16 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        auto const& colours = getThemeColours(*this);
+
         auto const b = getLocalBounds();
-        auto const backgroundColour = nvgColour(PlugDataColours::guiObjectBackgroundColour);
-        auto const selectedOutlineColour = nvgColour(PlugDataColours::objectSelectedOutlineColour);
-        auto const outlineColour = nvgColour(PlugDataColours::objectOutlineColour);
+        auto const backgroundColour = nvgColour(colours.guiObjectBackgroundColour);
+        auto const selectedOutlineColour = nvgColour(colours.objectSelectedOutlineColour);
+        auto const outlineColour = nvgColour(colours.objectOutlineColour);
 
-        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, getPlugDataLook(*this).getObjectCornerRadius());
 
-        nanovg::nvgStrokeColor(nvg, nvgColour(PlugDataColours::guiObjectInternalOutlineColour));
+        nanovg::nvgStrokeColor(nvg, nvgColour(colours.guiObjectInternalOutlineColour));
         nanovg::nvgBeginPath(nvg);
         nanovg::nvgMoveTo(nvg, filterX1 * getWidth(), 0.0f);
         nanovg::nvgLineTo(nvg, filterX1 * getWidth(), getHeight());
@@ -279,7 +281,7 @@ public:
         nanovg::nvgStrokeWidth(nvg, 1.0f);
         nanovg::nvgLineStyle(nvg, NVG_BUTT);
         setJUCEPath(nvg, magnitudePath);
-        nanovg::nvgStrokeColor(nvg, nvgColour(PlugDataColours::canvasTextColour));
+        nanovg::nvgStrokeColor(nvg, nvgColour(colours.canvasTextColour));
         nanovg::nvgStroke(nvg);
     }
 

@@ -70,9 +70,9 @@ public:
         objectParameters.add(param);
     }
 
-    void resetAll()
+    void resetAll(Component const& context)
     {
-        auto const& lnf = LookAndFeel::getDefaultLookAndFeel();
+        auto const& lnf = context.getLookAndFeel();
         for (auto param : objectParameters) {
             if (!param.defaultValue.isVoid()) {
                 if (param.type == tColour || param.type == tColourAlpha) {

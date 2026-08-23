@@ -589,17 +589,19 @@ public:
 #if JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD
     void paintOverChildren(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
 #    if JUCE_WINDOWS
         if (SystemStats::getOperatingSystemType() != SystemStats::Windows11) {
-            g.setColour(PlugDataColours::outlineColour);
+            g.setColour(colours.outlineColour);
             g.drawRect(0, 0, getWidth(), getHeight());
         }
 #    else
         if (drawWindowShadow && !useNativeTitlebar() && !isMaximised()) {
-            g.setColour(PlugDataColours::outlineColour.withAlpha(isActiveWindow() ? 1.0f : 0.5f));
+            g.setColour(colours.outlineColour.withAlpha(isActiveWindow() ? 1.0f : 0.5f));
             g.drawRoundedRectangle(18, 18, getWidth() - 36, getHeight() - 36, Corners::windowCornerRadius, 1.0f);
         } else if (drawWindowShadow && !useNativeTitlebar()) {
-            g.setColour(PlugDataColours::outlineColour.withAlpha(isActiveWindow() ? 1.0f : 0.5f));
+            g.setColour(colours.outlineColour.withAlpha(isActiveWindow() ? 1.0f : 0.5f));
             g.drawRect(0.5f, 0.5f, getWidth() - 1.0f, getHeight() - 1.0f, 1.0f);
         }
 #    endif
@@ -787,10 +789,12 @@ private:
 #if JUCE_IOS
         void paint(Graphics& g) override
         {
+            auto const& colours = getThemeColours(*this);
+
             if (editor) {
-                g.fillAll(PlugDataColours::toolbarBackgroundColour);
+                g.fillAll(colours.toolbarBackgroundColour);
             } else {
-                g.fillAll(PlugDataColours::toolbarBackgroundColour);
+                g.fillAll(colours.toolbarBackgroundColour);
             }
         }
 #endif

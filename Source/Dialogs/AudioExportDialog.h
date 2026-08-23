@@ -30,7 +30,7 @@ public:
         panel.addSection(" ", { destinationComponent, formatComponent, sampleRateComponent, bitDepthComponent, normaliseComponent });
         addAndMakeVisible(panel);
 
-        auto const backgroundColour = PlugDataColours::panelBackgroundColour;
+        auto const backgroundColour = getThemeColours(*this).panelBackgroundColour;
         cancelButton.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
         cancelButton.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
         cancelButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
@@ -200,7 +200,9 @@ private:
 
     void paint(Graphics& g) override
     {
-        g.setColour(PlugDataColours::panelBackgroundColour);
+        auto const& colours = getThemeColours(*this);
+
+        g.setColour(colours.panelBackgroundColour);
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
 
         auto const titlebarBounds = getLocalBounds().removeFromTop(40).toFloat();
@@ -208,13 +210,13 @@ private:
         Path p;
         p.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, true, true, false, false);
 
-        g.setColour(PlugDataColours::toolbarBackgroundColour);
+        g.setColour(colours.toolbarBackgroundColour);
         g.fillPath(p);
 
-        g.setColour(PlugDataColours::toolbarOutlineColour);
+        g.setColour(colours.toolbarOutlineColour);
         g.drawHorizontalLine(40, 0.0f, getWidth());
 
-        Fonts::drawStyledText(g, "Export recording", Rectangle<float>(0.0f, 4.0f, getWidth(), 32.0f), PlugDataColours::panelTextColour, Semibold, 15, Justification::centred);
+        Fonts::drawStyledText(g, "Export recording", Rectangle<float>(0.0f, 4.0f, getWidth(), 32.0f), colours.panelTextColour, Semibold, 15, Justification::centred);
     }
 
     void timerCallback() override

@@ -27,18 +27,20 @@ class WelcomePanel final : public Component
 
         void paint(Graphics& g) override
         {
+            auto const& colours = getThemeColours(*this);
+
             if (panel.currentTab == Home && panel.searchQuery.isEmpty()) {
                 if (panel.recentlyOpenedTiles.isEmpty()) {
                     g.setFont(Fonts::getBoldFont().withPointHeight(34.0f));
-                    g.setColour(PlugDataColours::panelTextColour);
+                    g.setColour(colours.panelTextColour);
                     g.drawText("Welcome to plugdata", Rectangle<float>(0.0f, getHeight() * 0.5f - 104.0f, static_cast<float>(getWidth()), 48.0f), Justification::centred, false);
                 } else {
                     g.setFont(Fonts::getBoldFont().withPointHeight(14.0f));
-                    g.setColour(PlugDataColours::panelTextColour);
+                    g.setColour(colours.panelTextColour);
                     g.drawText("Recently Opened", Rectangle<float>(0.0f, 128.0f, 192.0f, 20.0f), Justification::centred, false);
 
                     g.setFont(Fonts::getIconFont().withPointHeight(14.0f));
-                    g.setColour(PlugDataColours::panelTextColour.withAlpha(isHoveringClearButton ? 0.6f : 1.0f));
+                    g.setColour(colours.panelTextColour.withAlpha(isHoveringClearButton ? 0.6f : 1.0f));
                     g.drawText(Icons::Clear, clearButtonBounds, Justification::centred, false);
                 }
             }
@@ -96,6 +98,8 @@ class WelcomePanel final : public Component
 
         void paint(Graphics& g) override
         {
+            auto const& colours = getThemeColours(*this);
+
             auto const bounds = getLocalBounds().reduced(12);
 
             auto const width = getWidth();
@@ -107,16 +111,16 @@ class WelcomePanel final : public Component
 
             auto const lB = bounds.toFloat().expanded(0.5f);
             {
-                auto const bgColour = !isHovered ? PlugDataColours::panelForegroundColour : PlugDataColours::toolbarBackgroundColour;
+                auto const bgColour = !isHovered ? colours.panelForegroundColour : colours.toolbarBackgroundColour;
 
                 // Draw border around
                 g.setColour(bgColour);
                 g.fillRoundedRectangle(lB, Corners::largeCornerRadius);
-                g.setColour(PlugDataColours::toolbarOutlineColour);
+                g.setColour(colours.toolbarOutlineColour);
                 g.drawRoundedRectangle(lB, Corners::largeCornerRadius, 1.0f);
             }
 
-            auto const bgColour = PlugDataColours::panelForegroundColour;
+            auto const bgColour = colours.panelForegroundColour;
             auto const newOpenIconColour = bgColour.contrasting().withAlpha(0.32f);
             constexpr auto iconSize = 48;
             constexpr auto iconHalf = iconSize * 0.5f;
@@ -138,7 +142,7 @@ class WelcomePanel final : public Component
                 // Vertical line
                 g.fillRoundedRectangle(circleBounds.getCentreX() - lineRad, circleBounds.getCentreY() - halfSize, lineThickness, crossSize, lineRad);
 
-                g.setColour(PlugDataColours::panelTextColour);
+                g.setColour(colours.panelTextColour);
                 g.setFont(Fonts::getBoldFont().withPointHeight(12.0f));
                 g.drawText("New Patch", Rectangle<int>(92, 30, width - 104, 20), Justification::centredLeft, false);
 
@@ -151,7 +155,7 @@ class WelcomePanel final : public Component
                 g.setColour(bgColour);
                 g.drawText(Icons::Folder, circleBounds.toNearestInt(), Justification::centred, false);
 
-                g.setColour(PlugDataColours::panelTextColour);
+                g.setColour(colours.panelTextColour);
                 g.setFont(Fonts::getBoldFont().withPointHeight(12.0f));
                 g.drawText("Open Patch...", Rectangle<int>(92, 30, width - 104, 20), Justification::centredLeft, false);
 
@@ -164,7 +168,7 @@ class WelcomePanel final : public Component
                 g.setColour(bgColour);
                 g.drawText(Icons::Sparkle, circleBounds.toNearestInt(), Justification::centred, false);
 
-                g.setColour(PlugDataColours::panelTextColour);
+                g.setColour(colours.panelTextColour);
                 g.setFont(Fonts::getBoldFont().withPointHeight(12.0f));
                 g.drawText("Discover...", Rectangle<int>(92, 30, width - 104, 20), Justification::centredLeft, false);
 
@@ -314,7 +318,7 @@ class WelcomePanel final : public Component
         {
             snapshot = Drawable::createFromImageData(svgImage.toRawUTF8(), svgImage.getNumBytesAsUTF8());
             if (snapshot) {
-                auto const snapshotColour = PlugDataColours::objectSelectedOutlineColour.withAlpha(0.3f);
+                auto const snapshotColour = getThemeColours(*this).objectSelectedOutlineColour.withAlpha(0.3f);
                 snapshot->replaceColour(Colours::black, snapshotColour);
             }
             snapshotImage = {};
@@ -470,6 +474,8 @@ class WelcomePanel final : public Component
 
         void paint(Graphics& g) override
         {
+            auto const& colours = getThemeColours(*this);
+
             auto bounds = getLocalBounds().reduced(12);
 
             StackShadow::drawShadowForRect(g, bounds, 7, Corners::largeCornerRadius, 0.12f, 1);
@@ -530,9 +536,9 @@ class WelcomePanel final : public Component
 
             auto const lB = bounds.toFloat().expanded(0.5f);
             // Draw background even for images incase there is a transparent PNG
-            g.setColour(PlugDataColours::panelForegroundColour);
+            g.setColour(colours.panelForegroundColour);
             g.fillRoundedRectangle(lB, Corners::largeCornerRadius);
-            g.setColour(PlugDataColours::toolbarOutlineColour);
+            g.setColour(colours.toolbarOutlineColour);
             g.drawRoundedRectangle(lB, Corners::largeCornerRadius, 1.0f);
 
             auto const imageBounds = bounds.withTrimmedBottom(32);
@@ -543,7 +549,7 @@ class WelcomePanel final : public Component
                 if (snapshot)
                     snapshot->drawWithin(g, imageBounds.toFloat(), RectanglePlacement::centred, 1.0f);
             } else {
-                auto const placeholderIconColour = PlugDataColours::objectSelectedOutlineColour.withAlpha(0.22f);
+                auto const placeholderIconColour = colours.objectSelectedOutlineColour.withAlpha(0.22f);
                 auto const placeholderIconBounds = Rectangle<float>(bounds.getX(), (bounds.getHeight() - 30.0f) * 0.5f - 34.0f, bounds.getWidth(), 68.0f);
 
                 // We draw the plugdata logo if library tiles don't have a thumbnail (patch snapshot is too busy)
@@ -553,20 +559,20 @@ class WelcomePanel final : public Component
             }
 
             // Draw border around
-            g.setColour(PlugDataColours::toolbarOutlineColour);
+            g.setColour(colours.toolbarOutlineColour);
             g.drawRoundedRectangle(lB, Corners::largeCornerRadius, 1.0f);
 
-            auto const hoverColour = PlugDataColours::toolbarHoverColour.interpolatedWith(PlugDataColours::toolbarBackgroundColour, 0.5f);
+            auto const hoverColour = colours.toolbarHoverColour.interpolatedWith(colours.toolbarBackgroundColour, 0.5f);
 
             Path footerPath;
             footerPath.addRoundedRectangle(bounds.getX(), bounds.getHeight() - 32, bounds.getWidth(), 44, Corners::largeCornerRadius, Corners::largeCornerRadius, false, false, true, true);
-            g.setColour(isHovered ? hoverColour : PlugDataColours::toolbarBackgroundColour);
+            g.setColour(isHovered ? hoverColour : colours.toolbarBackgroundColour);
             g.fillPath(footerPath);
-            g.setColour(PlugDataColours::toolbarOutlineColour);
+            g.setColour(colours.toolbarOutlineColour);
             g.strokePath(footerPath, PathStrokeType(1.0f));
 
             auto textWidth = bounds.getWidth() - 8;
-            g.setColour(PlugDataColours::panelTextColour);
+            g.setColour(colours.panelTextColour);
             g.setFont(Fonts::getBoldFont().withHeight(14));
             g.drawText(tileName, Rectangle<int>(22, bounds.getHeight() - 30, textWidth, 24), Justification::centredLeft, true);
 
@@ -582,7 +588,7 @@ class WelcomePanel final : public Component
                     g.drawText(Icons::HeartFilled, favouriteIconBounds, Justification::centred, false);
                 } else if (isMouseOver()) {
                     g.setFont(Fonts::getIconFont().withPointHeight(16.0f));
-                    g.setColour(PlugDataColours::panelTextColour);
+                    g.setColour(colours.panelTextColour);
                     g.drawText(Icons::HeartStroked, favouriteIconBounds, Justification::centred, false);
                 }
             }
@@ -833,7 +839,7 @@ public:
                         scopedStream = url.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress));
                     }
 #endif
-                    silhoutteSvg = OfflineObjectRenderer::patchToSVG(patchFile.loadFileAsString());
+                    silhoutteSvg = OfflineObjectRenderer::patchToSVG(getPlugDataLook(*this), patchFile.loadFileAsString());
                     patchSvgCache[patchFile.getFullPathName()] = silhoutteSvg;
                 }
             }
@@ -998,7 +1004,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.fillAll(PlugDataColours::panelBackgroundColour);
+        g.fillAll(getThemeColours(*this).panelBackgroundColour);
     }
 
     void show()

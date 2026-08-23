@@ -115,10 +115,12 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto const b = getLocalBounds().toFloat();
-        auto const outlineColour = nvgColour(object->isSelected() && !cnv->isGraph ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
+        auto const& colours = getThemeColours();
 
-        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), fillColour, outlineColour, Corners::objectCornerRadius);
+        auto const b = getLocalBounds().toFloat();
+        auto const outlineColour = nvgColour(object->isSelected() && !cnv->isGraph ? colours.objectSelectedOutlineColour : colours.objectOutlineColour);
+
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), fillColour, outlineColour, getPlugDataLook(*this).getObjectCornerRadius());
     }
 
     void setPdBounds(Rectangle<int> const b) override

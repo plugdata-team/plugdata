@@ -140,7 +140,7 @@ public:
         : urlHandler(urlHandler)
     {
         colours = nullptr;
-        defaultColour = PlugDataColours::canvasTextColour;
+        defaultColour = getThemeColours(*this).canvasTextColour;
     }
     // static utility methods
     static Colour parseHexColourStatic(String s, Colour const defaultColour)
@@ -313,7 +313,7 @@ protected:
                             tagRecognized = true;
                         } else if (tag.startsWith("l:")) {
                             currentLink = tag.substring(2);
-                            nextColour = PlugDataColours::dataColour; // link colour is just data colour for now
+                            nextColour = getThemeColours(*this).dataColour; // link colour is just data colour for now
                             tagRecognized = true;
                         } else if (tag.startsWith("/l")) {
                             currentLink = "";

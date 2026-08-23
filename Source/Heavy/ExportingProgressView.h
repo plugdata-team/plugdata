@@ -127,7 +127,7 @@ private:
         ansiBuffer.clear();
 
         String currentSegment;
-        Colour currentColour = PlugDataColours::panelTextColour;
+        Colour currentColour = getThemeColours(*this).panelTextColour;
         Font currentFont = Fonts::getMonospaceFont();
 
         for (int i = 0; i < fullText.length(); ++i) {
@@ -181,7 +181,9 @@ private:
 
     void parseAnsiSGR(String const& params, Colour& currentColour, Font& currentFont)
     {
-        auto defaultTextColour = PlugDataColours::panelTextColour;
+        auto const& colours = getThemeColours(*this);
+
+        auto defaultTextColour = colours.panelTextColour;
         currentColour = defaultTextColour;
         currentFont = Fonts::getMonospaceFont();
 
@@ -192,7 +194,7 @@ private:
             int value = code.getIntValue();
             switch (value) {
             case 0:
-                currentColour = PlugDataColours::panelTextColour;
+                currentColour = colours.panelTextColour;
                 break;
             case 1:
                 currentFont = Fonts::getMonospaceBoldFont();
@@ -615,37 +617,39 @@ public:
 
     void paint(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
         auto const b = getLocalBounds();
 
         Path background;
         background.addRoundedRectangle(b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, false, false, true, true);
 
-        g.setColour(PlugDataColours::panelBackgroundColour);
+        g.setColour(colours.panelBackgroundColour);
         g.fillPath(background);
 
-        g.setColour(PlugDataColours::outlineColour);
+        g.setColour(colours.outlineColour);
         g.strokePath(background, PathStrokeType(1.0f));
 
-        g.setColour(PlugDataColours::sidebarBackgroundColour);
+        g.setColour(colours.sidebarBackgroundColour);
         g.fillRoundedRectangle(console.getViewport().getBounds().expanded(6).toFloat(), Corners::defaultCornerRadius);
 
         if (state == Exporting) {
-            Fonts::drawStyledText(g, "Exporting...", 0, 20, getWidth(), 32, PlugDataColours::panelTextColour, Bold, 32, Justification::centred);
+            Fonts::drawStyledText(g, "Exporting...", 0, 20, getWidth(), 32, colours.panelTextColour, Bold, 32, Justification::centred);
 
-            getLookAndFeel().drawSpinningWaitAnimation(g, PlugDataColours::panelTextColour, getWidth() / 2 - 16, getHeight() / 2 + 118, 32, 32);
+            getLookAndFeel().drawSpinningWaitAnimation(g, colours.panelTextColour, getWidth() / 2 - 16, getHeight() / 2 + 118, 32, 32);
         } else if (state == Flashing) {
-            Fonts::drawStyledText(g, "Flashing...", 0, 20, getWidth(), 32, PlugDataColours::panelTextColour, Bold, 32, Justification::centred);
+            Fonts::drawStyledText(g, "Flashing...", 0, 20, getWidth(), 32, colours.panelTextColour, Bold, 32, Justification::centred);
 
-            getLookAndFeel().drawSpinningWaitAnimation(g, PlugDataColours::panelTextColour, getWidth() / 2 - 16, getHeight() / 2 + 118, 32, 32);
+            getLookAndFeel().drawSpinningWaitAnimation(g, colours.panelTextColour, getWidth() / 2 - 16, getHeight() / 2 + 118, 32, 32);
         } else if (state == Success) {
-            Fonts::drawStyledText(g, "Export successful", 0, 20, getWidth(), 32, PlugDataColours::panelTextColour, Bold, 32, Justification::centred);
+            Fonts::drawStyledText(g, "Export successful", 0, 20, getWidth(), 32, colours.panelTextColour, Bold, 32, Justification::centred);
 
         } else if (state == Failure) {
-            Fonts::drawStyledText(g, "Exporting failed", 0, 20, getWidth(), 32, PlugDataColours::panelTextColour, Bold, 32, Justification::centred);
+            Fonts::drawStyledText(g, "Exporting failed", 0, 20, getWidth(), 32, colours.panelTextColour, Bold, 32, Justification::centred);
         } else if (state == BootloaderFlashSuccess) {
-            Fonts::drawStyledText(g, "Bootloader flashed", 0, 20, getWidth(), 32, PlugDataColours::panelTextColour, Bold, 32, Justification::centred);
+            Fonts::drawStyledText(g, "Bootloader flashed", 0, 20, getWidth(), 32, colours.panelTextColour, Bold, 32, Justification::centred);
         } else if (state == BootloaderFlashFailure) {
-            Fonts::drawStyledText(g, "Bootloader flash failed", 0, 20, getWidth(), 32, PlugDataColours::panelTextColour, Bold, 32, Justification::centred);
+            Fonts::drawStyledText(g, "Bootloader flash failed", 0, 20, getWidth(), 32, colours.panelTextColour, Bold, 32, Justification::centred);
         }
     }
     void resized() override

@@ -197,15 +197,17 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        auto const& colours = getThemeColours();
+
         auto const b = getLocalBounds().toFloat();
         bool const isSelected = object->isSelected() && !cnv->isGraph;
-        auto const selectedOutlineColour = nvgColour(PlugDataColours::objectSelectedOutlineColour);
-        auto const outlineColour = nvgColour(PlugDataColours::objectOutlineColour);
+        auto const selectedOutlineColour = nvgColour(colours.objectSelectedOutlineColour);
+        auto const outlineColour = nvgColour(colours.objectOutlineColour);
 
-        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgColour(iemHelper.getBackgroundColour()), isSelected ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgColour(iemHelper.getBackgroundColour()), isSelected ? selectedOutlineColour : outlineColour, getPlugDataLook(*this).getObjectCornerRadius());
 
         float const size = isVertical ? static_cast<float>(getHeight()) / numItems : static_cast<float>(getWidth()) / numItems;
-        nanovg::nvgStrokeColor(nvg, nvgColour(PlugDataColours::guiObjectInternalOutlineColour));
+        nanovg::nvgStrokeColor(nvg, nvgColour(colours.guiObjectInternalOutlineColour));
         nanovg::nvgStrokeWidth(nvg, 1.0f);
 
         nanovg::nvgBeginPath(nvg);
@@ -228,7 +230,7 @@ public:
             float const hoverY = isVertical ? hoverIdx * size : 0;
             auto const hoverBounds = Rectangle<float>(hoverX, hoverY, size, size).reduced(jmin<int>(size * 0.25f, 5));
             nanovg::nvgFillColor(nvg, nvgColour(hoverColour));
-            nanovg::nvgFillRoundedRect(nvg, hoverBounds.getX(), hoverBounds.getY(), hoverBounds.getWidth(), hoverBounds.getHeight(), Corners::objectCornerRadius / 2.0f);
+            nanovg::nvgFillRoundedRect(nvg, hoverBounds.getX(), hoverBounds.getY(), hoverBounds.getWidth(), hoverBounds.getHeight(), getPlugDataLook(*this).getObjectCornerRadius() / 2.0f);
         }
 
         float const selectionX = isVertical ? 0 : selected * size;
@@ -238,7 +240,7 @@ public:
         auto const selectionBounds = Rectangle<float>(selectionX, selectionY, sizeW, sizeH).reduced(jmin<float>(size * 0.25f, 5));
 
         nanovg::nvgFillColor(nvg, nvgColour(::getValue<Colour>(iemHelper.primaryColour)));
-        nanovg::nvgFillRoundedRect(nvg, selectionBounds.getX(), selectionBounds.getY(), selectionBounds.getWidth(), selectionBounds.getHeight(), Corners::objectCornerRadius / 2.0f);
+        nanovg::nvgFillRoundedRect(nvg, selectionBounds.getX(), selectionBounds.getY(), selectionBounds.getWidth(), selectionBounds.getHeight(), getPlugDataLook(*this).getObjectCornerRadius() / 2.0f);
     }
 
     void updateAspectRatio()

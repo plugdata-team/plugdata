@@ -74,17 +74,19 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        auto const& colours = getThemeColours();
+
         auto const b = getLocalBounds();
 
         bool const selected = object->isSelected() && !cnv->isGraph;
-        auto const outlineColour = nvgColour(selected ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
+        auto const outlineColour = nvgColour(selected ? colours.objectSelectedOutlineColour : colours.objectOutlineColour);
 
-        auto const strokeColour = nvgColour(PlugDataColours::guiObjectInternalOutlineColour);
+        auto const strokeColour = nvgColour(colours.guiObjectInternalOutlineColour);
         auto const whiteKeyColour = nanovg::nvgRGB(225, 225, 225);
         auto const blackKeyColour = nanovg::nvgRGB(90, 90, 90);
-        auto const activeKeyColour = PlugDataColours::dataColour;
+        auto const activeKeyColour = colours.dataColour;
 
-        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), whiteKeyColour, outlineColour, Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), whiteKeyColour, outlineColour, getPlugDataLook(*this).getObjectCornerRadius());
 
         nanovg::nvgStrokeColor(nvg, strokeColour);
 

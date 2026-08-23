@@ -16,6 +16,7 @@ public:
     explicit PluginMode(PluginEditor* editor, pd::Patch::Ptr patch)
         : NVGComponent(this)
         , patchPtr(patch)
+        , pluginModeLnf(createPluginModeLookAndFeel(editor))
         , cnv(std::make_unique<Canvas>(editor, patch, this))
         , editor(editor)
         , desktopWindow(editor->getPeer())
@@ -43,10 +44,8 @@ public:
 
         auto const& pluginModeTheme = editor->pd->pluginModeTheme;
         if (pluginModeTheme) {
-            pluginModeLnf = std::make_unique<PlugDataLook>();
-            lastTheme = PlugDataLook::currentTheme;
-            pluginModeLnf->setTheme(pluginModeTheme);
-            editor->setLookAndFeel(pluginModeLnf.get());
+            setLookAndFeel(pluginModeLnf.get());
+            cnv->setLookAndFeel(pluginModeLnf.get());
             editor->getTopLevelComponent()->sendLookAndFeelChange();
         }
 
@@ -87,7 +86,7 @@ public:
         scaleComboBox.setText("100%");
         scaleComboBox.setBounds(8, 8, 70, titlebarHeight - 16);
         scaleComboBox.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-        scaleComboBox.setColour(ComboBox::backgroundColourId, PlugDataColours::toolbarHoverColour.withAlpha(0.8f));
+        scaleComboBox.setColour(ComboBox::backgroundColourId, getThemeColours(*this).toolbarHoverColour.withAlpha(0.8f));
 
         auto metaFile = patchPtr.get()->getPatchFile().getSiblingFile("meta.json");
         scaleComboBox.onChange = [this, metaFile] {
@@ -147,8 +146,8 @@ public:
     ~PluginMode() override
     {
         if (pluginModeLnf) {
-            editor->setLookAndFeel(editor->pd->lnf);
-            editor->pd->lnf->setTheme(SettingsFile::getInstance()->getTheme(lastTheme));
+            setLookAndFeel(nullptr);
+            editor->setLookAndFeel(&editor->getEditorLookAndFeel());
             editor->getTopLevelComponent()->sendLookAndFeelChange();
         }
 
@@ -227,7 +226,7 @@ public:
 #endif
             nanovg::nvgScissor(nvg, (getWidth() - (width * scale)) / 2, (getHeight() - height * scale) / 2, width * scale, height * scale);
 
-        nanovg::nvgFillColor(nvg, nvgColour(PlugDataColours::canvasBackgroundColour));
+        nanovg::nvgFillColor(nvg, nvgColour(getThemeColours(*this).canvasBackgroundColour));
         nanovg::nvgFillRect(nvg, 0, titlebarHeight, getWidth(), getHeight() - titlebarHeight);
 
         nanovg::nvgScale(nvg, scale, scale);
@@ -270,12 +269,14 @@ public:
 
     void paint(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
         if (!cnv)
             return;
 
         if (ProjectInfo::isStandalone && isWindowFullscreen()) {
             // Fill background for Fullscreen / Kiosk Mode
-            g.setColour(PlugDataColours::canvasBackgroundColour);
+            g.setColour(colours.canvasBackgroundColour);
             g.fillRect(editor->getTopLevelComponent()->getLocalBounds());
             render(editor->getNanoLLGC()->getContext());
             return;
@@ -283,7 +284,7 @@ public:
 
         render(editor->getNanoLLGC()->getContext());
 
-        auto const baseColour = PlugDataColours::toolbarBackgroundColour;
+        auto const baseColour = colours.toolbarBackgroundColour;
         if (editor->wantsRoundedCorners()) {
             // TitleBar background
             g.setColour(baseColour);
@@ -297,11 +298,11 @@ public:
         }
 
         // TitleBar outline
-        g.setColour(PlugDataColours::outlineColour);
+        g.setColour(colours.outlineColour);
         g.drawLine(0.0f, titlebarHeight, static_cast<float>(getWidth()), titlebarHeight, 1.0f);
 
         // TitleBar text
-        g.setColour(PlugDataColours::panelTextColour);
+        g.setColour(colours.panelTextColour);
         g.setFont(Fonts::getSemiBoldFont().withHeight(15));
         g.drawText(cnv->patch.getTitle().upToLastOccurrenceOf(".pd", false, true), titleBar.getBounds(), Justification::centred);
     }
@@ -500,7 +501,20 @@ public:
     }
 
 private:
+    static std::unique_ptr<PlugDataLook> createPluginModeLookAndFeel(PluginEditor* editor)
+    {
+        auto const& pluginModeTheme = editor->pd->pluginModeTheme;
+        if (!pluginModeTheme)
+            return nullptr;
+
+        auto look = std::make_unique<PlugDataLook>();
+        look->setTheme(pluginModeTheme);
+        editor->setLookAndFeel(look.get());
+        return look;
+    }
+
     pd::Patch::Ptr patchPtr;
+    std::unique_ptr<PlugDataLook> pluginModeLnf;
     std::unique_ptr<Canvas> cnv;
     PluginEditor* editor;
     ComponentPeer* desktopWindow;
@@ -526,10 +540,6 @@ private:
 
     float pluginModeScale = 1.0f;
     float scaleDPIMult = 1.0f;
-
-    String lastTheme;
-
-    std::unique_ptr<PlugDataLook> pluginModeLnf;
 
     struct Scale {
         float floatScale;

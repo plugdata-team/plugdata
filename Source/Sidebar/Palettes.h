@@ -32,13 +32,15 @@ public:
 
     void paint(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
         auto const bounds = getLocalBounds().reduced(5, 2);
         auto textBounds = bounds;
         auto const iconBounds = textBounds.removeFromLeft(textBounds.getHeight());
 
-        auto const colour = PlugDataColours::sidebarTextColour;
+        auto const colour = colours.sidebarTextColour;
         if (mouseIsOver) {
-            g.setColour(PlugDataColours::sidebarActiveBackgroundColour);
+            g.setColour(colours.sidebarActiveBackgroundColour);
             g.fillRoundedRectangle(bounds.toFloat(), Corners::defaultCornerRadius);
         }
 
@@ -342,7 +344,7 @@ public:
     void paint(Graphics& g) override
     {
         if (getToggleState() || isMouseOver()) {
-            g.setColour(PlugDataColours::toolbarHoverColour);
+            g.setColour(getThemeColours(*this).toolbarHoverColour);
             g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(2.0f), Corners::defaultCornerRadius);
         }
 
@@ -501,7 +503,7 @@ public:
 
         addAndMakeVisible(searchInput);
         searchInput.setBackgroundColour(PlugDataColour::sidebarActiveBackgroundColourId);
-        searchInput.setTextToShowWhenEmpty("Type to search palettes", PlugDataColours::sidebarTextColour.withAlpha(0.5f));
+        searchInput.setTextToShowWhenEmpty("Type to search palettes", getThemeColours(*this).sidebarTextColour.withAlpha(0.5f));
         searchInput.setJustification(Justification::centredLeft);
         searchInput.setBorder({ 1, 23, 5, 1 });
         searchInput.onTextChange = [this] {
@@ -593,7 +595,9 @@ private:
 
     void paintOverChildren(Graphics& g) override
     {
-        auto const backgroundColour = PlugDataColours::sidebarBackgroundColour;
+        auto const& colours = getThemeColours(*this);
+
+        auto const backgroundColour = colours.sidebarBackgroundColour;
         auto const transparentColour = backgroundColour.withAlpha(0.0f);
 
         // Draw a gradient to fade the content out underneath the search input
@@ -603,7 +607,7 @@ private:
             g.fillRect(Rectangle<int>(0, searchInput.getBottom(), getWidth() - scrollOffset, 12));
         }
 
-        Fonts::drawIcon(g, Icons::Search, 2, 1, 32, PlugDataColours::sidebarTextColour, 12);
+        Fonts::drawIcon(g, Icons::Search, 2, 1, 32, colours.sidebarTextColour, 12);
     }
 
     void resized() override

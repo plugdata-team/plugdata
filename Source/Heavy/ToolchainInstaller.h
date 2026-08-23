@@ -91,7 +91,9 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto const colour = PlugDataColours::panelTextColour;
+        auto const& colours = getThemeColours(*this);
+
+        auto const colour = colours.panelTextColour;
         if (needsUpdate) {
             Fonts::drawStyledText(g, "Toolchain needs to be updated", 0, getHeight() / 2 - 150, getWidth(), 40, colour, Bold, 32, Justification::horizontallyCentred);
         } else {
@@ -114,10 +116,10 @@ public:
             auto const downloadBarBg = Rectangle<float>(90.0f, 250.0f - downloadBarBgHeight * 0.5, width, downloadBarBgHeight);
             auto const downloadBar = Rectangle<float>(91.5f, 250.0f - downloadBarHeight * 0.5, progress, downloadBarHeight);
 
-            g.setColour(PlugDataColours::panelTextColour);
+            g.setColour(colours.panelTextColour);
             g.fillRoundedRectangle(downloadBarBg, Corners::defaultCornerRadius);
 
-            g.setColour(PlugDataColours::panelActiveBackgroundColour);
+            g.setColour(colours.panelActiveBackgroundColour);
             g.fillRoundedRectangle(downloadBar, Corners::defaultCornerRadius);
         }
 
@@ -126,7 +128,7 @@ public:
         }
 
         if (isTimerRunning()) {
-            getLookAndFeel().drawSpinningWaitAnimation(g, PlugDataColours::panelTextColour, getWidth() / 2 - 16, getHeight() / 2 + 118, 32, 32);
+            getLookAndFeel().drawSpinningWaitAnimation(g, colours.panelTextColour, getWidth() / 2 - 16, getHeight() / 2 + 118, 32, 32);
         }
     }
 
@@ -283,9 +285,11 @@ public:
 
         void paint(Graphics& g) override
         {
-            auto const colour = PlugDataColours::panelTextColour;
+            auto const& colours = getThemeColours(*this);
+
+            auto const colour = colours.panelTextColour;
             if (isMouseOver()) {
-                g.setColour(PlugDataColours::panelActiveBackgroundColour);
+                g.setColour(colours.panelActiveBackgroundColour);
                 g.fillRoundedRectangle(Rectangle<float>(1, 1, getWidth() - 2, getHeight() - 2), Corners::largeCornerRadius);
             }
 

@@ -40,11 +40,13 @@ public:
 private:
     void paintButton(Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
     {
+        auto const& colours = getThemeColours(*this);
+
         auto bounds = getLocalBounds().reduced(4, 0);
         bool const on = getToggleState();
 
         // Background
-        Colour background = on && activeBackground.has_value() ? *activeBackground : PlugDataColours::popupMenuBackgroundColour.contrasting(0.04f);
+        Colour background = on && activeBackground.has_value() ? *activeBackground : colours.popupMenuBackgroundColour.contrasting(0.04f);
 
         if (shouldDrawButtonAsDown || shouldDrawButtonAsHighlighted)
             background = background.contrasting(0.04f);
@@ -53,7 +55,7 @@ private:
         g.fillRoundedRectangle(bounds.toFloat(), 4.0f);
 
         // Text + icon colour
-        Colour const foreground = on && activeBackground.has_value() ? activeText : PlugDataColours::popupMenuTextColour;
+        Colour const foreground = on && activeBackground.has_value() ? activeText : colours.popupMenuTextColour;
 
         g.setColour(foreground);
 
@@ -98,8 +100,10 @@ class VolumeComponent final : public Slider
 
         void paint(Graphics& g) override
         {
-            g.fillAll(PlugDataColours::toolbarHoverColour);
-            g.setColour(PlugDataColours::toolbarTextColour.withAlpha(0.666f));
+            auto const& colours = getThemeColours(*this);
+
+            g.fillAll(colours.toolbarHoverColour);
+            g.setColour(colours.toolbarTextColour.withAlpha(0.666f));
             g.setFont(Fonts::getCurrentFont().withHeight(13.5f));
             g.drawText(String(decibelValue) + "dB", getLocalBounds(), textJustification);
         }
@@ -180,6 +184,8 @@ public:
 
     void paint(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
         auto const height = getHeight() / 4.0f;
         auto const barHeight = height * 0.5f;
         auto const halfBarHeight = barHeight * 0.5f;
@@ -192,7 +198,7 @@ public:
         auto const meterWidth = width - 16;
         auto const leftOffset = x + 10;
 
-        g.setColour(PlugDataColours::toolbarHoverColour);
+        g.setColour(colours.toolbarHoverColour);
         auto const bgLeft = x + outerBorderWidth;
         Path trackBg;
         trackBg.addRoundedRectangle(bgLeft, outerBorderWidth, getWidth() - bgLeft, bgHeight,
@@ -204,17 +210,17 @@ public:
             auto const barLength = jmin(audioLevel[ch] * meterWidth, meterWidth);
             auto const peekPos = jmin(peakLevel[ch] * meterWidth, meterWidth);
 
-            g.setColour(PlugDataColours::toolbarHoverColour.contrasting(0.08f));
+            g.setColour(colours.toolbarHoverColour.contrasting(0.08f));
             g.fillRoundedRectangle(leftOffset, barYPos, meterWidth, barHeight, barHeight / 2);
 
             if (peekPos > 1) {
-                g.setColour(clipping[ch] ? Colours::red : PlugDataColours::toolbarActiveColour);
+                g.setColour(clipping[ch] ? Colours::red : colours.toolbarActiveColour);
                 g.fillRoundedRectangle(leftOffset, barYPos, barLength, barHeight, barHeight / 2);
                 g.fillRect(leftOffset + peekPos - barHeight, barYPos, 1.0f, barHeight);
             }
         }
 
-        auto const backgroundColour = PlugDataColours::toolbarHoverColour.contrasting(0.5f);
+        auto const backgroundColour = colours.toolbarHoverColour.contrasting(0.5f);
 
         auto const value = getValue();
         auto const thumbSize = getHeight() * 0.6f;
@@ -402,10 +408,12 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.setColour(PlugDataColours::toolbarHoverColour);
+        auto const& colours = getThemeColours(*this);
+
+        g.setColour(colours.toolbarHoverColour);
         g.fillRoundedRectangle(getLocalBounds().reduced(6, 32).toFloat(), Corners::defaultCornerRadius);
 
-        g.setColour(PlugDataColours::outlineColour);
+        g.setColour(colours.outlineColour);
         g.drawLine(6, 58, getWidth() - 6, 58);
     }
 
@@ -527,9 +535,11 @@ public:
 
     void paint(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
         if(isMouseOver())
         {
-            g.setColour(PlugDataColours::toolbarHoverColour);
+            g.setColour(colours.toolbarHoverColour);
             g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(1, 3.5f), Corners::defaultCornerRadius);
         }
 
@@ -540,16 +550,16 @@ public:
         auto const contentW = iconW + iconDotsGap + dotSize * 2 + dotGap;
         auto const startX = std::max(0.0f, (getWidth() - contentW) * 0.5f);
 
-        Fonts::drawIcon(g, Icons::MIDI, Rectangle<int>(roundToInt(startX), 0, roundToInt(iconW), getHeight()), PlugDataColours::toolbarTextColour, 14);
+        Fonts::drawIcon(g, Icons::MIDI, Rectangle<int>(roundToInt(startX), 0, roundToInt(iconW), getHeight()), colours.toolbarTextColour, 14);
 
         auto const dotsX = startX + iconW + iconDotsGap;
         auto const dotY = (getHeight() - dotSize) * 0.5f;
-        auto const idleColour = PlugDataColours::toolbarTextColour.withAlpha(0.33f);
+        auto const idleColour = colours.toolbarTextColour.withAlpha(0.33f);
 
-        g.setColour(blinkMidiIn ? PlugDataColours::toolbarActiveColour : idleColour);
+        g.setColour(blinkMidiIn ? colours.toolbarActiveColour : idleColour);
         g.fillEllipse(dotsX, dotY, dotSize, dotSize);
 
-        g.setColour(blinkMidiOut ? PlugDataColours::toolbarActiveColour : idleColour);
+        g.setColour(blinkMidiOut ? colours.toolbarActiveColour : idleColour);
         g.fillEllipse(dotsX + dotSize + dotGap, dotY, dotSize, dotSize);
     }
 
@@ -638,11 +648,13 @@ public:
 
     void paint(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
         // clip the rectangle to rounded corners
         g.saveState();
         g.reduceClipRegion(roundedClip);
 
-        g.setColour(PlugDataColours::toolbarHoverColour);
+        g.setColour(colours.toolbarHoverColour);
         g.fillRect(bounds);
 
         auto bottom = bounds.getBottom();
@@ -682,10 +694,10 @@ public:
         graphFilled.lineTo(bounds.getBottomRight().toFloat());
         graphFilled.lineTo(bounds.getBottomLeft().toFloat());
         graphFilled.closeSubPath();
-        g.setColour(PlugDataColours::toolbarActiveColour.withAlpha(0.3f));
+        g.setColour(colours.toolbarActiveColour.withAlpha(0.3f));
         g.fillPath(graphFilled);
 
-        g.setColour(PlugDataColours::toolbarActiveColour);
+        g.setColour(colours.toolbarActiveColour);
         g.strokePath(graphTopLine, PathStrokeType(1.0f));
 
         g.restoreState();
@@ -713,6 +725,8 @@ class CPUMeterPopup final : public Component {
 public:
     CPUMeterPopup(CircularBuffer<float>& history, CircularBuffer<float>& longHistory)
     {
+        auto const& colours = getThemeColours(*this);
+
         cpuGraph = std::make_unique<CPUHistoryGraph>(history, 200);
         cpuGraphLongHistory = std::make_unique<CPUHistoryGraph>(longHistory, 300);
         addAndMakeVisible(cpuGraph.get());
@@ -743,10 +757,10 @@ public:
                 cpuGraph->updateMapping(i);
                 cpuGraphLongHistory->updateMapping(i);
             };
-            button->setColour(TextButton::textColourOffId, PlugDataColours::popupMenuTextColour);
-            button->setColour(TextButton::textColourOnId, PlugDataColours::popupMenuTextColour);
-            button->setColour(TextButton::buttonColourId, PlugDataColours::popupMenuBackgroundColour.contrasting(0.04f));
-            button->setColour(TextButton::buttonOnColourId, PlugDataColours::popupMenuBackgroundColour.contrasting(0.075f));
+            button->setColour(TextButton::textColourOffId, colours.popupMenuTextColour);
+            button->setColour(TextButton::textColourOnId, colours.popupMenuTextColour);
+            button->setColour(TextButton::buttonColourId, colours.popupMenuBackgroundColour.contrasting(0.04f));
+            button->setColour(TextButton::buttonOnColourId, colours.popupMenuBackgroundColour.contrasting(0.075f));
             button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
 
             addAndMakeVisible(button);
@@ -832,9 +846,11 @@ public:
 
     void paint(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
         if(isMouseOver())
         {
-            g.setColour(PlugDataColours::toolbarHoverColour);
+            g.setColour(colours.toolbarHoverColour);
             g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(1, 3.5f), Corners::defaultCornerRadius);
         }
 
@@ -845,8 +861,8 @@ public:
         constexpr float gap = 3.0f;
         auto const startX = std::max(0.0f, (getWidth() - (iconW + gap + textW)) * 0.5f);
 
-        Fonts::drawIcon(g, Icons::CPU, Rectangle<int>(roundToInt(startX), 0, roundToInt(iconW), getHeight()), PlugDataColours::toolbarTextColour, 14);
-        g.setColour(PlugDataColours::toolbarTextColour);
+        Fonts::drawIcon(g, Icons::CPU, Rectangle<int>(roundToInt(startX), 0, roundToInt(iconW), getHeight()), colours.toolbarTextColour, 14);
+        g.setColour(colours.toolbarTextColour);
         g.setFont(font);
         g.drawText(txt, Rectangle<float>(startX + iconW + gap, 0.0f, textW + 2.0f, static_cast<float>(getHeight())), Justification::centredLeft);
     }
@@ -1180,8 +1196,10 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto const inactiveColour = PlugDataColours::toolbarHoverColour;
-        auto const activeColour = PlugDataColours::toolbarActiveColour.interpolatedWith(PlugDataColours::toolbarBackgroundColour, 0.8f);
+        auto const& colours = getThemeColours(*this);
+
+        auto const inactiveColour = colours.toolbarHoverColour;
+        auto const activeColour = colours.toolbarActiveColour.interpolatedWith(colours.toolbarBackgroundColour, 0.8f);
 
         constexpr float cornerRadius = Corners::defaultCornerRadius;
 
@@ -1199,7 +1217,7 @@ public:
         g.fillPath(textPath);
 
         if (!getToggleState()) {
-            g.setColour(PlugDataColours::toolbarHoverColour.contrasting(0.12f));
+            g.setColour(colours.toolbarHoverColour.contrasting(0.12f));
             g.drawLine(0.5f, 3.5f, 0.5f, getHeight() - 3.5f, 1.0f);
         }
 
@@ -1208,7 +1226,7 @@ public:
             iconColour = iconColour.contrasting(0.2f);
         }
 
-        g.setColour(PlugDataColours::toolbarTextColour.withAlpha(0.8f));
+        g.setColour(colours.toolbarTextColour.withAlpha(0.8f));
         g.setFont(Fonts::getSemiBoldFont().withHeight(13.5f));
         g.drawText(getButtonText(), 0, 0, getWidth(), getHeight(), Justification::centred);
     }
@@ -1220,6 +1238,8 @@ public:
 
     explicit OversampleSettings(int const currentSelection)
     {
+        auto const& colours = getThemeColours(*this);
+
         one.setConnectedEdges(Button::ConnectedOnRight);
         two.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
         four.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
@@ -1235,10 +1255,10 @@ public:
                 onChange(i);
             };
 
-            button->setColour(TextButton::textColourOffId, PlugDataColours::popupMenuTextColour);
-            button->setColour(TextButton::textColourOnId, PlugDataColours::popupMenuTextColour);
-            button->setColour(TextButton::buttonColourId, PlugDataColours::popupMenuBackgroundColour.contrasting(0.04f));
-            button->setColour(TextButton::buttonOnColourId, PlugDataColours::popupMenuBackgroundColour.contrasting(0.075f));
+            button->setColour(TextButton::textColourOffId, colours.popupMenuTextColour);
+            button->setColour(TextButton::textColourOnId, colours.popupMenuTextColour);
+            button->setColour(TextButton::buttonColourId, colours.popupMenuBackgroundColour.contrasting(0.04f));
+            button->setColour(TextButton::buttonOnColourId, colours.popupMenuBackgroundColour.contrasting(0.075f));
             button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
 
             addAndMakeVisible(button);
@@ -1274,6 +1294,8 @@ public:
 
     explicit LimiterSettings(int const currentSelection)
     {
+        auto const& colours = getThemeColours(*this);
+
         one.setConnectedEdges(Button::ConnectedOnRight);
         two.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
         three.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
@@ -1289,10 +1311,10 @@ public:
                 onChange(i);
             };
 
-            button->setColour(TextButton::textColourOffId, PlugDataColours::popupMenuTextColour);
-            button->setColour(TextButton::textColourOnId, PlugDataColours::popupMenuTextColour);
-            button->setColour(TextButton::buttonColourId, PlugDataColours::popupMenuBackgroundColour.contrasting(0.04f));
-            button->setColour(TextButton::buttonOnColourId, PlugDataColours::popupMenuBackgroundColour.contrasting(0.075f));
+            button->setColour(TextButton::textColourOffId, colours.popupMenuTextColour);
+            button->setColour(TextButton::textColourOnId, colours.popupMenuTextColour);
+            button->setColour(TextButton::buttonColourId, colours.popupMenuBackgroundColour.contrasting(0.04f));
+            button->setColour(TextButton::buttonOnColourId, colours.popupMenuBackgroundColour.contrasting(0.075f));
             button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
 
             addAndMakeVisible(button);
@@ -1418,7 +1440,7 @@ public:
     void paint(Graphics& g) override
     {
         if (!ProjectInfo::isStandalone) {
-            g.setColour(PlugDataColours::popupMenuBackgroundColour.contrasting(0.04f));
+            g.setColour(getThemeColours(*this).popupMenuBackgroundColour.contrasting(0.04f));
             g.fillRoundedRectangle(tailLengthNumber.getBounds().reduced(0, 2).toFloat(), Corners::defaultCornerRadius);
             g.fillRoundedRectangle(latencyNumber.getBounds().reduced(0, 2).toFloat(), Corners::defaultCornerRadius);
         }
@@ -1554,9 +1576,11 @@ public:
 
     void audioProcessedChanged(bool const audioProcessed) override
     {
+        auto const& colours = getThemeColours(*this);
+
         auto const colour = audioProcessed
-            ? PlugDataColours::toolbarActiveColour
-            : PlugDataColours::signalColour;
+            ? colours.toolbarActiveColour
+            : colours.signalColour;
         toggle.setColour(TextButton::textColourOnId, colour);
     }
 
@@ -1566,6 +1590,8 @@ public:
 
     void paint(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
         auto const bounds = getLocalBounds().toFloat().reduced(0, 3.5f);
         constexpr float cornerRadius = Corners::defaultCornerRadius;
         auto const chevronWidth = 14.0f;
@@ -1581,7 +1607,7 @@ public:
                                       togglePart.getWidth(), togglePart.getHeight(),
                                       cornerRadius, cornerRadius,
                                       true, false, true, false);
-                g.setColour(PlugDataColours::toolbarHoverColour.withAlpha(toggleHovered ? 1.0f : 0.5f));
+                g.setColour(colours.toolbarHoverColour.withAlpha(toggleHovered ? 1.0f : 0.5f));
                 g.fillPath(p);
             }
 
@@ -1592,7 +1618,7 @@ public:
                                       chevronPart.getWidth(), chevronPart.getHeight(),
                                       cornerRadius, cornerRadius,
                                       false, true, false, true);
-                g.setColour(PlugDataColours::toolbarHoverColour.withAlpha(chevronHovered ? 1.0f : 0.5f));
+                g.setColour(colours.toolbarHoverColour.withAlpha(chevronHovered ? 1.0f : 0.5f));
                 g.fillPath(p);
             }
         }
@@ -1749,8 +1775,10 @@ void AudioToolbar::updateOversampling()
 
 void AudioToolbar::lookAndFeelChanged()
 {
-    oversamplingBadge->setBadgeColour(PlugDataColours::toolbarActiveColour, PlugDataColours::toolbarActiveColour.contrasting());
-    dawLatencyBadge->setBadgeColour(PlugDataColours::toolbarActiveColour, PlugDataColours::toolbarActiveColour.contrasting());
+    auto const& colours = getThemeColours(*this);
+
+    oversamplingBadge->setBadgeColour(colours.toolbarActiveColour, colours.toolbarActiveColour.contrasting());
+    dawLatencyBadge->setBadgeColour(colours.toolbarActiveColour, colours.toolbarActiveColour.contrasting());
     recordingBadge->setBadgeColour(Colour(245, 62, 62), Colours::white);
 }
 
