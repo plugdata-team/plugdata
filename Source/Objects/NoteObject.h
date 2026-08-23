@@ -259,15 +259,24 @@ public:
         return !noteEditor.isReadOnly();
     }
 
+    int getTextHeightForWidth(int const width)
+    {
+        auto const editorBounds = noteEditor.getBounds();
+        noteEditor.setBounds(editorBounds.getX(), editorBounds.getY(), width + 6, 1);
+        auto const textHeight = noteEditor.getTextHeight();
+        noteEditor.setBounds(editorBounds);
+
+        return textHeight;
+    }
+
     Rectangle<int> getPdBounds() override
     {
-        auto const height = noteEditor.getTextHeight();
         auto const stringWidth = CachedFontStringWidth::get()->calculateStringWidth(getFont(), getNote()) + 12;
 
         if (auto note = ptr.get<t_fake_note>()) {
-            int width = note->x_resized ? note->x_max_pixwidth : stringWidth;
+            int const width = note->x_resized ? note->x_max_pixwidth : stringWidth;
 
-            return { note->x_obj.te_xpix, note->x_obj.te_ypix, width, height + 2 };
+            return { note->x_obj.te_xpix, note->x_obj.te_ypix, width, getTextHeightForWidth(width) + 2 };
         }
 
         return { };
@@ -305,8 +314,7 @@ public:
                 note->x_resized = 1;
                 note->x_max_pixwidth = bounds.getWidth() - Object::doubleMargin;
 
-                // Set editor size first, so getTextHeight will return a correct result
-                noteObject->noteEditor.setSize(note->x_max_pixwidth + 6, noteObject->noteEditor.getHeight());
+                // getPdBounds() measures the text at the new width for us
                 bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
             }
         };
