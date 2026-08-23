@@ -1000,6 +1000,7 @@ void TabComponent::showTab(Canvas* cnv, int const splitIndex)
     if (auto* s = editor->getSidebarForPanel(Sidebar::PatchSearchPanel))
         s->clearSearchOutliner();
 
+    editor->updateSelection(getCurrentCanvas());
     editor->updateCommandStatus();
 
     addLastShownTab(cnv, splitIndex);
@@ -1363,6 +1364,8 @@ void TabComponent::setActiveSplit(Canvas* cnv)
 
         if (auto* s = editor->getSidebarForPanel(Sidebar::PatchSearchPanel))
             s->updateSearch(true);
+
+        editor->updateSelection(getCurrentCanvas());
     }
 }
 

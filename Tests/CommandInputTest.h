@@ -118,9 +118,46 @@ private:
             // Other handled keys
             commandInput->keyPressed(key(KeyPress::spaceKey), textEditor);
             commandInput->keyPressed(key(KeyPress::backspaceKey), textEditor);
+
+            // Multiline input must be able to shrink after expanding. JUCE's
+            // TextEditor::getTextHeight() includes the viewport height, so this
+            // specifically guards against accidentally using it for sizing.
+            textEditor->setText("first line", false);
+            textEditor->moveCaretToEnd();
+            textEditor->insertTextAtCaret("\nsecond line\nthird line");
+            textEditor->onTextChange();
+            auto const expandedHeight = commandInput->getInputHeight();
+            expect(expandedHeight > 30, "multiline input must expand");
+
+            textEditor->setText("single line", false);
+            textEditor->onTextChange();
+            expectEquals(commandInput->getInputHeight(), 30, "single-line input must shrink to its minimum height");
+            expect(commandInput->getInputHeight() < expandedHeight, "input must shrink after multiline text is removed");
         } else {
             expect(false, "command input must contain a TextEditor");
         }
+
+        // Selection updates can arrive asynchronously from a canvas that is no
+        // longer current. The command target must always reflect the active tab.
+        auto* otherCanvas = editor->getTabComponent().openPatch(String(
+            "#N canvas 100 100 600 400 12;\n"
+            "#X obj 50 50 metro 250;\n"));
+        otherCanvas->performSynchronise();
+        otherCanvas->setSelected(otherCanvas->objects[0], true);
+        editor->updateSelection(otherCanvas);
+        expectEquals(editor->commandInput->getConsoleTargetName(), String("metro >"), "target must follow the active tab");
+
+        editor->getTabComponent().showTab(cnv);
+        cnv->setSelected(cnv->objects[0], true);
+        editor->updateSelection(otherCanvas);
+        expectEquals(editor->commandInput->getConsoleTargetName(), String("osc~ >"), "stale selection updates must use the active tab");
+
+        editor->getTabComponent().showTab(otherCanvas, 1);
+        otherCanvas->setSelected(otherCanvas->objects[0], true);
+        editor->updateSelection(otherCanvas);
+        editor->getTabComponent().setActiveSplit(cnv);
+        expectEquals(editor->commandInput->getConsoleTargetName(), String("osc~ >"), "target must follow the active split");
+        editor->getTabComponent().setActiveSplit(otherCanvas);
 
         // Focus change toggles helper buttons
         commandInput->globalFocusChanged(commandInput.get());

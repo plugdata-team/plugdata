@@ -296,7 +296,7 @@ public:
 
     void updateHelpButtonState(bool animate = false)
     {
-        int const height = std::max(commandInput.getTextHeight() + 4, 30) + (hasInputFocus ? helperRowHeight : 0);
+        int const height = getInputHeight() + (hasInputFocus ? helperRowHeight : 0);
         auto newBounds = Rectangle<int>(getX(), getBounds().getBottom() - height, getWidth(), height);
         if(newBounds != getBounds())
         {
@@ -796,7 +796,7 @@ public:
         auto const& colours = getThemeColours(*this);
 
         auto bounds = getLocalBounds();
-        int const inputHeight = std::max(commandInput.getTextHeight() + 4, 30);
+        int const inputHeight = getInputHeight();
         auto const inputRow = bounds.removeFromBottom(inputHeight);
 
         g.setColour(colours.toolbarOutlineColour.withAlpha(0.8f));
@@ -828,10 +828,20 @@ public:
         commandInput.setBounds(bounds.withTrimmedLeft(consoleTargetLength + 4).removeFromBottom(inputHeight));
     }
 
-    int getInputHeight()
+    int getInputHeight() const
     {
-        return std::max(commandInput.getTextHeight() + 4, 30);
+        auto const border = commandInput.getBorder();
+        auto const viewportHeight = commandInput.getHeight() - border.getTopAndBottom();
+        auto const laidOutTextHeight = commandInput.getTextHeight();
+
+        if (laidOutTextHeight > viewportHeight)
+            return std::max(laidOutTextHeight + border.getTopAndBottom(), 30);
+
+        auto const endCaret = commandInput.getCaretRectangleForCharIndex(commandInput.getTotalNumChars());
+        return std::max(endCaret.getBottom() + border.getBottom(), 30);
     }
+
+    String getConsoleTargetName() const { return consoleTargetName; }
 
     void setConsoleTargetName(String const& target)
     {
