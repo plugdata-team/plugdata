@@ -155,6 +155,9 @@ void Object::settingsChanged(String const& name, var const& value)
         updateIoletGeometry();
         repaint();
     }
+    if (name == "overlays") {
+        repaint();
+    }
 }
 
 void Object::valueChanged(Value& v)
