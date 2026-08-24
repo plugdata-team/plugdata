@@ -829,6 +829,7 @@ void TabComponent::handleAsyncUpdate()
             editor->showWelcomePanel(false);
             if (!editor->isInPluginMode() || editor->pluginMode->getPatch()->getPointer().get() != patchInPluginMode->getUncheckedPointer()) {
                 editor->pluginMode = std::make_unique<PluginMode>(editor, patchInPluginMode);
+                editor->updateStandaloneWindowControls();
             }
             editor->pluginMode->updateSize();
             editor->parentSizeChanged(); // hack to force the window title buttons to hide
@@ -837,6 +838,7 @@ void TabComponent::handleAsyncUpdate()
         // if the editor is in pluginmode
     } else if (editor->isInPluginMode()) {
         editor->pluginMode.reset(nullptr);
+        editor->updateStandaloneWindowControls();
     }
 
     // First, remove canvases that no longer exist

@@ -139,7 +139,6 @@ public:
     void commandKeyChanged(bool isHeld) override;
     void setUseBorderResizer(bool shouldUse);
     void updateStandaloneWindowControls();
-    void setStandaloneWindowControlsEnabled(bool shouldBeEnabled);
 
     Sidebar* getLeftSidebar() const { return leftSidebar.get(); }
     Sidebar* getRightSidebar() const { return rightSidebar.get(); }
@@ -241,7 +240,6 @@ private:
     std::unique_ptr<Button> standaloneWindowMinimiseButton;
     std::unique_ptr<Button> standaloneWindowMaximiseButton;
     std::unique_ptr<Button> standaloneWindowCloseButton;
-    bool standaloneWindowControlsEnabled = true;
 
     std::unique_ptr<NVGGraphicsContext> nvgCtx;
 

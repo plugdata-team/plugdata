@@ -55,7 +55,6 @@ NVGSurface::NVGSurface(PluginEditor* e)
             return;
 
         frameTimeOverlay->addVBlank(timestampSec);
-        requestBackendRender();
     });
 #endif
 
@@ -236,11 +235,20 @@ void NVGSurface::run()
     createRenderContext();
 
     while (!threadShouldExit()) {
-        if (!backendRenderRequested.exchange(false))
-            wait(-1);
+        // Always wait, even when a request is already pending. notify() signals an
+        // auto-reset WaitableEvent, so a signal raised while we were busy rendering
+        // stays raised. Skipping the wait leaves it raised, and the next iteration
+        // then wakes immediately with the flag already cleared -- rendering and
+        // presenting a redundant frame for every request.
+        wait(-1);
 
         if (threadShouldExit())
             break;
+
+        // Spurious wake: several notify() calls coalesce into one signal, so a wake
+        // without a pending request just means the work was already done last pass.
+        if (!backendRenderRequested.exchange(false))
+            continue;
 
         JUCE_AUTORELEASEPOOL
         {
@@ -350,15 +358,13 @@ void NVGSurface::renderBackendFrame()
         if (frameTimeOverlay)
             frameTimeOverlay->addFrame(Time::getMillisecondCounterHiRes() - renderStartMs);
 #endif
-    }
 
 #if PLUGDATA_NVG_FRAME_TIME_OVERLAY
-    drawFrameTimeOverlay(viewWidth, viewHeight, pixelScale);
+        drawFrameTimeOverlay(viewWidth, viewHeight, pixelScale);
 #endif
 
-    // Composite the persistent framebuffer onto the screen every pass, so the
-    // window keeps showing the accumulated content after each buffer swap.
-    presentFramebuffer(viewWidth, viewHeight);
+        presentFramebuffer(viewWidth, viewHeight);
+    }
 }
 
 #if NANOVG_GL_IMPLEMENTATION

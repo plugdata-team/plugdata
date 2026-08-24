@@ -20,10 +20,6 @@ public:
 
     ~Dialog() override
     {
-        if (auto* editor = dynamic_cast<PluginEditor*>(parentComponent)) {
-            editor->setStandaloneWindowControlsEnabled(true);
-        }
-
         if (auto const* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent())) {
             if (ProjectInfo::isStandalone) {
                 if (auto* closeButton = window->getCloseButton())

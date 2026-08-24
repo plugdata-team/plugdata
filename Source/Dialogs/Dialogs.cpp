@@ -78,10 +78,6 @@ Dialog::Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int const c
         }
         window->repaint();
     }
-
-    if (auto* pluginEditor = dynamic_cast<PluginEditor*>(editor)) {
-        pluginEditor->setStandaloneWindowControlsEnabled(false);
-    }
 }
 
 bool Dialog::wantsRoundedCorners() const

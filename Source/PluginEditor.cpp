@@ -493,21 +493,16 @@ void PluginEditor::setUseBorderResizer(bool const shouldUse)
     }
 }
 
-void PluginEditor::setStandaloneWindowControlsEnabled(bool const shouldBeEnabled)
-{
-    standaloneWindowControlsEnabled = shouldBeEnabled;
-    updateStandaloneWindowControls();
-}
-
 void PluginEditor::updateStandaloneWindowControls()
 {
 #if JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD
     if (!ProjectInfo::isStandalone)
         return;
 
+    auto const enabled = !SettingsFile::getInstance()->getProperty<bool>("native_window") && !pluginMode;
     auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent());
     for (auto* button : { standaloneWindowMinimiseButton.get(), standaloneWindowMaximiseButton.get(), standaloneWindowCloseButton.get() }) {
-        button->setVisible(true);
+        button->setVisible(enabled);
         button->toFront(false);
     }
 
@@ -516,8 +511,6 @@ void PluginEditor::updateStandaloneWindowControls()
 
     auto const titleBarArea = Rectangle<int>(0, 7, getWidth() - 6, 23);
     getLookAndFeel().positionDocumentWindowButtons(*window, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), standaloneWindowMinimiseButton.get(), standaloneWindowMaximiseButton.get(), standaloneWindowCloseButton.get(), false);
-#else
-    ignoreUnused(standaloneWindowControlsEnabled);
 #endif
 }
 
