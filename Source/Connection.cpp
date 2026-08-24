@@ -161,6 +161,7 @@ NVGcolor Connection::getConnectionColour() const
 void Connection::render(NVGcontext* nvg)
 {
     auto connectionColour = getConnectionColour();
+    nanovg::nvgTranslate(nvg, getX(), getY());
 
     bool isSignalCable = cableType == SignalCable && connectionStyle != PlugDataLook::ConnectionStyleVanilla;
     auto dashColor = shadowColour;
@@ -177,6 +178,7 @@ void Connection::render(NVGcontext* nvg)
     // Paths don't draw currently if they have length of zero points
     if (pathLength < 1.0f) {
         auto pathFromOrigin = getPath();
+        pathFromOrigin.applyTransform(AffineTransform::translation(-getX(), -getY()));
         auto startPoint = pathFromOrigin.getPointAlongPath(0.0);
 
         nanovg::nvgBeginPath(nvg);
@@ -200,6 +202,8 @@ void Connection::render(NVGcontext* nvg)
     bool cacheHit = cachedPath.stroke();
     if (!cacheHit) {
         auto pathFromOrigin = getPath();
+        pathFromOrigin.applyTransform(AffineTransform::translation(-getX(), -getY()));
+
         setJUCEPath(nvg, pathFromOrigin);
         nanovg::nvgStroke(nvg);
         cachedPath.save(nvg);
@@ -212,8 +216,8 @@ void Connection::render(NVGcontext* nvg)
         nanovg::nvgFillColor(nvg, handleColour);
 
         nanovg::nvgBeginPath(nvg);
-        nanovg::nvgCircle(nvg, expandedStartHandle.getCentreX(), expandedStartHandle.getCentreY(), expandedStartHandle.getWidth() / 2);
-        nanovg::nvgCircle(nvg, expandedEndHandle.getCentreX(), expandedEndHandle.getCentreY(), expandedEndHandle.getWidth() / 2);
+        nanovg::nvgCircle(nvg, expandedStartHandle.getCentreX() - getX(), expandedStartHandle.getCentreY() - getY(), expandedStartHandle.getWidth() / 2);
+        nanovg::nvgCircle(nvg, expandedEndHandle.getCentreX() - getX(), expandedEndHandle.getCentreY() - getY(), expandedEndHandle.getWidth() / 2);
         nanovg::nvgFill(nvg);
     }
 
@@ -232,7 +236,7 @@ void Connection::render(NVGcontext* nvg)
     constexpr float arrowWidth = 8.0f;
     constexpr float arrowLength = 12.0f;
 
-    auto renderArrow = [this, nvg, connectionColour](Path const& path, float const connectionLength) {
+    auto renderArrow = [nvg, connectionColour](Path const& path, float const connectionLength) {
         // get the center point of the connection path
         auto const arrowCenter = connectionLength * 0.5f;
         auto const arrowBase = path.getPointAlongPath(arrowCenter - arrowLength * 0.5f);
@@ -264,11 +268,13 @@ void Connection::render(NVGcontext* nvg)
                 if (length > arrowLength * (isStartOrEnd ? 3 : 2)) {
                     Path segmentedPath;
                     segmentedPath.addLineSegment(pathLine, 0.0f);
+                    segmentedPath.applyTransform(AffineTransform::translation(-getX(), -getY()));
                     renderArrow(segmentedPath, length);
                 }
             }
         } else {
             auto connectionPath = getPath();
+            connectionPath.applyTransform(AffineTransform::translation(-getX(), -getY()));
             if (pathLength > arrowLength * 2) {
                 renderArrow(connectionPath, pathLength);
             }
