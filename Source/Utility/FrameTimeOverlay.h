@@ -109,29 +109,20 @@ public:
         auto const h = panelRows * u;
         auto const pad = 6.0f * u;
 
-        nvgBeginPath(nvg);
-        nvgRoundedRect(nvg, x, y, w, h, 4.0f * u);
-        nvgFillColor(nvg, nvgRGBA(24, 24, 28, 255));
-        nvgFill(nvg);
-        nvgBeginPath(nvg);
-        nvgRoundedRect(nvg, x + 0.5f, y + 0.5f, w - 1.0f, h - 1.0f, 4.0f * u);
-        nvgStrokeColor(nvg, nvgRGBA(255, 255, 255, 46));
-        nvgStrokeWidth(nvg, std::max(1.0f, u * 0.5f));
-        nvgStroke(nvg);
+        nvgDrawRoundedRect(nvg, x, y, w, h, nvgRGBA(24, 24, 28, 255), nvgRGBA(255, 255, 255, 46), 4.0f * u);
 
         auto const left = x + pad;
         auto const right = x + w - pad;
 
-        auto const title = nvgRGBA(255, 255, 255, 235);
         auto const label = nvgRGBA(200, 202, 210, 255);
         auto const value = nvgRGBA(255, 255, 255, 235);
 
         char buf[32];
 
         float rowY = y + pad;
-        drawText(nvg, left, rowY, u, "NVGSURFACE", title);
+        drawText(nvg, left, rowY, u, "FRAME", label);
         std::snprintf(buf, sizeof(buf), "#%llu", static_cast<unsigned long long>(snapshot.frameCount));
-        drawTextRight(nvg, right, rowY, u, buf, nvgRGBA(255, 255, 255, 120));
+        drawTextRight(nvg, right, rowY, u, buf, value);
 
         auto const vsyncMs = snapshot.averageVsyncMs;
         auto const vsyncFps = vsyncMs > 0.0 ? 1000.0 / vsyncMs : 0.0;
@@ -156,9 +147,6 @@ public:
 
         std::snprintf(buf, sizeof(buf), "%.2f MS", snapshot.peakRenderMs);
         drawRow("RENDER MAX", buf, value);
-
-        std::snprintf(buf, sizeof(buf), "%i FPS", snapshot.peakRenderMs > 0.0 ? static_cast<int>(1000.0 / snapshot.peakRenderMs) : 0);
-        drawRow("RENDER FPS", buf, value);
 
         std::snprintf(buf, sizeof(buf), "%.0f%%", renderCpu);
         drawRow("RENDER CPU", buf, value);
@@ -194,10 +182,8 @@ public:
         auto const graphY = rowY + 8.0f * u;
         auto const graphH = 20.0f * u;
 
-        nvgBeginPath(nvg);
-        nvgRoundedRect(nvg, graphX, graphY, graphW, graphH, 2.0f * u);
         nvgFillColor(nvg, nvgRGBA(255, 255, 255, 18));
-        nvgFill(nvg);
+        nvgFillRoundedRect(nvg, graphX, graphY, graphW, graphH, 2.0f * u);
 
         auto const graphMax = std::max({ 8.0, vsyncMs * 1.5, snapshot.peakRenderMs });
 
@@ -231,7 +217,7 @@ public:
 private:
     static constexpr int historySize = 96;
     static constexpr float panelCells = 128.0f;   // width  in font-pixel units
-    static constexpr float panelRows = 174.0f;    // height in font-pixel units
+    static constexpr float panelRows = 162.0f;    // height in font-pixel units
 
     // One font-pixel, in device pixels, at the given render scale.
     static float unit(float scale) { return std::max(1.0f, std::round(scale)); }
@@ -303,6 +289,7 @@ private:
         case 'P': { static const std::uint8_t g[7] = { 0b11110, 0b10001, 0b10001, 0b11110, 0b10000, 0b10000, 0b10000 }; return g; }
         case 'R': { static const std::uint8_t g[7] = { 0b11110, 0b10001, 0b10001, 0b11110, 0b10100, 0b10010, 0b10001 }; return g; }
         case 'S': { static const std::uint8_t g[7] = { 0b01110, 0b10001, 0b10000, 0b01110, 0b00001, 0b10001, 0b01110 }; return g; }
+        case 'T': { static const std::uint8_t g[7] = { 0b11111, 0b00100, 0b00100, 0b00100, 0b00100, 0b00100, 0b00100 }; return g; }
         case 'U': { static const std::uint8_t g[7] = { 0b10001, 0b10001, 0b10001, 0b10001, 0b10001, 0b10001, 0b01110 }; return g; }
         case 'V': { static const std::uint8_t g[7] = { 0b10001, 0b10001, 0b10001, 0b10001, 0b10001, 0b01010, 0b00100 }; return g; }
         case 'X': { static const std::uint8_t g[7] = { 0b10001, 0b10001, 0b01010, 0b00100, 0b01010, 0b10001, 0b10001 }; return g; }

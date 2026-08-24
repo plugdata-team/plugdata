@@ -298,26 +298,6 @@ SmallArray<Rectangle<int>> OfflineObjectRenderer::getObjectBoundsForPatch(String
     return objectBounds;
 }
 
-String OfflineObjectRenderer::patchToSVG(PlugDataLook const& look, String const& patch)
-{
-    auto objectRects = getObjectBoundsForPatch(patch);
-
-    String svgContent;
-    auto regionOfInterest = Rectangle<int>();
-    for (auto& b : objectRects) {
-        regionOfInterest = regionOfInterest.getUnion(b.reduced(Object::margin));
-    }
-
-    for (auto& b : objectRects) {
-        auto rect = b - regionOfInterest.getPosition();
-        svgContent += String::formatted(
-            "<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" rx=\"%.1f\" ry=\"%.1f\" />\n",
-            rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight(), look.getObjectCornerRadius(), look.getObjectCornerRadius());
-    }
-
-    return "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">\n" + svgContent + "</svg>";
-}
-
 ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch, float const scale)
 {
     static UnorderedMap<String, ImageWithOffset> patchImageCache;

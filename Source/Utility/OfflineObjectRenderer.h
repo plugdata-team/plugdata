@@ -25,14 +25,13 @@ struct PlugDataLook;
 
 class OfflineObjectRenderer {
 public:
-    static String patchToSVG(PlugDataLook const& look, String const& patch);
     static ImageWithOffset patchToMaskedImage(PlugDataLook const& look, String const& patch, float scale, bool makeInvalidImage = false);
+    static SmallArray<Rectangle<int>> getObjectBoundsForPatch(String const& patch);
 
     static std::pair<SmallArray<bool>, SmallArray<bool>> countIolets(String const& patch);
     static bool checkIfPatchIsValid(String const& patch);
 
 private:
-    static SmallArray<Rectangle<int>> getObjectBoundsForPatch(String const& patch);
     static bool parseGraphSize(String const& objectText, Rectangle<int>& bounds);
 
     static ImageWithOffset patchToTempImage(String const& patch, float scale);
