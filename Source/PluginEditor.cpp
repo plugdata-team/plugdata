@@ -502,7 +502,10 @@ void PluginEditor::setStandaloneWindowControlsEnabled(bool const shouldBeEnabled
 void PluginEditor::updateStandaloneWindowControls()
 {
 #if JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD
-    auto* window = ProjectInfo::isStandalone ? dynamic_cast<PlugDataWindow*>(getTopLevelComponent()) : nullptr;
+    if (!ProjectInfo::isStandalone)
+        return;
+
+    auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent());
     for (auto* button : { standaloneWindowMinimiseButton.get(), standaloneWindowMaximiseButton.get(), standaloneWindowCloseButton.get() }) {
         button->setVisible(true);
         button->toFront(false);
