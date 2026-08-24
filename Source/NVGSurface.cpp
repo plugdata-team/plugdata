@@ -5,7 +5,7 @@
  */
 
 #include <juce_gui_basics/juce_gui_basics.h>
-#if NANOVG_METAL_IMPLEMENTATION && (JUCE_MAC || JUCE_IOS)
+#if NANOVG_METAL_IMPLEMENTATION
 #    include <juce_gui_extra/juce_gui_extra.h>
 #else
 #    include <juce_opengl/juce_opengl.h>
@@ -29,7 +29,7 @@ void nvgSetCornerRadius(float radius, bool left, bool right);
 
 NVGSurface::NVGSurface(PluginEditor* e)
     :
-#if NANOVG_METAL_IMPLEMENTATION && (JUCE_MAC || JUCE_IOS)
+#if NANOVG_METAL_IMPLEMENTATION
     Thread("NVGSurface Metal Renderer"),
 #endif
     editor(e)
@@ -83,7 +83,7 @@ void NVGSurface::initialise()
     // createRenderContext/renderBackendFrame reads a valid snapshot.
     snapshotEditorSize();
 
-#if NANOVG_METAL_IMPLEMENTATION && (JUCE_MAC || JUCE_IOS)
+#if NANOVG_METAL_IMPLEMENTATION
     if (!metalView) {
         auto* peer = getPeer();
         if (!peer)
@@ -123,7 +123,7 @@ void NVGSurface::createRenderContext()
     if (baseNvg)
         return;
 
-#if NANOVG_METAL_IMPLEMENTATION && (JUCE_MAC || JUCE_IOS)
+#if NANOVG_METAL_IMPLEMENTATION
     // Render thread: use the message-thread snapshot, not the editor Component.
     auto const pixelScale = calculateRenderScale();
     auto const viewWidth = jmax(1, roundToInt(editorWidth.load(std::memory_order_relaxed) * pixelScale));
@@ -148,7 +148,7 @@ void NVGSurface::createRenderContext()
             if (!isShowingMessageBox) {
                 isShowingMessageBox = true;
                 std::cerr << "could not initialise nvg" << std::endl;
-#if NANOVG_METAL_IMPLEMENTATION && (JUCE_MAC || JUCE_IOS)
+#if NANOVG_METAL_IMPLEMENTATION
                 auto const message = "Please check that Metal is available and working on this system.";
 #else
                 auto const message = "Please check that you have up-to-date graphics drivers installed. At least OpenGL 3.0 support is required to run plugdata.";
@@ -187,6 +187,10 @@ void NVGSurface::destroyRenderContext()
 
     // Destroy the render-thread-owned main framebuffer while its backend context
     // is still current/valid (before nvgDeleteContext).
+#if PLUGDATA_NVG_FRAME_TIME_OVERLAY && NANOVG_GL_IMPLEMENTATION
+    shutdownOpenGLGPUTimer();
+#endif
+
     if (mainFramebuffer) {
         nvgDeleteFramebuffer(reinterpret_cast<NVGframebuffer*>(mainFramebuffer));
         mainFramebuffer = nullptr;
@@ -215,6 +219,9 @@ void NVGSurface::newOpenGLContextCreated()
 {
     glContext->setSwapInterval(0);
     createRenderContext();
+#if PLUGDATA_NVG_FRAME_TIME_OVERLAY
+    initialiseOpenGLGPUTimer();
+#endif
 }
 
 void NVGSurface::openGLContextClosing()
@@ -223,7 +230,7 @@ void NVGSurface::openGLContextClosing()
 }
 #endif
 
-#if NANOVG_METAL_IMPLEMENTATION && (JUCE_MAC || JUCE_IOS)
+#if NANOVG_METAL_IMPLEMENTATION
 void NVGSurface::run()
 {
     createRenderContext();
@@ -249,7 +256,7 @@ void NVGSurface::presentFramebuffer(int viewWidth, int viewHeight)
 {
     nvgBindFramebuffer(nullptr);
 
-#if NANOVG_METAL_IMPLEMENTATION && (JUCE_MAC || JUCE_IOS)
+#if NANOVG_METAL_IMPLEMENTATION
     // Render thread: resize the drawable via the cached layer, never the view.
     if (metalLayer)
         mnvgSetLayerDrawableSize(metalLayer, viewWidth, viewHeight);
@@ -317,9 +324,23 @@ void NVGSurface::renderBackendFrame()
     // Replay the recorded frame: redraws the damaged region into the persistent
     // framebuffer (the rest of it is preserved).
 #if PLUGDATA_NVG_FRAME_TIME_OVERLAY
+#    if NANOVG_METAL_IMPLEMENTATION
+    double completedGpuTimeMs = 0.0;
+    if (frameTimeOverlay && mnvgGetGPUTimerResult(baseNvg, &completedGpuTimeMs))
+        frameTimeOverlay->setGpuTime(completedGpuTimeMs);
+    if (nanovg::hasPendingFrame(asyncNvg))
+        mnvgBeginGPUTimer(baseNvg);
+#    elif NANOVG_GL_IMPLEMENTATION
+    pollOpenGLGPUTimer();
+    bool const gpuTimerStarted = nanovg::hasPendingFrame(asyncNvg) && beginOpenGLGPUTimer();
+#    endif
     auto const renderStartMs = Time::getMillisecondCounterHiRes();
 #endif
     bool const didRender = nanovg::performRender(asyncNvg);
+#if PLUGDATA_NVG_FRAME_TIME_OVERLAY && NANOVG_GL_IMPLEMENTATION
+    if (gpuTimerStarted)
+        endOpenGLGPUTimer();
+#endif
 
     if (didRender) {
         frameReadyForReplay.store(false);
@@ -351,7 +372,7 @@ void NVGSurface::renderOpenGL()
 
 void NVGSurface::detachContext()
 {
-#if NANOVG_METAL_IMPLEMENTATION && (JUCE_MAC || JUCE_IOS)
+#if NANOVG_METAL_IMPLEMENTATION
     renderPacer.reset();
 
     if (isThreadRunning()) {
@@ -386,7 +407,7 @@ void NVGSurface::lookAndFeelChanged()
 
 bool NVGSurface::makeContextActive()
 {
-#if NANOVG_METAL_IMPLEMENTATION && (JUCE_MAC || JUCE_IOS)
+#if NANOVG_METAL_IMPLEMENTATION
     return isThreadRunning() && nvg.load() != nullptr;
 #elif NANOVG_GL_IMPLEMENTATION
     return glContext && glContext->isAttached();
@@ -406,7 +427,7 @@ float NVGSurface::calculateRenderScale() const
 
 void NVGSurface::updateRenderScale()
 {
-#if NANOVG_METAL_IMPLEMENTATION && (JUCE_MAC || JUCE_IOS)
+#if NANOVG_METAL_IMPLEMENTATION
     if (metalView) {
         auto const scale = OSUtils::MTLGetPixelScale(metalView);
         if (scale > 0.0f)
@@ -454,7 +475,7 @@ void NVGSurface::resized()
 
     invalidateAll();
 
-#if NANOVG_METAL_IMPLEMENTATION && (JUCE_MAC || JUCE_IOS)
+#if NANOVG_METAL_IMPLEMENTATION
     updateRenderScale();
 #endif
 }
@@ -482,7 +503,7 @@ void NVGSurface::scheduleRender()
 
 void NVGSurface::requestBackendRender()
 {
-#if NANOVG_METAL_IMPLEMENTATION && (JUCE_MAC || JUCE_IOS)
+#if NANOVG_METAL_IMPLEMENTATION
     backendRenderRequested.store(true);
     notify();
 #elif NANOVG_GL_IMPLEMENTATION
@@ -492,6 +513,96 @@ void NVGSurface::requestBackendRender()
 }
 
 #if PLUGDATA_NVG_FRAME_TIME_OVERLAY
+#if NANOVG_GL_IMPLEMENTATION
+void NVGSurface::initialiseOpenGLGPUTimer()
+{
+    shutdownOpenGLGPUTimer();
+
+    if (!baseNvg || glGenQueries == nullptr || glBeginQuery == nullptr || glEndQuery == nullptr || glGetQueryObjectiv == nullptr)
+        return;
+
+    GLint majorVersion = 0;
+    GLint minorVersion = 0;
+    glGetIntegerv(GL_MAJOR_VERSION, &majorVersion);
+    glGetIntegerv(GL_MINOR_VERSION, &minorVersion);
+
+    auto const hasCoreTimerQuery = majorVersion > 3 || (majorVersion == 3 && minorVersion >= 3);
+    auto const hasArbTimerQuery = OpenGLHelpers::isExtensionSupported("GL_ARB_timer_query");
+    auto const hasExtTimerQuery = OpenGLHelpers::isExtensionSupported("GL_EXT_timer_query");
+
+    if ((hasCoreTimerQuery || hasArbTimerQuery) && glGetQueryObjectui64v != nullptr) {
+        gpuTimerUsesExtResult = false;
+    } else if (hasExtTimerQuery && glGetQueryObjectui64vEXT != nullptr) {
+        gpuTimerUsesExtResult = true;
+    } else {
+        return;
+    }
+
+    glGenQueries(gpuTimerQueryCount, gpuTimerQueries);
+    gpuTimerSupported = true;
+}
+
+void NVGSurface::shutdownOpenGLGPUTimer()
+{
+    if (gpuTimerSupported)
+        glDeleteQueries(gpuTimerQueryCount, gpuTimerQueries);
+
+    std::fill_n(gpuTimerQueries, gpuTimerQueryCount, 0);
+    std::fill_n(gpuTimerQueryPending, gpuTimerQueryCount, false);
+    gpuTimerWriteIndex = 0;
+    gpuTimerReadIndex = 0;
+    gpuTimerActiveQuery = -1;
+    gpuTimerSupported = false;
+    gpuTimerUsesExtResult = false;
+}
+
+void NVGSurface::pollOpenGLGPUTimer()
+{
+    if (!gpuTimerSupported)
+        return;
+
+    while (gpuTimerQueryPending[gpuTimerReadIndex]) {
+        GLint available = GL_FALSE;
+        glGetQueryObjectiv(gpuTimerQueries[gpuTimerReadIndex], GL_QUERY_RESULT_AVAILABLE, &available);
+        if (available == GL_FALSE)
+            break;
+
+        GLuint64 elapsedNs = 0;
+        if (gpuTimerUsesExtResult)
+            glGetQueryObjectui64vEXT(gpuTimerQueries[gpuTimerReadIndex], GL_QUERY_RESULT, &elapsedNs);
+        else
+            glGetQueryObjectui64v(gpuTimerQueries[gpuTimerReadIndex], GL_QUERY_RESULT, &elapsedNs);
+
+        if (frameTimeOverlay)
+            frameTimeOverlay->setGpuTime(static_cast<double>(elapsedNs) / 1.0e6);
+
+        gpuTimerQueryPending[gpuTimerReadIndex] = false;
+        gpuTimerReadIndex = (gpuTimerReadIndex + 1) % gpuTimerQueryCount;
+    }
+}
+
+bool NVGSurface::beginOpenGLGPUTimer()
+{
+    if (!gpuTimerSupported || gpuTimerActiveQuery >= 0 || gpuTimerQueryPending[gpuTimerWriteIndex])
+        return false;
+
+    gpuTimerActiveQuery = gpuTimerWriteIndex;
+    glBeginQuery(GL_TIME_ELAPSED, gpuTimerQueries[gpuTimerActiveQuery]);
+    return true;
+}
+
+void NVGSurface::endOpenGLGPUTimer()
+{
+    if (gpuTimerActiveQuery < 0)
+        return;
+
+    glEndQuery(GL_TIME_ELAPSED);
+    gpuTimerQueryPending[gpuTimerActiveQuery] = true;
+    gpuTimerWriteIndex = (gpuTimerActiveQuery + 1) % gpuTimerQueryCount;
+    gpuTimerActiveQuery = -1;
+}
+#endif
+
 void NVGSurface::drawFrameTimeOverlay(int const viewWidth, int const viewHeight, float const scale)
 {
     if (!frameTimeOverlay || !baseNvg || !mainFramebuffer)
@@ -520,7 +631,7 @@ void NVGSurface::recordFrame()
     if (bounds.isEmpty())
         return;
 
-#if NANOVG_METAL_IMPLEMENTATION && (JUCE_MAC || JUCE_IOS)
+#if NANOVG_METAL_IMPLEMENTATION
     updateRenderScale();
 #endif
 
@@ -619,7 +730,7 @@ void NVGSurface::recordFrame()
     invalidArea = {};
     frameReadyForReplay.store(true);
 
-#if NANOVG_METAL_IMPLEMENTATION && (JUCE_MAC || JUCE_IOS)
+#if NANOVG_METAL_IMPLEMENTATION
     // Metal: don't wake the render thread here. renderPacer wakes it once per
     // vblank and presents the newest pending frame; waking per input event lets a
     // high-rate input stream stack up the drawable queue and lag the drag.
@@ -747,6 +858,40 @@ void NVGSurface::addBufferedObject(NVGComponent* component)
 void NVGSurface::removeBufferedObject(NVGComponent* component)
 {
     bufferedObjects.erase(component);
+}
+
+void NVGSurface::CommandBufferCache::paint(Graphics& g)
+{
+    auto* graphicsContext = dynamic_cast<NVGGraphicsContext*>(&g.getInternalContext());
+
+    // CachedComponentImage is part of JUCE's generic painting path, so retain a
+    // functional fallback for snapshots and any other non-NanoVG target.
+    if (graphicsContext == nullptr) {
+        component.paintEntireComponent(g, false);
+        return;
+    }
+
+    auto* currentContext = graphicsContext->getContext();
+    auto const currentScale = graphicsContext->getPhysicalPixelScaleFactor();
+
+    if (dirty || recordingContext != currentContext || !approximatelyEqual(recordingScale, currentScale)) {
+        commandBuffer.clear();
+        recordingContext = currentContext;
+        recordingScale = currentScale;
+        dirty = false;
+
+        nanovg::ScopedCommandRecorder recorder(currentContext, commandBuffer);
+        graphicsContext->renderComponent(component);
+    }
+
+    auto const alpha = component.getAlpha();
+    if (alpha < 1.0f)
+        g.beginTransparencyLayer(alpha);
+
+    nanovg::replay(currentContext, commandBuffer);
+
+    if (alpha < 1.0f)
+        g.endTransparencyLayer();
 }
 
 void NVGSurface::InvalidationListener::paint(Graphics& g) {

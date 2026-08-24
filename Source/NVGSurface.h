@@ -7,7 +7,7 @@
 #pragma once
 
 #include <juce_gui_basics/juce_gui_basics.h>
-#if NANOVG_METAL_IMPLEMENTATION && (JUCE_MAC || JUCE_IOS)
+#if NANOVG_METAL_IMPLEMENTATION
 #    include <juce_gui_extra/juce_gui_extra.h>
 #else
 #    include <juce_opengl/juce_opengl.h>
@@ -97,6 +97,50 @@ public:
         std::function<void(Graphics& g)> performPaint;
     };
 
+    /** Caches all NanoVG commands produced while painting a JUCE component.
+
+        Attach this to the component passed to the constructor using
+        Component::setCachedComponentImage(). Any repaint invalidates the command
+        buffer; the next paint records the component again and later paints replay
+        the recorded commands.
+    */
+    class CommandBufferCache final : public CachedComponentImage {
+    public:
+        explicit CommandBufferCache(Component& componentToCache)
+            : component(componentToCache)
+        {
+        }
+
+        void paint(Graphics& g) override;
+
+        bool invalidate(Rectangle<int> const&) override
+        {
+            dirty = true;
+            return true;
+        }
+
+        bool invalidateAll() override
+        {
+            dirty = true;
+            return true;
+        }
+
+        void releaseResources() override
+        {
+            commandBuffer.clear();
+            recordingContext = nullptr;
+            recordingScale = 0.0f;
+            dirty = true;
+        }
+
+    private:
+        Component& component;
+        nanovg::CommandBuffer commandBuffer;
+        NVGcontext* recordingContext = nullptr;
+        float recordingScale = 0.0f;
+        bool dirty = true;
+    };
+
     class InvalidationListener final : public CachedComponentImage {
     public:
         InvalidationListener(NVGSurface& s, Component* origin, bool performNvgRepaint = false, std::function<bool()> canRepaintCheck = [] { return true; })
@@ -172,9 +216,16 @@ private:
 
 #if PLUGDATA_NVG_FRAME_TIME_OVERLAY
     void drawFrameTimeOverlay(int viewWidth, int viewHeight, float scale);
+#    if NANOVG_GL_IMPLEMENTATION
+    void initialiseOpenGLGPUTimer();
+    void shutdownOpenGLGPUTimer();
+    void pollOpenGLGPUTimer();
+    bool beginOpenGLGPUTimer();
+    void endOpenGLGPUTimer();
+#    endif
 #endif
 
-#if NANOVG_METAL_IMPLEMENTATION && (JUCE_MAC || JUCE_IOS)
+#if NANOVG_METAL_IMPLEMENTATION
     void run() override;
 #endif
 
@@ -230,13 +281,23 @@ private:
 #if PLUGDATA_NVG_FRAME_TIME_OVERLAY
     std::unique_ptr<FrameTimeOverlay> frameTimeOverlay;
     std::unique_ptr<VBlankAttachment> frameTimeVBlankAttachment;
+#    if NANOVG_GL_IMPLEMENTATION
+    static constexpr int gpuTimerQueryCount = 4;
+    GLuint gpuTimerQueries[gpuTimerQueryCount]{};
+    bool gpuTimerQueryPending[gpuTimerQueryCount]{};
+    int gpuTimerWriteIndex = 0;
+    int gpuTimerReadIndex = 0;
+    int gpuTimerActiveQuery = -1;
+    bool gpuTimerSupported = false;
+    bool gpuTimerUsesExtResult = false;
+#    endif
 #endif
 
 #if NANOVG_GL_IMPLEMENTATION
     std::unique_ptr<OpenGLContext> glContext;
 #endif
 
-#if NANOVG_METAL_IMPLEMENTATION && (JUCE_MAC || JUCE_IOS)
+#if NANOVG_METAL_IMPLEMENTATION
     void* metalView = nullptr;
     void* metalLayer = nullptr;   // the view's CAMetalLayer, cached on the message
                                   // thread so the render thread never touches the view

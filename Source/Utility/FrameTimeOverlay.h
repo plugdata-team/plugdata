@@ -60,6 +60,15 @@ public:
         currentPrepareMs = clampMs(prepareMs);
     }
 
+    // Render thread: elapsed GPU time reported asynchronously by the active
+    // graphics backend for the most recently completed real frame (ms).
+    void setGpuTime(double gpuMs)
+    {
+        std::lock_guard<std::mutex> const sl(mutex);
+        currentGpuMs = clampMs(gpuMs);
+        hasGpuTime = true;
+    }
+
     // Message thread (VBlankAttachment): raw display refresh interval, tracked
     // from consecutive vblank timestamps regardless of whether a frame was
     // produced. This is the true refresh period used for the max-fps estimate.
@@ -126,11 +135,12 @@ public:
 
         auto const vsyncMs = snapshot.averageVsyncMs;
         auto const vsyncFps = vsyncMs > 0.0 ? 1000.0 / vsyncMs : 0.0;
-        auto const budgetMs = std::max(vsyncMs, snapshot.currentRenderMs);
+        auto const budgetMs = std::max({ vsyncMs, snapshot.currentRenderMs, snapshot.currentGpuMs });
         auto const maxFps = budgetMs > 0.0 ? 1000.0 / budgetMs : 0.0;
 
         auto const renderCpu = vsyncMs > 0.0 ? snapshot.currentRenderMs / vsyncMs * 100.0 : 0.0;
         auto const prepareCpu = vsyncMs > 0.0 ? snapshot.currentPrepareMs / vsyncMs * 100.0 : 0.0;
+        auto const gpuPercent = vsyncMs > 0.0 ? snapshot.currentGpuMs / vsyncMs * 100.0 : 0.0;
 
         auto const drawRow = [&](char const* name, char const* val, NVGcolor valCol) {
             rowY += 12.0f * u;
@@ -152,6 +162,18 @@ public:
 
         std::snprintf(buf, sizeof(buf), "%.0f%%", renderCpu);
         drawRow("RENDER CPU", buf, value);
+
+        if (snapshot.hasGpuTime)
+            std::snprintf(buf, sizeof(buf), "%.2f MS", snapshot.currentGpuMs);
+        else
+            std::snprintf(buf, sizeof(buf), "-- MS");
+        drawRow("GPU TIME", buf, value);
+
+        if (snapshot.hasGpuTime && vsyncMs > 0.0)
+            std::snprintf(buf, sizeof(buf), "%.0f%%", gpuPercent);
+        else
+            std::snprintf(buf, sizeof(buf), "--%%");
+        drawRow("GPU", buf, value);
 
         std::snprintf(buf, sizeof(buf), "%.2f MS", snapshot.currentPrepareMs);
         drawRow("PREPARE", buf, value);
@@ -209,7 +231,7 @@ public:
 private:
     static constexpr int historySize = 96;
     static constexpr float panelCells = 128.0f;   // width  in font-pixel units
-    static constexpr float panelRows = 150.0f;    // height in font-pixel units
+    static constexpr float panelRows = 174.0f;    // height in font-pixel units
 
     // One font-pixel, in device pixels, at the given render scale.
     static float unit(float scale) { return std::max(1.0f, std::round(scale)); }
@@ -227,9 +249,11 @@ private:
         std::uint64_t frameCount = 0;
         double currentRenderMs = 0.0;
         double currentPrepareMs = 0.0;
+        double currentGpuMs = 0.0;
         double peakRenderMs = 0.0;
         double minRenderMs = 0.0;
         double averageVsyncMs = 0.0;
+        bool hasGpuTime = false;
     };
 
     Snapshot getSnapshot() const
@@ -241,9 +265,11 @@ private:
         s.frameCount = frameCount;
         s.currentRenderMs = currentRenderMs;
         s.currentPrepareMs = currentPrepareMs;
+        s.currentGpuMs = currentGpuMs;
         s.peakRenderMs = peakRenderMs;
         s.minRenderMs = minRenderMs;
         s.averageVsyncMs = averageVsyncMs;
+        s.hasGpuTime = hasGpuTime;
 
         auto const first = (renderHead - renderCount + 1 + historySize) % historySize;
         for (int i = 0; i < renderCount; ++i)
@@ -323,8 +349,10 @@ private:
     std::uint64_t frameCount = 0;
     double currentRenderMs = 0.0;
     double currentPrepareMs = 0.0;
+    double currentGpuMs = 0.0;
     double peakRenderMs = 0.0;
     double minRenderMs = 0.0;
     double lastVBlankSec = 0.0;
     double averageVsyncMs = 0.0;
+    bool hasGpuTime = false;
 };
