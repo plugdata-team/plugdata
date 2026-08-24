@@ -59,7 +59,7 @@ private:
 
         g.setColour(foreground);
 
-        g.setFont(Fonts::getCurrentFont().withHeight(14.f));
+        g.setFont(Fonts::getDefaultFont().withHeight(14.f));
         g.drawText(getButtonText(), bounds, Justification::centred, true);
 
         // Icon on the left
@@ -104,7 +104,7 @@ class VolumeComponent final : public Slider
 
             g.fillAll(colours.toolbarHoverColour);
             g.setColour(colours.toolbarTextColour.withAlpha(0.666f));
-            g.setFont(Fonts::getCurrentFont().withHeight(13.5f));
+            g.setFont(Fonts::getDefaultFont().withHeight(13.5f));
             g.drawText(String(decibelValue) + "dB", getLocalBounds(), textJustification);
         }
 
@@ -855,7 +855,7 @@ public:
         }
 
         auto const txt = String(cpuUsageToDraw) + "%";
-        auto const font = Fonts::getCurrentFont().withHeight(13.5f);
+        auto const font = Fonts::getDefaultFont().withHeight(13.5f);
         auto const textW = Fonts::getStringWidth(txt, font);
         constexpr float iconW = 15.0f;
         constexpr float gap = 3.0f;

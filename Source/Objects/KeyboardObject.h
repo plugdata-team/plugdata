@@ -157,7 +157,7 @@ public:
                 auto const position = i * 7 * whiteNoteWidth;
                 auto text = String(i + startOctave);
                 auto rectangle = Rectangle<int>(position, b.getHeight() - scaledHeight, whiteNoteWidth, scaledHeight);
-                Fonts::drawText(cnv->editor->getNanoLLGC(), text, rectangle.toFloat(), Fonts::getCurrentFont().withHeight(jmax(4.0f, fontSizeScaled)), Colour(90, 90, 90), Justification::centred);
+                Fonts::drawText(cnv->editor->getNanoLLGC(), text, rectangle.toFloat(), Fonts::getDefaultFont().withHeight(jmax(4.0f, fontSizeScaled)), Colour(90, 90, 90), Justification::centred);
             }
         }
     }

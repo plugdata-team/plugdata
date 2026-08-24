@@ -1268,7 +1268,7 @@ void Object::performRender(NVGcontext* nvg)
         auto const fillColour = nvgColour(colours.objectSelectedOutlineColour);
         nanovg::nvgDrawRoundedRect(nvg, indexBounds.getX(), indexBounds.getY(), indexBounds.getWidth(), indexBounds.getHeight(), fillColour, fillColour, 2.0f);
 
-        Fonts::drawText(cnv->editor->getNanoLLGC(), text, indexBounds.toFloat(), Fonts::getCurrentFont().withHeight(8.0f), colours.objectSelectedOutlineColour.contrasting(), Justification::centred);
+        Fonts::drawText(cnv->editor->getNanoLLGC(), text, indexBounds.toFloat(), Fonts::getDefaultFont().withHeight(8.0f), colours.objectSelectedOutlineColour.contrasting(), Justification::centred);
     }
 
     renderIolets(nvg);

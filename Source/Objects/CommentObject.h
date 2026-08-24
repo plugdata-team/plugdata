@@ -101,7 +101,7 @@ public:
     void showEditor() override
     {
         if (editor == nullptr) {
-            editor.reset(TextObjectHelper::createTextEditor(object, Fonts::getCurrentFont().withHeight(14.5).withHorizontalScale(calculateHorizontalScale())));
+            editor.reset(TextObjectHelper::createTextEditor(object, Fonts::getDefaultFont().withHeight(14.5).withHorizontalScale(calculateHorizontalScale())));
             editor->setColour(TextEditor::textColourId, getThemeColours().commentTextColour);
 
             editor->setBorder(border);
@@ -116,7 +116,7 @@ public:
             editor->grabKeyboardFocus();
 
             editor->onTextChange = [this]() {
-                editor->applyFontToAllText(Fonts::getCurrentFont().withHeight(14.5).withHorizontalScale(calculateHorizontalScale()));
+                editor->applyFontToAllText(Fonts::getDefaultFont().withHeight(14.5).withHorizontalScale(calculateHorizontalScale()));
             };
 
             editor->onFocusLost = [this] {
@@ -199,7 +199,7 @@ public:
         int const pdBoxWidth = charWidth * fontWidth;
         int interMaxLineWidth = 0;
         for (auto const& line : lines) {
-            int w = CachedFontStringWidth::get()->calculateStringWidth(Fonts::getCurrentFont().withHeight(14.5f), line) + 2;
+            int w = CachedFontStringWidth::get()->calculateStringWidth(Fonts::getDefaultFont().withHeight(14.5f), line) + 2;
             interMaxLineWidth = jmax(interMaxLineWidth, w);
         }
 
@@ -217,7 +217,7 @@ public:
             fontWidth = glist_fontwidth(cnv->patch.getRawPointer());
         }
 
-        int const idealWidth = CachedFontStringWidth::get()->calculateStringWidth(Fonts::getCurrentFont().withHeight(14.5f).withHorizontalScale(calculateHorizontalScale()), objText) + 2;
+        int const idealWidth = CachedFontStringWidth::get()->calculateStringWidth(Fonts::getDefaultFont().withHeight(14.5f).withHorizontalScale(calculateHorizontalScale()), objText) + 2;
 
         // We want to adjust the width so ideal text with aligns with fontWidth
         int const offset = idealWidth % fontWidth;
@@ -248,7 +248,7 @@ public:
 
         AttributedString attributedText(objText);
         attributedText.setColour(colour);
-        attributedText.setFont(Fonts::getCurrentFont().withHeight(14.5f).withHorizontalScale(calculateHorizontalScale()));
+        attributedText.setFont(Fonts::getDefaultFont().withHeight(14.5f).withHorizontalScale(calculateHorizontalScale()));
         attributedText.setJustification(Justification::centredLeft);
         attributedText.setWordWrap(AttributedString::byChar);
         layout.createLayout(attributedText, textWidth);

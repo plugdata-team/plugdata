@@ -546,12 +546,12 @@ public:
     void valueChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(fontValue)) {
-            auto const previousFontName = Fonts::getCurrentFont().toString();
+            auto const previousFontName = Fonts::getDefaultFont().toString();
 
             PlugDataLook::setDefaultFont(fontValue.toString());
             SettingsFile::getInstance()->setProperty("default_font", fontValue.getValue());
 
-            if (previousFontName != Fonts::getCurrentFont().toString()) {
+            if (previousFontName != Fonts::getDefaultFont().toString()) {
                 for (auto* editor : pd->getEditors())
                     editor->updateDefaultFont();
                 pd->updateAllEditorsLNF();

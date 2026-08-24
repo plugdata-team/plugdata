@@ -43,7 +43,7 @@ public:
 
     static Font getLabelFont()
     {
-        return Fonts::getCurrentFont().withPointHeight(12.0f);
+        return Fonts::getDefaultFont().withPointHeight(12.0f);
     }
 
     int getSizeOfTicksAndLabels() const
@@ -335,7 +335,7 @@ public:
     void showEditor() override
     {
         if (!getValue<bool>(hideNameAndArgs) && editor == nullptr) {
-            editor.reset(TextObjectHelper::createTextEditor(object, Fonts::getCurrentFont().withHeight(13)));
+            editor.reset(TextObjectHelper::createTextEditor(object, Fonts::getDefaultFont().withHeight(13)));
             editor->setBorder(BorderSize<int>(2, 5, 2, 1));
             editor->setBounds(getLocalBounds().removeFromTop(18));
             editor->setText(getText(), false);
@@ -569,7 +569,7 @@ public:
 
             auto const stringLength = Fonts::getStringWidth(errorText, 12);
             if (stringLength < getWidth() - Object::doubleMargin - 20 /* 20 is a hack for now */ && getHeight() > 12) {
-                Fonts::drawText(canvas->editor->getNanoLLGC(), errorText, b, Fonts::getCurrentFont().withHeight(12), colours.commentTextColour, Justification::centred);
+                Fonts::drawText(canvas->editor->getNanoLLGC(), errorText, b, Fonts::getDefaultFont().withHeight(12), colours.commentTextColour, Justification::centred);
             }
         }
 

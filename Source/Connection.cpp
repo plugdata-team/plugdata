@@ -306,7 +306,7 @@ void Connection::renderConnectionOrder(NVGcontext* nvg) const
         nanovg::nvgStroke(nvg);
 
         // connection index number
-        Fonts::drawText(cnv->editor->getNanoLLGC(), String(getMultiConnectNumber()), Rectangle<float>(radius, radius).withCentre(pos.toFloat()), Fonts::getCurrentFont().withHeight(9), getThemeColours(*this).objectSelectedOutlineColour.contrasting(), Justification::centred);
+        Fonts::drawText(cnv->editor->getNanoLLGC(), String(getMultiConnectNumber()), Rectangle<float>(radius, radius).withCentre(pos.toFloat()), Fonts::getDefaultFont().withHeight(9), getThemeColours(*this).objectSelectedOutlineColour.contrasting(), Justification::centred);
     }
 }
 

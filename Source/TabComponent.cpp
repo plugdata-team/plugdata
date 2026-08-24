@@ -79,7 +79,7 @@ public:
     {
         if (!cnv)
             return 104;
-        auto const font = Fonts::getCurrentFont().withHeight(14.0f);
+        auto const font = Fonts::getDefaultFont().withHeight(14.0f);
         int const textWidth = static_cast<int>(std::ceil(Fonts::getStringWidth(cnv->patch.getTitle(), font)));
         // equal side reserves for the dot / close button + text + pill padding
         return jlimit(104, 248, textWidth + 60);
@@ -118,7 +118,7 @@ public:
         }
 
         g.setColour(active ? colours.toolbarTextColour : colours.toolbarTextColour.withAlpha(0.65f));
-        g.setFont(Fonts::getCurrentFont().withHeight(14.0f));
+        g.setFont(Fonts::getDefaultFont().withHeight(14.0f));
         g.drawText(cnv->patch.getTitle(), content.reduced(sideReserve, 0), Justification::centred, false);
     }
 
@@ -137,7 +137,7 @@ public:
         constexpr auto scale = 2.0f;
         // we calculate the best size for the tab DnD image
         auto const text = cnv->patch.getTitle();
-        Font const font(Fonts::getCurrentFont());
+        Font const font(Fonts::getDefaultFont());
         auto const length = Fonts::getStringWidth(text, font) + 32;
         constexpr auto boundsOffset = 10;
 

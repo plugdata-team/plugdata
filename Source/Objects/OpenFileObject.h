@@ -28,7 +28,7 @@ public:
     void showEditor() override
     {
         if (editor == nullptr) {
-            editor.reset(TextObjectHelper::createTextEditor(object, Fonts::getCurrentFont().withHeight(15)));
+            editor.reset(TextObjectHelper::createTextEditor(object, Fonts::getDefaultFont().withHeight(15)));
 
             auto const font = editor->getFont();
             auto const textWidth = Fonts::getStringWidth(objectText, font) + 20;
@@ -113,7 +113,7 @@ public:
         lastTextWidth = textWidth;
         lastColourARGB = static_cast<int32>(colour.getARGB());
 
-        auto const font = Fonts::getCurrentFont().withHeight(15);
+        auto const font = Fonts::getDefaultFont().withHeight(15);
         bool const highlightObjectSyntax = getPlugDataLook(*this).getUseSyntaxHighlighting() && isValid;
 
         AttributedString attributedText;

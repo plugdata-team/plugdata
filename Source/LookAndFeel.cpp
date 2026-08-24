@@ -240,7 +240,7 @@ void PlugDataLook::positionDocumentWindowButtons(DocumentWindow& window,
 
 Font PlugDataLook::getTabButtonFont(TabBarButton&, float height)
 {
-    return Fonts::getCurrentFont().withHeight(13.5f);
+    return Fonts::getDefaultFont().withHeight(13.5f);
 }
 
 void PlugDataLook::drawScrollbar(Graphics& g, ScrollBar& scrollbar, int x, int y, int width, int height,
@@ -923,11 +923,10 @@ void PlugDataLook::setDefaultFont(String const& fontName)
 {
     auto& lnf = static_cast<PlugDataLook&>(getDefaultLookAndFeel());
     if (fontName.isEmpty() || fontName == "Inter") {
-        auto const defaultFont = Fonts::getDefaultFont();
-        Fonts::setCurrentFont(defaultFont);
+        Fonts::resetDefaultFont();
     } else {
         auto const newDefaultFont = Font(FontOptions(fontName, 15, Font::plain));
-        Fonts::setCurrentFont(newDefaultFont);
+        Fonts::setDefaultFont(newDefaultFont);
     }
 
     lnf.applyDefaultFont();
@@ -935,7 +934,7 @@ void PlugDataLook::setDefaultFont(String const& fontName)
 
 void PlugDataLook::applyDefaultFont()
 {
-    setDefaultSansSerifTypeface(Fonts::getCurrentFont().getTypefacePtr());
+    setDefaultSansSerifTypeface(Fonts::getDefaultFont().getTypefacePtr());
 }
 
 // clang-format off

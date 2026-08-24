@@ -201,7 +201,7 @@ PaletteItem::~PaletteItem()
 
 void PaletteItem::lookAndFeelChanged()
 {
-    nameLabel.setFont(Fonts::getCurrentFont());
+    nameLabel.setFont(Fonts::getDefaultFont());
     updateTextColour();
 }
 

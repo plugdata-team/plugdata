@@ -373,7 +373,7 @@ public:
         }
 
         auto const colour = colours.canvasTextColour;
-        auto const font = Fonts::getCurrentFont().withHeight(15);
+        auto const font = Fonts::getDefaultFont().withHeight(15);
         bool const highlightObjectSyntax = getPlugDataLook(*this).getUseSyntaxHighlighting() && isValid;
 
         AttributedString attributedText;
@@ -470,7 +470,7 @@ public:
     void showEditor() override
     {
         if (editor == nullptr) {
-            editor.reset(TextObjectHelper::createTextEditor(object, Fonts::getCurrentFont().withHeight(15)));
+            editor.reset(TextObjectHelper::createTextEditor(object, Fonts::getDefaultFont().withHeight(15)));
             editor->setBorder(border);
             editor->setBounds(getLocalBounds());
             editor->setText(objectText, false);

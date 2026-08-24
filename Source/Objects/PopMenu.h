@@ -212,7 +212,7 @@ public:
         if (!textBounds.isEmpty()) {
             auto const text = currentItem >= 0 ? currentText : getValue<String>(labelNoSelection);
             auto const colour = Colour(fgCol.r, fgCol.g, fgCol.b, fgCol.a);
-            auto const font = Fonts::getCurrentFont().withHeight(getValue<int>(fontSize) * 1.5f);
+            auto const font = Fonts::getDefaultFont().withHeight(getValue<int>(fontSize) * 1.5f);
 
             auto& llgc = *cnv->editor->getNanoLLGC();
             Graphics g(llgc);

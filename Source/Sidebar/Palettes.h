@@ -268,7 +268,7 @@ public:
 
         nameLabel.setText(textToShow, dontSendNotification);
         nameLabel.setJustificationType(Justification::centred);
-        nameLabel.setFont(Fonts::getCurrentFont().withHeight(13.5f));
+        nameLabel.setFont(Fonts::getDefaultFont().withHeight(13.5f));
         nameLabel.setInterceptsMouseClicks(false, false);
         nameLabel.setColour(Label::backgroundColourId, Colours::transparentBlack);
         nameLabel.setColour(Label::outlineColourId, Colours::transparentBlack);
@@ -337,7 +337,7 @@ public:
 
     void lookAndFeelChanged() override
     {
-        nameLabel.setFont(Fonts::getCurrentFont().withHeight(13.5f));
+        nameLabel.setFont(Fonts::getDefaultFont().withHeight(13.5f));
         repaint();
     }
 

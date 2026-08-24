@@ -2472,6 +2472,9 @@ void Canvas::valueChanged(Value& v)
             }
         }
 
+        for(auto* object : objects)
+            object->repaint();
+
         cancelConnectionCreation();
         deselectAll();
 

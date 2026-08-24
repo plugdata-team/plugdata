@@ -105,7 +105,7 @@ public:
 
         AttributedString attributedText(objText);
         attributedText.setColour(colour);
-        attributedText.setFont(Fonts::getCurrentFont().withHeight(15));
+        attributedText.setFont(Fonts::getDefaultFont().withHeight(15));
         attributedText.setJustification(Justification::centredLeft);
         attributedText.setWordWrap(AttributedString::byChar);
         layout.createLayout(attributedText, textWidth);
@@ -218,7 +218,7 @@ public:
     void showEditor() override
     {
         if (editor == nullptr) {
-            editor.reset(TextObjectHelper::createTextEditor(object, Fonts::getCurrentFont().withHeight(15)));
+            editor.reset(TextObjectHelper::createTextEditor(object, Fonts::getDefaultFont().withHeight(15)));
             editor->setBorder(border);
             editor->setBounds(getLocalBounds());
             editor->setText(objectText, false);

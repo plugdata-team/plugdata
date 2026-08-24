@@ -328,7 +328,7 @@ public:
             auto const position = getLocalBounds().getCentre();
             auto const errorText = "array " + getUnexpandedName() + " is invalid";
 
-            Fonts::drawText(object->cnv->editor->getNanoLLGC(), errorText, position.toFloat(), Fonts::getCurrentFont().withHeight(11), colours.canvasTextColour, Justification::centred);
+            Fonts::drawText(object->cnv->editor->getNanoLLGC(), errorText, position.toFloat(), Fonts::getDefaultFont().withHeight(11), colours.canvasTextColour, Justification::centred);
             error = false;
         } else if (visible) {
             paintGraph(nvg);

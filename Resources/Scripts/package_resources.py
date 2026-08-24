@@ -348,6 +348,7 @@ inline juce::Typeface::Ptr loadFont(Resource resource) {{
 resources = [
     project_root + "/Resources/Fonts/IconFont.ttf",
     project_root + "/Resources/Fonts/InterVariable.ttf",
+    project_root + "/Resources/Fonts/NotoEmoji.ttf",
     project_root + "/Resources/Fonts/RobotoMonoVariable.ttf",
     project_root + "/Resources/Icons/plugdata_large_logo.png",
     project_root + "/Resources/Icons/plugdata_logo.png",

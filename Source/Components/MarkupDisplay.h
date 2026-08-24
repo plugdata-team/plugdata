@@ -346,7 +346,7 @@ protected:
                             font = Fonts::getBoldFont().withHeight(15);
                         }
                         if (italic) {
-                            font = Fonts::getCurrentFont().italicised().withHeight(15);
+                            font = Fonts::getDefaultFont().italicised().withHeight(15);
                         }
                     }
                 }

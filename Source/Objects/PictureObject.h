@@ -182,7 +182,7 @@ public:
         nanovg::nvgIntersectScissor(nvg, 0, 0, getWidth(), getHeight());
 
         if (!imageBuffer.isValid()) {
-            Fonts::drawText(cnv->editor->getNanoLLGC(), "?", b, Fonts::getCurrentFont().withHeight(20), colours.canvasTextColour, Justification::centred);
+            Fonts::drawText(cnv->editor->getNanoLLGC(), "?", b, Fonts::getDefaultFont().withHeight(20), colours.canvasTextColour, Justification::centred);
         } else {
             NVGScopedState scopedState(nvg);
             nanovg::nvgTranslate(nvg, offsetX, offsetY);

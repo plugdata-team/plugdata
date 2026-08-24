@@ -19,19 +19,18 @@ struct Fonts {
         defaultTypeface = BinaryData::loadFont(BinaryData::InterVariable_ttf);
         monoTypeface = BinaryData::loadFont(BinaryData::RobotoMonoVariable_ttf);
         iconTypeface = BinaryData::loadFont(BinaryData::IconFont_ttf);
+        emojiTypeface = BinaryData::loadFont(BinaryData::NotoEmoji_ttf);
 
-        currentTypeface = defaultTypeface;
         instance = this;
 
         // The monospace typeface never changes, so its weighted variant only needs preparing once
         monoBoldFont = getWeightedFont(monoTypeface, 700.0f);
+        defaultFont = Font(FontOptions(defaultTypeface));
+
         updateWeightedFonts();
     }
 
-
-    static Font getCurrentFont() { return { FontOptions(instance->currentTypeface) }; }
-    static Font getDefaultFont() { return { FontOptions(instance->defaultTypeface) }; }
-
+    static Font getDefaultFont() { return instance->defaultFont; }
     static Font getBoldFont() { return instance->boldFont; }
     static Font getSemiBoldFont() { return instance->semiBoldFont; }
     static Font getIconFont() { return { FontOptions(instance->iconTypeface) }; }
@@ -39,10 +38,22 @@ struct Fonts {
     static Font getMonospaceBoldFont() { return instance->monoBoldFont; }
     static Font getTabularNumbersFont() { return { FontOptions(instance->defaultTypeface).withFeatureEnabled(FontFeatureTag(1953396077u)) }; }
 
-    static void setCurrentFont(Font const& font)
+    static void resetDefaultFont()
     {
-        instance->currentTypeface = font.getTypefacePtr();
+        instance->defaultTypeface = BinaryData::loadFont(BinaryData::InterVariable_ttf);
+        instance->defaultFont = Font(FontOptions(instance->defaultTypeface));
+        instance->defaultFont.setPreferredFallbackFamilies({ "Noto Emoji Regular"});
         instance->updateWeightedFonts();
+        instance->updateFallbackFonts();
+    }
+
+    static void setDefaultFont(Font const& font)
+    {
+        instance->defaultTypeface = font.getTypefacePtr();
+        instance->defaultFont = Font(FontOptions(instance->defaultTypeface));
+        instance->defaultFont.setPreferredFallbackFamilies({ "Noto Emoji Regular"});
+        instance->updateWeightedFonts();
+        instance->updateFallbackFonts();
     }
 
     static float getStringWidth(String text, Font font)
@@ -148,7 +159,7 @@ struct Fonts {
         Font font = Font(FontOptions());
         switch (style) {
         case Regular:
-            font = Fonts::getCurrentFont();
+            font = Fonts::getDefaultFont();
             break;
         case Bold:
             font = Fonts::getBoldFont();
@@ -197,7 +208,7 @@ struct Fonts {
     // For drawing regular text
     static void drawText(Graphics& g, String const& textToDraw, Rectangle<float> const bounds, Colour const colour, int const fontHeight = 15, Justification const justification = Justification::centredLeft)
     {
-        g.setFont(Fonts::getCurrentFont().withHeight(fontHeight));
+        g.setFont(Fonts::getDefaultFont().withHeight(fontHeight));
         g.setColour(colour);
         g.drawText(textToDraw, bounds, justification);
     }
@@ -205,7 +216,7 @@ struct Fonts {
     // For drawing regular text
     static void drawText(Graphics& g, String const& textToDraw, Rectangle<int> const bounds, Colour const colour, int const fontHeight = 15, Justification const justification = Justification::centredLeft)
     {
-        g.setFont(Fonts::getCurrentFont().withHeight(fontHeight));
+        g.setFont(Fonts::getDefaultFont().withHeight(fontHeight));
         g.setColour(colour);
         g.drawText(textToDraw, bounds, justification);
     }
@@ -246,8 +257,16 @@ private:
     // Re-prepare the weighted variants of the current typeface, so we don't have to clone on every request
     void updateWeightedFonts()
     {
-        boldFont = getWeightedFont(currentTypeface, 700.0f);
-        semiBoldFont = getWeightedFont(currentTypeface, 600.0f);
+        boldFont = getWeightedFont(defaultTypeface, 700.0f);
+        semiBoldFont = getWeightedFont(defaultTypeface, 600.0f);
+    }
+
+    void updateFallbackFonts()
+    {
+        auto emojiFontName = emojiTypeface->getName();
+        boldFont.setPreferredFallbackFamilies({ emojiFontName });
+        semiBoldFont.setPreferredFallbackFamilies({ emojiFontName });
+        defaultFont.setPreferredFallbackFamilies({ emojiFontName });
     }
 
     static Font getWeightedFont(Typeface::Ptr const& typeface, float const weight)
@@ -271,13 +290,13 @@ private:
     // This is effectively a singleton because it's loaded through SharedResourcePointer
     static inline Fonts* instance = nullptr;
 
-    // Default typeface is Inter combined with Unicode symbols from GoNotoUniversal and emojis from NotoEmoji
     Typeface::Ptr defaultTypeface;
-    Typeface::Ptr currentTypeface;
     Typeface::Ptr iconTypeface;
     Typeface::Ptr monoTypeface;
+    Typeface::Ptr emojiTypeface;
 
     // Weighted fonts prepared in advance, refreshed whenever the current font changes
+    Font defaultFont { FontOptions() };
     Font boldFont { FontOptions() };
     Font semiBoldFont { FontOptions() };
     Font monoBoldFont { FontOptions() };

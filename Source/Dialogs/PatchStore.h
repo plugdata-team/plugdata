@@ -911,7 +911,7 @@ public:
         g.drawRoundedRectangle(image.getBounds().toFloat(), Corners::largeCornerRadius, 1.0f);
 
         if (downloadProgress != 0.0f) {
-            g.setFont(Fonts::getCurrentFont().withHeight(14.0f));
+            g.setFont(Fonts::getDefaultFont().withHeight(14.0f));
             g.setColour(colours.panelTextColour.withAlpha(0.75f));
             g.drawText("Installing: " + String(downloadProgress) + "%", downloadButton.getBounds().translated(0, 30), Justification::centred);
 
@@ -943,7 +943,7 @@ public:
         g.setFont(Fonts::getBoldFont().withHeight(26));
         g.drawText(currentPatch.title, contentArea.removeFromTop(40), Justification::centredLeft);
 
-        g.setFont(Fonts::getCurrentFont().withHeight(16.5f));
+        g.setFont(Fonts::getDefaultFont().withHeight(16.5f));
         g.drawText("by " + currentPatch.author, contentArea.removeFromTop(24), Justification::centredLeft);
 
         contentArea.removeFromTop(8);

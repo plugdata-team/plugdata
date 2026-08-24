@@ -321,7 +321,7 @@ public:
                 if (auto messbox = ptr.get<t_fake_messbox>())
                     messbox->x_font_weight = pd->generateSymbol("bold");
             } else {
-                auto const defaultFont = Fonts::getCurrentFont();
+                auto const defaultFont = Fonts::getDefaultFont();
                 editor.applyFontToAllText(defaultFont.withHeight(size));
                 if (auto messbox = ptr.get<t_fake_messbox>())
                     messbox->x_font_weight = pd->generateSymbol("normal");

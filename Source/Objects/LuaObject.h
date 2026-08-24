@@ -797,7 +797,7 @@ public:
                 float ax = x, ay = y;
 
                 AttributedString txt;
-                txt.append(text, Fonts::getCurrentFont().withPointHeight(fontHeight), currentColour);
+                txt.append(text, Fonts::getDefaultFont().withPointHeight(fontHeight), currentColour);
 
                 TextLayout layout;
                 layout.createLayout(txt, w);

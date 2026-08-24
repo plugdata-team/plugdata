@@ -425,7 +425,7 @@ PropertiesPanel::InspectorColourComponent::InspectorColourComponent(String const
     addAndMakeVisible(hexValueEditor);
     hexValueEditor.setJustificationType(Justification::centred);
     hexValueEditor.setInterceptsMouseClicks(false, true);
-    hexValueEditor.setFont(Fonts::getCurrentFont().withHeight(13.5f));
+    hexValueEditor.setFont(Fonts::getDefaultFont().withHeight(13.5f));
 
     hexValueEditor.onEditorShow = [this] {
         auto* editor = hexValueEditor.getCurrentTextEditor();
