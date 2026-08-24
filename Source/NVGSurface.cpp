@@ -131,7 +131,7 @@ void NVGSurface::createRenderContext()
     if (!metalLayer)
         return;
 
-    baseNvg = nvgCreateContextForLayer(metalLayer, 0, viewWidth, viewHeight);
+    baseNvg = nvgCreateContextForLayer(metalLayer, NVG_DOUBLE_BUFFER, viewWidth, viewHeight);
 #elif NANOVG_GL_IMPLEMENTATION
     // Runs on the render thread. Context create/destroy and the main framebuffer
     // are render-thread-owned; no contextMutex needed (see NVGSurface.h / recordFrame).
