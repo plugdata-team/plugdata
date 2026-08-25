@@ -2027,43 +2027,64 @@ void Canvas::encapsulateSelection()
 {
     auto selectedObjects = getSelectionOfType<Object>();
 
+    if(auto* sidebar = editor->getSidebarForPanel(Sidebar::SidePanel::InspectorPanel))
+        sidebar->clearInspector();
+
     // Sort by index in pd patch
     selectedObjects.sort([this](auto const* a, auto const* b) -> bool {
         return objects.index_of(a) < objects.index_of(b);
     });
 
-    // If two connections have the same target inlet/outlet, we only need 1 [inlet/outlet] object
-    auto usedIolets = SmallArray<Iolet*>();
-    auto targetIolets = UnorderedMap<Iolet*, SmallArray<Iolet*>>();
-
-    auto newInternalConnections = String();
-    auto newExternalConnections = UnorderedMap<int, SmallArray<Iolet*>>();
-
-    // First, find all the incoming and outgoing connections
-    for (auto* connection : connections) {
-        if (selectedObjects.contains(connection->inobj.get()) && !selectedObjects.contains(connection->outobj.get())) {
-            auto* inlet = connection->inlet.get();
-            targetIolets[inlet].add(connection->outlet.get());
-            usedIolets.add_unique(inlet);
-        }
-    }
-    for (auto* connection : connections) {
-        if (selectedObjects.contains(connection->outobj.get()) && !selectedObjects.contains(connection->inobj.get())) {
-            auto* outlet = connection->outlet.get();
-            targetIolets[outlet].add(connection->inlet.get());
-            usedIolets.add_unique(outlet);
+    // Objects without a valid pointer can't be copied, so they can't be part of the subpatch
+    auto encapsulatedObjects = SmallArray<Object*>();
+    auto encapsulatedPointers = SmallArray<t_gobj*>();
+    auto selectionBounds = Rectangle<int>();
+    for (auto* object : selectedObjects) {
+        if (auto* ptr = object->getPointer()) {
+            encapsulatedObjects.add(object);
+            encapsulatedPointers.add(ptr);
+            selectionBounds = selectionBounds.getUnion(object->getObjectBounds());
         }
     }
 
-    auto newIoletObjects = String();
+    if (encapsulatedObjects.empty())
+        return;
 
-    usedIolets.sort([](auto* a, auto* b) -> bool {
-        // Inlets before outlets
+    struct IoletGroup {
+        bool isInlet;
+        bool isSignal;
+        SmallArray<Iolet*> internalIolets; // iolets on the objects that move into the subpatch
+        SmallArray<Iolet*> externalIolets; // iolets on the objects that stay behind
+    };
+
+    auto internalIolets = SmallArray<Iolet*>();
+    auto externalIoletsFor = UnorderedMap<Iolet*, SmallArray<Iolet*>>();
+
+    for (auto* connection : connections) {
+        bool const inletInside = encapsulatedObjects.contains(connection->inobj.get());
+        bool const outletInside = encapsulatedObjects.contains(connection->outobj.get());
+
+        // Connections that are entirely inside or entirely outside the selection stay as they are
+        if (inletInside == outletInside)
+            continue;
+
+        auto* internalIolet = inletInside ? connection->inlet.get() : connection->outlet.get();
+        auto* externalIolet = inletInside ? connection->outlet.get() : connection->inlet.get();
+        if (!internalIolet || !externalIolet)
+            continue;
+
+        internalIolets.add_unique(internalIolet);
+        externalIoletsFor[internalIolet].add_unique(externalIolet);
+    }
+
+    // Inlets before outlets, then left to right. Pd numbers a subpatch's iolets by the horizontal
+    // position of the [inlet]/[outlet] objects, so this is also the order we lay them out in below
+    internalIolets.sort([](auto* a, auto* b) -> bool {
         if (a->isInlet() != b->isInlet())
             return a->isInlet();
 
-        auto apos = a->getCanvasBounds().getPosition();
-        auto bpos = b->getCanvasBounds().getPosition();
+        auto const apos = a->getCanvasBounds().getPosition();
+        auto const bpos = b->getCanvasBounds().getPosition();
 
         if (apos.x == bpos.x) {
             return apos.y < bpos.y;
@@ -2072,76 +2093,114 @@ void Canvas::encapsulateSelection()
         return apos.x < bpos.x;
     });
 
-    int i = 0;
-    int numIn = 0;
-    for (auto* iolet : usedIolets) {
-        auto type = String(iolet->isInlet() ? "inlet" : "outlet") + String(iolet->isSignal() ? "~" : "");
-        auto* targetIolet = targetIolets[iolet][0];
-        auto pos = targetIolet->getObject()->getObjectBounds().getPosition();
-        newIoletObjects += "#X obj " + String(pos.x) + " " + String(pos.y) + " " + type + ";\n";
+    auto ioletGroups = SmallArray<IoletGroup>();
+    for (auto* iolet : internalIolets) {
+        auto const& externalIolets = externalIoletsFor[iolet];
 
-        int objIdx = selectedObjects.index_of(iolet->getObject());
-        int ioletObjectIdx = selectedObjects.size() + i;
-        if (iolet->isInlet()) {
-            newInternalConnections += "#X connect " + String(ioletObjectIdx) + " 0 " + String(objIdx) + " " + String(iolet->getIndex()) + ";\n";
-            numIn++;
-        } else {
-            newInternalConnections += "#X connect " + String(objIdx) + " " + String(iolet->getIndex()) + " " + String(ioletObjectIdx) + " 0;\n";
+        IoletGroup* group = nullptr;
+        for (auto& candidate : ioletGroups) {
+            // A signal and a data iolet can never share an object, even if they connect to the same things
+            if (candidate.isInlet != iolet->isInlet() || candidate.isSignal != iolet->isSignal())
+                continue;
+            if (candidate.externalIolets.size() != externalIolets.size())
+                continue;
+
+            if (std::all_of(externalIolets.begin(), externalIolets.end(), [&candidate](auto* target) { return candidate.externalIolets.contains(target); })) {
+                group = &candidate;
+                break;
+            }
         }
 
-        for (auto* target : targetIolets[iolet]) {
-            newExternalConnections[i].add(target);
+        if (!group) {
+            ioletGroups.add(IoletGroup { iolet->isInlet(), iolet->isSignal(), {}, externalIolets });
+            group = &ioletGroups.back();
         }
 
-        i++;
+        group->internalIolets.add(iolet);
+    }
+
+    constexpr int ioletObjectSpacing = 45;
+
+    auto newIoletObjects = String();
+    auto newInternalConnections = String();
+
+    int numInlets = 0;
+    int lastX[2] = {};
+    bool hasPlaced[2] = {};
+
+    for (int i = 0; i < static_cast<int>(ioletGroups.size()); i++) {
+        auto const& group = ioletGroups[i];
+        int const row = group.isInlet ? 0 : 1;
+
+        // Put the object above (or below) the iolet it feeds, but never to the left of the previous one:
+        // pd derives the iolet index from the horizontal position, and the connections below rely on it
+        int x = group.internalIolets[0]->getCanvasBounds().getCentreX() - canvasOrigin.x;
+        if (hasPlaced[row])
+            x = jmax(x, lastX[row] + ioletObjectSpacing);
+        lastX[row] = x;
+        hasPlaced[row] = true;
+
+        int const y = group.isInlet ? selectionBounds.getY() - ioletObjectSpacing : selectionBounds.getBottom() + ioletObjectSpacing;
+        auto const type = String(group.isInlet ? "inlet" : "outlet") + String(group.isSignal ? "~" : "");
+        newIoletObjects += "#X obj " + String(x) + " " + String(y) + " " + type + ";\n";
+
+        int const ioletObjectIdx = static_cast<int>(encapsulatedObjects.size()) + i;
+        for (auto* internalIolet : group.internalIolets) {
+            int const objIdx = encapsulatedObjects.index_of(internalIolet->getObject());
+            if (objIdx < 0)
+                continue;
+
+            if (group.isInlet) {
+                newInternalConnections += "#X connect " + String(ioletObjectIdx) + " 0 " + String(objIdx) + " " + String(internalIolet->getIndex()) + ";\n";
+            } else {
+                newInternalConnections += "#X connect " + String(objIdx) + " " + String(internalIolet->getIndex()) + " " + String(ioletObjectIdx) + " 0;\n";
+            }
+        }
+
+        numInlets += group.isInlet;
     }
 
     patch.deselectAll();
 
-    auto bounds = Rectangle<int>();
-    SmallArray<t_gobj*> objects;
-    for (auto* object : selectedObjects) {
-        if (auto* ptr = object->getPointer()) {
-            bounds = bounds.getUnion(object->getBounds());
-            objects.add(ptr);
-        }
-    }
-    auto centre = bounds.getCentre() - canvasOrigin;
-
+    auto const centre = selectionBounds.getCentre();
     auto copypasta = String("#N canvas 733 172 450 300 0 1;\n") + "$$_COPY_HERE_$$" + newIoletObjects + newInternalConnections + "#X restore " + String(centre.x) + " " + String(centre.y) + " pd;\n";
 
     // Apply the changed on Pd's thread
     if (auto patchPtr = patch.getPointer()) {
         int size;
-        char const* text = pd::Interface::copy(patchPtr.get(), &size, objects);
+        char const* text = pd::Interface::copy(patchPtr.get(), &size, encapsulatedPointers);
         auto copied = String::fromUTF8(text, size);
 
         // Wrap it in an undo sequence, to allow undoing everything in 1 step
         patch.startUndoSequence("Encapsulate");
 
-        pd::Interface::removeObjects(patchPtr.get(), objects);
+        pd::Interface::removeObjects(patchPtr.get(), encapsulatedPointers);
 
         auto replacement = copypasta.replace("$$_COPY_HERE_$$", copied);
 
         pd::Interface::paste(patchPtr.get(), replacement.toRawUTF8());
-        auto lastObject = patch.getObjects().back();
-        if (!lastObject.isValid())
-            return;
 
-        auto* newObject = pd::Interface::checkObject(lastObject.getRaw<t_pd>());
-        if (!newObject) {
-            patch.endUndoSequence("Encapsulate");
-            pd->unlockAudioThread();
-            return;
-        }
+        auto patchObjects = patch.getObjects();
+        t_object* newObject = nullptr;
+        if (!patchObjects.empty() && patchObjects.back().isValid())
+            newObject = pd::Interface::checkObject(patchObjects.back().getRaw<t_pd>());
 
-        for (auto& [idx, iolets] : newExternalConnections) {
-            for (auto* iolet : iolets) {
-                if (auto* externalObject = reinterpret_cast<t_object*>(iolet->getObject()->getPointer())) {
-                    if (iolet->isInlet()) {
-                        pd::Interface::createConnection(patchPtr.get(), newObject, idx - numIn, externalObject, iolet->getIndex());
+        if (newObject) {
+            for (int i = 0; i < static_cast<int>(ioletGroups.size()); i++) {
+                auto const& group = ioletGroups[i];
+
+                // Inlets and outlets are numbered separately, and all the inlet groups come first
+                int const subpatchIoletIdx = group.isInlet ? i : i - numInlets;
+
+                for (auto* externalIolet : group.externalIolets) {
+                    auto* externalObject = reinterpret_cast<t_object*>(externalIolet->getObject()->getPointer());
+                    if (!externalObject)
+                        continue;
+
+                    if (group.isInlet) {
+                        pd::Interface::createConnection(patchPtr.get(), externalObject, externalIolet->getIndex(), newObject, subpatchIoletIdx);
                     } else {
-                        pd::Interface::createConnection(patchPtr.get(), externalObject, iolet->getIndex(), newObject, idx);
+                        pd::Interface::createConnection(patchPtr.get(), newObject, subpatchIoletIdx, externalObject, externalIolet->getIndex());
                     }
                 }
             }
