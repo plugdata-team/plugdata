@@ -993,7 +993,7 @@ public:
             auto const height = ::getValue<int>(numberSize);
             auto const font = Font(FontOptions(height));
             auto const labelText = String(getScaledValue(), 2);
-            auto const width = Fonts::getStringWidth(labelText, font);
+            auto const width = CachedFontStringWidth::get()->calculateSingleLineWidth(font, labelText);
             auto const bounds = Rectangle<int>(object->getX() + 5 + static_cast<int>(arr[0]), object->getY() + 3 + static_cast<int>(arr[1]), width, height);
             label->setFont(font);
             label->setBounds(bounds);

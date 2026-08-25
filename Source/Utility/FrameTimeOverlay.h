@@ -192,7 +192,7 @@ public:
             nvgBeginPath(nvg);
             nvgMoveTo(nvg, graphX, guideY);
             nvgLineTo(nvg, graphX + graphW, guideY);
-            nvgStrokeColor(nvg, nvgRGBA(255, 255, 255, 60));
+            nvgStrokeColor(nvg, nvgRGBA(255, 255, 255, 255));
             nvgStrokeWidth(nvg, std::max(1.0f, u * 0.5f));
             nvgStroke(nvg);
         }

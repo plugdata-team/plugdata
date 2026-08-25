@@ -447,6 +447,10 @@ void Canvas::updateFramebuffers(NVGcontext* nvg)
             nanovg::nvgBeginFrame(nvg, gridSizeCommon * zoom, gridSizeCommon * zoom, pixelScale);
             nanovg::nvgScale(nvg, zoom, zoom);
 
+            nanovg::nvgFillColor(nvg, nvgColour(colours.canvasBackgroundColour));
+            nanovg::nvgFillRect(nvg, 0, 0, gridSizeCommon, gridSizeCommon);
+
+
             float const ellipseRadius = zoom < 1.0f ? jmap(zoom, 0.25f, 1.0f, 3.0f, 1.0f) : 1.0f;
 
             int decim = 0;
@@ -567,9 +571,6 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             nanovg::nvgFillColor(nvg, nvgColour(colours.canvasBackgroundColour));
             nanovg::nvgFillRect(nvg, invalidRegion.getX(), invalidRegion.getY(), invalidRegion.getWidth(), invalidRegion.getHeight());
         } else {
-            nanovg::nvgBeginPath(nvg);
-            nanovg::nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
-
             // Use least common multiple of grid sizes: 5,10,15,20,25,30 for texture size for now
             // We repeat the texture on GPU, this is so the texture does not become too small for GPU processing
             // There will be a best fit depending on CPU/GPU calcuations.
@@ -580,11 +581,9 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
                 // offset image texture by 2.5f so no dots are on the edge of the texture
                 nanovg::nvgTranslate(nvg, canvasOrigin.x - 2.5f, canvasOrigin.x - 2.5f);
 
-                nanovg::nvgFillColor(nvg, nvgColour(colours.canvasBackgroundColour)); // This fixes some glitches but I'm not sure why
-                nanovg::nvgFill(nvg);
-
                 nanovg::nvgFillPaint(nvg, nanovg::nvgImagePattern(nvg, 0, 0, gridSizeCommon, gridSizeCommon, 0, dotsLargeImage.getImage(), 1));
-                nanovg::nvgFill(nvg);
+                auto startPos = infiniteCanvasSize / 2;
+                nanovg::nvgFillRect(nvg, -startPos, -startPos, infiniteCanvasSize, infiniteCanvasSize);
             }
         }
     }
