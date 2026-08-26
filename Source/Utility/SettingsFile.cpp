@@ -522,6 +522,9 @@ void SettingsFile::initialiseOverlayTree()
 
 bool SettingsFile::acquireFileLock()
 {
+#if JUCE_IOS
+    return false; // iOS filesystem listener cannot differentiate between files, so this is a problem
+#endif
     auto const startTime = Time::getCurrentTime().toMilliseconds();
 
     while (Time::getCurrentTime().toMilliseconds() - startTime < lockTimeoutMs) {
@@ -552,6 +555,9 @@ bool SettingsFile::acquireFileLock()
 
 void SettingsFile::releaseFileLock()
 {
+#if JUCE_IOS
+    return false;
+#endif
     lockFile.deleteFile();
 }
 

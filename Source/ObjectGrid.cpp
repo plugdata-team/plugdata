@@ -430,7 +430,7 @@ Line<int> ObjectGrid::getObjectIndicatorLine(Side const side, Rectangle<int> b1,
 
 void ObjectGrid::clearIndicators(bool const fast)
 {
-    float const lineFadeMs = fast ? 50 : 300;
+    float const lineFadeMs = fast ? 50 : 400;
     if (lineTargetAlpha[0] != 0.0f || lineTargetAlpha[1] != 0.0f) {
         startLineFadeAnimation(0, lineFadeMs, 0.0f);
         startLineFadeAnimation(1, lineFadeMs, 0.0f);
