@@ -383,6 +383,7 @@ enum CommandIDs {
     ToggleDSP,
     TogglePresentationMode,
     TogglePluginMode,
+    Compile,
     NumItems // <-- the total number of items in this enum
 };
 
