@@ -725,7 +725,7 @@ void PluginEditor::resized()
     auto windowControlsOffset = useNonNativeTitlebar && !useLeftButtons ? 90.f : 0.f;
 #endif
 
-    auto audioToolbarWidth = welcomePanelSearchButton.isVisible() ? 210 : getWidth() - addObjectMenuButton.getRight();
+    auto audioToolbarWidth = welcomePanelSearchButton.isVisible() ? 220 : getWidth() - addObjectMenuButton.getRight();
     if (audioToolbar)
         audioToolbar->setBounds(getLocalBounds().removeFromTop(toolbarHeight).removeFromRight(audioToolbarWidth).translated(-windowControlsOffset, 2));
 
