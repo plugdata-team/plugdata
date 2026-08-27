@@ -624,23 +624,25 @@ public:
         moveAnimator.complete();
         zoomAnimator.complete();
 
+        if (e.eventComponent == this) {
+            if (useMouseWheelMoveIfNeeded(e, wheel)) {
+                return;
+            }
+        }
+
         auto scrollFactor = 1.0f / (1.0f - wheel.deltaY);
-        if (e.mods.isCommandDown()) {
+        if (!wheel.isInertial && e.mods.isCommandDown()) {
             if (wheel.isSmooth) {
                 applyScale(std::clamp(getValue<float>(cnv->zoomScale) * scrollFactor, 0.25f, 3.0f), e.position, false);
             } else {
                 mouseMagnify(e, scrollFactor);
             }
         }
-
-        if (e.eventComponent == this)
-            if (!useMouseWheelMoveIfNeeded(e, wheel))
-                Component::mouseWheelMove(e, wheel);
     }
 
     bool useMouseWheelMoveIfNeeded(MouseEvent const& e, MouseWheelDetails const& wheel)
     {
-        if (!(e.mods.isAltDown() || e.mods.isCtrlDown() || e.mods.isCommandDown())) {
+        if (wheel.isInertial || !(e.mods.isAltDown() || e.mods.isCtrlDown() || e.mods.isCommandDown())) {
             auto delta = Point<float>(wheel.deltaX, wheel.deltaY) * 224.0f;
             auto pos = getViewPosition();
 
