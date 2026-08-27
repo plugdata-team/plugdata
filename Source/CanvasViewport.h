@@ -624,16 +624,30 @@ public:
         moveAnimator.complete();
         zoomAnimator.complete();
 
-        if (e.eventComponent == this) {
-            if (useMouseWheelMoveIfNeeded(e, wheel)) {
+        if (wheel.isInertial) {
+            if (suppressWheelInertia)
                 return;
-            }
+        } else {
+            // A real wheel event starts/continues a new gesture.
+            suppressWheelInertia = false;
         }
 
-        auto scrollFactor = 1.0f / (1.0f - wheel.deltaY);
+        if (e.eventComponent == this) {
+            if (useMouseWheelMoveIfNeeded(e, wheel))
+                return;
+        }
+
         if (!wheel.isInertial && e.mods.isCommandDown()) {
+            suppressWheelInertia = true;
+
+            auto const scrollFactor = 1.0f / (1.0f - wheel.deltaY);
+
             if (wheel.isSmooth) {
-                applyScale(std::clamp(getValue<float>(cnv->zoomScale) * scrollFactor, 0.25f, 3.0f), e.position, false);
+                applyScale(
+                    std::clamp(getValue<float>(cnv->zoomScale) * scrollFactor,
+                               0.25f, 3.0f),
+                    e.position,
+                    false);
             } else {
                 mouseMagnify(e, scrollFactor);
             }
@@ -910,6 +924,7 @@ private:
     float logicalScale = 1.0f;
     Rectangle<int> previousBounds;
     bool scaleChanged = false;
+    bool suppressWheelInertia = false;
 
     Point<float> smoothedDelta;
     float const smoothingFactor = 0.3f;
