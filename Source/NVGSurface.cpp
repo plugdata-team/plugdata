@@ -194,6 +194,13 @@ void NVGSurface::destroyRenderContext()
         nvgDeleteFramebuffer(reinterpret_cast<NVGframebuffer*>(mainFramebuffer));
         mainFramebuffer = nullptr;
     }
+
+    if (auto* asyncNvg = nvg.load()) {
+        NVGCachedPath::clearAll(asyncNvg);
+        NVGImage::clearAll(asyncNvg);
+        NVGFramebuffer::clearAll(asyncNvg);
+    }
+
     mainFramebufferWidth = 0;
     mainFramebufferHeight = 0;
 
@@ -407,6 +414,7 @@ void NVGSurface::lookAndFeelChanged()
     if (auto* asyncNvg = nvg.load()) {
         NVGCachedPath::clearAll(asyncNvg);
         NVGImage::clearAll(asyncNvg);
+        NVGFramebuffer::clearAll(asyncNvg);
     }
     invalidateAll();
 }

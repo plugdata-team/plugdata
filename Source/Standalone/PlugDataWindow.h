@@ -515,13 +515,11 @@ public:
 
             if (openedEditors.size() == 1) {
                 editor->getTabComponent().closeAllTabs(true, nullptr, [this, editor, &openedEditors] {
-                    editor->nvgSurface.detachContext();
                     removeFromDesktop();
                     openedEditors.removeObject(editor);
                 });
             } else {
                 editor->getTabComponent().closeAllTabs(false, nullptr, [this, editor, &openedEditors] {
-                    editor->nvgSurface.detachContext();
                     removeFromDesktop();
                     openedEditors.removeObject(editor);
                 });

@@ -690,7 +690,9 @@ void PluginEditor::resized()
             }
         }
 
-        statusbar->setBounds(bounds.removeFromBottom(Statusbar::statusbarHeight));
+        if(!welcomePanel->isVisible()) {
+            statusbar->setBounds(bounds.removeFromBottom(Statusbar::statusbarHeight));
+        }
     }
 
     nvgSurface.updateBounds(getLocalBounds());
