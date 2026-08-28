@@ -233,12 +233,7 @@ public:
             cnv->showSuggestions(object, editor.get());
 
             editor->onFocusLost = [this] {
-                if (cnv->suggestor->shouldKeepEditorOpen(editor.get())) {
-                    editor->grabKeyboardFocus();
-                    return;
-                }
-
-                hideEditor();
+                cnv->suggestor->checkEditorFocusLoss(editor.get());
             };
 
             object->updateBounds();

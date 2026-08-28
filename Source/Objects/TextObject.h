@@ -482,13 +482,7 @@ public:
             editor->grabKeyboardFocus();
 
             editor->onFocusLost = [this] {
-                if (cnv->suggestor->shouldKeepEditorOpen(editor.get())) {
-                    editor->grabKeyboardFocus();
-                    return;
-                }
-
-                // Be careful, if anything grabs keyboard focus when clicking an object, this will close the editor!
-                hideEditor();
+                cnv->suggestor->checkEditorFocusLoss(editor.get());
             };
 
             cnv->showSuggestions(object, editor.get());

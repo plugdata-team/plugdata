@@ -348,11 +348,7 @@ public:
                 cnv->grabKeyboardFocus();
             };
             editor->onFocusLost = [this] {
-                if (cnv->suggestor->shouldKeepEditorOpen(editor.get())) {
-                    editor->grabKeyboardFocus();
-                    return;
-                }
-                hideEditor();
+                cnv->suggestor->checkEditorFocusLoss(editor.get());
             };
 
             cnv->showSuggestions(object, editor.get());

@@ -895,27 +895,12 @@ public:
         return layoutMode == LayoutMode::ListWithDetail || layoutMode == LayoutMode::DetailOnly;
     }
 
-    // Call this from the object editor's onFocusLost handler. Returns true when the
-    // editor should be kept open (and has been refocused if that was needed).
-    bool handleEditorFocusLost(TextEditor* editor)
+
+    void checkEditorFocusLoss(TextEditor* editor) const
     {
-        // In touch mode focus deliberately lives in the dialog's own text editor, so the
-        // object editor must stay open without stealing it back
-        if (usingTouchMode && objectEditor == editor)
-            return true;
-
-        if (shouldKeepEditorOpen(editor)) {
-            editor->grabKeyboardFocus();
-            return true;
-        }
-
-        return false;
-    }
-
-    bool shouldKeepEditorOpen(TextEditor* editor) const
-    {
+        bool shouldKeepFocus = false;
         if (Component::getCurrentlyFocusedComponent() == editor || hasKeyboardFocus(true))
-            return true;
+            shouldKeepFocus = true;
 
         // On Linux, mouse-down on this temporary desktop window can make the
         // edited TextEditor lose native focus before JUCE assigns keyboard
@@ -923,10 +908,13 @@ public:
         // part of the editor interaction so resizing does not commit the edit.
         if (isVisible() && ModifierKeys::currentModifiers.isAnyMouseButtonDown()) {
             auto const mousePos = Desktop::getInstance().getMainMouseSource().getScreenPosition();
-            return getScreenBounds().toFloat().contains(mousePos);
+            shouldKeepFocus = getScreenBounds().toFloat().contains(mousePos);
         }
 
-        return false;
+        if(shouldKeepFocus)
+            grabEditorFocus();
+        else if(currentObject)
+            currentObject->hideEditor();
     }
 
 private:
