@@ -523,7 +523,10 @@ void SettingsFile::initialiseOverlayTree()
 bool SettingsFile::acquireFileLock()
 {
 #if JUCE_IOS
-    return false; // iOS filesystem listener cannot differentiate between files, so this is a problem
+    // Don't create a lock file on iOS: the filesystem listener cannot ignore individual files,
+    // so it would retrigger a settings reload on every save. Report the lock as taken instead,
+    // otherwise settings would never be written at all
+    return true;
 #endif
     auto const startTime = Time::getCurrentTime().toMilliseconds();
 
@@ -556,7 +559,7 @@ bool SettingsFile::acquireFileLock()
 void SettingsFile::releaseFileLock()
 {
 #if JUCE_IOS
-    return false;
+    return; // No lock file was created, see acquireFileLock()
 #endif
     lockFile.deleteFile();
 }
