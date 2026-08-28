@@ -96,6 +96,7 @@ public:
         panel.setDrawShadowAndOutline(false);
         addAndMakeVisible(panel);
 
+        setOpaque(true);
         lookAndFeelChanged();
     }
 
