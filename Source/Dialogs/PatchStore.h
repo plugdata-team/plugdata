@@ -370,13 +370,38 @@ public:
                         webpImage = Image(Image::PixelFormat::ARGB, width, height, true);
                         Image::BitmapData const bitmapData(webpImage, Image::BitmapData::writeOnly);
 
-                        for (int y = 0; y < targetHeight; ++y) {
-                            for (int x = 0; x < targetWidth; ++x) {
+                        int const radius = Corners::defaultCornerRadius + 3;
+                        float const centre = radius - 0.5f;
+                        for (int y = 0; y < height; ++y) {
+                            for (int x = 0; x < width; ++x) {
                                 int const index = y * stride + x * 4;
+
                                 uint8_t const r = decodedData[index + 0];
                                 uint8_t const g = decodedData[index + 1];
                                 uint8_t const b = decodedData[index + 2];
-                                uint8_t const a = decodedData[index + 3];
+                                uint8_t a = decodedData[index + 3];
+
+                                float dx = 0.0f;
+                                float dy = 0.0f;
+
+                                // Calculate rounded edges
+                                if (x < radius)
+                                    dx = centre - x;
+                                else if (x >= width - radius)
+                                    dx = x - (width - radius) + 0.5f;
+
+                                if (y < radius)
+                                    dy = centre - y;
+
+                                if (dx > 0.0f && dy > 0.0f) {
+                                    float const distance = std::sqrt(dx * dx + dy * dy);
+
+                                    // 1 inside, 0 outside, ~1px AA transition.
+                                    float const coverage = std::clamp(radius + 0.5f - distance, 0.0f, 1.0f);
+
+                                    a = static_cast<uint8_t>(a * coverage);
+                                }
+
                                 bitmapData.setPixelColour(x, y, Colour(r, g, b, a));
                             }
                         }
