@@ -306,7 +306,7 @@ SettingsFile* SettingsFile::initialise()
     } else if (OSUtils::isIPad()) {
         Desktop::getInstance().setGlobalScaleFactor(1.125f);
     } else {
-        Desktop::getInstance().setGlobalScaleFactor(0.825f);
+        Desktop::getInstance().setGlobalScaleFactor(1.0f);
     }
 
 #else
