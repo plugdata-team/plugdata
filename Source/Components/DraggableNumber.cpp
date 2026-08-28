@@ -20,6 +20,7 @@ DraggableNumber::DraggableNumber(bool const integerDrag)
     setFont(Fonts::getTabularNumbersFont().withHeight(14.0f));
     lookAndFeelChanged();
     setInterceptsMouseClicks(true, true);
+    setViewportIgnoreDragFlag(true);
 }
 
 DraggableNumber::~DraggableNumber()
