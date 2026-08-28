@@ -436,9 +436,6 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
-        if (!isRealClickEvent(e))
-            return;
-
         if (e.originalComponent == this && e.getDistanceFromDragStart() > 4) {
             if (auto* editor = findParentComponentOfClass<PluginEditor>()) {
                 ObjectDragAndDrop::attachToMouse(editor, "#X obj 0 0 param " + param->getTitle().toString() + ";");
