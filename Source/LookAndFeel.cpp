@@ -528,10 +528,6 @@ void PlugDataLook::drawSpinningWaitAnimation(Graphics& g, Colour const& colour, 
     float const arcLength = minArcLength + t * (maxArcLength - minArcLength);
     float const endAngle = startAngle + arcLength;
 
-    // Draw background circle
-    g.setColour(colour.withAlpha(0.1f));
-    g.drawEllipse(cx - radius, cy - radius, radius * 2.0f, radius * 2.0f, thickness);
-
     Path p;
     p.addCentredArc(cx, cy, radius, radius, 0.0f, startAngle, endAngle, true);
 
