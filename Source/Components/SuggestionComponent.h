@@ -658,7 +658,7 @@ public:
         touchModeEditor->setScrollbarsShown(false);
         touchModeEditor->setJustification(Justification::centredLeft);
         touchModeEditor->setBorder(BorderSize<int>(0, 4, 0, 4));
-        touchModeEditor->setFont(Fonts::getDefaultFont().withHeight(18.f));
+        touchModeEditor->setFont(Fonts::getDefaultFont().withHeight(22.f));
         touchModeEditor->setColour(TextEditor::outlineColourId, Colours::transparentBlack);
         touchModeEditor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
         touchModeEditor->setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
@@ -1450,7 +1450,7 @@ private:
 
     int getRowHeight() const
     {
-        return usingTouchMode ? 36 : 30;
+        return usingTouchMode ? 34 : 30;
     }
 
     // On iPhone the dialog is fullscreen and the on-screen keyboard covers its lower half.
