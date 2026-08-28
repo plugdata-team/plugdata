@@ -20,6 +20,13 @@ public:
 
     ~Dialog() override
     {
+        if (!ownsViewedComponent) {
+            // We don't own it, so it outlives us: make sure we don't leave a dangling
+            // mouse listener behind on it
+            if (auto* viewed = viewedComponent.release())
+                viewed->removeMouseListener(this);
+        }
+
         if (auto const* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent())) {
             if (ProjectInfo::isStandalone) {
                 if (auto* closeButton = window->getCloseButton())
@@ -32,8 +39,9 @@ public:
         }
     }
 
-    void setViewedComponent(Component* child)
+    void setViewedComponent(Component* child, bool takeOwnership = true)
     {
+        ownsViewedComponent = takeOwnership;
         viewedComponent.reset(child);
         viewedComponent->addMouseListener(this, false);
         addAndMakeVisible(child);
@@ -158,6 +166,7 @@ public:
     std::unique_ptr<Button> closeButton = nullptr;
     std::unique_ptr<Dialog>* owner;
 
+    bool ownsViewedComponent = true;
     bool blockCloseAction = false;
     bool dragging = false;
     int backgroundMargin = 0;

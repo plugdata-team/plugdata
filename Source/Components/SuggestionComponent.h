@@ -14,6 +14,7 @@ extern "C" {
 #include "Heavy/CompatibleObjects.h"
 #include "Utility/NVGGraphicsContext.h"
 #include "Components/BouncingViewport.h"
+#include "Dialogs/Dialogs.h"
 #include "CanvasViewport.h"
 
 extern "C" {
@@ -191,6 +192,8 @@ class SuggestionComponent final
 
     class Row final : public TextButton {
     public:
+        std::function<void()> onDoubleClick;
+
         explicit Row(SuggestionComponent* parentComponent)
             : owner(parentComponent)
         {
@@ -219,6 +222,11 @@ class SuggestionComponent final
             repaint();
         }
 
+        void mouseDoubleClick(MouseEvent const& e) override
+        {
+            if(onDoubleClick) onDoubleClick();
+        }
+
         SuggestionEntry const& getEntry() const { return current; }
         bool hasEntry() const { return current.displayName.isNotEmpty(); }
 
@@ -238,8 +246,10 @@ class SuggestionComponent final
             }
 
             auto const textColour = colours.popupMenuTextColour;
+            auto const fontHeight = owner->getRowFontHeight();
             auto const yIndent = jmin(4, proportionOfHeight(0.3f));
-            auto leftIndent = current.icon != SuggestionEntry::IconType::None ? 36 : 11;
+            // The icon square is derived from the row height, so the text indent has to follow it
+            auto leftIndent = current.icon != SuggestionEntry::IconType::None ? getHeight() + 6 : 11;
             constexpr auto rightIndent = 14;
             auto textWidth = getWidth() - leftIndent - rightIndent;
 
@@ -247,17 +257,17 @@ class SuggestionComponent final
 
             if (textWidth > 0) {
                 Fonts::drawStyledText(g, displayed, leftIndent, yIndent, textWidth,
-                    getHeight() - yIndent * 2, textColour, Semibold, 14);
+                    getHeight() - yIndent * 2, textColour, Semibold, fontHeight);
             }
 
             if (current.description.isNotEmpty()) {
-                auto const nameWidth = Fonts::getStringWidth(displayed, Fonts::getSemiBoldFont().withHeight(14));
+                auto const nameWidth = Fonts::getStringWidth(displayed, Fonts::getSemiBoldFont().withHeight(fontHeight));
                 leftIndent += nameWidth;
                 textWidth = getWidth() - leftIndent - rightIndent;
 
                 Fonts::drawText(g, String::fromUTF8("  \xe2\x80\x93  ") + current.description,
                     Rectangle<int>(leftIndent, yIndent, textWidth, getHeight() - yIndent * 2),
-                    textColour, 14);
+                    textColour, fontHeight);
             }
 
             if (current.icon != SuggestionEntry::IconType::None)
@@ -270,13 +280,13 @@ class SuggestionComponent final
 
             Colour iconColour;
             String iconText;
-            int textSize = 12;
+            int textSize = owner->getRowFontHeight() * 0.9f;
 
             switch (current.icon) {
             case SuggestionEntry::IconType::Data:
                 iconColour = colours.dataColour;
                 iconText = "pd";
-                textSize = 10;
+                textSize *= 0.85f;
                 break;
             case SuggestionEntry::IconType::Signal:
                 iconColour = colours.signalColour;
@@ -533,7 +543,7 @@ public:
 
         detailPanel = std::make_unique<ObjectDetailPanel>();
         detailViewport = std::make_unique<BouncingViewport>();
-        detailViewport->setScrollBarsShown(true, false);
+        detailViewport->setScrollBarsShown(true, false, false, false);
         detailViewport->setViewedComponent(detailPanel.get(), false);
         detailViewport->setInterceptsMouseClicks(true, true);
         detailViewport->setViewportIgnoreDragFlag(true);
@@ -550,7 +560,7 @@ public:
 
         // Viewport
         port = std::make_unique<BouncingViewport>();
-        port->setScrollBarsShown(true, false);
+        port->setScrollBarsShown(true, false, false, false);
         port->setViewedComponent(buttonHolder.get(), false);
         port->setInterceptsMouseClicks(true, true);
         port->setViewportIgnoreDragFlag(true);
@@ -571,24 +581,49 @@ public:
         for (int i = 0; i < rows.size(); i++) {
             int const idx = i;
             rows[i]->onClick = [this, idx] { onRowClicked(idx); };
+            rows[i]->onDoubleClick = [this, idx] {
+                onRowClicked(idx);
+                if(currentObject)
+                    currentObject->hideEditor();
+            };
         }
     }
 
     ~SuggestionComponent() override
     {
+        // Detach from the touch dialog (which outlives us) before our Component base
+        // silently removes us from it
+        removeCalloutBox();
+
         resizer.setLookAndFeel(nullptr);
         rows.clear();
     }
 
     void createCalloutBox(Object* object, TextEditor* editor)
     {
+        // Defensive: a previous touch dialog should never still be around here
+        if (touchModeEditor || touchModeDialog)
+            removeCalloutBox();
+
         sendReceiveDatabase = { };
         currentObject = object;
-        openedEditor = editor;
+        usingTouchMode = SettingsFile::getInstance()->isUsingTouchMode();
+        objectEditor = editor;
+        lastQueriedText = "<unset>";
 
-        setTransform(object->editor->getTransform());
+        for (auto* row : rows)
+            row->setTriggeredOnMouseDown(!usingTouchMode);
 
         editor->addComponentListener(this);
+
+        if (usingTouchMode) {
+            createTouchModeDialog(object, editor);
+            return;
+        }
+
+        openedEditor = editor;
+        setTransform(object->editor->getTransform());
+
         editor->addKeyListener(this);
 
         autoCompleteComponent = std::make_unique<AutoCompleteComponent>(editor, object->cnv);
@@ -598,16 +633,90 @@ public:
 
         updateBounds();
 
+        resizer.setVisible(true);
         setVisible(false);
         toFront(false);
 
         repaint();
     }
 
+    // In touch mode the suggestions live in a centred, darkened-background dialog with
+    // their own (larger) text editor, instead of a popup anchored to the object.
+    void createTouchModeDialog(Object* object, TextEditor* editor)
+    {
+        auto* pluginEditor = object->cnv->editor;
+
+        // The dialog is a child of the plugin editor, which already carries the editor
+        // transform, so we must not apply it a second time here.
+        setTransform(AffineTransform());
+        resizer.setVisible(false);
+        layoutMode = LayoutMode::ListOnly;
+
+        touchModeEditor = std::make_unique<TextEditor>();
+        touchModeEditor->setMultiLine(true);
+        touchModeEditor->setReturnKeyStartsNewLine(false);
+        touchModeEditor->setScrollbarsShown(false);
+        touchModeEditor->setJustification(Justification::centredLeft);
+        touchModeEditor->setBorder(BorderSize<int>(0, 4, 0, 4));
+        touchModeEditor->setFont(Fonts::getDefaultFont().withHeight(18.f));
+        touchModeEditor->setColour(TextEditor::outlineColourId, Colours::transparentBlack);
+        touchModeEditor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
+        touchModeEditor->setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
+        touchModeEditor->setColour(TextEditor::textColourId, getThemeColours(*this).popupMenuTextColour);
+        touchModeEditor->setTextToShowWhenEmpty("Type to create an object...", getThemeColours(*this).popupMenuTextColour.withAlpha(0.5f));
+        touchModeEditor->setText(editor->getText(), false);
+        touchModeEditor->moveCaretToEnd();
+
+        touchModeEditor->onTextChange = [this] { touchModeTextChanged(); };
+        touchModeEditor->onReturnKey = [this] { commitTouchModeEdit(); };
+        touchModeEditor->onEscapeKey = [this] { cancelTouchModeEdit(); };
+        touchModeEditor->addKeyListener(this);
+
+        addAndMakeVisible(*touchModeEditor);
+        openedEditor = touchModeEditor.get();
+
+        auto const dialogWidth = jlimit(280, 520, pluginEditor->getWidth() - 80);
+        touchModeListHeight = jlimit(160, 340, pluginEditor->getHeight() - 200);
+
+        auto* dialog = new Dialog(&pluginEditor->openedDialog, pluginEditor, dialogWidth, touchModeListHeight, false);
+        dialog->setViewedComponent(this, false);
+        pluginEditor->openedDialog.reset(dialog);
+
+        touchModeDialog = dialog;
+        touchModeDialogOwner = pluginEditor;
+
+        setVisible(true);
+        updateSuggestions(touchModeEditor->getText());
+        resized();
+
+        grabEditorFocus();
+    }
+
     void removeCalloutBox()
     {
+        if (isTearingDown)
+            return;
+
+        ScopedValueSetter<bool> const teardownGuard(isTearingDown, true);
+
         currentSelection = -1;
         numOptions = 0;
+
+        if (objectEditor) {
+            objectEditor->removeComponentListener(this);
+            objectEditor->removeKeyListener(this);
+        }
+
+        destroyTouchModeEditor();
+        closeTouchModeDialog();
+
+        if (usingTouchMode) {
+            MessageManager::callAsync([safeEditor = objectEditor] {
+                if (safeEditor && safeEditor->isShowing() && Component::getCurrentlyFocusedComponent() != safeEditor.getComponent())
+                    safeEditor->grabKeyboardFocus();
+            });
+        }
+
         setVisible(false);
 
         if (isOnDesktop())
@@ -615,13 +724,10 @@ public:
 
         autoCompleteComponent.reset();
 
-        if (openedEditor) {
-            openedEditor->removeComponentListener(this);
-            openedEditor->removeKeyListener(this);
-        }
-
         openedEditor = nullptr;
+        objectEditor = nullptr;
         currentObject = nullptr;
+        usingTouchMode = false;
 
         for (auto* row : rows)
             row->clear();
@@ -637,9 +743,110 @@ public:
         autocompleteNavigationBaseText.clear();
     }
 
+    void destroyTouchModeEditor()
+    {
+        if (!touchModeEditor)
+            return;
+
+        touchModeEditor->removeKeyListener(this);
+        touchModeEditor->onTextChange = nullptr;
+        touchModeEditor->onReturnKey = nullptr;
+        touchModeEditor->onEscapeKey = nullptr;
+        removeChildComponent(touchModeEditor.get());
+
+        MessageManager::callAsync([outgoing = std::shared_ptr<TextEditor>(touchModeEditor.release())] { ignoreUnused(outgoing); });
+    }
+
+    void closeTouchModeDialog()
+    {
+        auto* dialog = touchModeDialog.getComponent();
+        auto* owningEditor = touchModeDialogOwner.getComponent();
+
+        touchModeDialog = nullptr;
+        touchModeDialogOwner = nullptr;
+
+        if (!dialog)
+            return;
+
+        removeMouseListener(dialog);
+        if (getParentComponent() == dialog)
+            dialog->removeChildComponent(this);
+
+        dialog->setVisible(false);
+
+        MessageManager::callAsync([safeDialog = SafePointer<Dialog>(dialog), safeEditor = SafePointer<PluginEditor>(owningEditor)] {
+            if (safeEditor && safeDialog && safeEditor->openedDialog.get() == safeDialog.getComponent())
+                safeEditor->openedDialog.reset(nullptr);
+        });
+    }
+
+    void touchModeTextChanged()
+    {
+        if (!touchModeEditor)
+            return;
+
+        auto const text = touchModeEditor->getText();
+
+        // Notify, so the object keeps resizing to fit the text while we type
+        if (objectEditor)
+            objectEditor->setText(text, true);
+
+        updateSuggestions(text);
+        updateTouchDialogSize();
+    }
+
+    void updateTouchDialogSize()
+    {
+        auto* dialog = touchModeDialog.getComponent();
+        if (!dialog || !touchModeEditor)
+            return;
+
+        int const desiredHeight = measureTouchEditorHeight() + (hasSuggestionContent() ? touchModeListHeight : 0);
+        if (dialog->height != desiredHeight) {
+            dialog->height = desiredHeight;
+            dialog->resized();
+        }
+
+        resized();
+    }
+
+    bool hasSuggestionContent() const
+    {
+        return Dialog::isIphone() || (layoutMode == LayoutMode::DetailOnly ? detailPanel->hasContent() : numOptions > 0);
+    }
+
+    int measureTouchEditorHeight()
+    {
+        if (!touchModeEditor)
+            return 0;
+
+        touchModeEditor->setSize(jmax(1, getWindowBounds().getWidth() - 16), 1);
+        return jlimit(42, jmax(42, touchModeListHeight * 3 / 4), touchModeEditor->getTextHeight() + 16);
+    }
+
+    void commitTouchModeEdit()
+    {
+        // Async: hiding the object editor tears this component down
+        MessageManager::callAsync([safeObject = currentObject] {
+            if (safeObject)
+                safeObject->hideEditor();
+        });
+    }
+
+    void cancelTouchModeEdit()
+    {
+        MessageManager::callAsync([safeObject = currentObject, safeEditor = objectEditor] {
+            // For a newly created object, escape removes it again
+            if (safeEditor && safeEditor->onEscapeKey)
+                safeEditor->onEscapeKey();
+            else if (safeObject)
+                safeObject->hideEditor();
+        });
+    }
+
     void updateBounds()
     {
-        if (!currentObject)
+        if (!currentObject || usingTouchMode)
             return;
 
         auto const* cnv = currentObject->cnv;
@@ -686,6 +893,23 @@ public:
     bool isShowingDetailPanel() const
     {
         return layoutMode == LayoutMode::ListWithDetail || layoutMode == LayoutMode::DetailOnly;
+    }
+
+    // Call this from the object editor's onFocusLost handler. Returns true when the
+    // editor should be kept open (and has been refocused if that was needed).
+    bool handleEditorFocusLost(TextEditor* editor)
+    {
+        // In touch mode focus deliberately lives in the dialog's own text editor, so the
+        // object editor must stay open without stealing it back
+        if (usingTouchMode && objectEditor == editor)
+            return true;
+
+        if (shouldKeepEditorOpen(editor)) {
+            editor->grabKeyboardFocus();
+            return true;
+        }
+
+        return false;
     }
 
     bool shouldKeepEditorOpen(TextEditor* editor) const
@@ -932,18 +1156,27 @@ private:
 
     void shrinkHeightToFitEntriesIfNeeded()
     {
-        if (!currentResultShouldShrinkHeightToFitEntries || layoutMode == LayoutMode::DetailOnly || numOptions <= 0)
+        // The touch dialog has a fixed size
+        if (usingTouchMode || !currentResultShouldShrinkHeightToFitEntries || layoutMode == LayoutMode::DetailOnly || numOptions <= 0)
             return;
 
         auto const margins = getMargin() * 2;
         int const numVisibleRows = std::min(numOptions, numRowsAllocated);
-        int const targetHeight = numVisibleRows * rowHeight + 12 + margins;
+        int const targetHeight = numVisibleRows * getRowHeight() + 12 + margins;
         if (targetHeight < getHeight())
             setSize(getWidth(), targetHeight);
     }
 
     void updatePopupVisibility()
     {
+        // The touch dialog stays on screen for as long as the edit is active: only its
+        // contents change when there is nothing to suggest
+        if (usingTouchMode) {
+            setVisible(true);
+            updateTouchDialogSize();
+            return;
+        }
+
         bool const editorHasText = openedEditor && openedEditor->getText().isNotEmpty();
         bool const hasContent = layoutMode == LayoutMode::DetailOnly ? detailPanel->hasContent() : numOptions > 0;
 
@@ -963,7 +1196,11 @@ private:
         bool const wasSmallPanel = (layoutMode != LayoutMode::ListWithDetail);
         auto const margins = getMargin() * 2;
 
-        if (requestedMode == LayoutMode::DetailOnly || requestedMode == LayoutMode::ListOnly) {
+        if (usingTouchMode) {
+            // Fixed dialog size: never resize, and keep the list full width so the rows
+            // stay comfortably tappable
+            layoutMode = requestedMode == LayoutMode::DetailOnly ? LayoutMode::DetailOnly : LayoutMode::ListOnly;
+        } else if (requestedMode == LayoutMode::DetailOnly || requestedMode == LayoutMode::ListOnly) {
             layoutMode = requestedMode;
             setSize(340 + margins, 160 + margins);
         } else {
@@ -1095,6 +1332,22 @@ private:
         if (!openedEditor)
             return;
 
+        // There is no ghost text to accept in touch mode, so tapping a row simply
+        // completes the editor with that entry
+        if (usingTouchMode) {
+            if (!isPositiveAndBelow(idx, rows.size()) || !rows[idx]->hasEntry())
+                return;
+
+            for (int i = 0; i < rows.size(); i++)
+                rows[i]->setToggleState(i == idx, dontSendNotification);
+
+            currentSelection = idx;
+            openedEditor->setText(rows[idx]->getEntry().getCompletionText(), true);
+            openedEditor->moveCaretToEnd();
+            grabEditorFocus();
+            return;
+        }
+
         if (idx == currentSelection && autoCompleteComponent && autoCompleteComponent->hasGhostText()) {
             autoCompleteComponent->accept();
         } else {
@@ -1103,7 +1356,13 @@ private:
 
         if (!openedEditor->isVisible())
             openedEditor->setVisible(true);
-        openedEditor->grabKeyboardFocus();
+        grabEditorFocus();
+    }
+
+    void grabEditorFocus() const
+    {
+        if (openedEditor)
+            openedEditor->grabKeyboardFocus();
     }
 
     void refreshDetailPanelContent()
@@ -1206,9 +1465,30 @@ private:
         return suggestions;
     }
 
+    int getRowHeight() const
+    {
+        return usingTouchMode ? 36 : 30;
+    }
+
+    // On iPhone the dialog is fullscreen and the on-screen keyboard covers its lower half.
+    // JUCE doesn't report the keyboard height, so leave enough slack below the last row
+    // that every entry can be scrolled clear of it.
+    int getListBottomPadding() const
+    {
+        if (!usingTouchMode || !Dialog::isIphone() || numOptions <= 0)
+            return 0;
+
+        return getHeight() / 2;
+    }
+
+    int getRowFontHeight() const
+    {
+        return usingTouchMode ? 16 : 14;
+    }
+
     int getMargin() const
     {
-        return canBeTransparent() ? 8 : 0;
+        return canBeTransparent() && !usingTouchMode ? 8 : 0;
     }
 
     Rectangle<int> getWindowBounds() const
@@ -1223,12 +1503,16 @@ private:
 
     void resized() override
     {
-        auto const wholeBounds = getWindowBounds();
+        auto wholeBounds = getWindowBounds();
+
+        if (usingTouchMode && touchModeEditor)
+            touchModeEditor->setBounds(wholeBounds.removeFromTop(measureTouchEditorHeight()).reduced(8, 4));
 
         // While in a list mode, the actual mode (ListOnly vs ListWithDetail)
         // is decided by the current width. This keeps the user-visible side
-        // panel in sync with the resizer drag.
-        if (layoutMode != LayoutMode::DetailOnly) {
+        // panel in sync with the resizer drag. In touch mode the size is fixed,
+        // so the mode picked by applyLayoutMode is the final one.
+        if (!usingTouchMode && layoutMode != LayoutMode::DetailOnly) {
             auto const refinedMode = decideListModeForWidth(getWidth());
             if (refinedMode != layoutMode) {
                 layoutMode = refinedMode;
@@ -1262,9 +1546,10 @@ private:
         if (layoutMode != LayoutMode::DetailOnly) {
             int const yScroll = port->getViewPositionY();
             port->setBounds(listBounds.reduced(2, 2));
-            buttonHolder->setBounds(listBounds.getX() + 6, listBounds.getY(), listBounds.getWidth(), std::min(numOptions, numRowsAllocated) * rowHeight + 8);
+            auto const currentRowHeight = getRowHeight();
+            buttonHolder->setBounds(listBounds.getX() + 6, listBounds.getY(), listBounds.getWidth(), std::min(numOptions, numRowsAllocated) * currentRowHeight + 8 + getListBottomPadding());
             for (int i = 0; i < rows.size(); i++)
-                rows[i]->setBounds(3, i * rowHeight + 4, listBounds.getWidth() - 6, rowHeight - 1);
+                rows[i]->setBounds(3, i * currentRowHeight + 4, listBounds.getWidth() - 6, currentRowHeight - 1);
             port->setViewPosition(0, yScroll);
         }
 
@@ -1289,6 +1574,10 @@ private:
 
     void paint(Graphics& g) override
     {
+        // In touch mode the dialog paints our background and outline for us
+        if (usingTouchMode)
+            return;
+
         auto const& colours = getThemeColours(*this);
 
         if (!canBeTransparent()) {
@@ -1308,6 +1597,15 @@ private:
 
         auto const winBounds = getWindowBounds().toFloat();
 
+        if (usingTouchMode) {
+            if (touchModeEditor && hasSuggestionContent()) {
+                auto const separatorY = static_cast<float>(touchModeEditor->getBottom()) + 6.0f;
+                g.setColour(colours.outlineColour.darker(0.1f));
+                g.drawLine(winBounds.getX() + 8.0f, separatorY, winBounds.getRight() - 8.0f, separatorY, 1.0f);
+            }
+            return;
+        }
+
         g.setColour(colours.outlineColour.darker(0.1f));
         g.drawRoundedRectangle(winBounds, Corners::defaultCornerRadius, 1.0f);
 
@@ -1326,8 +1624,7 @@ private:
 
     void mouseDown(MouseEvent const&) override
     {
-        if (openedEditor)
-            openedEditor->grabKeyboardFocus();
+        grabEditorFocus();
     }
 
     void mouseUp(MouseEvent const& e) override
@@ -1362,6 +1659,16 @@ private:
     void componentBeingDeleted(Component&) override
     {
         removeCalloutBox();
+    }
+
+    void parentHierarchyChanged() override
+    {
+        if (!usingTouchMode || getParentComponent() != nullptr)
+            return;
+
+        touchModeDialog = nullptr;
+        touchModeDialogOwner = nullptr;
+        commitTouchModeEdit();
     }
 
     bool keyPressed(KeyPress const& key, Component* /*originatingComponent*/) override
@@ -1764,7 +2071,6 @@ private:
     }
 
     static constexpr int numRowsAllocated = 20;
-    static constexpr int rowHeight = 30;
     static constexpr int detailPanelMinWidth = 410; // below this width, hide the detail side panel
 
     std::unique_ptr<AutoCompleteComponent> autoCompleteComponent;
@@ -1772,6 +2078,7 @@ private:
     std::unique_ptr<Component> buttonHolder;
     std::unique_ptr<ObjectDetailPanel> detailPanel;
     std::unique_ptr<BouncingViewport> detailViewport;
+    std::unique_ptr<TextEditor> touchModeEditor;
     OwnedArray<Row> rows;
     ResizerLookAndFeel resizerLookAndFeel;
     MouseRateReducedComponent<ResizableCornerComponent> resizer;
@@ -1787,11 +2094,17 @@ private:
     bool currentResultSupportsDetail = false;
     bool autocompleteActivatedByNavigation = false;
     bool currentResultShouldShrinkHeightToFitEntries = false;
+    bool usingTouchMode = false;
+    bool isTearingDown = false;
 
     String lastQueriedText;
     String autocompleteNavigationBaseText;
-    SafePointer<TextEditor> openedEditor = nullptr;
+    SafePointer<TextEditor> openedEditor = nullptr; // Either points to touchModeEditor or objectEditor
+    SafePointer<TextEditor> objectEditor = nullptr;
     SafePointer<Object> currentObject = nullptr;
+    int touchModeListHeight = 0;
+    SafePointer<Dialog> touchModeDialog = nullptr;
+    SafePointer<PluginEditor> touchModeDialogOwner = nullptr;
     SmallArray<SendReceiveEntry> sendReceiveDatabase;
 
     StringArray excludeList = {
