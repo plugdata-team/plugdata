@@ -675,7 +675,7 @@ public:
         addAndMakeVisible(*touchModeEditor);
         openedEditor = touchModeEditor.get();
 
-        auto const dialogWidth = jlimit(280, 520, pluginEditor->getWidth() - 80);
+        auto const dialogWidth = jlimit(280, 680, pluginEditor->getWidth() - 80);
         touchModeListHeight = jlimit(160, 340, pluginEditor->getHeight() - 200);
 
         auto* dialog = new Dialog(&pluginEditor->openedDialog, pluginEditor, dialogWidth, touchModeListHeight, false);
@@ -894,7 +894,6 @@ public:
     {
         return layoutMode == LayoutMode::ListWithDetail || layoutMode == LayoutMode::DetailOnly;
     }
-
 
     void checkEditorFocusLoss(TextEditor* editor) const
     {
@@ -1184,19 +1183,15 @@ private:
         bool const wasSmallPanel = (layoutMode != LayoutMode::ListWithDetail);
         auto const margins = getMargin() * 2;
 
-        if (usingTouchMode) {
-            // Fixed dialog size: never resize, and keep the list full width so the rows
-            // stay comfortably tappable
-            layoutMode = requestedMode == LayoutMode::DetailOnly ? LayoutMode::DetailOnly : LayoutMode::ListOnly;
-        } else if (requestedMode == LayoutMode::DetailOnly || requestedMode == LayoutMode::ListOnly) {
+        if (requestedMode == LayoutMode::DetailOnly || requestedMode == LayoutMode::ListOnly) {
             layoutMode = requestedMode;
-            setSize(340 + margins, 160 + margins);
+            if(!usingTouchMode) setSize(340 + margins, 160 + margins);
         } else {
             int const targetWidth = wasSmallPanel ? savedListSize.x : getWidth();
             int const targetHeight = wasSmallPanel ? savedListSize.y : getHeight();
 
             layoutMode = decideListModeForWidth(targetWidth);
-            if (wasSmallPanel)
+            if (!usingTouchMode && wasSmallPanel)
                 setSize(targetWidth, targetHeight);
         }
 

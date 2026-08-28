@@ -69,7 +69,7 @@ public:
             g.fillRoundedRectangle(viewedComponent->getBounds().toFloat(), isIphone() ? 0 : Corners::windowCornerRadius);
 
             g.setColour(colours.outlineColour);
-            g.drawRoundedRectangle(viewedComponent->getBounds().toFloat(), isIphone() ? 0 : Corners::windowCornerRadius, 1.0f);
+            g.drawRoundedRectangle(viewedComponent->getBounds().toFloat().reduced(0.5f), isIphone() ? 0 : Corners::windowCornerRadius, 1.0f);
         }
     }
 
@@ -96,7 +96,6 @@ public:
                 // Only on iPhone, fullscreen every dialog becauwe we don't have much space
                 viewedComponent->setBounds(0, 0, getWidth(), getHeight());
             } else {
-
                 viewedComponent->setSize(std::min(width, getWidth()), std::min(height, getHeight()));
                 viewedComponent->setCentrePosition({ getLocalBounds().getCentreX(), getLocalBounds().getCentreY() });
             }
