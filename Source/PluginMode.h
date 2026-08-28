@@ -132,7 +132,6 @@ public:
             }
         }
 
-
 #if JUCE_IOS
         editor->constrainer.setSizeLimits(1, 1, 99000, 99000);
 #else

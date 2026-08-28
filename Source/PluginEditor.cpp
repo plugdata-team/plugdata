@@ -176,6 +176,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     welcomePanelSearchInput.setTextToShowWhenEmpty("Type to search patches", colours.panelTextColour.withAlpha(0.5f));
     welcomePanelSearchInput.setBorder({ 1, 3, 5, 1 });
     welcomePanelSearchInput.setJustification(Justification::centredLeft);
+    welcomePanelSearchInput.setAlwaysOnTop(true);
     addChildComponent(welcomePanelSearchInput);
 
     setWantsKeyboardFocus(true);
@@ -757,9 +758,12 @@ void PluginEditor::resized()
             resizerSize, resizerSize);
     }
 
-    auto welcomePanelExtraButtons = Rectangle<int>(audioToolbar->getX() - buttonSize + 4, 0, buttonSize*2 + 8, buttonSize);
+    auto welcomePanelSearchBounds = Rectangle<int>(libraryPanelSelector.getRight() + 10, 4, welcomePanelSearchButton.getX() - libraryPanelSelector.getRight() - 20, toolbarHeight - 4);
 
-    welcomePanelSearchInput.setBounds(libraryPanelSelector.getRight() + 10, 4, welcomePanelSearchButton.getX() - libraryPanelSelector.getRight() - 20, toolbarHeight - 4);
+    if(welcomePanelSearchBounds.getWidth() < 120)
+        welcomePanelSearchBounds.setLeft(recentlyOpenedPanelSelector.getX());
+    welcomePanelSearchInput.setBounds(welcomePanelSearchBounds);
+
     updateStandaloneWindowControls();
     repaint(); // Some outlines are dependent on whether or not the sidebars are expanded, or whether or not a patch is opened
 }
