@@ -416,14 +416,18 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
 #if JUCE_IOS
     editorLookAndFeel.setMainComponent(this);
-#endif
-
+#else
+    // Show the onboarding dialog
+    // Skip this on iOS since most settings here are irrelevant to it
     MessageManager::callAsync([_this = SafePointer(this)](){
       if(_this && !_this->pd->findPatchInPluginMode(_this->editorIndex)) {
           if (!SettingsFile::getInstance()->getProperty<bool>("onboarding_completed") || SystemStats::getEnvironmentVariable("PLUGDATA_ONBOARDING", {}).isNotEmpty())
               Dialogs::showOnboardingDialog(&_this->openedDialog, _this.get());
       }
     });
+#endif
+
+
 
     addModifierKeyListener(&pd->keyHandler);
     startTimerHz(90);
@@ -670,7 +674,7 @@ void PluginEditor::resized()
     auto const rightExpanded = rightHasSelectors && !rightSidebar->isHidden();
 
     auto bounds = getLocalBounds();
-    bounds.removeFromTop(toolbarHeight);
+    auto toolbarBounds = bounds.removeFromTop(toolbarHeight);
 
     {
         if (leftHasSelectors) {
@@ -712,12 +716,16 @@ void PluginEditor::resized()
         offset = standalone->isFullScreen() ? 20 : offset;
 #endif
 
+    toolbarBounds = toolbarBounds.withTrimmedLeft(offset).translated(0, 2);
+
     constexpr auto buttonDistance = 38;
     auto const buttonSize = toolbarHeight + 5;
-    mainMenuButton.setBounds(offset, 0, buttonSize, buttonSize);
-    undoButton.setBounds(buttonDistance + offset, 0, buttonSize, buttonSize);
-    redoButton.setBounds(2 * buttonDistance + offset, 0, buttonSize, buttonSize);
-    addObjectMenuButton.setBounds(3 * buttonDistance + offset, 0, buttonSize, buttonSize);
+
+    auto nextButtonBounds = [&toolbarBounds, buttonSize](){ return toolbarBounds.removeFromLeft(buttonDistance).withSizeKeepingCentre(buttonSize, buttonSize); };
+    mainMenuButton.setBounds(nextButtonBounds());
+    undoButton.setBounds(nextButtonBounds());
+    redoButton.setBounds(nextButtonBounds());
+    addObjectMenuButton.setBounds(nextButtonBounds());
 
 #if JUCE_IOS
     auto windowControlsOffset = 0.f;
@@ -727,9 +735,16 @@ void PluginEditor::resized()
 
     auto audioToolbarWidth = welcomePanelSearchButton.isVisible() ? 220 : getWidth() - addObjectMenuButton.getRight();
     if (audioToolbar)
-        audioToolbar->setBounds(getLocalBounds().removeFromTop(toolbarHeight).removeFromRight(audioToolbarWidth).translated(-windowControlsOffset, 2));
+        audioToolbar->setBounds(toolbarBounds.removeFromRight(audioToolbarWidth).translated(-windowControlsOffset, 0));
 
-    auto welcomeSelectorBounds = getLocalBounds().removeFromTop(toolbarHeight + 8).withSizeKeepingCentre(200, toolbarHeight).translated(0, -1);
+    auto enoughSpaceForExtraWelcomeButtons = toolbarBounds.getWidth() > 200;
+    sidebarToggleButton.setVisible(enoughSpaceForExtraWelcomeButtons);
+    welcomePanelSearchButton.setVisible(enoughSpaceForExtraWelcomeButtons);
+
+    sidebarToggleButton.setBounds(toolbarBounds.removeFromRight(buttonDistance).withSizeKeepingCentre(buttonSize, buttonSize));
+    welcomePanelSearchButton.setBounds(toolbarBounds.removeFromRight(buttonDistance).withSizeKeepingCentre(buttonSize, buttonSize));
+
+    auto welcomeSelectorBounds = toolbarBounds.withSizeKeepingCentre(200, toolbarHeight + 2);
     recentlyOpenedPanelSelector.setBounds(welcomeSelectorBounds.removeFromLeft(100));
     libraryPanelSelector.setBounds(welcomeSelectorBounds.removeFromLeft(100));
 
@@ -742,8 +757,7 @@ void PluginEditor::resized()
             resizerSize, resizerSize);
     }
 
-    sidebarToggleButton.setBounds(audioToolbar->getX() - buttonSize + 4, 0, buttonSize, buttonSize);
-    welcomePanelSearchButton.setBounds(sidebarToggleButton.getX() - buttonSize - 2, 0, buttonSize, buttonSize);
+    auto welcomePanelExtraButtons = Rectangle<int>(audioToolbar->getX() - buttonSize + 4, 0, buttonSize*2 + 8, buttonSize);
 
     welcomePanelSearchInput.setBounds(libraryPanelSelector.getRight() + 10, 4, welcomePanelSearchButton.getX() - libraryPanelSelector.getRight() - 20, toolbarHeight - 4);
     updateStandaloneWindowControls();

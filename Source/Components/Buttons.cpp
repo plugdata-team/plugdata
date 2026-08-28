@@ -37,16 +37,12 @@ void MainToolbarButton::paint(Graphics& g)
 
     auto constexpr cornerSize = Corners::defaultCornerRadius;
     auto const backgroundColour = active ? colours.toolbarHoverColour : Colours::transparentBlack;
-    auto bounds = getLocalBounds().reduced(3, 4).toFloat();
+    auto bounds = getLocalBounds().reduced(4, 5).toFloat();
 
     g.setColour(backgroundColour);
     g.fillRoundedRectangle(bounds, cornerSize);
 
     auto const textColour = colours.toolbarTextColour.withMultipliedAlpha(isEnabled() ? 1.0f : 0.5f);
-
-#if JUCE_MAC
-    bounds = bounds.withTrimmedBottom(2);
-#endif
 
     g.setFont(Fonts::getIconFont().withHeight(getHeight() / 2.7));
     g.setColour(textColour);

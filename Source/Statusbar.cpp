@@ -527,5 +527,5 @@ void Statusbar::resized()
 
     editModeGroup->setBounds(b.removeFromRight(84));
 
-    touchSelectionHelper->setBounds(getLocalBounds().withSizeKeepingCentre(touchSelectionHelper->getIdealWidth(), getHeight()));
+    touchSelectionHelper->setBounds(b.withSizeKeepingCentre(touchSelectionHelper->getIdealWidth(), getHeight()));
 }
