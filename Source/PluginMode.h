@@ -132,9 +132,11 @@ public:
             }
         }
 
-        titleBar.addAndMakeVisible(scaleComboBox);
+
 #if JUCE_IOS
         editor->constrainer.setSizeLimits(1, 1, 99000, 99000);
+#else
+        titleBar.addAndMakeVisible(scaleComboBox);
 #endif
         addAndMakeVisible(titleBar);
         cnv->connectionLayer.setVisible(false);
@@ -159,9 +161,7 @@ public:
     {
 #if JUCE_IOS
         parentSizeChanged();
-        float const scaleX = static_cast<float>(getWidth()) / width;
-        float const scaleY = static_cast<float>(getHeight()) / height;
-        setWidthAndHeight(jmin(scaleX, scaleY));
+        setWidthAndHeight(getScaleToFit());
         return;
 #endif
         // set scale to the last scale that was set for this patches plugin mode
@@ -221,13 +221,14 @@ public:
     {
         NVGScopedState scopedState(nvg);
         auto const scale = pluginModeScale;
+
+        nanovg::nvgFillColor(nvg, nvgColour(getThemeColours(*this).canvasBackgroundColour));
+        nanovg::nvgFillRect(nvg, 0, 0, editor->getWidth(), editor->getHeight());
+
 #if !JUCE_IOS
         if (isWindowFullscreen())
 #endif
-            nanovg::nvgScissor(nvg, (getWidth() - (width * scale)) / 2, (getHeight() - height * scale) / 2, width * scale, height * scale);
-
-        nanovg::nvgFillColor(nvg, nvgColour(getThemeColours(*this).canvasBackgroundColour));
-        nanovg::nvgFillRect(nvg, 0, titlebarHeight, getWidth(), getHeight() - titlebarHeight);
+            nanovg::nvgScissor(nvg, scaledPatchBounds.getX(), scaledPatchBounds.getY(), scaledPatchBounds.getWidth(), scaledPatchBounds.getHeight());
 
         nanovg::nvgScale(nvg, scale, scale);
         nanovg::nvgTranslate(nvg, cnv->getX(), cnv->getY());
@@ -276,8 +277,7 @@ public:
 
         if (ProjectInfo::isStandalone && isWindowFullscreen()) {
             // Fill background for Fullscreen / Kiosk Mode
-            g.setColour(colours.canvasBackgroundColour);
-            g.fillRect(editor->getTopLevelComponent()->getLocalBounds());
+            g.fillAll(colours.canvasBackgroundColour);
             render(editor->getNanoLLGC()->getContext());
             return;
         }
@@ -318,22 +318,15 @@ public:
 
         // On iOS, we always scale pluginmode patches to full size, and we also always show the patch title bar
 #if JUCE_IOS
-        // Calculate the scale factor required to fit the editor in the screen
-        float const scaleX = static_cast<float>(getWidth()) / width;
-        float const scaleY = static_cast<float>(getHeight()) / height;
-        float scale = jmin(scaleX, scaleY);
+        // Scale the patch to fit in the area below the titlebar, and centre it there
+        float const scale = getScaleToFit();
 
         cnv->zoomScale = scale;
         pluginModeScale = scale;
+        scaledPatchBounds = getScaledPatchBounds(scale, titlebarHeight);
 
         scaleComboBox.setVisible(false);
         editorButton->setVisible(true);
-
-        // Calculate the position of the editor after scaling
-        int const scaledWidth = static_cast<int>(width * scale);
-        int const scaledHeight = static_cast<int>(height * scale);
-        int const x = (getWidth() - scaledWidth) / 2;
-        int const y = (getHeight() - scaledHeight) / 2;
 
         titleBar.setBounds(0, 0, getWidth(), titlebarHeight);
         scaleComboBox.setBounds(8, 8, 74, titlebarHeight - 16);
@@ -341,7 +334,7 @@ public:
 
         auto const b = getLocalBounds() + cnv->canvasOrigin;
         cnv->setTransform(cnv->getTransform().scale(scale));
-        cnv->setBounds(-b.getX() + x / scale, -b.getY() + y / scale + titlebarHeight / scale, b.getWidth() / scale + b.getX(), b.getHeight() / scale + b.getY());
+        cnv->setBounds(-b.getX() + scaledPatchBounds.getX() / scale, -b.getY() + scaledPatchBounds.getY() / scale, b.getWidth() / scale + b.getX(), b.getHeight() / scale + b.getY());
         repaint();
         return;
 #endif
@@ -352,14 +345,11 @@ public:
             float const scaleY = static_cast<float>(getHeight()) / height;
             float scale = jmin(scaleX, scaleY);
 
-            // Calculate the position of the editor after scaling
-            int const scaledWidth = static_cast<int>(width * scale);
-            int const scaledHeight = static_cast<int>(height * scale);
-            int const x = (getWidth() - scaledWidth) / 2;
-            int const y = (getHeight() - scaledHeight) / 2;
-
             pluginModeScale = scale;
             cnv->zoomScale = scale;
+
+            // Centre the scaled patch on the screen
+            scaledPatchBounds = getScaledPatchBounds(scale, 0);
 
             // Hide titlebar
             titleBar.setBounds(0, 0, 0, 0);
@@ -370,10 +360,11 @@ public:
 
             auto const b = getLocalBounds() + cnv->canvasOrigin;
             cnv->setTransform(cnv->getTransform().scale(scale));
-            cnv->setBounds(-b.getX() + x / scale, -b.getY() + y / scale, b.getWidth() + b.getX(), b.getHeight() + b.getY());
+            cnv->setBounds(-b.getX() + scaledPatchBounds.getX() / scale, -b.getY() + scaledPatchBounds.getY() / scale, b.getWidth() + b.getX(), b.getHeight() + b.getY());
         } else {
             float scale = getWidth() / width;
             pluginModeScale = scale;
+            scaledPatchBounds = getScaledPatchBounds(scale, titlebarHeight);
 
             scaleComboBox.setVisible(true);
             editorButton->setVisible(true);
@@ -392,7 +383,7 @@ public:
     void parentSizeChanged() override
     {
 #if JUCE_IOS
-        setBounds(editor->getLocalBounds().withTrimmedBottom(40));
+        setBounds(editor->getLocalBounds());
         return;
 #endif
         // Fullscreen / Kiosk Mode
@@ -513,6 +504,21 @@ private:
         return look;
     }
 
+    // The area the patch occupies once scaled, centred in the space below the titlebar
+    Rectangle<int> getScaledPatchBounds(float const scale, int const topOffset) const
+    {
+        return Rectangle<int>(roundToInt(width * scale), roundToInt(height * scale)).withCentre(getLocalBounds().withTrimmedTop(topOffset).getCentre());
+    }
+
+#if JUCE_IOS
+    // On iOS, the patch is always scaled to fit in the space below the titlebar
+    float getScaleToFit() const
+    {
+        auto const availableArea = getLocalBounds().withTrimmedTop(titlebarHeight);
+        return jmin(availableArea.getWidth() / width, availableArea.getHeight() / height);
+    }
+#endif
+
     pd::Patch::Ptr patchPtr;
     std::unique_ptr<PlugDataLook> pluginModeLnf;
     std::unique_ptr<Canvas> cnv;
@@ -540,6 +546,7 @@ private:
 
     float pluginModeScale = 1.0f;
     float scaleDPIMult = 1.0f;
+    Rectangle<int> scaledPatchBounds;
 
     struct Scale {
         float floatScale;
