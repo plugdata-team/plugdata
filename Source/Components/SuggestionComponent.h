@@ -190,26 +190,21 @@ class SuggestionComponent final
         ListWithDetail,
         DetailOnly };
 
-    class Row final : public TextButton {
+    class Row final : public Component {
     public:
+        std::function<void()> onClick;
         std::function<void()> onDoubleClick;
 
         explicit Row(SuggestionComponent* parentComponent)
             : owner(parentComponent)
         {
-            setButtonText("");
             setWantsKeyboardFocus(false);
-            setConnectedEdges(12);
-            setClickingTogglesState(true);
-            setTriggeredOnMouseDown(true);
-            setRadioGroupId(hash("suggestion_component"));
             setColour(TextButton::buttonOnColourId, findColour(ScrollBar::thumbColourId));
         }
 
         void setEntry(SuggestionEntry const& entry)
         {
             current = entry;
-            setButtonText(entry.displayName);
             setInterceptsMouseClicks(true, false);
             repaint();
         }
@@ -217,9 +212,57 @@ class SuggestionComponent final
         void clear()
         {
             current = { };
-            setButtonText("");
             setInterceptsMouseClicks(false, false);
             repaint();
+        }
+
+        bool isSelected()
+        {
+            return selected;
+        }
+
+        void setSelected(bool shouldBeSelected)
+        {
+            selected = shouldBeSelected;
+            if(shouldBeSelected) turnOffOtherButtonsInGroup();
+            repaint();
+        }
+
+        void turnOffOtherButtonsInGroup()
+        {
+            if (auto* p = getParentComponent())
+            {
+                for (auto* c : p->getChildren())
+                {
+                    if (c != this)
+                    {
+                        if (auto b = dynamic_cast<Row*> (c))
+                        {
+                            b->selected = false;
+                            b->repaint();
+                        }
+                    }
+                }
+            }
+        }
+
+        void mouseDown(MouseEvent const& e) override
+        {
+            if (!e.source.isTouch())
+                clicked();
+        }
+
+        void mouseUp(MouseEvent const& e) override
+        {
+            if (e.source.isTouch() && !e.mouseWasDraggedSinceMouseDown())
+                clicked();
+        }
+
+        void clicked()
+        {
+            selected = true;
+            turnOffOtherButtonsInGroup();
+            if (onClick) onClick();
         }
 
         void mouseDoubleClick(MouseEvent const& e) override
@@ -240,7 +283,7 @@ class SuggestionComponent final
 
             // When toggled, draw the highlight; otherwise stay transparent so
             // the popup's unified rounded rectangle shows through.
-            if (getToggleState()) {
+            if (selected) {
                 g.setColour(colours.popupMenuActiveBackgroundColour);
                 g.fillRoundedRectangle(buttonArea, Corners::defaultCornerRadius);
             }
@@ -311,6 +354,7 @@ class SuggestionComponent final
 
         SuggestionComponent* owner;
         SuggestionEntry current;
+        bool selected = false;
     };
 
     class ObjectDetailPanel final : public Component {
@@ -610,9 +654,6 @@ public:
         usingTouchMode = SettingsFile::getInstance()->isUsingTouchMode();
         objectEditor = editor;
         lastQueriedText = "<unset>";
-
-        for (auto* row : rows)
-            row->setTriggeredOnMouseDown(!usingTouchMode);
 
         editor->addComponentListener(this);
 
@@ -947,7 +988,6 @@ private:
     {
         SuggestionQueryResult result;
         result.autocompleteSupported = true;
-        result.detailLookupSupported = true;
 
         auto& library = currentObject->cnv->pd->objectLibrary;
 
@@ -974,6 +1014,7 @@ private:
         if (!result.entries.empty() && found[0].startsWith(text))
             result.topAutocompleteText = found[0];
 
+        result.detailLookupSupported = text.isNotEmpty() && result.entries.size() > 0;
         return result;
     }
 
@@ -1087,7 +1128,7 @@ private:
 
             for (auto* row : rows) {
                 row->clear();
-                row->setToggleState(false, dontSendNotification);
+                row->setSelected(false);
             }
 
             detailPanel->setObject(result.detailLookupTarget,
@@ -1111,10 +1152,10 @@ private:
         for (int i = 0; i < rows.size(); i++) {
             if (i < numOptions) {
                 rows[i]->setEntry(result.entries[i]);
-                rows[i]->setToggleState(false, dontSendNotification);
+                rows[i]->setSelected(false);
             } else {
                 rows[i]->clear();
-                rows[i]->setToggleState(false, dontSendNotification);
+                rows[i]->setSelected(false);
             }
         }
 
@@ -1130,7 +1171,7 @@ private:
 
         if (currentResultSupportsAutocomplete && editorHasText && result.topAutocompleteText.isNotEmpty() && numOptions > 0) {
             currentSelection = 0;
-            rows[0]->setToggleState(true, dontSendNotification);
+            rows[0]->setSelected(true);
         } else {
             currentSelection = -1;
         }
@@ -1235,8 +1276,8 @@ private:
 
         for (int i = 0; i < rows.size(); i++) {
             bool const shouldBeOn = (i == newSelection);
-            if (rows[i]->getToggleState() != shouldBeOn)
-                rows[i]->setToggleState(shouldBeOn, dontSendNotification);
+            if (rows[i]->isSelected() != shouldBeOn)
+                rows[i]->setSelected(shouldBeOn);
         }
 
         currentSelection = newSelection;
@@ -1256,7 +1297,7 @@ private:
             }
             currentObject->updateBounds();
         } else if (!currentResultAutocompleteRequiresNavigation && currentResultSupportsAutocomplete
-            && autoCompleteComponent && fullText.isNotEmpty()) {
+             && fullText.isNotEmpty()) {
             auto const& baseText = autocompleteNavigationBaseText;
             if (baseText.isNotEmpty() && fullText.startsWith(baseText)) {
                 if (openedEditor->getText() != baseText) {
@@ -1264,15 +1305,18 @@ private:
                     openedEditor->setText(baseText, sendNotification);
                     openedEditor->moveCaretToEnd();
                 }
-
-                autoCompleteComponent->setEnabled(true);
-                autoCompleteComponent->setSuggestion(fullText);
+                if(autoCompleteComponent) {
+                    autoCompleteComponent->setEnabled(true);
+                    autoCompleteComponent->setSuggestion(fullText);
+                }
             } else {
                 lastQueriedText = fullText;
                 openedEditor->setText(fullText, sendNotification);
                 openedEditor->moveCaretToEnd();
-                autoCompleteComponent->setEnabled(true);
-                autoCompleteComponent->clear();
+                if(autoCompleteComponent) {
+                    autoCompleteComponent->setEnabled(true);
+                    autoCompleteComponent->clear();
+                }
             }
 
             currentObject->updateBounds();
@@ -1312,30 +1356,23 @@ private:
 
     void onRowClicked(int idx)
     {
-        if (!openedEditor)
+        if (!openedEditor || !isPositiveAndBelow(idx, rows.size()) || !rows[idx]->hasEntry())
             return;
 
-        // There is no ghost text to accept in touch mode, so tapping a row simply
-        // completes the editor with that entry
-        if (usingTouchMode) {
-            if (!isPositiveAndBelow(idx, rows.size()) || !rows[idx]->hasEntry())
-                return;
+        // Clicking a row completes the editor outright. Ghost text is an affordance for
+        // keyboard navigation, and hideEditor() commits the editor's raw text, so going
+        // through move() here would leave the typed prefix behind
+        for (int i = 0; i < rows.size(); i++)
+            rows[i]->setSelected(i == idx);
 
-            for (int i = 0; i < rows.size(); i++)
-                rows[i]->setToggleState(i == idx, dontSendNotification);
+        currentSelection = idx;
 
-            currentSelection = idx;
-            openedEditor->setText(rows[idx]->getEntry().getCompletionText(), true);
-            openedEditor->moveCaretToEnd();
-            grabEditorFocus();
-            return;
-        }
+        auto const fullText = rows[idx]->getEntry().getCompletionText();
+        openedEditor->setText(fullText, sendNotification);
+        openedEditor->moveCaretToEnd();
 
-        if (idx == currentSelection && autoCompleteComponent && autoCompleteComponent->hasGhostText()) {
-            autoCompleteComponent->accept();
-        } else {
-            move(0, idx);
-        }
+        if (autoCompleteComponent)
+            autoCompleteComponent->clear();
 
         if (!openedEditor->isVisible())
             openedEditor->setVisible(true);
@@ -1530,7 +1567,7 @@ private:
             int const yScroll = port->getViewPositionY();
             port->setBounds(listBounds.reduced(2, 2));
             auto const currentRowHeight = getRowHeight();
-            buttonHolder->setBounds(listBounds.getX() + 6, listBounds.getY(), listBounds.getWidth(), std::min(numOptions, numRowsAllocated) * currentRowHeight + 8 + getListBottomPadding());
+            buttonHolder->setBounds(listBounds.getX() + 6, listBounds.getY(), listBounds.getWidth() - 12, std::min(numOptions, numRowsAllocated) * currentRowHeight + 8 + getListBottomPadding());
             for (int i = 0; i < rows.size(); i++)
                 rows[i]->setBounds(3, i * currentRowHeight + 4, listBounds.getWidth() - 6, currentRowHeight - 1);
             port->setViewPosition(0, yScroll);
@@ -1698,7 +1735,7 @@ private:
             autoCompleteComponent->accept();
         currentSelection = 0;
         if (!rows.isEmpty())
-            rows[0]->setToggleState(true, dontSendNotification);
+            rows[0]->setSelected(true);
     }
 
     SmallArray<std::tuple<String, String, String>> findNearbyMessages(String const& toSearch) const
