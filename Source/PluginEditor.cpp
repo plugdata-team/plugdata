@@ -696,7 +696,7 @@ void PluginEditor::resized()
         }
 
         if(!welcomePanel->isVisible()) {
-            statusbar->setBounds(bounds.removeFromBottom(Statusbar::statusbarHeight));
+            statusbar->setBounds(bounds.removeFromBottom(Statusbar::getStatusbarHeight()));
         }
     }
 

@@ -36,7 +36,8 @@ public:
     // Shows/hides the touch selection helper in the centre of the statusbar
     void showTouchSelectionHelper(bool shouldShow);
 
-    static constexpr int statusbarHeight = 30;
+    static int getStatusbarHeight();
+
     float currentZoomLevel = 100.0f;
 
 private:

@@ -321,8 +321,9 @@ void Sidebar::paint(Graphics& g)
         return;
 
     g.setColour(colours.sidebarBackgroundColour);
-    g.fillRect(0, 30, getWidth(), getHeight() - 60);
-    g.fillRoundedRectangle(0.0f, getHeight() - 50.f, getWidth(), 50.f, Corners::windowCornerRadius);
+    Path sidebarPath;
+    sidebarPath.addRoundedRectangle(0, 30, getWidth(), getHeight() - 30, Corners::windowCornerRadius, Corners::windowCornerRadius, false, false, false, true);
+    g.fillPath(sidebarPath);
 
     String panelName = hasCurrentPanel && currentPanel < panelDisplayNames.size()
         ? panelDisplayNames[currentPanel]
@@ -439,7 +440,6 @@ void Sidebar::mouseDown(MouseEvent const& e)
     if (!e.mods.isLeftButtonDown())
         return;
 
-    // Drag bar is on the *inner* edge — the edge that faces the canvas.
     Rectangle<int> dragBar = side == Side::Right
         ? Rectangle<int>(0, 0, dragbarWidth, getHeight() - 30)
         : Rectangle<int>(getWidth() - dragbarWidth, 0, dragbarWidth, getHeight() - 30);
@@ -463,7 +463,11 @@ void Sidebar::mouseDrag(MouseEvent const& e)
         int delta = side == Side::Right ? -e.getDistanceFromDragStartX()
                                         : e.getDistanceFromDragStartX();
         int newWidth = dragStartWidth + delta;
-        newWidth = std::clamp(newWidth, 230, std::max(getParentWidth() / 2, 150));
+#if JUCE_IOS
+        newWidth = std::clamp(newWidth, 190, std::min(getParentWidth() / 2, 220));
+#else
+        newWidth = std::clamp(newWidth, 230, std::max(getParentWidth() / 2, 240));
+#endif
 
         if (side == Side::Right) {
             setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());

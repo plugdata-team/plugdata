@@ -24,6 +24,7 @@ public:
     Iolet(Object* parent, bool isInlet, uint16 index);
     ~Iolet() override;
 
+    void mouseDown(MouseEvent const& e) override;
     void mouseDrag(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;
 

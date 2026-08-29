@@ -249,7 +249,9 @@ public:
         auto b = getLocalBounds();
 
         for (auto* button : actionButtons) {
-            button->setBounds(b.removeFromLeft(buttonWidth));
+            // Trim the bottom to shift the icons up by a pixel: these glyphs sit lower in the icon font's
+            // em box than the other statusbar icons, so centring on the full height makes them look low
+            button->setBounds(b.removeFromLeft(buttonWidth).withTrimmedBottom(2));
         }
     }
 
@@ -259,7 +261,8 @@ private:
         auto const b = getLocalBounds();
 
         g.setColour(getThemeColours(*this).toolbarBackgroundColour);
-        g.fillRect(b);
+        // Leave the top pixel alone, that's where the statusbar draws its outline
+        g.fillRect(b.withTrimmedTop(1));
     }
 
     PluginEditor* editor;

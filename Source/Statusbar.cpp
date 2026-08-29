@@ -464,10 +464,15 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
     touchSelectionHelper = std::make_unique<TouchSelectionHelper>(editor);
     addChildComponent(*touchSelectionHelper);
 
-    setSize(getWidth(), statusbarHeight);
+    setSize(getWidth(), getStatusbarHeight());
 }
 
 Statusbar::~Statusbar() = default;
+
+int Statusbar::getStatusbarHeight()
+{
+    return SettingsFile::getInstance()->isUsingTouchMode() ? 36 : 30;
+}
 
 void Statusbar::handleAsyncUpdate()
 {
@@ -514,15 +519,17 @@ void Statusbar::paint(Graphics& g)
 void Statusbar::resized()
 {
     auto b = getLocalBounds().withTrimmedLeft(6);
-    constexpr int spacing = 10;
+    auto const touchMode = SettingsFile::getInstance()->isUsingTouchMode();
+    int const spacing = touchMode ? 14 : 10;
+    int const extraTouchWidth = touchMode ? 6 : 0;
 
-    zoomSelector->setBounds(b.removeFromLeft(55));
+    zoomSelector->setBounds(b.removeFromLeft(55 + extraTouchWidth));
     b.removeFromLeft(spacing);
 
-    gridGroup->setBounds(b.removeFromLeft(34));
+    gridGroup->setBounds(b.removeFromLeft(34 + extraTouchWidth));
     b.removeFromLeft(spacing);
 
-    overlayGroup->setBounds(b.removeFromLeft(34));
+    overlayGroup->setBounds(b.removeFromLeft(34 + extraTouchWidth));
     b.removeFromLeft(spacing);
 
     editModeGroup->setBounds(b.removeFromRight(84));

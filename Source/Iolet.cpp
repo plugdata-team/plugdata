@@ -117,6 +117,16 @@ bool Iolet::hitTest(int const x, int const y)
     return getLocalBounds().contains(x, y);
 }
 
+void Iolet::mouseDown(MouseEvent const& e)
+{
+    if(e.source.isTouch())
+    {
+        auto tooltip = getTooltip();
+        auto length = Fonts::getStringWidth(tooltip);
+        object->cnv->editor->tooltipWindow.displayTip(e.getScreenPosition() - Point<int>(length / 2, 60), tooltip);
+    }
+}
+
 void Iolet::mouseDrag(MouseEvent const& e)
 {
     // Ignore when locked or if middlemouseclick?
