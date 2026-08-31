@@ -105,7 +105,6 @@ public:
         menuItems[getMenuItemIndex(MenuItem::SaveAs)]->isActive = hasCanvas;
 
         menuItems[getMenuItemIndex(MenuItem::CompiledMode)]->isTicked = hvccModeEnabled;
-        menuItems[getMenuItemIndex(MenuItem::Compile)]->isActive = hvccModeEnabled;
     }
 
     class IconMenuItem final : public PopupMenu::CustomComponent {
