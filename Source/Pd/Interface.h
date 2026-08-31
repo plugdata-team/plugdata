@@ -424,9 +424,11 @@ struct Interface {
         for(int c = 0; c < atoms.size(); c++)
             SETFLOAT(&atoms[c], static_cast<float>(buf[c]));
 
+        t_atom start = {.a_type = A_FLOAT, .a_w = {-1.0f}};
         t_atom end = {.a_type = A_FLOAT, .a_w = {-2.0f}};
 
         canvas_setcurrent(cnv);
+        pd_typedmess(reinterpret_cast<t_pd*>(cnv), gensym("pastechars"), 1, &start);
         pd_typedmess(reinterpret_cast<t_pd*>(cnv), gensym("pastechars"), atoms.size(), atoms.data());
         pd_typedmess(reinterpret_cast<t_pd*>(cnv), gensym("pastechars"), 1, &end);
         canvas_unsetcurrent(cnv);
