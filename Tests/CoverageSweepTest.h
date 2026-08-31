@@ -1033,7 +1033,6 @@ private:
                 suggestor->updateBounds();
                 suggestor->isShowingDetailPanel();
                 suggestor->setVisible(true);
-                suggestor->shouldKeepEditorOpen(input);
                 auto* keyListener = static_cast<KeyListener*>(suggestor);
                 keyListener->keyPressed(KeyPress(KeyPress::downKey), input);
                 keyListener->keyPressed(KeyPress(KeyPress::upKey), input);
@@ -1650,7 +1649,7 @@ private:
         bounce.mouseUp(mouseEvent(&viewed, { 50.0f, 150.0f }));
 
         if (auto* statusbar = TestHelpers::findChildOfType<Statusbar>(editor)) {
-            statusbar->setBounds(0, 0, 420, Statusbar::statusbarHeight);
+            statusbar->setBounds(0, 0, 420, Statusbar::getStatusbarHeight());
             statusbar->updateZoomLevel();
             statusbar->setEditButtonState(false);
             statusbar->setEditButtonState(true);

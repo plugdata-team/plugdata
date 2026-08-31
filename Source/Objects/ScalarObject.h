@@ -146,8 +146,8 @@ public:
     }
 };
 
-class DrawableCurve final : public DrawableTemplate
-    , public DrawableComponent, public DrawablePath {
+class DrawableCurve final : public DrawableTemplate, public DrawablePath
+    , public DrawableComponent {
 
     t_fake_curve* object;
     GlobalMouseListener globalMouseListener;
@@ -347,8 +347,8 @@ public:
     }
 };
 
-class DrawableSymbol final : public DrawableTemplate
-    , public DrawableComponent, public DrawableText {
+class DrawableSymbol final : public DrawableTemplate, public DrawableText
+    , public DrawableComponent {
 
     t_fake_drawnumber* object;
     GlobalMouseListener mouseListener;
@@ -534,8 +534,8 @@ public:
     }
 };
 
-class DrawablePlot final : public DrawableTemplate
-    , public DrawableComponent, public DrawablePath {
+class DrawablePlot final : public DrawableTemplate, public DrawablePath
+    , public DrawableComponent {
 
     t_fake_curve* object;
     GlobalMouseListener globalMouseListener;

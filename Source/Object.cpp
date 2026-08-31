@@ -710,9 +710,11 @@ void Object::updateIolets()
     numInputs = 0;
     numOutputs = 0;
 
-    if (auto const* ptr = pd::Interface::checkObject(getPointer())) {
-        numInputs = pd::Interface::numInlets(ptr);
-        numOutputs = pd::Interface::numOutlets(ptr);
+    if (auto ptr = gui->ptr.get<t_pd>()) {
+        if(auto* checkedObject = pd::Interface::checkObject(ptr.get())) {
+            numInputs = pd::Interface::numInlets(checkedObject);
+            numOutputs = pd::Interface::numOutlets(checkedObject);
+        }
     }
 
     // Looking up tooltips takes a bit of time, so we make sure we're not constantly updating them for no reason
@@ -742,11 +744,13 @@ void Object::updateIolets()
     for (int i = 0; i < numInputs + numOutputs; i++) {
         auto* iolet = iolets[i];
         bool isSignal = false;
-        auto const* patchableObject = pd::Interface::checkObject(getPointer());
-        if (patchableObject && i < numInputs) {
-            isSignal = pd::Interface::isSignalInlet(patchableObject, i);
-        } else if (patchableObject) {
-            isSignal = pd::Interface::isSignalOutlet(patchableObject, i - numInputs);
+        if (auto ptr = gui->ptr.get<t_pd>()) {
+            auto* checkedObject = pd::Interface::checkObject(ptr.get());
+            if (checkedObject && i < numInputs) {
+                isSignal = pd::Interface::isSignalInlet(checkedObject, i);
+            } else if(checkedObject) {
+                isSignal = pd::Interface::isSignalOutlet(checkedObject, i - numInputs);
+            }
         }
 
         iolet->setType(isSignal ? Iolet::Signal : Iolet::Data);

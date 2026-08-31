@@ -2095,18 +2095,6 @@ void Setup::initialiseGem(std::string const& gemPluginPath)
     pix_writer_setup();
     pix_yuv_setup();
     pix_zoom_setup();
-    vertex_add_setup();
-    vertex_combine_setup();
-    vertex_draw_setup();
-    vertex_grid_setup();
-    vertex_info_setup();
-    // vertex_model_setup();
-    vertex_mul_setup();
-    vertex_offset_setup();
-    vertex_quad_setup();
-    vertex_scale_setup();
-    vertex_set_setup();
-    vertex_tabread_setup();
     GEMglAccum_setup();
     GEMglActiveTexture_setup();
     GEMglActiveTextureARB_setup();
