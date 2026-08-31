@@ -1435,7 +1435,7 @@ private:
         if (getValue<bool>(currentObject->hvccMode)) {
             StringArray filtered;
             for (auto& object : list) {
-                if (HeavyCompatibleObjects::isCompatible(object) && object != "array")
+                if (HeavyCompatibleObjects::isCompatible(object))
                     filtered.add(object);
             }
             list = filtered;
