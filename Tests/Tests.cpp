@@ -59,6 +59,7 @@ void runTests(PluginEditor* editor)
         HelpFileErrorTest helpfileErrorTest(editor);
 
         UnitTestRunner runner;
+
         runner.runTests({ &saveCloseRaceTest,
                           &abstractionReloadRaceTest,
                           &danglingBindingTest,
