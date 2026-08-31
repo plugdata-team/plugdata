@@ -28,7 +28,6 @@ class HeavyCompatibleObjects {
         "abs",
         "atan",
         "atan2",
-        "array",
         "b",
         "bang",
         "bendin",
@@ -290,7 +289,6 @@ class HeavyCompatibleObjects {
         "msg",
         "message",
         "invalid",
-        "text",
     };
 
     static StringArray initialiseCompatibleObjects()
