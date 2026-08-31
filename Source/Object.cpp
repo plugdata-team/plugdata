@@ -1258,7 +1258,7 @@ void Object::performRender(NVGcontext* nvg)
 
     nanovg::nvgTranslate(nvg, -margin, -margin);
 
-    if (!isHvccCompatible) {
+    if (!isHvccCompatible && !editor->pluginMode) {
         NVGScopedState scopedState(nvg);
         nanovg::nvgBeginPath(nvg);
         nanovg::nvgStrokeColor(nvg, nanovg::nvgRGBA(255, 127, 0.0f, 255)); // orange
