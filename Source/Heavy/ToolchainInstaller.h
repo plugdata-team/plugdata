@@ -30,6 +30,7 @@ public:
         addAndMakeVisible(&installButton);
 
         installButton.onClick = [this] {
+            installButton.setEnabled(false);
             errorMessage = "";
             repaint();
 
@@ -59,6 +60,7 @@ public:
                     errorMessage = "Error: Could not download files (possibly no network connection)";
                     installButton.topText = "Try Again";
                 }
+                installButton.setEnabled(true);
                 repaint();
                 return;
             }
@@ -66,6 +68,7 @@ public:
             catch (...) {
                 errorMessage = "Error: Unknown error, contact support";
                 installButton.topText = "Try Again";
+                installButton.setEnabled(true);
                 repaint();
                 return;
             }
@@ -203,6 +206,7 @@ public:
                     return;
                 _this->installButton.topText = "Try Again";
                 _this->errorMessage = "Error: Could not extract downloaded package";
+                _this->installButton.setEnabled(true);
                 _this->repaint();
                 _this->stopTimer();
             });
@@ -248,6 +252,7 @@ public:
             if (!_this)
                 return;
             _this->dialog->setBlockFromClosing(false);
+            _this->installButton.setEnabled(true);
             _this->toolchainInstalledCallback();
         });
     }
@@ -287,8 +292,8 @@ public:
         {
             auto const& colours = getThemeColours(*this);
 
-            auto const colour = colours.panelTextColour;
-            if (isMouseOver()) {
+            auto const colour = colours.panelTextColour.withAlpha(isEnabled() ? 1.0f : 0.5f);
+            if (isMouseOver() && isEnabled()) {
                 g.setColour(colours.panelActiveBackgroundColour);
                 g.fillRoundedRectangle(Rectangle<float>(1, 1, getWidth() - 2, getHeight() - 2), Corners::largeCornerRadius);
             }
@@ -300,7 +305,7 @@ public:
 
         void mouseUp(MouseEvent const& e) override
         {
-            if (!e.mods.isLeftButtonDown())
+            if (!e.mods.isLeftButtonDown() || !isEnabled())
                 return;
 
             onClick();
