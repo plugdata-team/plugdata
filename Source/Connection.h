@@ -11,7 +11,6 @@
 
 #include <readerwriterqueue.h>
 #include "Constants.h"
-#include "Objects/AllGuis.h"
 #include "Iolet.h"       // Move to impl
 #include "Pd/Instance.h" // Move to impl
 #include "Pd/MessageListener.h"

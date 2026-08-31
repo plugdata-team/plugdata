@@ -732,6 +732,7 @@ void Instance::initialisePd(String& pdlua_version)
         set_class_prefix(nullptr);
         initialised = true;
 
+
         // We want to initialise pdlua separately for each instance
         auto const extra = ProjectInfo::appDataDir.getChildFile("Extra");
         StackArray<char, 1000> vers;

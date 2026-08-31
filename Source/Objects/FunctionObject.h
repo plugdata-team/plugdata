@@ -40,7 +40,7 @@ public:
             secondaryColour = colourToVar(colourFromHexArray(function->x_bgcolor));
             primaryColour = colourToVar(colourFromHexArray(function->x_fgcolor));
             sizeProperty = VarArray { var(function->x_width), var(function->x_height) };
-            initialise = function->x_init;
+            initialise = function->x_savestate;
 
             VarArray const arr = { function->x_min, function->x_max };
             range = var(arr);
@@ -298,7 +298,7 @@ public:
     void setInit(bool const init)
     {
         if (auto function = ptr.get<t_fake_function>()) {
-            function->x_init = static_cast<int>(init);
+            function->x_savestate = static_cast<int>(init);
         }
     }
 

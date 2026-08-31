@@ -201,6 +201,14 @@ else()
   add_link_options(-Wno-psabi)
 endif()
 
+message(STATUS "Generating GUI struct definitions")
+set(PLUGDATA_GENERATED_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Generated)
+execute_process(COMMAND ${Python3_EXECUTABLE} generate_all_guis.py ${PLUGDATA_GENERATED_DIRECTORY}/AllGuis.h WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts RESULT_VARIABLE GENERATE_ALLGUIS_RESULT)
+
+if(NOT GENERATE_ALLGUIS_RESULT EQUAL 0)
+    message(FATAL_ERROR "Generating AllGuis.h failed with error code ${GENERATE_ALLGUIS_RESULT}")
+endif()
+
 message(STATUS "Preparing documentation")
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Resources)
 execute_process(COMMAND ${Python3_EXECUTABLE} parse_documentation.py ${CMAKE_CURRENT_BINARY_DIR}/Resources WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts RESULT_VARIABLE PREPARE_DOCUMENTATION_RESULT)
@@ -426,6 +434,7 @@ if(ENABLE_PERFETTO)
   list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/melatonin_perfetto")
 endif()
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Source/")
+list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${PLUGDATA_GENERATED_DIRECTORY}")
 
 add_library(plugdata_core STATIC ${plugdata_sources})
 target_compile_definitions(plugdata_core PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})

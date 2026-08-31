@@ -4,6 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 #pragma once
+#include "AllGuis.h"
 #include "Utility/GlobalMouseListener.h"
 #include <raw_keyboard_input/raw_keyboard_input.h>
 #include <Objects/ImplementationBase.h>

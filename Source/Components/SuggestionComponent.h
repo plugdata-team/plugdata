@@ -16,6 +16,7 @@ extern "C" {
 #include "Components/BouncingViewport.h"
 #include "Dialogs/Dialogs.h"
 #include "CanvasViewport.h"
+#include "AllGuis.h"
 
 extern "C" {
 int is_gem_object(char const* sym);

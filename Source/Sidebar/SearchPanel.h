@@ -7,7 +7,7 @@
 
 #include "Object.h"
 #include "Objects/ObjectBase.h"
-#include "Objects/AllGuis.h"
+#include "AllGuis.h"
 
 extern "C" {
 #include <m_pd.h>
