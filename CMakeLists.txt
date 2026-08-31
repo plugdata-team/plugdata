@@ -34,14 +34,24 @@ option(ENABLE_SFIZZ "Enable sfizz for the [sfz~] object" ON)
 option(ENABLE_FFMPEG "Enable ffmpeg support for ELSE and Gem audio/video objects" ON)
 option(ENABLE_GEM "Enable Gem support" ON)
 option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
+option(ENABLE_TSAN "Enable ThreadSanitizer" OFF)
 option(ENABLE_PERFETTO "Enable Perfetto profiling (advanced)" OFF)
 option(ENABLE_WAYLAND "Enable native wayland support (experimental)" OFF)
 option(MACOS_LEGACY "Enable support for old macOS versions (lowers OSX_DEPLOYMENT TARGET and disables Metal" OFF)
 option(VERBOSE "" OFF)
 
+if(ENABLE_ASAN AND ENABLE_TSAN)
+  message(FATAL_ERROR "ENABLE_ASAN and ENABLE_TSAN are mutually exclusive")
+endif()
+
 if(ENABLE_ASAN)
   add_compile_options(-fsanitize=address)
   add_link_options(-fsanitize=address)
+endif()
+
+if(ENABLE_TSAN)
+  add_compile_options(-fsanitize=thread)
+  add_link_options(-fsanitize=thread)
 endif()
 
 if(CMAKE_GENERATOR STREQUAL "Ninja" AND MSVC)
@@ -840,12 +850,12 @@ elseif(APPLE)
     set(MACOS_COMPAT_LINKER_FLAGS "-Wl,-ld_classic")
   endif()
 
-  # LuaJIT ships its own DWARF unwind personality routine (_lj_err_unwind_dwarf).
-  # Together with the gcc/g++/objc personalities this exceeds what the modern
-  # linker's compact-unwind format can encode. Release builds dodge this via
-  # -ld_classic above, but that flag is gated to non-Debug configs, so Debug and
-  # sanitizer builds must fall back to DWARF unwind info instead of compact unwind.
-  set(MACOS_LUAJIT_UNWIND_FLAGS "$<$<CONFIG:Debug>:-Wl,-no_compact_unwind>")
+  # no_compact_unwind is necessary when TSAN is enabled, because otherwise the number of exception personalities exceeds the maximum number
+  if(ENABLE_TSAN)
+    set(MACOS_LUAJIT_UNWIND_FLAGS "-Wl,-no_compact_unwind")
+  else()
+    set(MACOS_LUAJIT_UNWIND_FLAGS "")
+  endif()
 
   if(NOT "${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
     set(LINK_CARBON "-framework Carbon")
