@@ -67,14 +67,16 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        auto const& colours = getThemeColours(*this);
+
         if (getValue<bool>(cnv->locked))
             return;
         NVGScopedState state(nvg);
-        nvgSave(nvg);
-        nvgTranslate(nvg, getX(), getY());
+        nanovg::nvgSave(nvg);
+        nanovg::nvgTranslate(nvg, getX(), getY());
         auto const bounds = getLocalBounds().reduced(isMouseOver() ? 0 : 2);
-        nvgDrawRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), nvgColour(PlugDataColours::canvasDotsColour), nvgColour(PlugDataColours::canvasDotsColour), bounds.getWidth() / 2.0f);
-        nvgRestore(nvg);
+        nanovg::nvgDrawRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), nvgColour(colours.canvasDotsColour), nvgColour(colours.canvasDotsColour), bounds.getWidth() / 2.0f);
+        nanovg::nvgRestore(nvg);
     }
 
     void valueChanged(Value& v) override

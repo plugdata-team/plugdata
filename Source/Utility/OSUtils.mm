@@ -29,7 +29,7 @@
     auto isInset = win.titleVisibility == NSWindowTitleVisible;
     if(isPopup || isFullscreen || isInset)
         return [self FrameView__closeButtonOrigin];
-    return {15, self.bounds.size.height - 28};
+    return {15, self.bounds.size.height - 26};
 }
 - (CGFloat)FrameView__titlebarHeight {
     auto* win = static_cast<NSWindow*>(self.window);
@@ -267,10 +267,31 @@ float OSUtils::MTLGetPixelScale(void* view) {
 void* OSUtils::MTLCreateView(void* parent, int x, int y, int width, int height)
 {
     NSView *childView = [[MTLCustomView alloc] initWithFrame:NSMakeRect(x, y, width, height)];
+
+    CAMetalLayer* metalLayer = [CAMetalLayer new];
+    metalLayer.device = MTLCreateSystemDefaultDevice();
+    metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
+    metalLayer.framebufferOnly = NO;
+    metalLayer.presentsWithTransaction = NO;
+    metalLayer.displaySyncEnabled = YES;
+    childView.layer = metalLayer;
+    childView.wantsLayer = YES;
+
     auto* parentView = reinterpret_cast<NSView*>(parent);
     [parentView addSubview:childView];
-    
+
+    // Now that the view is in a window, match the layer's point<->pixel scale to
+    // the backing scale so the drawable is presented at the correct on-screen size.
+    CGFloat const scale = childView.window ? childView.window.backingScaleFactor : 2.0;
+    metalLayer.contentsScale = scale;
+    metalLayer.drawableSize = CGSizeMake(width * scale, height * scale);
+
     return childView;
+}
+
+void* OSUtils::MTLGetLayer(void* view)
+{
+    return reinterpret_cast<NSView*>(view).layer;
 }
 
 void OSUtils::MTLDeleteView(void* view)
@@ -506,6 +527,11 @@ void* OSUtils::MTLCreateView(void* parent, int x, int y, int width, int height)
     [parentView addSubview:childView];
 
     return childView;
+}
+
+void* OSUtils::MTLGetLayer(void* view)
+{
+    return reinterpret_cast<UIView*>(view).layer;
 }
 
 void OSUtils::MTLDeleteView(void* view)

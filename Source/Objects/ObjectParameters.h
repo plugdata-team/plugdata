@@ -70,13 +70,13 @@ public:
         objectParameters.add(param);
     }
 
-    void resetAll()
+    void resetAll(Component const& context)
     {
-        auto const& lnf = LookAndFeel::getDefaultLookAndFeel();
+        auto const& lnf = context.getLookAndFeel();
         for (auto param : objectParameters) {
             if (!param.defaultValue.isVoid()) {
                 if (param.type == tColour || param.type == tColourAlpha) {
-                    param.valuePtr->setValue(lnf.findColour(param.defaultValue).toString());
+                    param.valuePtr->setValue(colourToVar(lnf.findColour(param.defaultValue)));
                 } else if (param.defaultValue.isArray() && param.defaultValue.getArray()->isEmpty()) {
                     return;
                 } else {

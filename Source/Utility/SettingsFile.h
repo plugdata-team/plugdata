@@ -154,7 +154,6 @@ private:
         { "global_scale", var(1.0f) },
         { "default_zoom", var(100.0f) },
         { "text_editor_zoom", var(100.0f) },
-        { "floating_panels", var(true) },
         { "cpu_meter_mapping_mode", var(0) },
         { "centre_resized_canvas", var(true) },
         { "show_all_audio_device_rates", var(false) },

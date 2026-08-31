@@ -205,6 +205,18 @@ SettingsFile* SettingsFile::initialise()
 
     isInitialised = true;
 
+#if ENABLE_TESTING
+    // Run the test suite against a disposable copy of the user's settings:
+    // tests get realistic settings to read, but every write goes to a temp
+    // file, so the real settings.json is never modified
+    auto const testSettingsFile = File::createTempFile(".json");
+    if (settingsFile.existsAsFile())
+        settingsFile.copyFileTo(testSettingsFile);
+    settingsFile = testSettingsFile;
+    lockFile = settingsFile.getSiblingFile(settingsFile.getFileNameWithoutExtension() + ".lock");
+    oldSettingsFile = File();
+#endif
+
     FileSystemWatcher::addGlobalIgnorePath(lockFile);
     FileSystemWatcher::addGlobalIgnorePath(settingsFile);
 
@@ -294,7 +306,7 @@ SettingsFile* SettingsFile::initialise()
     } else if (OSUtils::isIPad()) {
         Desktop::getInstance().setGlobalScaleFactor(1.125f);
     } else {
-        Desktop::getInstance().setGlobalScaleFactor(0.825f);
+        Desktop::getInstance().setGlobalScaleFactor(1.0f);
     }
 
 #else
@@ -510,6 +522,12 @@ void SettingsFile::initialiseOverlayTree()
 
 bool SettingsFile::acquireFileLock()
 {
+#if JUCE_IOS
+    // Don't create a lock file on iOS: the filesystem listener cannot ignore individual files,
+    // so it would retrigger a settings reload on every save. Report the lock as taken instead,
+    // otherwise settings would never be written at all
+    return true;
+#endif
     auto const startTime = Time::getCurrentTime().toMilliseconds();
 
     while (Time::getCurrentTime().toMilliseconds() - startTime < lockTimeoutMs) {
@@ -540,6 +558,9 @@ bool SettingsFile::acquireFileLock()
 
 void SettingsFile::releaseFileLock()
 {
+#if JUCE_IOS
+    return; // No lock file was created, see acquireFileLock()
+#endif
     lockFile.deleteFile();
 }
 
@@ -715,7 +736,7 @@ void SettingsFile::saveSettings()
 
             if (!themesToWrite.isEmpty())
                 properties->setProperty("themes", themesToWrite);
-        } else if (!defaultSettings.at(name).equalsWithSameType(value)) {
+        } else if (defaultSettings.contains(name) && !defaultSettings.at(name).equalsWithSameType(value)) {
             properties->setProperty(name, value);
         }
     }

@@ -7,7 +7,7 @@
 #include <juce_opengl/juce_opengl.h>
 using namespace juce::gl;
 
-#include <nanovg.h>
+#include <nanovg_async.h>
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
 #include "Utility/NVGUtils.h"
@@ -72,20 +72,22 @@ Rectangle<int> Iolet::getCanvasBounds() const
 
 void Iolet::render(NVGcontext* nvg)
 {
+    auto const& colours = getThemeColours(*this);
+
     if (!isVisible())
         return;
 
     bool const isLocked = locked || commandLocked;
     bool const isHovering = targeted && !isLocked;
 
-    auto const innerCol = isLocked ? nvgColour(PlugDataColours::canvasBackgroundColour.contrasting(0.5f)) : type == Signal ? nvgColour(PlugDataColours::signalColour)
-        : type == GemState                                                                                                 ? nvgColour(PlugDataColours::gemColour)
-                                                                                                                           : nvgColour(PlugDataColours::dataColour);
-    auto iB = PlugDataLook::useSquareIolets ? getLocalBounds().toFloat().reduced(2.0f, 3.33f) : getLocalBounds().toFloat().reduced(2.0f);
+    auto const innerCol = isLocked ? nvgColour(colours.canvasBackgroundColour.contrasting(0.5f)) : type == Signal ? nvgColour(colours.signalColour)
+        : type == GemState                                                                                                 ? nvgColour(colours.gemColour)
+                                                                                                                           : nvgColour(colours.dataColour);
+    auto iB = getPlugDataLook(*this).getUseSquareIolets() ? getLocalBounds().toFloat().reduced(2.0f, 3.33f) : getLocalBounds().toFloat().reduced(2.0f);
     if (isHovering)
         iB.expand(1.0f, 1.0f);
 
-    nvgDrawRoundedRect(nvg, iB.getX(), iB.getY(), iB.getWidth(), iB.getHeight(), innerCol, nvgColour(PlugDataColours::objectOutlineColour), PlugDataLook::useSquareIolets ? 0.0f : iB.getWidth() * 0.5f);
+    nanovg::nvgDrawRoundedRect(nvg, iB.getX(), iB.getY(), iB.getWidth(), iB.getHeight(), innerCol, nvgColour(colours.objectOutlineColour), getPlugDataLook(*this).getUseSquareIolets() ? 0.0f : iB.getWidth() * 0.5f);
 }
 
 bool Iolet::hitTest(int const x, int const y)
@@ -113,6 +115,16 @@ bool Iolet::hitTest(int const x, int const y)
 
     // Check if we're hovering the total iolet hitbox
     return getLocalBounds().contains(x, y);
+}
+
+void Iolet::mouseDown(MouseEvent const& e)
+{
+    if(e.source.isTouch())
+    {
+        auto tooltip = getTooltip();
+        auto length = Fonts::getStringWidth(tooltip);
+        object->cnv->editor->tooltipWindow.displayTip(e.getScreenPosition() - Point<int>(length / 2, 60), tooltip);
+    }
 }
 
 void Iolet::mouseDrag(MouseEvent const& e)

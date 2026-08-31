@@ -112,7 +112,9 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.setColour(PlugDataColours::panelBackgroundColour);
+        auto const& colours = getThemeColours(*this);
+
+        g.setColour(colours.panelBackgroundColour);
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
 
         auto const titlebarBounds = getLocalBounds().removeFromTop(toolbarHeight).toFloat();
@@ -120,10 +122,10 @@ public:
         Path p;
         p.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, true, true, false, false);
 
-        g.setColour(PlugDataColours::toolbarBackgroundColour);
+        g.setColour(colours.toolbarBackgroundColour);
         g.fillPath(p);
 
-        g.setColour(PlugDataColours::toolbarOutlineColour);
+        g.setColour(colours.toolbarOutlineColour);
         g.drawHorizontalLine(toolbarHeight, 0.0f, getWidth());
     }
 

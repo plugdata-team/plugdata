@@ -169,6 +169,8 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        auto const& colours = getThemeColours();
+
         handleUpdateNowIfNeeded();
 
         if (imageNeedsReload || !imageBuffer.isValid())
@@ -177,25 +179,21 @@ public:
         auto const b = getLocalBounds().toFloat();
 
         NVGScopedState scopedState(nvg);
-        nvgIntersectScissor(nvg, 0, 0, getWidth(), getHeight());
+        nanovg::nvgIntersectScissor(nvg, 0, 0, getWidth(), getHeight());
 
         if (!imageBuffer.isValid()) {
-            nvgFontSize(nvg, 20);
-            nvgFontFace(nvg, "Inter-Regular");
-            nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-            nvgFillColor(nvg, nvgColour(PlugDataColours::canvasTextColour));
-            nvgText(nvg, b.getCentreX(), b.getCentreY(), "?", nullptr);
+            Fonts::drawText(cnv->editor->getNanoLLGC(), "?", b, Fonts::getDefaultFont().withHeight(20), colours.canvasTextColour, Justification::centred);
         } else {
             NVGScopedState scopedState(nvg);
-            nvgTranslate(nvg, offsetX, offsetY);
+            nanovg::nvgTranslate(nvg, offsetX, offsetY);
             imageBuffer.render(nvg, getLocalBounds());
         }
 
         bool const selected = object->isSelected() && !cnv->isGraph;
-        auto const outlineColour = selected ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour;
+        auto const outlineColour = selected ? colours.objectSelectedOutlineColour : colours.objectOutlineColour;
 
         if (getValue<bool>(outline)) {
-            nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(0, 0, 0, 0), nvgColour(outlineColour), Corners::objectCornerRadius);
+            nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nanovg::nvgRGBA(0, 0, 0, 0), nvgColour(outlineColour), getPlugDataLook(*this).getObjectCornerRadius());
         }
     }
 

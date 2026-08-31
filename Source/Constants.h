@@ -43,6 +43,8 @@ struct Icons {
     static inline String const Message = "D";
     static inline String const Parameters = "E";
     static inline String const Presentation = "F";
+    // TODO: placeholder (reuses the Lock glyph) until a dedicated play glyph is added to the icon font
+    static inline String const Play = "m";
     static inline String const Externals = "G";
     static inline String const Refresh = "H";
     static inline String const Up = "I";
@@ -319,10 +321,6 @@ enum PlugDataColour {
     sidebarTextColourId,
     sidebarActiveBackgroundColourId,
 
-    levelMeterActiveColourId,
-    levelMeterBackgroundColourId,
-    levelMeterThumbColourId,
-
     panelBackgroundColourId,
     panelForegroundColourId,
     panelTextColourId,
@@ -435,7 +433,6 @@ struct Corners {
     static constexpr float largeCornerRadius = 8.0f;
     static constexpr float defaultCornerRadius = 5.0f;
     static constexpr float resizeHanleCornerRadius = 2.75f;
-    static inline float objectCornerRadius = 2.75f;
 };
 
 enum Overlay {

@@ -15,7 +15,6 @@ public:
     ObjectReferenceDialog(PluginEditor const* editor, bool const showBackButton)
         : library(*editor->pd->objectLibrary)
     {
-        setBufferedToImage(true);
 
         if (showBackButton) {
             addAndMakeVisible(backButton);
@@ -60,8 +59,10 @@ public:
 
     void paint(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
         // Panel background
-        g.setColour(PlugDataColours::panelBackgroundColour);
+        g.setColour(colours.panelBackgroundColour);
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
 
         // Title bar
@@ -71,17 +72,17 @@ public:
             titlebarBounds.getWidth(), titlebarBounds.getHeight(),
             Corners::windowCornerRadius, Corners::windowCornerRadius,
             true, true, false, false);
-        g.setColour(PlugDataColours::toolbarBackgroundColour);
+        g.setColour(colours.toolbarBackgroundColour);
         g.fillPath(tp);
 
-        g.setColour(PlugDataColours::toolbarOutlineColour);
+        g.setColour(colours.toolbarOutlineColour);
         g.drawHorizontalLine(40, 0.0f, static_cast<float>(getWidth()));
 
-        Fonts::drawStyledText(g, "Object Reference", Rectangle<float>(0.0f, 4.0f, getWidth(), 32.0f), PlugDataColours::panelTextColour, Semibold, 15, Justification::centred);
+        Fonts::drawStyledText(g, "Object Reference", Rectangle<float>(0.0f, 4.0f, getWidth(), 32.0f), colours.panelTextColour, Semibold, 15, Justification::centred);
     }
 
 private:
-    static Colour getOriginColour(String const& origin)
+    static Colour getOriginColour(Component const& context, String const& origin)
     {
         if (origin == "ELSE")
             return Colour::fromRGB(245, 124, 38); // orange
@@ -97,7 +98,7 @@ private:
             return Colour::fromRGB(34, 130, 195); // cyan
         if (origin == "plugdata")
             return Colour::fromRGB(184, 145, 20); // gold
-        return PlugDataColours::panelTextColour.withAlpha(0.6f);
+        return getThemeColours(context).panelTextColour.withAlpha(0.6f);
     }
 
     struct SectionHeader final : public Component {
@@ -109,12 +110,14 @@ private:
 
         void paint(Graphics& g) override
         {
+            auto const& colours = getThemeColours(*this);
+
             Fonts::drawStyledText(g, label.toUpperCase(),
                 getLocalBounds().reduced(0, 4).withTrimmedBottom(8),
-                PlugDataColours::panelTextColour.withAlpha(0.6f),
+                colours.panelTextColour.withAlpha(0.6f),
                 FontStyle::Semibold, 11.0f, Justification::bottomLeft);
 
-            g.setColour(PlugDataColours::outlineColour);
+            g.setColour(colours.outlineColour);
             g.drawHorizontalLine(getHeight() - 1, 0.0f, static_cast<float>(getWidth()));
         }
     };
@@ -140,6 +143,8 @@ private:
 
         void recalculateLayout(int width)
         {
+            auto const& colours = getThemeColours(*this);
+
             pills.clear();
             constexpr int h = 22;
             constexpr int hGap = 6, vGap = 6;
@@ -160,16 +165,16 @@ private:
             };
 
             if (origin.isNotEmpty()) {
-                auto c = getOriginColour(origin);
+                auto c = getOriginColour(*this, origin);
                 addPill(origin.toUpperCase(), c, c.withAlpha(0.10f), c.withAlpha(0.30f));
             }
             for (auto const& cat : categories) {
                 if (cat.isEmpty())
                     continue;
                 addPill(cat.toUpperCase(),
-                    PlugDataColours::panelTextColour.withAlpha(0.65f),
+                    colours.panelTextColour.withAlpha(0.65f),
                     Colour(0, 0, 0).withAlpha(0.0f),
-                    PlugDataColours::outlineColour);
+                    colours.outlineColour);
             }
 
             setSize(width, jmax(h, rowBottom));
@@ -198,7 +203,7 @@ private:
         void paint(Graphics& g) override
         {
             g.setFont(Fonts::getSemiBoldFont().withHeight(38.0f));
-            g.setColour(PlugDataColours::panelTextColour);
+            g.setColour(getThemeColours(*this).panelTextColour);
 
             int w = static_cast<int>(Fonts::getStringWidthInt(name, g.getCurrentFont()));
             g.drawText(name, Rectangle<float>(0, 0.0f, static_cast<float>(w) + 6.0f, getHeight()).toNearestInt(),
@@ -219,7 +224,7 @@ private:
                 return;
             }
             AttributedString s;
-            s.append(text, Fonts::getDefaultFont().withHeight(15.5f), PlugDataColours::panelTextColour.withAlpha(0.8f));
+            s.append(text, Fonts::getDefaultFont().withHeight(15.5f), getThemeColours(*this).panelTextColour.withAlpha(0.8f));
             layout.createLayout(s, jmin(width, 640));
             setSize(width, jmax(20, static_cast<int>(layout.getHeight())));
         }
@@ -253,15 +258,17 @@ private:
 
         void paint(Graphics& g) override
         {
+            auto const& colours = getThemeColours(*this);
+
             // Card background
             auto cardBounds = getLocalBounds().toFloat().reduced(0.5f);
-            g.setColour(PlugDataColours::panelBackgroundColour.brighter(0.025f));
+            g.setColour(colours.panelBackgroundColour.brighter(0.025f));
             g.fillRoundedRectangle(cardBounds, 8.0f);
-            g.setColour(PlugDataColours::outlineColour);
+            g.setColour(colours.outlineColour);
             g.drawRoundedRectangle(cardBounds, 8.0f, 1.0f);
 
             // Dot grid
-            g.setColour(PlugDataColours::panelTextColour.withAlpha(0.10f));
+            g.setColour(colours.panelTextColour.withAlpha(0.10f));
             constexpr int spacing = 22;
             for (int y = spacing; y < getHeight() - 4; y += spacing) {
                 for (int x = spacing; x < getWidth() - 4; x += spacing) {
@@ -272,10 +279,10 @@ private:
 
             if (unknownLayout) {
                 auto qBounds = getLocalBounds().withSizeKeepingCentre(64, 64);
-                g.setColour(PlugDataColours::outlineColour);
+                g.setColour(colours.outlineColour);
                 g.drawRoundedRectangle(qBounds.toFloat(), 8.0f, 2.0f);
                 Fonts::drawText(g, "?", qBounds,
-                    PlugDataColours::panelTextColour.withAlpha(0.8f),
+                    colours.panelTextColour.withAlpha(0.8f),
                     36, Justification::centred);
                 return;
             }
@@ -293,18 +300,20 @@ private:
                 static_cast<float>(objH));
 
             // Object box
-            g.setColour(PlugDataColours::textObjectBackgroundColour);
-            g.fillRoundedRectangle(objRect, Corners::objectCornerRadius);
-            g.setColour(PlugDataColours::objectOutlineColour);
-            g.drawRoundedRectangle(objRect, Corners::objectCornerRadius, 1.0f);
+            g.setColour(colours.textObjectBackgroundColour);
+            g.fillRoundedRectangle(objRect, getPlugDataLook(*this).getObjectCornerRadius());
+            g.setColour(colours.objectOutlineColour);
+            g.drawRoundedRectangle(objRect, getPlugDataLook(*this).getObjectCornerRadius(), 1.0f);
 
-            Fonts::drawText(g, name, objRect.toNearestInt(), PlugDataColours::canvasTextColour, 15, Justification::centred);
+            Fonts::drawText(g, name, objRect.toNearestInt(), colours.canvasTextColour, 15, Justification::centred);
 
             // Iolets
             auto themeTree = SettingsFile::getInstance()->getCurrentTheme();
             bool squareIolets = static_cast<bool>(themeTree->getProperty("square_iolets"));
 
             auto drawIolets = [&](SmallArray<bool> const& ports, bool isInletRow) {
+                auto const& colours = getThemeColours(*this);
+
                 int const total = static_cast<int>(ports.size());
                 if (total == 0)
                     return;
@@ -323,17 +332,17 @@ private:
                         x = ioletStrip.getX() + ratio * i;
                     }
                     Rectangle<float> bb(x, y, static_cast<float>(ioletSize), static_cast<float>(ioletSize));
-                    Colour fill = ports[i] ? PlugDataColours::signalColour : PlugDataColours::dataColour;
+                    Colour fill = ports[i] ? colours.signalColour : colours.dataColour;
 
-                    g.setColour(fill);
+                    g.setColour(colours.objectOutlineColour);
                     if (squareIolets) {
-                        g.fillRect(bb);
-                        g.setColour(PlugDataColours::objectOutlineColour);
                         g.drawRect(bb, 1.0f);
+                        g.setColour(fill);
+                        g.fillRect(bb.reduced(0.5f));
                     } else {
-                        g.fillEllipse(bb);
-                        g.setColour(PlugDataColours::objectOutlineColour);
                         g.drawEllipse(bb, 1.0f);
+                        g.setColour(fill);
+                        g.fillEllipse(bb.reduced(0.5f));
                     }
                 }
             };
@@ -364,6 +373,8 @@ private:
 
         void recalculateLayout(int width)
         {
+            auto const& colours = getThemeColours(*this);
+
             // Reuse the original heuristic: lines containing "(type) ..." render
             // the type as bold inline. This preserves how the existing JSON
             // tooltips read.
@@ -371,8 +382,8 @@ private:
             auto lines = StringArray::fromLines(tooltip);
             auto bodyFont = Fonts::getDefaultFont().withHeight(13.5f);
             auto typeFont = Fonts::getSemiBoldFont().withHeight(13.0f);
-            auto bodyCol = PlugDataColours::panelTextColour.withAlpha(0.85f);
-            auto typeCol = PlugDataColours::panelTextColour;
+            auto bodyCol = colours.panelTextColour.withAlpha(0.85f);
+            auto typeCol = colours.panelTextColour;
 
             for (auto const& line : lines) {
                 if (line.contains("(") && line.contains(")")) {
@@ -393,19 +404,21 @@ private:
 
         void paint(Graphics& g) override
         {
+            auto const& colours = getThemeColours(*this);
+
             auto bounds = getLocalBounds().toFloat().reduced(0.5f);
-            g.setColour(PlugDataColours::panelBackgroundColour.brighter(0.02f));
+            g.setColour(colours.panelBackgroundColour.brighter(0.02f));
             g.fillRoundedRectangle(bounds, 6.0f);
-            g.setColour(PlugDataColours::outlineColour);
+            g.setColour(colours.outlineColour);
             g.drawRoundedRectangle(bounds, 6.0f, 1.0f);
 
             auto titleBounds = getLocalBounds().removeFromTop(36).reduced(12, 12);
 
             auto badgeBounds = titleBounds.removeFromLeft(18).withSizeKeepingCentre(18, 18);
-            g.setColour(PlugDataColours::panelTextColour);
+            g.setColour(colours.panelTextColour);
             g.fillRoundedRectangle(badgeBounds.toFloat(), 3.0f);
             Fonts::drawStyledText(g, String(number), badgeBounds,
-                PlugDataColours::panelBackgroundColour,
+                colours.panelBackgroundColour,
                 FontStyle::Bold, 10.5f, Justification::centred);
 
             titleBounds.removeFromLeft(8);
@@ -415,7 +428,7 @@ private:
                 label += "  (repeats)";
 
             Fonts::drawStyledText(g, label.toUpperCase(), titleBounds,
-                PlugDataColours::panelTextColour.withAlpha(0.6f),
+                colours.panelTextColour.withAlpha(0.6f),
                 FontStyle::Semibold, 10.5f, Justification::centredLeft);
 
             // Tooltip body
@@ -459,7 +472,7 @@ private:
         {
             if (cards.isEmpty()) {
                 Fonts::drawText(g, "None.", getLocalBounds(),
-                    PlugDataColours::panelTextColour.withAlpha(0.5f),
+                    getThemeColours(*this).panelTextColour.withAlpha(0.5f),
                     13, Justification::topLeft);
             }
         }
@@ -484,6 +497,8 @@ private:
 
         void recalculateLayout(int width)
         {
+            auto const& colours = getThemeColours(*this);
+
             cellLayouts.clear();
             rowHeights.clear();
 
@@ -505,7 +520,7 @@ private:
                         : Fonts::getDefaultFont().withHeight(13.5f);
 
                     AttributedString s;
-                    s.append(text, f, columns[i].mono ? PlugDataColours::panelTextColour : PlugDataColours::panelTextColour.withAlpha(0.9f));
+                    s.append(text, f, columns[i].mono ? colours.panelTextColour : colours.panelTextColour.withAlpha(0.9f));
 
                     TextLayout l;
                     l.createLayout(s, jmax(40, colW - cellPadX * 2));
@@ -524,9 +539,11 @@ private:
 
         void paint(Graphics& g) override
         {
+            auto const& colours = getThemeColours(*this);
+
             // Card surface
             auto bounds = getLocalBounds().toFloat().reduced(0.5f);
-            g.setColour(PlugDataColours::panelBackgroundColour.brighter(0.02f));
+            g.setColour(colours.panelBackgroundColour.brighter(0.02f));
             g.fillRoundedRectangle(bounds, 6.0f);
 
             int totalFixed = 0;
@@ -535,7 +552,7 @@ private:
             int flexW = jmax(120, getWidth() - totalFixed);
 
             // Header background
-            g.setColour(PlugDataColours::panelTextColour.withAlpha(0.04f));
+            g.setColour(colours.panelTextColour.withAlpha(0.04f));
             g.fillRect(0, 0, getWidth(), headerH);
 
             // Header texts
@@ -545,14 +562,14 @@ private:
                 int colW = isLast ? flexW : columns[i].width;
                 Rectangle<int> headerCell(x + cellPadX, 0, colW - cellPadX, headerH);
                 Fonts::drawStyledText(g, columns[i].header.toUpperCase(),
-                    headerCell, PlugDataColours::panelTextColour.withAlpha(0.55f),
+                    headerCell, colours.panelTextColour.withAlpha(0.55f),
                     FontStyle::Semibold, 10.5f, Justification::centredLeft);
                 x += colW;
             }
 
             // Data rows
             int y = headerH;
-            g.setColour(PlugDataColours::outlineColour);
+            g.setColour(colours.outlineColour);
             g.drawHorizontalLine(headerH, 0.0f, static_cast<float>(getWidth()));
 
             for (int r = 0; r < static_cast<int>(rows.size()); r++) {
@@ -569,14 +586,14 @@ private:
                     x += colW;
                 }
                 if (r < static_cast<int>(rows.size()) - 1) {
-                    g.setColour(PlugDataColours::outlineColour.withAlpha(0.5f));
+                    g.setColour(colours.outlineColour.withAlpha(0.5f));
                     g.drawHorizontalLine(y + rh, 0.0f, static_cast<float>(getWidth()));
                 }
                 y += rh;
             }
 
             // Outer outline drawn last so it sits cleanly on top
-            g.setColour(PlugDataColours::outlineColour);
+            g.setColour(colours.outlineColour);
             g.drawRoundedRectangle(bounds, 6.0f, 1.0f);
         }
     };

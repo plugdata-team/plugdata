@@ -96,6 +96,7 @@ public:
         panel.setDrawShadowAndOutline(false);
         addAndMakeVisible(panel);
 
+        setOpaque(true);
         lookAndFeelChanged();
     }
 
@@ -112,7 +113,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.fillAll(PlugDataColours::sidebarBackgroundColour);
+        g.fillAll(getThemeColours(*this).sidebarBackgroundColour);
     }
 
     void resized() override
@@ -263,7 +264,7 @@ public:
         resetButton->setSize(23, 23);
         resetButton->onClick = [this] {
             for (auto& propertiesList : properties) {
-                propertiesList.resetAll();
+                propertiesList.resetAll(*this);
             }
         };
 

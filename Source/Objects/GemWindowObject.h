@@ -59,11 +59,11 @@ public:
         auto const b = getLocalBounds().toFloat();
 
         // Dark background placeholder
-        nvgDrawRoundedRect(nvg,
+        nanovg::nvgDrawRoundedRect(nvg,
             b.getX(), b.getY(), b.getWidth(), b.getHeight(),
-            nvgRGBf(0.05f, 0.05f, 0.05f),
-            nvgRGBf(0.15f, 0.15f, 0.15f),
-            Corners::objectCornerRadius);
+            nanovg::nvgRGBf(0.05f, 0.05f, 0.05f),
+            nanovg::nvgRGBf(0.15f, 0.15f, 0.15f),
+            getPlugDataLook(*this).getObjectCornerRadius());
 
         if (!gemCanvas)
             return;
@@ -74,12 +74,12 @@ public:
             if (gemCanvas->pullPixels(rgbaBuffer, w, h) && !rgbaBuffer.empty()) {
                 if (nvgImage < 0 || w != texW || h != texH) {
                     if (nvgImage >= 0)
-                        nvgDeleteImage(nvg, nvgImage);
-                    nvgImage = nvgCreateImageARGB(nvg, w, h, 0, rgbaBuffer.data());
+                        nanovg::nvgDeleteImage(nvg, nvgImage);
+                    nvgImage = nanovg::nvgCreateImageARGB(nvg, w, h, 0, rgbaBuffer.data());
                     texW = w;
                     texH = h;
                 } else {
-                    nvgUpdateImage(nvg, nvgImage, rgbaBuffer.data());
+                    nanovg::nvgUpdateImage(nvg, nvgImage, rgbaBuffer.data());
                 }
             }
         }
@@ -87,12 +87,12 @@ public:
         if (nvgImage < 0)
             return;
 
-        NVGpaint paint = nvgImagePattern(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), 0.0f, nvgImage, 1.0f);
+        NVGpaint paint = nanovg::nvgImagePattern(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), 0.0f, nvgImage, 1.0f);
 
-        nvgBeginPath(nvg);
-        nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
-        nvgFillPaint(nvg, paint);
-        nvgFill(nvg);
+        nanovg::nvgBeginPath(nvg);
+        nanovg::nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), getPlugDataLook(*this).getObjectCornerRadius());
+        nanovg::nvgFillPaint(nvg, paint);
+        nanovg::nvgFill(nvg);
     }
 
     void timerCallback() override

@@ -117,7 +117,7 @@ struct TextObjectHelper {
         editor->applyFontToAllText(f);
 
         object->copyAllExplicitColoursTo(*editor);
-        editor->setColour(TextEditor::textColourId, PlugDataColours::canvasTextColour);
+        editor->setColour(TextEditor::textColourId, getThemeColours(*object).canvasTextColour);
         editor->setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
         editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
 
@@ -143,7 +143,7 @@ protected:
     std::unique_ptr<TextEditor> editor;
     BorderSize<int> border = BorderSize<int>(1, 6, 1, 1);
 
-    CachedTextRender cachedTextRender;
+    TextLayout layout;
 
     Value sizeProperty = SynchronousValue();
     String objectText;
@@ -184,22 +184,24 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto const b = getLocalBounds();
-        auto const bg = PlugDataColours::textObjectBackgroundColour;
+        auto const& colours = getThemeColours();
 
-        auto finalOutlineColour = nvgColour(object->isSelected() ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
-        auto finalBackgroundColour = nvgColour(PlugDataColours::textObjectBackgroundColour);
-        auto const outlineCol = object->isSelected() ? nvgColour(PlugDataColours::objectSelectedOutlineColour) : finalOutlineColour;
+        auto const b = getLocalBounds();
+        auto const bg = colours.textObjectBackgroundColour;
+
+        auto finalOutlineColour = nvgColour(object->isSelected() ? colours.objectSelectedOutlineColour : colours.objectOutlineColour);
+        auto finalBackgroundColour = nvgColour(colours.textObjectBackgroundColour);
+        auto const outlineCol = object->isSelected() ? nvgColour(colours.objectSelectedOutlineColour) : finalOutlineColour;
 
         // render invalid text objects with red outline & semi-transparent background
         if (!isValid) {
             finalOutlineColour = nvgColour(object->isSelected() ? Colours::red.brighter(1.5f) : Colours::red);
-            finalBackgroundColour = nvgColour(PlugDataColours::objectOutlineColour.withMultipliedAlpha(0.2f));
+            finalBackgroundColour = nvgColour(colours.objectOutlineColour.withMultipliedAlpha(0.2f));
         } else if ((canBeClicked || getPatch()) && isMouseOver() && getValue<bool>(cnv->locked)) {
             finalBackgroundColour = nvgColour(bg.contrasting(bg.getBrightness() > 0.5f ? 0.03f : 0.05f));
         }
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), finalBackgroundColour, finalOutlineColour, Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), finalBackgroundColour, finalOutlineColour, getPlugDataLook(*this).getObjectCornerRadius());
 
         // if the object is valid & iolet area colour is differnet from background colour
         // draw two non-rounded rectangles at top / bottom
@@ -214,24 +216,28 @@ public:
         //   │┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼│
         //   └──────────────────┘
 
-        auto ioletAreaColour = nvgColour(PlugDataColours::ioletAreaColour);
+        auto ioletAreaColour = nvgColour(colours.ioletAreaColour);
         bool const hasIoletArea = ioletAreaColour.r != bg.getRed() || ioletAreaColour.g != bg.getGreen() || ioletAreaColour.b != bg.getBlue() || ioletAreaColour.a != bg.getAlpha();
 
         if (isValid && hasIoletArea) {
-            nvgFillColor(nvg, ioletAreaColour);
-            nvgBeginPath(nvg);
-            nvgRoundedRectVarying(nvg, 0, 0, getWidth(), 3.5f, Corners::defaultCornerRadius, Corners::defaultCornerRadius, 0.0f, 0.0f);
-            nvgRoundedRectVarying(nvg, 0, getHeight() - 3.5f, getWidth(), 3.5f, 0.0f, 0.0f, Corners::defaultCornerRadius, Corners::defaultCornerRadius);
-            nvgFill(nvg);
+            nanovg::nvgFillColor(nvg, ioletAreaColour);
+            nanovg::nvgBeginPath(nvg);
+            nanovg::nvgRoundedRectVarying(nvg, 0, 0, getWidth(), 3.5f, Corners::defaultCornerRadius, Corners::defaultCornerRadius, 0.0f, 0.0f);
+            nanovg::nvgRoundedRectVarying(nvg, 0, getHeight() - 3.5f, getWidth(), 3.5f, 0.0f, 0.0f, Corners::defaultCornerRadius, Corners::defaultCornerRadius);
+            nanovg::nvgFill(nvg);
 
-            nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(0, 0, 0, 0), outlineCol, Corners::objectCornerRadius);
+            nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nanovg::nvgRGBA(0, 0, 0, 0), outlineCol, getPlugDataLook(*this).getObjectCornerRadius());
         }
 
+        auto& llgc = *cnv->editor->getNanoLLGC();
+
         if (editor && editor->isVisible()) {
-            Graphics g(*cnv->editor->getNanoLLGC());
-            editor->paintEntireComponent(g, true);
+            llgc.renderComponent(*editor);
         } else {
-            cachedTextRender.renderText(nvg, border.subtractedFrom(b).toFloat(), getImageScale());
+            Graphics g(llgc);
+            auto const textBounds = getLocalBounds().reduced(6, 0).toFloat();
+            NVGGraphicsContext::ScopedAnchoredDraw anchor(llgc, textBounds);
+            layout.draw(g, textBounds);
         }
     }
 
@@ -289,8 +295,6 @@ public:
             fontWidth = glist_fontwidth(cnv->patch.getRawPointer());
         }
 
-        auto const textSize = cachedTextRender.getTextBounds();
-
         // Calculating string width is expensive, so we cache all the strings that we already calculated the width for
         int const idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 13;
 
@@ -308,11 +312,58 @@ public:
         auto const maxIolets = std::max(object->numInputs, object->numOutputs);
         textWidth = std::max(textWidth, maxIolets * 18);
 
-        return { textWidth, textSize.getHeight() };
+        return { textWidth, static_cast<int>(layout.getHeight()) };
+    }
+
+    // Builds an AttributedString that colours the tokens of a Pd object's text like the editor does
+    // (object name, flags, math-expression arguments). Shared by text-based objects so they can build
+    // their TextLayout directly.
+    static AttributedString getSyntaxHighlightedString(Component const& context, String const& text, Font const& font, Colour const& colour, Colour const& nameColour)
+    {
+        auto attributedText = AttributedString();
+        auto lines = StringArray::fromLines(text);
+
+        auto const flagColour = colour.interpolatedWith(::getThemeColours(context).signalColour, 0.7f);
+        auto const mathColour = colour.interpolatedWith(Colours::purple, 0.5f);
+
+        bool firstToken = true;
+        bool hadFlag = false;
+        bool mathExpression = false;
+        for (int i = 0; i < lines.size(); i++) {
+            auto& line = lines[i];
+            auto tokens = StringArray::fromTokens(line, true);
+            for (int j = 0; j < tokens.size(); j++) {
+                auto token = tokens[j];
+                if (j != tokens.size() - 1)
+                    token += " ";
+                if (firstToken) {
+                    attributedText.append(token, font, nameColour);
+                    if (token == "expr " || token == "expr~ " || token == "fexpr~ " || token == "op " || token == "op~ ") {
+                        mathExpression = true;
+                    }
+                    firstToken = false;
+                } else if (mathExpression) {
+                    attributedText.append(token, font, mathColour);
+                } else if (token.startsWith("-") && !token.containsOnly("e.-0123456789 ")) {
+                    attributedText.append(token, font, flagColour);
+                    hadFlag = true;
+                } else if (hadFlag) {
+                    attributedText.append(token, font, nameColour);
+                } else {
+                    attributedText.append(token, font, colour);
+                }
+            }
+            if (i != lines.size() - 1)
+                attributedText.append("\n", font, colour);
+        }
+
+        return attributedText;
     }
 
     virtual void updateTextLayout()
     {
+        auto const& colours = getThemeColours();
+
         if (cnv->isGraph)
             return; // Text layouting is expensive, so skip if it's not necessary
 
@@ -321,11 +372,22 @@ public:
             objText = cnv->suggestor->getText();
         }
 
-        auto const colour = PlugDataColours::canvasTextColour;
-        int const textWidth = getTextSize().getWidth() - 12;
-        if (cachedTextRender.prepareLayout(objText, Fonts::getCurrentFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty), PlugDataLook::getUseSyntaxHighlighting() && isValid)) {
-            repaint();
+        auto const colour = colours.canvasTextColour;
+        auto const font = Fonts::getDefaultFont().withHeight(15);
+        bool const highlightObjectSyntax = getPlugDataLook(*this).getUseSyntaxHighlighting() && isValid;
+
+        AttributedString attributedText;
+        if (highlightObjectSyntax) {
+            auto const nameColour = colour.interpolatedWith(colours.dataColour, 0.7f);
+            attributedText = getSyntaxHighlightedString(*this, objText, font, colour, nameColour);
+        } else {
+            attributedText = AttributedString(objText);
+            attributedText.setColour(colour);
+            attributedText.setFont(font);
         }
+        attributedText.setJustification(Justification::centredLeft);
+        attributedText.setWordWrap(AttributedString::byChar);
+        layout.createLayout(attributedText, getTextSize().getWidth() - 12);
     }
 
     void setPdBounds(Rectangle<int> const b) override
@@ -408,7 +470,7 @@ public:
     void showEditor() override
     {
         if (editor == nullptr) {
-            editor.reset(TextObjectHelper::createTextEditor(object, Fonts::getCurrentFont().withHeight(15)));
+            editor.reset(TextObjectHelper::createTextEditor(object, Fonts::getDefaultFont().withHeight(15)));
             editor->setBorder(border);
             editor->setBounds(getLocalBounds());
             editor->setText(objectText, false);
@@ -420,13 +482,7 @@ public:
             editor->grabKeyboardFocus();
 
             editor->onFocusLost = [this] {
-                if (cnv->suggestor->shouldKeepEditorOpen(editor.get())) {
-                    editor->grabKeyboardFocus();
-                    return;
-                }
-
-                // Be careful, if anything grabs keyboard focus when clicking an object, this will close the editor!
-                hideEditor();
+                cnv->suggestor->checkEditorFocusLoss(editor.get());
             };
 
             cnv->showSuggestions(object, editor.get());

@@ -15,10 +15,12 @@ public:
 private:
     void paint(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
         auto const bounds = getLocalBounds().toFloat().reduced(1.0f);
 
-        auto backgroundColour = PlugDataColours::dialogBackgroundColour;
-        auto const activeColour = PlugDataColours::toolbarActiveColour;
+        auto backgroundColour = colours.dialogBackgroundColour;
+        auto const activeColour = colours.toolbarActiveColour;
 
         if (isMouseOver() || isMouseButtonDown()) {
             backgroundColour = backgroundColour.contrasting(0.1f);
@@ -30,7 +32,7 @@ private:
         g.fillRoundedRectangle(bounds, Corners::defaultCornerRadius);
 
         g.setFont(Fonts::getDefaultFont().withHeight(15));
-        g.setColour(PlugDataColours::panelTextColour);
+        g.setColour(colours.panelTextColour);
 
         g.drawText(getButtonText(), getLocalBounds().reduced(3), Justification::centred);
 

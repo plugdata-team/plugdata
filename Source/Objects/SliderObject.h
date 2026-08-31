@@ -159,7 +159,7 @@ public:
         auto const b = getLocalBounds().toFloat().reduced(1.0f);
 
         constexpr auto thumbSize = 4.0f;
-        auto const cornerSize = Corners::objectCornerRadius / 2.0f;
+        auto const cornerSize = getPlugDataLook(*this).getObjectCornerRadius() / 2.0f;
 
         Rectangle<float> bounds;
         if (isHorizontal()) {
@@ -169,8 +169,8 @@ public:
             auto const sliderPos = jmap<float>(valueToProportionOfLength(getValue()), 1.0f, 0.0f, b.getY(), b.getHeight() - thumbSize);
             bounds = Rectangle<float>(b.getWidth(), thumbSize).translated(b.getX(), sliderPos);
         }
-        nvgFillColor(nvg, trackColour);
-        nvgFillRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), cornerSize);
+        nanovg::nvgFillColor(nvg, trackColour);
+        nanovg::nvgFillRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), cornerSize);
     }
 
     std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override { return nullptr; };
@@ -262,8 +262,8 @@ public:
 
         iemHelper.update();
 
-        backgroundColour = nvgColour(Colour::fromString(iemHelper.secondaryColour.toString()));
-        slider.setTrackColour(Colour::fromString(iemHelper.primaryColour.toString()));
+        backgroundColour = nvgColour(::getValue<Colour>(iemHelper.secondaryColour));
+        slider.setTrackColour(::getValue<Colour>(iemHelper.primaryColour));
         repaint();
     }
 
@@ -365,8 +365,8 @@ public:
         }
         case hash("color"): {
             iemHelper.receiveObjectMessage(symbol, atoms);
-            backgroundColour = nvgColour(Colour::fromString(iemHelper.secondaryColour.toString()));
-            slider.setTrackColour(Colour::fromString(iemHelper.primaryColour.toString()));
+            backgroundColour = nvgColour(::getValue<Colour>(iemHelper.secondaryColour));
+            slider.setTrackColour(::getValue<Colour>(iemHelper.primaryColour));
             object->repaint();
             break;
         }
@@ -379,11 +379,13 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        auto const& colours = getThemeColours();
+
         auto const b = getLocalBounds().toFloat();
         bool const selected = object->isSelected() && !cnv->isGraph;
-        auto const outlineColour = nvgColour(selected ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
+        auto const outlineColour = nvgColour(selected ? colours.objectSelectedOutlineColour : colours.objectOutlineColour);
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, outlineColour, Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, outlineColour, getPlugDataLook(*this).getObjectCornerRadius());
 
         slider.render(nvg);
     }

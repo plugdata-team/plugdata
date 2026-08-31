@@ -20,8 +20,11 @@ public:
 
     ~Dialog() override
     {
-        if (auto* editor = dynamic_cast<PluginEditor*>(parentComponent)) {
-            editor->nvgSurface.setRenderThroughImage(false);
+        if (!ownsViewedComponent) {
+            // We don't own it, so it outlives us: make sure we don't leave a dangling
+            // mouse listener behind on it
+            if (auto* viewed = viewedComponent.release())
+                viewed->removeMouseListener(this);
         }
 
         if (auto const* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent())) {
@@ -36,8 +39,9 @@ public:
         }
     }
 
-    void setViewedComponent(Component* child)
+    void setViewedComponent(Component* child, bool takeOwnership = true)
     {
+        ownsViewedComponent = takeOwnership;
         viewedComponent.reset(child);
         viewedComponent->addMouseListener(this, false);
         addAndMakeVisible(child);
@@ -48,6 +52,8 @@ public:
 
     void paint(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
         g.setColour(Colours::black.withAlpha(0.5f));
 
         auto const bounds = getLocalBounds().toFloat().reduced(backgroundMargin);
@@ -59,11 +65,11 @@ public:
         }
 
         if (viewedComponent) {
-            g.setColour(PlugDataColours::dialogBackgroundColour);
+            g.setColour(colours.dialogBackgroundColour);
             g.fillRoundedRectangle(viewedComponent->getBounds().toFloat(), isIphone() ? 0 : Corners::windowCornerRadius);
 
-            g.setColour(PlugDataColours::outlineColour);
-            g.drawRoundedRectangle(viewedComponent->getBounds().toFloat(), isIphone() ? 0 : Corners::windowCornerRadius, 1.0f);
+            g.setColour(colours.outlineColour);
+            g.drawRoundedRectangle(viewedComponent->getBounds().toFloat().reduced(0.5f), isIphone() ? 0 : Corners::windowCornerRadius, 1.0f);
         }
     }
 
@@ -90,7 +96,6 @@ public:
                 // Only on iPhone, fullscreen every dialog becauwe we don't have much space
                 viewedComponent->setBounds(0, 0, getWidth(), getHeight());
             } else {
-
                 viewedComponent->setSize(std::min(width, getWidth()), std::min(height, getHeight()));
                 viewedComponent->setCentrePosition({ getLocalBounds().getCentreX(), getLocalBounds().getCentreY() });
             }
@@ -160,6 +165,7 @@ public:
     std::unique_ptr<Button> closeButton = nullptr;
     std::unique_ptr<Dialog>* owner;
 
+    bool ownsViewedComponent = true;
     bool blockCloseAction = false;
     bool dragging = false;
     int backgroundMargin = 0;

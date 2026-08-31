@@ -75,7 +75,7 @@ private:
         }
         openHelpfilesRecursively(tabbar, helpFiles);
         
-        editor->sidebar->clearConsole();
+        editor->getSidebarForPanel(Sidebar::ConsolePanel)->clearConsole();
     }
 
     

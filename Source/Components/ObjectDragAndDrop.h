@@ -21,6 +21,8 @@ class ObjectDragAndDrop final : public Component
     bool dropState = false;
     bool startedWithDrag = false;
 
+    Point<int> lastMousePos;
+
     Rectangle<int> animationStartBounds, animationEndBounds;
     VBlankAnimatorUpdater updater { this };
     Animator zoomAnimator = ValueAnimatorBuilder { }
@@ -49,8 +51,8 @@ public:
 
         setAlwaysOnTop(true);
 
-        dragImage = OfflineObjectRenderer::patchToMaskedImage(objectName, 3.0f).image;
-        dragInvalidImage = OfflineObjectRenderer::patchToMaskedImage(objectName, 3.0f, true).image;
+        dragImage = OfflineObjectRenderer::patchToMaskedImage(editor->getPlugDataLook(), objectName, 3.0f).image;
+        dragInvalidImage = OfflineObjectRenderer::patchToMaskedImage(editor->getPlugDataLook(), objectName, 3.0f, true).image;
 
         if (ProjectInfo::canUseSemiTransparentWindows()) {
             // Make it larger so we don't accidentally lose track
@@ -151,8 +153,12 @@ public:
         if (auto* draggedComponent = mms.getComponentUnderMouse()) {
             draggedComponent->setMouseCursor(MouseCursor::StandardCursorType::DraggingHandCursor);
         }
+
+        if(mms.isDragging()) {
+            lastMousePos = screenPos;
+        }
         if (startedWithDrag && !mms.isDragging()) {
-            paste(mms.getScreenPosition().roundToInt());
+            paste(lastMousePos);
         }
     }
 

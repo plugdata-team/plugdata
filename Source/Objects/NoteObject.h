@@ -34,12 +34,12 @@ class NoteObject final : public ObjectBase
     bool wasSelectedOnMouseDown : 1 = false;
     bool needsRepaint : 1 = false;
 
-    NVGImage imageRenderer;
-
 public:
     NoteObject(pd::WeakReference obj, Object* object)
         : ObjectBase(obj, object)
     {
+        auto const& colours = getThemeColours();
+
         locked = getValue<bool>(object->locked);
 
         if (auto note = ptr.get<t_fake_note>()) {
@@ -53,8 +53,8 @@ public:
 
         noteEditor.getProperties().set("NoBackground", true);
         noteEditor.getProperties().set("NoOutline", true);
-        noteEditor.setColour(TextEditor::textColourId, PlugDataColours::canvasTextColour);
-        noteEditor.setColour(ScrollBar::thumbColourId, PlugDataColours::scrollbarThumbColour);
+        noteEditor.setColour(TextEditor::textColourId, colours.canvasTextColour);
+        noteEditor.setColour(ScrollBar::thumbColourId, colours.scrollbarThumbColour);
 
         noteEditor.setAlwaysOnTop(true);
         noteEditor.setMultiLine(true);
@@ -128,27 +128,19 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        auto const& colours = getThemeColours();
+
         if (getValue<bool>(fillBackground) || getValue<bool>(outline)) {
-            auto const fillColour = getValue<bool>(fillBackground) ? nvgColour(Colour::fromString(secondaryColour.toString())) : nvgRGBA(0, 0, 0, 0);
-            auto outlineColour = nvgRGBA(0, 0, 0, 0);
+            auto const fillColour = getValue<bool>(fillBackground) ? nvgColour(getValue<Colour>(secondaryColour)) : nanovg::nvgRGBA(0, 0, 0, 0);
+            auto outlineColour = nanovg::nvgRGBA(0, 0, 0, 0);
             if (getValue<bool>(outline)) {
                 bool const selected = object->isSelected() && !cnv->isGraph;
-                outlineColour = nvgColour(selected ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
+                outlineColour = nvgColour(selected ? colours.objectSelectedOutlineColour : colours.objectOutlineColour);
             }
-            nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), fillColour, outlineColour, Corners::objectCornerRadius);
+            nanovg::nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), fillColour, outlineColour, getPlugDataLook(*this).getObjectCornerRadius());
         }
 
-        auto const scale = getImageScale();
-        if (needsRepaint || isEditorShown() || imageRenderer.needsUpdate(roundToInt(getWidth() * scale), roundToInt(getHeight() * scale))) {
-            imageRenderer.renderJUCEComponent(nvg, noteEditor, scale);
-            needsRepaint = false;
-        } else {
-            NVGScopedState state(nvg);
-            nvgScale(nvg, 1.0f / scale, 1.0f / scale);
-            auto w = roundToInt(scale * static_cast<float>(noteEditor.getWidth()));
-            auto h = roundToInt(scale * static_cast<float>(noteEditor.getHeight()));
-            imageRenderer.render(nvg, { 0, 0, w, h }, true);
-        }
+        cnv->editor->getNanoLLGC()->renderComponent(noteEditor);
     }
 
     void paint(Graphics& g) override { }
@@ -157,8 +149,8 @@ public:
     {
         if (auto note = ptr.get<t_fake_note>()) {
             currentNoteText = getNote();
-            primaryColour = Colour(note->x_red, note->x_green, note->x_blue).toString();
-            secondaryColour = Colour(note->x_bg[0], note->x_bg[1], note->x_bg[2]).toString();
+            primaryColour = colourToVar(Colour(note->x_red, note->x_green, note->x_blue));
+            secondaryColour = colourToVar(Colour(note->x_bg[0], note->x_bg[1], note->x_bg[2]));
             fontSize = note->x_fontsize;
 
             bold = note->x_bold;
@@ -191,7 +183,7 @@ public:
         noteEditor.setIndents(0, 2);
         noteEditor.setFont(newFont);
         noteEditor.setText(currentNoteText);
-        noteEditor.applyColourToAllText(Colour::fromString(primaryColour.toString()));
+        noteEditor.applyColourToAllText(getValue<Colour>(primaryColour));
         noteEditor.repaint();
 
         auto const justificationType = getValue<int>(justification);
@@ -267,15 +259,24 @@ public:
         return !noteEditor.isReadOnly();
     }
 
+    int getTextHeightForWidth(int const width)
+    {
+        auto const editorBounds = noteEditor.getBounds();
+        noteEditor.setBounds(editorBounds.getX(), editorBounds.getY(), width + 6, 1);
+        auto const textHeight = noteEditor.getTextHeight();
+        noteEditor.setBounds(editorBounds);
+
+        return textHeight;
+    }
+
     Rectangle<int> getPdBounds() override
     {
-        auto const height = noteEditor.getTextHeight();
         auto const stringWidth = CachedFontStringWidth::get()->calculateStringWidth(getFont(), getNote()) + 12;
 
         if (auto note = ptr.get<t_fake_note>()) {
-            int width = note->x_resized ? note->x_max_pixwidth : stringWidth;
+            int const width = note->x_resized ? note->x_max_pixwidth : stringWidth;
 
-            return { note->x_obj.te_xpix, note->x_obj.te_ypix, width, height + 2 };
+            return { note->x_obj.te_xpix, note->x_obj.te_ypix, width, getTextHeightForWidth(width) + 2 };
         }
 
         return { };
@@ -313,8 +314,7 @@ public:
                 note->x_resized = 1;
                 note->x_max_pixwidth = bounds.getWidth() - Object::doubleMargin;
 
-                // Set editor size first, so getTextHeight will return a correct result
-                noteObject->noteEditor.setSize(note->x_max_pixwidth + 6, noteObject->noteEditor.getHeight());
+                // getPdBounds() measures the text at the new width for us
                 bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
             }
         };
@@ -358,7 +358,7 @@ public:
 
             object->updateBounds();
         } else if (v.refersToSameSourceAs(primaryColour)) {
-            auto const colour = Colour::fromString(primaryColour.toString());
+            auto const colour = getValue<Colour>(primaryColour);
             noteEditor.applyColourToAllText(colour);
             if (auto note = ptr.get<t_fake_note>())
                 colourToHexArray(colour, &note->x_red);
@@ -366,7 +366,7 @@ public:
             repaint();
         } else if (v.refersToSameSourceAs(secondaryColour)) {
             if (auto note = ptr.get<t_fake_note>())
-                colourToHexArray(Colour::fromString(secondaryColour.toString()), note->x_bg);
+                colourToHexArray(getValue<Colour>(secondaryColour), note->x_bg);
             needsRepaint = true;
             repaint();
         } else if (v.refersToSameSourceAs(fontSize)) {
@@ -436,7 +436,7 @@ public:
         auto const typefaceName = font.toString();
 
         if (typefaceName.isEmpty() || typefaceName == "Inter") {
-            return Fonts::getVariableFont().withStyle(style).withHeight(fontHeight);
+            return Fonts::getDefaultFont().withStyle(style).withHeight(fontHeight);
         }
 
         // Check if a system typeface exists, before we start searching for a font file
@@ -513,13 +513,13 @@ public:
         }
         case hash("color"): {
             if (auto note = ptr.get<t_fake_note>()) {
-                primaryColour = Colour(note->x_red, note->x_green, note->x_blue).toString();
+                primaryColour = colourToVar(Colour(note->x_red, note->x_green, note->x_blue));
             }
             break;
         }
         case hash("bgcolor"): {
             if (auto note = ptr.get<t_fake_note>()) {
-                secondaryColour = Colour(note->x_bg[0], note->x_bg[1], note->x_bg[2]).toString();
+                secondaryColour = colourToVar(Colour(note->x_bg[0], note->x_bg[1], note->x_bg[2]));
             }
             break;
         }

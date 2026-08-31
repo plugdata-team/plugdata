@@ -5,8 +5,10 @@
  */
 #pragma once
 
-// Eyedropper will create a snapshot of the top level component,
-// to allow the user to pick colours from anywhere in the app
+#include "PluginEditor.h"
+
+// Eyedropper samples the editor's rendered framebuffer, so it can pick colours
+// from anywhere in the (GPU-rendered) app UI
 class Eyedropper final : public Timer
     , public MouseListener {
     class EyedropperDisplayComponnent final : public Component {
@@ -132,7 +134,8 @@ public:
         callback = [](Colour) { };
         colourDisplayer.hide();
         stopTimer();
-        topLevel->removeMouseListener(this);
+        if (topLevel)
+            topLevel->removeMouseListener(this);
         topLevel = nullptr;
     }
 
@@ -144,33 +147,46 @@ private:
 
     void timerCallback() override
     {
-        auto const position = topLevel->getMouseXYRelative();
-        auto const surfaceMousePosition = editor->nvgSurface.getLocalPoint(topLevel, position);
-        auto const mouseOverSurface = editor->nvgSurface.getLocalBounds().contains(surfaceMousePosition);
-
-        if (mouseOverSurface) {
-            editor->nvgSurface.setRenderThroughImage(true);
-            editor->nvgSurface.render();
+        if (!topLevel) {
+            stopTimer();
+            return;
         }
+        
+        auto const positionInTopLevel = topLevel->getMouseXYRelative();
+        colourDisplayer.setCentrePosition(topLevel->localPointToGlobal(positionInTopLevel));
 
-        componentImage = topLevel->createComponentSnapshot(topLevel->getLocalBounds(), false, 1.0f);
-        colourDisplayer.setCentrePosition(topLevel->localPointToGlobal(position));
-        colourDisplayer.setROI(componentImage, position);
-        setColour(componentImage.getPixelAt(position.x, position.y));
+        if (!editor)
+            return;
 
-        if (mouseOverSurface) {
-            editor->nvgSurface.setRenderThroughImage(false);
-        }
+        // The whole editor is rendered through OpenGL/Metal, so an ordinary
+        // component snapshot comes back empty. Sample the rendered framebuffer
+        // instead. We only read a small region around the cursor to keep the
+        // per-tick GPU read-back cheap.
+        auto const positionInEditor = editor->getLocalPoint(topLevel, positionInTopLevel);
+
+        constexpr int regionSize = 48;
+        auto const region = Rectangle<int>(0, 0, regionSize, regionSize)
+                                .withCentre(positionInEditor)
+                                .getIntersection(editor->getLocalBounds());
+        if (region.isEmpty())
+            return;
+
+        auto const image = editor->nvgSurface.renderToImage(region);
+        if (image.isNull())
+            return;
+
+        auto const positionInImage = positionInEditor - region.getTopLeft();
+        colourDisplayer.setROI(image, positionInImage);
+        setColour(image.getPixelAt(positionInImage.x, positionInImage.y));
     }
 
     std::function<void(Colour)> callback;
     int timerCount = 0;
-    Component* topLevel = nullptr;
+    Component::SafePointer<Component> topLevel = nullptr;
 
     EyedropperDisplayComponnent colourDisplayer;
-    Image componentImage;
     Colour currentColour;
-    PluginEditor* editor;
+    PluginEditor* editor = nullptr;
 };
 
 class ColourPicker final : public Component
@@ -223,6 +239,7 @@ public:
         _topLevelComponent = topLevelComponent;
 
         setCurrentColour(currentColour);
+        lookAndFeelChanged();
 
         // we need to put the selector into a holder, as launchAsynchronously will delete the component when its done
         auto selectorHolder = std::make_unique<SelectorHolder>(this);
@@ -295,8 +312,6 @@ public:
         update(dontSendNotification);
 
         updateMode();
-
-        lookAndFeelChanged();
     }
 
     ~ColourPicker() override
@@ -306,15 +321,17 @@ public:
 
     void lookAndFeelChanged() override
     {
+        auto const& colours = getThemeColours(*this);
+
         for (auto* slider : sliders) {
             slider->onValueChange = [this] { changeColour(); };
             slider->setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
-            slider->setColour(Slider::textBoxBackgroundColourId, PlugDataColours::popupMenuBackgroundColour);
-            slider->setColour(Slider::textBoxTextColourId, PlugDataColours::popupMenuTextColour);
+            slider->setColour(Slider::textBoxBackgroundColourId, colours.popupMenuBackgroundColour);
+            slider->setColour(Slider::textBoxTextColourId, colours.popupMenuTextColour);
         }
 
-        showRgb.setColour(TextButton::buttonOnColourId, PlugDataColours::toolbarHoverColour);
-        showHex.setColour(TextButton::buttonOnColourId, PlugDataColours::toolbarHoverColour);
+        showRgb.setColour(TextButton::buttonOnColourId, colours.toolbarHoverColour);
+        showHex.setColour(TextButton::buttonOnColourId, colours.toolbarHoverColour);
 
         hexEditor.setColour(Label::outlineWhenEditingColourId, Colours::transparentBlack);
     }
@@ -432,9 +449,11 @@ private:
 
     void paint(Graphics& g) override
     {
-        g.fillAll(PlugDataColours::popupMenuBackgroundColour);
+        auto const& colours = getThemeColours(*this);
 
-        g.setColour(PlugDataColours::popupMenuTextColour);
+        g.fillAll(colours.popupMenuBackgroundColour);
+
+        g.setColour(colours.popupMenuTextColour);
         g.setFont(14.0f);
 
         for (auto const& slider : sliders) {
@@ -533,7 +552,7 @@ private:
             g.setOpacity(1.0f);
             g.drawImageAt(colourWheelHSV, margin, margin);
 
-            g.setColour(PlugDataColours::outlineColour);
+            g.setColour(getThemeColours(*this).outlineColour);
             g.drawEllipse(imageBounds.toFloat().reduced(0.5f), 1.0f);
         }
 
@@ -677,7 +696,7 @@ private:
             g.setGradientFill(ColourGradient(colour, 0.0f, 0.0f, Colours::black, bounds.getHeight() / 2, bounds.getHeight() / 2, false));
             g.fillRoundedRectangle(bounds, radius);
 
-            g.setColour(PlugDataColours::outlineColour);
+            g.setColour(getThemeColours(*this).outlineColour);
             g.drawRoundedRectangle(bounds, radius, 1.0f);
         }
 

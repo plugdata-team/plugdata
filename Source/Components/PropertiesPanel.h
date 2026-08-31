@@ -456,7 +456,7 @@ public:
                 addAndMakeVisible(property);
             }
 
-            setLookAndFeel(&LookAndFeel::getDefaultLookAndFeel());
+            setLookAndFeel(nullptr);
         }
 
         MultiPropertyComponent(String const& propertyName, SmallArray<Value*> values, StringArray options)
@@ -483,7 +483,7 @@ public:
         void lookAndFeelChanged() override
         {
             for (auto& property : properties) {
-                property->setColour(ComboBox::textColourId, PlugDataColours::panelTextColour);
+                property->setColour(ComboBox::textColourId, getThemeColours(*this).panelTextColour);
             }
         }
 
@@ -509,7 +509,7 @@ public:
 
             for (int i = 0; i < propertyValues.size(); i++) {
                 auto propertyBounds = b.removeFromLeft(itemWidth);
-                g.setColour(PlugDataColours::toolbarOutlineColour.withAlpha(0.5f));
+                g.setColour(getThemeColours(*this).toolbarOutlineColour.withAlpha(0.5f));
                 g.drawVerticalLine(propertyBounds.getX(), 0, getHeight());
             }
         }

@@ -35,7 +35,9 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto const highlight = PlugDataColours::popupMenuActiveBackgroundColour;
+        auto const& colours = getThemeColours(*this);
+
+        auto const highlight = colours.popupMenuActiveBackgroundColour;
 
         auto const iconBounds = getLocalBounds().reduced(14).translated(0, -7);
         auto const textBounds = getLocalBounds().removeFromBottom(14);
@@ -45,8 +47,8 @@ public:
             g.fillRoundedRectangle(iconBounds.toFloat(), Corners::defaultCornerRadius);
         }
 
-        Fonts::drawText(g, titleText, textBounds, PlugDataColours::popupMenuTextColour, 13.0f, Justification::centred);
-        Fonts::drawIcon(g, iconText, iconBounds.reduced(2), PlugDataColours::popupMenuTextColour, 30);
+        Fonts::drawText(g, titleText, textBounds, colours.popupMenuTextColour, 13.0f, Justification::centred);
+        Fonts::drawIcon(g, iconText, iconBounds.reduced(2), colours.popupMenuTextColour, 30);
     }
 
     bool hitTest(int const x, int const y) override
@@ -486,6 +488,8 @@ public:
     ObjectCategoryView(PluginEditor* e, std::function<void(bool)> const& dismissCalloutBox)
         : list(e, dismissCalloutBox)
     {
+        auto const& colours = getThemeColours(*this);
+
         addAndMakeVisible(list);
 
         auto objectsToShow = getValue<bool>(SettingsFile::getInstance()->getPropertyAsValue("hvcc_mode")) ? ObjectList::heavyObjectList : ObjectList::defaultObjectList;
@@ -507,10 +511,10 @@ public:
             };
             button->setClickingTogglesState(true);
             button->setRadioGroupId(hash("add_menu_category"));
-            button->setColour(TextButton::textColourOffId, PlugDataColours::popupMenuTextColour);
-            button->setColour(TextButton::textColourOnId, PlugDataColours::popupMenuTextColour);
-            button->setColour(TextButton::buttonColourId, PlugDataColours::popupMenuBackgroundColour.contrasting(0.035f));
-            button->setColour(TextButton::buttonOnColourId, PlugDataColours::popupMenuBackgroundColour.contrasting(0.075f));
+            button->setColour(TextButton::textColourOffId, colours.popupMenuTextColour);
+            button->setColour(TextButton::textColourOnId, colours.popupMenuTextColour);
+            button->setColour(TextButton::buttonColourId, colours.popupMenuBackgroundColour.contrasting(0.035f));
+            button->setColour(TextButton::buttonOnColourId, colours.popupMenuBackgroundColour.contrasting(0.075f));
             button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
             addAndMakeVisible(button);
         }
@@ -560,17 +564,19 @@ public:
 
     void paint(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
         auto b = getLocalBounds().reduced(4, 2);
 
-        auto colour = PlugDataColours::popupMenuTextColour;
+        auto colour = colours.popupMenuTextColour;
 
         if (isMouseOver()) {
-            g.setColour(PlugDataColours::popupMenuActiveBackgroundColour);
+            g.setColour(colours.popupMenuActiveBackgroundColour);
             g.fillRoundedRectangle(b.toFloat(), Corners::defaultCornerRadius);
         }
 
         if (toggleState) {
-            colour = PlugDataColours::toolbarActiveColour;
+            colour = colours.toolbarActiveColour;
         }
 
         auto const iconArea = b.removeFromLeft(24).withSizeKeepingCentre(24, 24);

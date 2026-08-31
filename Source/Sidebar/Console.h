@@ -159,15 +159,17 @@ public:
 
             void paint(Graphics& g) override
             {
-                auto backgroundColour = PlugDataColours::sidebarBackgroundColour.contrasting(isMouseOver() ? 0.075f : 0.04f);
+                auto const& colours = getThemeColours(*this);
+
+                auto backgroundColour = colours.sidebarBackgroundColour.contrasting(isMouseOver() ? 0.075f : 0.04f);
                 if (isDown())
-                    backgroundColour = PlugDataColours::sidebarActiveBackgroundColour;
+                    backgroundColour = colours.sidebarActiveBackgroundColour;
 
                 auto const bounds = getLocalBounds().reduced(0, 1).toFloat().withTrimmedTop(0.5f);
                 g.setColour(backgroundColour);
                 g.fillRoundedRectangle(bounds, Corners::defaultCornerRadius);
 
-                Fonts::drawFittedText(g, getButtonText(), getLocalBounds().reduced(8, 2).translated(0, -1), PlugDataColours::sidebarTextColour, 1, 0.9f, 14);
+                Fonts::drawFittedText(g, getButtonText(), getLocalBounds().reduced(8, 2).translated(0, -1), colours.sidebarTextColour, 1, 0.9f, 14);
             }
         };
 
@@ -236,13 +238,15 @@ public:
 
             void paint(Graphics& g) override
             {
+                auto const& colours = getThemeColours(*this);
+
                 auto const isSelected = console.selectedItems.contains(this);
                 auto const showMessages = getValue<bool>(console.settingsValues[2]);
                 auto const showErrors = getValue<bool>(console.settingsValues[3]);
 
                 if (isSelected) {
                     // Draw selected background
-                    g.setColour(PlugDataColours::sidebarActiveBackgroundColour);
+                    g.setColour(colours.sidebarActiveBackgroundColour);
                     g.fillRoundedRectangle(getLocalBounds().reduced(0, 1).toFloat().withTrimmedTop(0.5f), Corners::defaultCornerRadius);
 
                     for (auto& item : console.selectedItems) {
@@ -251,16 +255,16 @@ public:
                             return;
                         // Draw connected on top
                         if (item->idx == idx - 1) {
-                            g.setColour(PlugDataColours::sidebarActiveBackgroundColour);
+                            g.setColour(colours.sidebarActiveBackgroundColour);
                             g.fillRect(getLocalBounds().toFloat().withTrimmedBottom(5));
 
-                            g.setColour(PlugDataColours::outlineColour);
+                            g.setColour(colours.outlineColour);
                             g.drawLine(10, 0, getWidth() - 10, 0);
                         }
 
                         // Draw connected on bottom
                         if (item->idx == idx + 1) {
-                            g.setColour(PlugDataColours::sidebarActiveBackgroundColour);
+                            g.setColour(colours.sidebarActiveBackgroundColour);
                             g.fillRect(getLocalBounds().toFloat().withTrimmedTop(5));
                         }
                     }
@@ -278,7 +282,7 @@ public:
                 auto const totalLength = length + calculateRepeatOffset(repeats);
                 auto const numLines = Console::calculateNumLines(message, totalLength, console.getWidth());
 
-                auto textColour = PlugDataColours::sidebarTextColour;
+                auto textColour = colours.sidebarTextColour;
 
                 if (type == 1)
                     textColour = Colours::orange;
@@ -291,8 +295,8 @@ public:
                     auto repeatIndicatorBounds = bounds.removeFromLeft(calculateRepeatOffset(repeats)).toFloat().translated(-4, 0.25);
                     repeatIndicatorBounds = repeatIndicatorBounds.withSizeKeepingCentre(repeatIndicatorBounds.getWidth(), 21);
 
-                    auto circleColour = PlugDataColours::sidebarActiveBackgroundColour;
-                    auto const backgroundColour = PlugDataColours::sidebarBackgroundColour;
+                    auto circleColour = colours.sidebarActiveBackgroundColour;
+                    auto const backgroundColour = colours.sidebarBackgroundColour;
                     auto const contrast = isSelected ? 1.5f : 0.5f;
 
                     circleColour = Colour(circleColour.getRed() + (circleColour.getRed() - backgroundColour.getRed()) * contrast,
@@ -303,7 +307,7 @@ public:
                     auto const circleBounds = repeatIndicatorBounds.reduced(2);
                     g.fillRoundedRectangle(circleBounds, circleBounds.getHeight() / 2.0f);
 
-                    Fonts::drawText(g, String(repeats), repeatIndicatorBounds, PlugDataColours::sidebarTextColour, 12, Justification::centred);
+                    Fonts::drawText(g, String(repeats), repeatIndicatorBounds, colours.sidebarTextColour, 12, Justification::centred);
                 }
 
                 // Draw text

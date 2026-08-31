@@ -23,6 +23,7 @@
 
 #include "Utility/ObjectThemeManager.h"
 #include "NVGSurface.h"
+#include "LookAndFeel.h"
 
 class ConnectionMessageDisplay;
 class Sidebar;
@@ -34,11 +35,9 @@ class TabComponent;
 class PluginProcessor;
 class Autosave;
 class PluginMode;
-class TouchSelectionHelper;
 class WelcomePanel;
 class CalloutArea;
 class NVGGraphicsContext;
-class ConsoleMessageDisplay;
 class Console;
 class DocumentationBrowser;
 class AutomationPanel;
@@ -57,6 +56,8 @@ class PluginEditor final : public AudioProcessorEditor
     , public AsyncUpdater
     , public Timer
     , public SettingsFileListener {
+    PlugDataLook editorLookAndFeel;
+
 public:
     explicit PluginEditor(PluginProcessor&);
 
@@ -64,8 +65,6 @@ public:
 
     void paint(Graphics& g) override;
     void paintOverChildren(Graphics& g) override;
-
-    void renderArea(NVGcontext* nvg, Rectangle<int> area);
 
     bool isActiveWindow() override;
 
@@ -77,6 +76,13 @@ public:
     void timerCallback() override;
 
     void lookAndFeelChanged() override;
+
+    PlugDataLook& getPlugDataLook() noexcept { return ::getPlugDataLook(*this); }
+    PlugDataLook const& getPlugDataLook() const noexcept { return ::getPlugDataLook(*this); }
+    PlugDataLook& getEditorLookAndFeel() noexcept { return editorLookAndFeel; }
+    PlugDataLook const& getEditorLookAndFeel() const noexcept { return editorLookAndFeel; }
+    void setTheme(DynamicObject::Ptr themeTree);
+    void updateDefaultFont();
 
     // For dragging parent window
     void mouseDrag(MouseEvent const& e) override;
@@ -123,7 +129,6 @@ public:
     bool perform(InvocationInfo const& info) override;
 
     bool wantsRoundedCorners() const;
-    bool usesFloatingPanels() const;
 
     bool keyPressed(KeyPress const& key) override;
 
@@ -133,6 +138,7 @@ public:
 
     void commandKeyChanged(bool isHeld) override;
     void setUseBorderResizer(bool shouldUse);
+    void updateStandaloneWindowControls();
 
     Sidebar* getLeftSidebar() const { return leftSidebar.get(); }
     Sidebar* getRightSidebar() const { return rightSidebar.get(); }
@@ -195,16 +201,15 @@ public:
         return nvgCtx.get();
     }
 
+    NVGGraphicsContext& getOrCreateNanoLLGC(NVGcontext* nvg, float renderScale);
+
 private:
     TabComponent tabComponent;
 
 public:
     std::unique_ptr<PluginMode> pluginMode;
-    std::unique_ptr<ConsoleMessageDisplay> consoleMessageDisplay;
 
 private:
-    std::unique_ptr<TouchSelectionHelper> touchSelectionHelper;
-
     // Used by standalone to handle dragging the window
     WindowDragger windowDragger;
 
@@ -231,6 +236,10 @@ private:
 
     // Used in standalone
     std::unique_ptr<MouseRateReducedComponent<ResizableBorderComponent>> borderResizer;
+
+    std::unique_ptr<Button> standaloneWindowMinimiseButton;
+    std::unique_ptr<Button> standaloneWindowMaximiseButton;
+    std::unique_ptr<Button> standaloneWindowCloseButton;
 
     std::unique_ptr<NVGGraphicsContext> nvgCtx;
 

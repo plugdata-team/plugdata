@@ -46,7 +46,10 @@ public:
         // Apply a slight offset to the menu, so we have enough space for the arrow
         // change offset if arrow should be top/bottom or left/right
         if (direction == ArrowDirection::TopBottom) {
-            menuToAttachTo->setBounds(menuToAttachTo->getBounds().translated(-15, menuMargin - 3));
+            auto bounds = menuToAttachTo->getBounds().translated(-15, menuMargin - 3);
+            if (menuParent)
+                bounds.setX(jmax(menuMargin, bounds.getX()));
+            menuToAttachTo->setBounds(bounds);
         } else {
             menuToAttachTo->setBounds(menuToAttachTo->getBounds().translated(30, -40));
         }
@@ -54,6 +57,8 @@ public:
 
     void paint(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
         auto const targetArea = getLocalArea(targetComponent, targetComponent->getLocalBounds());
 
         auto constexpr arrowHeight = 12;
@@ -126,11 +131,11 @@ public:
             g.restoreState();
         }
 
-        g.setColour(PlugDataColours::popupMenuBackgroundColour);
+        g.setColour(colours.popupMenuBackgroundColour);
         g.fillRect(extensionBounds);
         g.fillPath(arrow);
 
-        g.setColour(PlugDataColours::outlineColour);
+        g.setColour(colours.outlineColour);
         g.strokePath(arrowOutline, PathStrokeType(1.0f));
     }
 

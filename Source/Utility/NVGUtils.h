@@ -5,13 +5,10 @@
  */
 
 #pragma once
-#include <nanovg.h>
+#include <nanovg_async.h>
 #ifdef NANOVG_GL_IMPLEMENTATION
 #    include <juce_opengl/juce_opengl.h>
 using namespace juce::gl;
-#    undef NANOVG_GL_IMPLEMENTATION
-#    include <nanovg_gl_utils.h>
-#    define NANOVG_GL_IMPLEMENTATION 1
 #endif
 
 class NVGComponent {
@@ -49,8 +46,6 @@ public:
     static void clearAll(NVGcontext const* nvg);
 
     bool isValid() const;
-
-    void renderJUCEComponent(NVGcontext* nvg, Component& component, float scale);
 
     void deleteImage();
 
@@ -94,22 +89,23 @@ public:
 
     void setDirty();
 
-    void bind(NVGcontext* ctx, int width, int height);
-
-    static void unbind();
-
-    void renderToFramebuffer(NVGcontext* nvg, int width, int height, std::function<void(NVGcontext*)> renderCallback);
+    void renderToFramebuffer(NVGcontext* nvg, int width, int height, std::function<void(NVGcontext*)> renderCallback, int imageFlags);
 
     void render(NVGcontext* nvg, Rectangle<int> b);
 
     int getImage() const;
 
 private:
+    // Create (or resize) the backing framebuffer through the async resource queue,
+    // so its lifecycle survives frame coalescing (no leak, no missing target).
+    void ensureFramebuffer(NVGcontext* ctx, int width, int height, int imageFlags);
+
     static inline UnorderedSet<NVGFramebuffer*> allFramebuffers;
 
     NVGcontext* nvg;
-    NVGframebuffer* fb = nullptr;
-    int fbWidth, fbHeight;
+    void* fb = nullptr;
+    int fbImage = -1;
+    int fbWidth = 0, fbHeight = 0;
     bool fbDirty = false;
 };
 

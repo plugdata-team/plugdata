@@ -18,17 +18,18 @@ class MessboxObject final : public ObjectBase
     Value bold = SynchronousValue();
     Value sizeProperty = SynchronousValue();
 
-    NVGImage imageRenderer;
     bool needsRepaint = true;
 
 public:
     MessboxObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
     {
-        editor.setColour(TextEditor::textColourId, PlugDataColours::canvasTextColour);
+        auto const& colours = getThemeColours();
+
+        editor.setColour(TextEditor::textColourId, colours.canvasTextColour);
         editor.getProperties().set("NoBackground", true);
         editor.getProperties().set("NoOutline", true);
-        editor.setColour(ScrollBar::thumbColourId, PlugDataColours::scrollbarThumbColour);
+        editor.setColour(ScrollBar::thumbColourId, colours.scrollbarThumbColour);
         editor.onFocusLost = [this] {
             needsRepaint = true;
             repaint();
@@ -68,14 +69,14 @@ public:
     {
         if (auto messbox = ptr.get<t_fake_messbox>()) {
             fontSize = messbox->x_font_size;
-            primaryColour = Colour(messbox->x_fg[0], messbox->x_fg[1], messbox->x_fg[2]).toString();
-            secondaryColour = Colour(messbox->x_bg[0], messbox->x_bg[1], messbox->x_bg[2]).toString();
+            primaryColour = colourToVar(Colour(messbox->x_fg[0], messbox->x_fg[1], messbox->x_fg[2]));
+            secondaryColour = colourToVar(Colour(messbox->x_bg[0], messbox->x_bg[1], messbox->x_bg[2]));
             sizeProperty = VarArray { var(messbox->x_width), var(messbox->x_height) };
             bold = pd->generateSymbol("bold") == messbox->x_font_weight;
         }
 
         auto font = getValue<bool>(bold) ? Fonts::getBoldFont() : Fonts::getDefaultFont();
-        editor.applyColourToAllText(Colour::fromString(primaryColour.toString()));
+        editor.applyColourToAllText(getValue<Colour>(primaryColour));
         editor.applyFontToAllText(font.withHeight(getValue<int>(fontSize)));
 
         repaint();
@@ -124,22 +125,13 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        auto const& colours = getThemeColours();
+
         bool const selected = object->isSelected() && !cnv->isGraph;
-        auto const outlineColour = selected ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour;
-        nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), nvgColour(Colour::fromString(secondaryColour.toString())), nvgColour(outlineColour), Corners::objectCornerRadius);
+        auto const outlineColour = selected ? colours.objectSelectedOutlineColour : colours.objectOutlineColour;
+        nanovg::nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), nvgColour(getValue<Colour>(secondaryColour)), nvgColour(outlineColour), getPlugDataLook(*this).getObjectCornerRadius());
 
-        auto const scale = getImageScale();
-
-        if (needsRepaint || isEditorShown() || imageRenderer.needsUpdate(roundToInt(editor.getWidth() * scale), roundToInt(editor.getHeight() * scale))) {
-            imageRenderer.renderJUCEComponent(nvg, editor, scale);
-            needsRepaint = false;
-        } else {
-            NVGScopedState state(nvg);
-            nvgScale(nvg, 1.0f / scale, 1.0f / scale);
-            auto w = roundToInt(scale * static_cast<float>(editor.getWidth()));
-            auto h = roundToInt(scale * static_cast<float>(editor.getHeight()));
-            imageRenderer.render(nvg, { 0, 0, w, h }, true);
-        }
+        cnv->editor->getNanoLLGC()->renderComponent(editor);
     }
 
     void paint(Graphics& g) override { }
@@ -298,7 +290,7 @@ public:
             object->updateBounds();
         } else if (value.refersToSameSourceAs(primaryColour)) {
             needsRepaint = true;
-            auto const col = Colour::fromString(primaryColour.toString());
+            auto const col = getValue<Colour>(primaryColour);
             editor.applyColourToAllText(col);
 
             if (auto messbox = ptr.get<t_fake_messbox>())
@@ -308,7 +300,7 @@ public:
         }
         if (value.refersToSameSourceAs(secondaryColour)) {
             needsRepaint = true;
-            auto const col = Colour::fromString(secondaryColour.toString());
+            auto const col = getValue<Colour>(secondaryColour);
             if (auto messbox = ptr.get<t_fake_messbox>())
                 colourToHexArray(col, messbox->x_bg);
             repaint();
@@ -329,7 +321,7 @@ public:
                 if (auto messbox = ptr.get<t_fake_messbox>())
                     messbox->x_font_weight = pd->generateSymbol("bold");
             } else {
-                auto const defaultFont = Fonts::getCurrentFont();
+                auto const defaultFont = Fonts::getDefaultFont();
                 editor.applyFontToAllText(defaultFont.withHeight(size));
                 if (auto messbox = ptr.get<t_fake_messbox>())
                     messbox->x_font_weight = pd->generateSymbol("normal");

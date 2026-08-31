@@ -7,54 +7,51 @@
 #pragma once
 
 #include <bit>
-#include <nanovg.h>
+#include <nanovg_async.h>
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
 #include "Utility/SettingsFile.h"
 #include "Constants.h"
 
 struct PlugDataColours {
-    static inline Colour toolbarBackgroundColour;
-    static inline Colour toolbarTextColour;
-    static inline Colour toolbarActiveColour;
-    static inline Colour toolbarHoverColour;
-    static inline Colour toolbarOutlineColour;
-    static inline Colour activeTabBackgroundColour;
-    static inline Colour canvasBackgroundColour;
-    static inline Colour canvasTextColour;
-    static inline Colour canvasDotsColour;
-    static inline Colour presentationBackgroundColour;
-    static inline Colour guiObjectBackgroundColour;
-    static inline Colour guiObjectInternalOutlineColour;
-    static inline Colour textObjectBackgroundColour;
-    static inline Colour objectOutlineColour;
-    static inline Colour objectSelectedOutlineColour;
-    static inline Colour commentTextColour;
-    static inline Colour outlineColour;
-    static inline Colour ioletAreaColour;
-    static inline Colour ioletOutlineColour;
-    static inline Colour dataColour;
-    static inline Colour connectionColour;
-    static inline Colour signalColour;
-    static inline Colour gemColour;
-    static inline Colour dialogBackgroundColour;
-    static inline Colour sidebarBackgroundColour;
-    static inline Colour sidebarTextColour;
-    static inline Colour sidebarActiveBackgroundColour;
-    static inline Colour levelMeterActiveColour;
-    static inline Colour levelMeterBackgroundColour;
-    static inline Colour levelMeterThumbColour;
-    static inline Colour panelBackgroundColour;
-    static inline Colour panelForegroundColour;
-    static inline Colour panelTextColour;
-    static inline Colour panelActiveBackgroundColour;
-    static inline Colour popupMenuBackgroundColour;
-    static inline Colour popupMenuActiveBackgroundColour;
-    static inline Colour popupMenuTextColour;
-    static inline Colour scrollbarThumbColour;
-    static inline Colour graphAreaColour;
-    static inline Colour gridLineColour;
-    static inline Colour caretColour;
+    Colour toolbarBackgroundColour;
+    Colour toolbarTextColour;
+    Colour toolbarActiveColour;
+    Colour toolbarHoverColour;
+    Colour toolbarOutlineColour;
+    Colour activeTabBackgroundColour;
+    Colour canvasBackgroundColour;
+    Colour canvasTextColour;
+    Colour canvasDotsColour;
+    Colour presentationBackgroundColour;
+    Colour guiObjectBackgroundColour;
+    Colour guiObjectInternalOutlineColour;
+    Colour textObjectBackgroundColour;
+    Colour objectOutlineColour;
+    Colour objectSelectedOutlineColour;
+    Colour commentTextColour;
+    Colour outlineColour;
+    Colour ioletAreaColour;
+    Colour ioletOutlineColour;
+    Colour dataColour;
+    Colour connectionColour;
+    Colour signalColour;
+    Colour gemColour;
+    Colour dialogBackgroundColour;
+    Colour sidebarBackgroundColour;
+    Colour sidebarTextColour;
+    Colour sidebarActiveBackgroundColour;
+    Colour panelBackgroundColour;
+    Colour panelForegroundColour;
+    Colour panelTextColour;
+    Colour panelActiveBackgroundColour;
+    Colour popupMenuBackgroundColour;
+    Colour popupMenuActiveBackgroundColour;
+    Colour popupMenuTextColour;
+    Colour scrollbarThumbColour;
+    Colour graphAreaColour;
+    Colour gridLineColour;
+    Colour caretColour;
 };
 
 static inline NVGcolor nvgColour(Colour const& c)
@@ -99,10 +96,6 @@ inline UnorderedMap<PlugDataColour, std::tuple<String, String, String>> const Pl
     { caretColourId, { "Text editor caret", "caret_colour", "Other" } },
     { toolbarOutlineColourId, { "Outline", "toolbar_outline_colour", "Other" } },
     { scrollbarThumbColourId, { "Scrollbar thumb", "scrollbar_thumb", "Other" } },
-
-    { levelMeterActiveColourId, { "Level meter active", "levelmeter_active", "Level Meter" } },
-    { levelMeterBackgroundColourId, { "Level meter track", "levelmeter_background", "Level Meter" } },
-    { levelMeterThumbColourId, { "Level meter thumb", "levelmeter_thumb", "Level Meter" } },
 
     { panelBackgroundColourId, { "Panel background", "panel_background", "Properties Panel" } },
     { panelForegroundColourId, { "Panel foreground", "panel_foreground", "Properties Panel" } },
@@ -213,38 +206,32 @@ struct PlugDataLook final : public LookAndFeel_V4
 
     void setTheme(DynamicObject::Ptr themeTree);
 
+    PlugDataColours const& getColours() const noexcept { return colours; }
+    String const& getCurrentTheme() const noexcept { return currentTheme; }
+
     enum ConnectionStyle {
         ConnectionStyleDefault = 1,
         ConnectionStyleVanilla,
         ConnectionStyleThin
     };
-    static inline ConnectionStyle useConnectionStyle = ConnectionStyleDefault;
-
-    static inline bool useFlagOutline = false;
-    static inline bool useSyntaxHighlighting = false;
-    static inline bool useSquareIolets = false;
-    static inline bool useIoletSpacingEdge = false;
-    static inline bool useGradientConnectionLook = false;
-    static inline bool useStraightConnections = false;
-    static inline bool useTouchMode = false;
-
-    static inline String currentTheme = "light";
     static inline StringArray selectedThemes = { "light", "dark" };
 
     static StringArray getAllThemes();
-    static ConnectionStyle getConnectionStyle();
     static void setDefaultFont(String const& fontName);
     static void resetColours();
     static Colour getThemeColour(DynamicObject::Ptr themeTree, PlugDataColour colourId);
+    void applyDefaultFont();
 
-    static bool getUseStraightConnections();
-    static bool getUseFlagOutline();
-    static bool getUseSyntaxHighlighting();
-    static bool getUseIoletSpacingEdge();
-    static bool getUseSquareIolets();
-    static bool getUseGradientConnectionLook();
-    static bool isFixedIoletPosition();
-    static int getIoletSize();
+    ConnectionStyle getConnectionStyle() const noexcept { return useConnectionStyle; }
+    bool getUseStraightConnections() const noexcept { return useStraightConnections; }
+    bool getUseFlagOutline() const noexcept { return useFlagOutline; }
+    bool getUseSyntaxHighlighting() const noexcept { return useSyntaxHighlighting; }
+    bool getUseIoletSpacingEdge() const noexcept { return useIoletSpacingEdge; }
+    bool getUseSquareIolets() const noexcept { return useSquareIolets; }
+    bool getUseGradientConnectionLook() const noexcept { return useGradientConnectionLook; }
+    bool isFixedIoletPosition() const noexcept { return useSquareIolets && useIoletSpacingEdge; }
+    int getIoletSize() const noexcept { return useTouchMode ? 15 : 13; }
+    float getObjectCornerRadius() const noexcept { return objectCornerRadius; }
 
 #if JUCE_IOS
     void setMainComponent(Component* c) { mainComponent = c; }
@@ -252,4 +239,32 @@ struct PlugDataLook final : public LookAndFeel_V4
 #endif
 
     static String const defaultThemesJSON;
+
+private:
+    PlugDataColours colours;
+    ConnectionStyle useConnectionStyle = ConnectionStyleDefault;
+    bool useFlagOutline = false;
+    bool useSyntaxHighlighting = false;
+    bool useSquareIolets = false;
+    bool useIoletSpacingEdge = false;
+    bool useGradientConnectionLook = false;
+    bool useStraightConnections = false;
+    bool useTouchMode = false;
+    float objectCornerRadius = 2.75f;
+    String currentTheme = "light";
 };
+
+inline PlugDataLook& getPlugDataLook(Component& component) noexcept
+{
+    return static_cast<PlugDataLook&>(component.getLookAndFeel());
+}
+
+inline PlugDataLook const& getPlugDataLook(Component const& component) noexcept
+{
+    return static_cast<PlugDataLook const&>(component.getLookAndFeel());
+}
+
+inline PlugDataColours const& getThemeColours(Component const& component) noexcept
+{
+    return getPlugDataLook(component).getColours();
+}

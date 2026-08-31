@@ -53,8 +53,10 @@ public:
         }
     }
 
-    void renderLabel(NVGcontext* nvg, float const scale) override
+    void renderLabel(NVGGraphicsContext& llgc) override
     {
+        auto* nvg = llgc.getContext();
+
         if (!isVisible())
             return;
 
@@ -66,8 +68,8 @@ public:
             if (decimScaleText && !(scaleDecim & 1 << i))
                 continue;
             float const scaleTextYPos = static_cast<float>(i) * (getHeight() - 20) / 10.0f;
-            nvgFillPaint(nvg, nvgImageAlphaPattern(nvg, 0, scaleTextYPos, getWidth(), 20, 0, scaleImages[i].getImageId(), labelColor));
-            nvgFillRect(nvg, 0, scaleTextYPos, getWidth(), 20);
+            nanovg::nvgFillPaint(nvg, nanovg::nvgImageAlphaPattern(nvg, 0, scaleTextYPos, getWidth(), 20, 0, scaleImages[i].getImageId(), labelColor));
+            nanovg::nvgFillRect(nvg, 0, scaleTextYPos, getWidth(), 20);
         }
     }
 };
@@ -93,7 +95,7 @@ public:
         updateLabel();
 
         iemHelper.iemColourChangedCallback = [this] {
-            bgCol = nvgColour(Colour::fromString(iemHelper.secondaryColour.toString()));
+            bgCol = nvgColour(getValue<Colour>(iemHelper.secondaryColour));
         };
     }
 
@@ -207,6 +209,8 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        auto const& colours = getThemeColours();
+
         if (!ptr.isValid())
             return;
 
@@ -215,7 +219,7 @@ public:
         auto const b = getLocalBounds();
         auto const bS = b.reduced(0.5f);
         // Object background
-        nvgDrawRoundedRect(nvg, bS.getX(), bS.getY(), bS.getWidth(), bS.getHeight(), bgCol, bgCol, Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, bS.getX(), bS.getY(), bS.getWidth(), bS.getHeight(), bgCol, bgCol, getPlugDataLook(*this).getObjectCornerRadius());
 
         auto const rms = Decibels::decibelsToGain(values[1] - 10.0f);
         auto const peak = Decibels::decibelsToGain(values[0] - 10.0f);
@@ -224,40 +228,40 @@ public:
 
         auto getColourForLevel = [](float const level) {
             if (level < -12) {
-                return nvgRGBA(66, 163, 198, 255);
+                return nanovg::nvgRGBA(66, 163, 198, 255);
             }
             if (level > 0) {
-                return nvgRGBA(255, 0, 0, 255);
+                return nanovg::nvgRGBA(255, 0, 0, 255);
             }
-            return nvgRGBA(255, 127, 0, 255);
+            return nanovg::nvgRGBA(255, 127, 0, 255);
         };
 
         NVGcolor const peakColour = getColourForLevel(values[0]);
         NVGcolor const barColour = getColourForLevel(values[1]);
 
         // VU Bar
-        nvgFillColor(nvg, barColour);
-        nvgBeginPath(nvg);
-        nvgRoundedRectVarying(nvg, 4, getHeight() - barLength, getWidth() - 8, barLength, 0.0f, 0.0f, Corners::objectCornerRadius, Corners::objectCornerRadius);
-        nvgFill(nvg);
+        nanovg::nvgFillColor(nvg, barColour);
+        nanovg::nvgBeginPath(nvg);
+        nanovg::nvgRoundedRectVarying(nvg, 4, getHeight() - barLength, getWidth() - 8, barLength, 0.0f, 0.0f, getPlugDataLook(*this).getObjectCornerRadius(), getPlugDataLook(*this).getObjectCornerRadius());
+        nanovg::nvgFill(nvg);
 
-        nvgBeginPath(nvg);
+        nanovg::nvgBeginPath(nvg);
         int const increment = getHeight() / 30;
         for (int i = 0; i < 30; i++) {
 
-            nvgMoveTo(nvg, 0, i * increment + 3);
-            nvgLineTo(nvg, getWidth(), i * increment + 3);
+            nanovg::nvgMoveTo(nvg, 0, i * increment + 3);
+            nanovg::nvgLineTo(nvg, getWidth(), i * increment + 3);
         }
-        nvgStrokeWidth(nvg, 1.0f);
-        nvgStrokeColor(nvg, bgCol);
-        nvgStroke(nvg);
+        nanovg::nvgStrokeWidth(nvg, 1.0f);
+        nanovg::nvgStrokeColor(nvg, bgCol);
+        nanovg::nvgStroke(nvg);
 
         // Peak
-        nvgFillColor(nvg, peakColour);
-        nvgFillRect(nvg, 0, getHeight() - peakPosition - 5.0f, getWidth(), 5.0f);
+        nanovg::nvgFillColor(nvg, peakColour);
+        nanovg::nvgFillRect(nvg, 0, getHeight() - peakPosition - 5.0f, getWidth(), 5.0f);
 
         // Object outline
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(0, 0, 0, 0), nvgColour(object->isSelected() ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour), Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nanovg::nvgRGBA(0, 0, 0, 0), nvgColour(object->isSelected() ? colours.objectSelectedOutlineColour : colours.objectOutlineColour), getPlugDataLook(*this).getObjectCornerRadius());
     }
 
     void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override

@@ -420,12 +420,15 @@ struct Interface {
 
     static void paste(t_canvas* cnv, char const* buf)
     {
-        size_t const len = strlen(buf);
+        auto atoms = std::vector<t_atom>(strlen(buf));
+        for(int c = 0; c < atoms.size(); c++)
+            SETFLOAT(&atoms[c], static_cast<float>(buf[c]));
 
-        binbuf_text(getInstanceEditor()->copy_binbuf, buf, len);
+        t_atom end = {.a_type = A_FLOAT, .a_w = {-2.0f}};
 
         canvas_setcurrent(cnv);
-        pd_typedmess(reinterpret_cast<t_pd*>(cnv), gensym("paste"), 0, nullptr);
+        pd_typedmess(reinterpret_cast<t_pd*>(cnv), gensym("pastechars"), atoms.size(), atoms.data());
+        pd_typedmess(reinterpret_cast<t_pd*>(cnv), gensym("pastechars"), 1, &end);
         canvas_unsetcurrent(cnv);
     }
 

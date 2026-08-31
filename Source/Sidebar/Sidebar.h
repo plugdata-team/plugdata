@@ -59,11 +59,13 @@ public:
 
     void paint(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
         bool const active = buttonEnabled && (isMouseOver() || isMouseButtonDown() || getToggleState());
 
         constexpr auto cornerSize = Corners::defaultCornerRadius;
 
-        auto const backgroundColour = active ? PlugDataColours::toolbarHoverColour : Colours::transparentBlack;
+        auto const backgroundColour = active ? colours.toolbarHoverColour : Colours::transparentBlack;
         auto const bounds = getLocalBounds().toFloat().reduced(3.0f, 4.0f);
 
         g.setColour(backgroundColour);
@@ -71,7 +73,7 @@ public:
 
         auto const font = Fonts::getIconFont().withHeight(13);
         g.setFont(font);
-        g.setColour(buttonEnabled ? PlugDataColours::toolbarTextColour : PlugDataColours::toolbarTextColour.withAlpha(0.35f));
+        g.setColour(buttonEnabled ? colours.toolbarTextColour : colours.toolbarTextColour.withAlpha(0.35f));
 
         int const yIndent = jmin<int>(4, proportionOfHeight(0.3f));
         int const fontHeight = roundToInt(font.getHeight() * 0.6f);
@@ -84,7 +86,7 @@ public:
 
         if (numNotifications) {
             auto const notificationBounds = getLocalBounds().removeFromBottom(15).removeFromRight(15).translated(-1, -1);
-            auto const bubbleColour = hasWarning ? Colours::orange : PlugDataColours::toolbarActiveColour;
+            auto const bubbleColour = hasWarning ? Colours::orange : colours.toolbarActiveColour;
             g.setColour(bubbleColour.withAlpha(0.8f));
             g.fillEllipse(notificationBounds.toFloat());
             g.setFont(Font(FontOptions(numNotifications >= 100 ? 8 : 12)));
@@ -169,8 +171,6 @@ public:
 
     void setCommandTarget(String const& text);
 
-    void renderButtonsOnCanvas(NVGcontext* ctx);
-
     void updateCommandInputVisibility();
 
     static constexpr int dragbarWidth = 6;
@@ -242,17 +242,4 @@ private:
     bool sidebarHidden = false;
 
     int lastWidth = 250;
-
-    float sidebarSelectorOffset = 5.0f;
-    float sidebarSelectorTarget = 0.0f;
-    VBlankAnimatorUpdater updater { this };
-    Animator animator = ValueAnimatorBuilder { }
-                            .withDurationMs(320)
-                            .withEasing(Easings::createEaseInOut())
-                            .withValueChangedCallback([this](float const v) {
-                                sidebarSelectorOffset = makeAnimationLimits(sidebarSelectorOffset, sidebarSelectorTarget).lerp(v);
-                                resized();
-                                repaint();
-                            })
-                            .build();
 };

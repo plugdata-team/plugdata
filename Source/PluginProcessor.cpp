@@ -798,7 +798,7 @@ void PluginProcessor::settingsChanged(String const& name, var const& value)
 void PluginProcessor::settingsFileReloaded()
 {
     auto const newTheme = settingsFile->getProperty<String>("theme");
-    if (PlugDataLook::currentTheme != newTheme) {
+    if (currentThemeName != newTheme) {
         setTheme(newTheme);
     }
 
@@ -1586,14 +1586,15 @@ pd::Patch::Ptr PluginProcessor::loadPatch(String patchText)
     auto patch = loadPatch(URL(patchFile));
 
     // Set to unknown file when loading temp patch
-    patch->setCurrentFile(URL("file://"));
+    if (patch)
+        patch->setCurrentFile(URL("file://"));
 
     return patch;
 }
 
 void PluginProcessor::setTheme(String themeToUse, bool const force)
 {
-    auto const oldThemeTree = settingsFile->getTheme(PlugDataLook::currentTheme);
+    auto const oldThemeTree = settingsFile->getTheme(currentThemeName);
     auto themeTree = settingsFile->getTheme(themeToUse);
     // Check if theme name is valid
     if (!themeTree) {
@@ -1603,6 +1604,9 @@ void PluginProcessor::setTheme(String themeToUse, bool const force)
     }
 
     lnf->setTheme(themeTree);
+
+    for (auto* editor : getEditors())
+        editor->setTheme(themeTree);
 
     updateAllEditorsLNF();
 
@@ -1865,7 +1869,23 @@ void PluginProcessor::receiveSysMessage(SmallString const& selector, SmallArray<
                     } else {
                         auto pluginModeThemeOrPath = list[0].toString();
                         if (pluginModeThemeOrPath.endsWith(".plugdatatheme")) {
-                            auto themeFile = patches[0]->getPatchFile().getParentDirectory().getChildFile(pluginModeThemeOrPath);
+                            File themeFile;
+
+                            if (!editors.empty()) {
+                                if (auto* currentCanvas = editors[0]->getCurrentCanvas())
+                                    themeFile = currentCanvas->patch.getPatchFile().getParentDirectory().getChildFile(pluginModeThemeOrPath);
+                            }
+
+                            if (!themeFile.existsAsFile()) {
+                                for (auto const& patch : patches) {
+                                    auto const candidate = patch->getPatchFile().getParentDirectory().getChildFile(pluginModeThemeOrPath);
+                                    if (candidate.existsAsFile()) {
+                                        themeFile = candidate;
+                                        break;
+                                    }
+                                }
+                            }
+
                             if (themeFile.existsAsFile()) {
                                 auto themeJson = JSON::parse(themeFile.loadFileAsString());
                                 if (themeJson.isObject()) {

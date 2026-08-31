@@ -39,6 +39,11 @@ option(ENABLE_WAYLAND "Enable native wayland support (experimental)" OFF)
 option(MACOS_LEGACY "Enable support for old macOS versions (lowers OSX_DEPLOYMENT TARGET and disables Metal" OFF)
 option(VERBOSE "" OFF)
 
+if(ENABLE_ASAN)
+  add_compile_options(-fsanitize=address)
+  add_link_options(-fsanitize=address)
+endif()
+
 if(CMAKE_GENERATOR STREQUAL "Ninja" AND MSVC)
     target_compile_options(pd PRIVATE /EHsc)
 endif()
@@ -185,11 +190,6 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
 elseif (MSVC)
     # MSVC equivalent for dead code stripping
     add_link_options(/OPT:REF /OPT:ICF /INCREMENTAL:NO)
-endif()
-
-if(ENABLE_ASAN)
-  add_compile_options(-fsanitize=address)
-  add_link_options(-fsanitize=address)
 endif()
 
 if(MSVC)
@@ -831,13 +831,20 @@ elseif(APPLE)
     set(MACOS_COMPAT_LINKER_FLAGS "-Wl,-ld_classic")
   endif()
 
+  # LuaJIT ships its own DWARF unwind personality routine (_lj_err_unwind_dwarf).
+  # Together with the gcc/g++/objc personalities this exceeds what the modern
+  # linker's compact-unwind format can encode. Release builds dodge this via
+  # -ld_classic above, but that flag is gated to non-Debug configs, so Debug and
+  # sanitizer builds must fall back to DWARF unwind info instead of compact unwind.
+  set(MACOS_LUAJIT_UNWIND_FLAGS "$<$<CONFIG:Debug>:-Wl,-no_compact_unwind>")
+
   if(NOT "${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
     set(LINK_CARBON "-framework Carbon")
   endif()
-  target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd-src externals ${LINK_CARBON} $<$<NOT:$<CONFIG:Debug>>:${MACOS_COMPAT_LINKER_FLAGS}>)
-  target_link_libraries(plugdata_midi PRIVATE plugdata_core pd-src-multi externals-multi ${LINK_CARBON} $<$<NOT:$<CONFIG:Debug>>:${MACOS_COMPAT_LINKER_FLAGS}>)
-  target_link_libraries(plugdata PRIVATE plugdata_core pd-src-multi externals-multi ${LINK_CARBON} $<$<NOT:$<CONFIG:Debug>>:${MACOS_COMPAT_LINKER_FLAGS}>)
-  target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-src-multi externals-multi ${LINK_CARBON} $<$<NOT:$<CONFIG:Debug>>:${MACOS_COMPAT_LINKER_FLAGS}>)
+  target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd-src externals ${LINK_CARBON} $<$<NOT:$<CONFIG:Debug>>:${MACOS_COMPAT_LINKER_FLAGS}> ${MACOS_LUAJIT_UNWIND_FLAGS})
+  target_link_libraries(plugdata_midi PRIVATE plugdata_core pd-src-multi externals-multi ${LINK_CARBON} $<$<NOT:$<CONFIG:Debug>>:${MACOS_COMPAT_LINKER_FLAGS}> ${MACOS_LUAJIT_UNWIND_FLAGS})
+  target_link_libraries(plugdata PRIVATE plugdata_core pd-src-multi externals-multi ${LINK_CARBON} $<$<NOT:$<CONFIG:Debug>>:${MACOS_COMPAT_LINKER_FLAGS}> ${MACOS_LUAJIT_UNWIND_FLAGS})
+  target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-src-multi externals-multi ${LINK_CARBON} $<$<NOT:$<CONFIG:Debug>>:${MACOS_COMPAT_LINKER_FLAGS}> ${MACOS_LUAJIT_UNWIND_FLAGS})
 else()
   target_link_libraries(plugdata PRIVATE plugdata_core pd-multi)
   target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-multi)

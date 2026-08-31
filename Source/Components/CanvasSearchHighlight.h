@@ -38,10 +38,10 @@ public:
         auto const oB = targetObj->getBounds().reduced(Object::margin);
 
         NVGcolor oCol;
-        NVGcolor iCol = oCol = nvgColour(PlugDataColours::objectSelectedOutlineColour);
+        NVGcolor iCol = oCol = nvgColour(getThemeColours(*this).objectSelectedOutlineColour);
         iCol.a = opacity > 1.0f ? 150 : 150 * opacity;
         oCol.a = opacity > 1.0f ? 255 : 255 * opacity;
-        nvgDrawRoundedRect(nvg, oB.getX(), oB.getY(), oB.getWidth(), oB.getHeight(), iCol, oCol, Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, oB.getX(), oB.getY(), oB.getWidth(), oB.getHeight(), iCol, oCol, getPlugDataLook(*this).getObjectCornerRadius());
     }
 
     void chainAnimation(Animator const& previousAnimation)
