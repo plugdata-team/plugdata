@@ -274,16 +274,13 @@ file(GLOB plugdata_sources
     ${SOURCES_DIRECTORY}/Standalone/PlugDataWindow.h
 )
 
-
 # Set up testing
 if(ENABLE_TESTING)
-    list(APPEND plugdata_sources
+    file(GLOB plugdata_testing_sources
     ${CMAKE_CURRENT_SOURCE_DIR}/Tests/Tests.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Tests/Tests.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Tests/HelpfileFuzzTest.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Tests/ObjectFuzzTest.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.h
     )
-
+    list(APPEND plugdata_sources ${plugdata_testing_sources})
 endif()
 
 if(APPLE)

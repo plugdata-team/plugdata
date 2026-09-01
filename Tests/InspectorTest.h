@@ -11,6 +11,8 @@
 // opens and exercises the colour picker callout. Menus and callouts left open
 // by a click are dismissed before moving on.
 
+#include "Components/ColourPicker.h"
+
 class InspectorTest : public PlugDataUnitTest
 {
 public:
@@ -131,6 +133,7 @@ private:
 
     void finish()
     {
+        ColourPicker::getInstance()->clearSingletonInstance();
         if (auto* sidebar = editor->getSidebarForPanel(Sidebar::InspectorPanel))
             sidebar->clearInspector();
 

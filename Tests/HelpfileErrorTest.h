@@ -73,7 +73,9 @@ private:
         while(auto* cnv = tabbar.getCurrentCanvas()) {
             tabbar.closeTab(cnv);
         }
-        openHelpfilesRecursively(tabbar, helpFiles);
+        MessageManager::callAsync([this, &tabbar, helpFiles]() mutable {
+            openHelpfilesRecursively(tabbar, helpFiles);
+        });
         
         editor->getSidebarForPanel(Sidebar::ConsolePanel)->clearConsole();
     }
