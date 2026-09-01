@@ -543,24 +543,19 @@ public:
             g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(1, 3.5f), Corners::defaultCornerRadius);
         }
 
-        constexpr float iconW = 15.0f;
-        constexpr float dotSize = 5.0f;
-        constexpr float dotGap = 4.0f;      // space between the two dots
-        constexpr float iconDotsGap = 5.0f; // space between the icon and the dots
-        auto const contentW = iconW + iconDotsGap + dotSize * 2 + dotGap;
-        auto const startX = std::max(0.0f, (getWidth() - contentW) * 0.5f);
+        auto b = getLocalBounds().reduced(7.f);
+        Fonts::drawIcon(g, Icons::MIDI, b.removeFromLeft(18.f), colours.toolbarTextColour, 14);
 
-        Fonts::drawIcon(g, Icons::MIDI, Rectangle<int>(roundToInt(startX), 0, roundToInt(iconW), getHeight()), colours.toolbarTextColour, 14);
-
-        auto const dotsX = startX + iconW + iconDotsGap;
-        auto const dotY = (getHeight() - dotSize) * 0.5f;
         auto const idleColour = colours.toolbarTextColour.withAlpha(0.33f);
 
+        auto top = b.removeFromTop(b.proportionOfHeight(0.5f)).toFloat();
+        auto bottom = b.toFloat();
+
         g.setColour(blinkMidiIn ? colours.toolbarActiveColour : idleColour);
-        g.fillEllipse(dotsX, dotY, dotSize, dotSize);
+        g.fillEllipse(top.withSizeKeepingCentre(5.0f, 5.0f));
 
         g.setColour(blinkMidiOut ? colours.toolbarActiveColour : idleColour);
-        g.fillEllipse(dotsX + dotSize + dotGap, dotY, dotSize, dotSize);
+        g.fillEllipse(bottom.withSizeKeepingCentre(5.0f, 5.0f));
     }
 
     void midiReceivedChanged(bool const midiReceived) override
@@ -1799,7 +1794,7 @@ void AudioToolbar::resized()
 
     b.removeFromRight(3);
 
-    midiBlinker->setBounds(b.removeFromRight(48));
+    midiBlinker->setBounds(b.removeFromRight(44));
 
     b.removeFromRight(3);
 
