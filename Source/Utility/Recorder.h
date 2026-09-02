@@ -122,7 +122,7 @@ private:
 
     double sampleRate = 0.0;
     int numChannels = 0;
-    std::atomic<int64> samplesRecorded { 0 };
+    AtomicValue<int64> samplesRecorded { 0 };
 
     std::unique_ptr<TemporaryFile> tempFile;
 };

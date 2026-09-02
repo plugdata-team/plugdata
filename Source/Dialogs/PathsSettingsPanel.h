@@ -24,13 +24,15 @@ public:
 
     void paint(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
         auto const bounds = getLocalBounds();
         auto textBounds = bounds;
         auto const iconBounds = textBounds.removeFromLeft(textBounds.getHeight());
 
-        auto const colour = PlugDataColours::panelTextColour;
+        auto const colour = colours.panelTextColour;
         if (mouseIsOver) {
-            g.setColour(PlugDataColours::panelActiveBackgroundColour);
+            g.setColour(colours.panelActiveBackgroundColour);
 
             Path p;
             p.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, roundTop, roundTop, true, true);
@@ -111,7 +113,7 @@ public:
         addChildComponent(editor);
         editor.addListener(this);
 
-        editor.setColour(TextEditor::backgroundColourId, PlugDataColours::panelActiveBackgroundColour);
+        editor.setColour(TextEditor::backgroundColourId, getThemeColours(*this).panelActiveBackgroundColour);
         editor.setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
         editor.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
 
@@ -154,6 +156,8 @@ public:
 
     void paint(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
         auto [x, width] = getContentXAndWidth();
         int const height = (getNumRows() + 1) * 32;
 
@@ -162,10 +166,10 @@ public:
 
         StackShadow::drawShadowForRect(g, resetButtonBounds.reduced(3.0f), 8, Corners::largeCornerRadius, 0.4f);
 
-        g.setColour(PlugDataColours::panelForegroundColour);
+        g.setColour(colours.panelForegroundColour);
         g.fillRoundedRectangle(resetButtonBounds.toFloat(), Corners::largeCornerRadius);
 
-        g.setColour(PlugDataColours::toolbarOutlineColour);
+        g.setColour(colours.toolbarOutlineColour);
         g.drawRoundedRectangle(resetButtonBounds.toFloat(), Corners::largeCornerRadius, 1.0f);
 
         // Draw area behind properties
@@ -173,10 +177,10 @@ public:
 
         StackShadow::drawShadowForRect(g, propertyBounds.reduced(3.0f), 8, Corners::largeCornerRadius, 0.4f);
 
-        g.setColour(PlugDataColours::panelForegroundColour);
+        g.setColour(colours.panelForegroundColour);
         g.fillRoundedRectangle(propertyBounds.toFloat(), Corners::largeCornerRadius);
 
-        g.setColour(PlugDataColours::toolbarOutlineColour);
+        g.setColour(colours.toolbarOutlineColour);
         g.drawRoundedRectangle(propertyBounds.toFloat(), Corners::largeCornerRadius, 1.0f);
 
         Fonts::drawStyledText(g, "Search paths", x, 0, width - 4, 36.0f, findColour(PropertyComponent::labelTextColourId), Semibold, 15.0f);
@@ -184,6 +188,8 @@ public:
 
     void paintListBoxItem(int const rowNumber, Graphics& g, int const width, int const height, bool const rowIsSelected) override
     {
+        auto const& colours = getThemeColours(*this);
+
         auto [x, newWidth] = getContentXAndWidth();
 
         if (rowIsSelected) {
@@ -192,14 +198,14 @@ public:
             Path p;
             p.addRoundedRectangle(x, 0.0f, newWidth, height, Corners::largeCornerRadius, Corners::largeCornerRadius, roundTop, roundTop, false, false);
 
-            g.setColour(PlugDataColours::panelActiveBackgroundColour);
+            g.setColour(colours.panelActiveBackgroundColour);
             g.fillPath(p);
         }
 
-        g.setColour(PlugDataColours::toolbarOutlineColour.withAlpha(0.5f));
+        g.setColour(colours.toolbarOutlineColour.withAlpha(0.5f));
         g.drawHorizontalLine(height - 1.0f, x, x + newWidth);
 
-        Fonts::drawText(g, paths[rowNumber], x + 12, 0, width - 9, height, PlugDataColours::panelTextColour, 15);
+        Fonts::drawText(g, paths[rowNumber], x + 12, 0, width - 9, height, colours.panelTextColour, 15);
     }
 
     void deleteKeyPressed(int const row) override
@@ -463,7 +469,7 @@ public:
         addChildComponent(editor);
         editor.addListener(this);
 
-        editor.setColour(TextEditor::backgroundColourId, PlugDataColours::panelActiveBackgroundColour);
+        editor.setColour(TextEditor::backgroundColourId, getThemeColours(*this).panelActiveBackgroundColour);
         editor.setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
         editor.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
 
@@ -482,6 +488,8 @@ public:
 
     void paint(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
         auto [x, width] = getContentXAndWidth();
         int const height = (getNumRows() + 1) * 32;
 
@@ -489,10 +497,10 @@ public:
 
         StackShadow::drawShadowForRect(g, propertyBounds.reduced(3.0f), 8, Corners::largeCornerRadius, 0.4f);
 
-        g.setColour(PlugDataColours::panelForegroundColour);
+        g.setColour(colours.panelForegroundColour);
         g.fillRoundedRectangle(propertyBounds.toFloat(), Corners::largeCornerRadius);
 
-        g.setColour(PlugDataColours::toolbarOutlineColour);
+        g.setColour(colours.toolbarOutlineColour);
         g.drawRoundedRectangle(propertyBounds.toFloat(), Corners::largeCornerRadius, 1.0f);
 
         Fonts::drawStyledText(g, "Libraries to load", x, 0, width - 4, 36.0f, findColour(PropertyComponent::labelTextColourId), Semibold, 15.0f);
@@ -507,6 +515,8 @@ public:
 
     void paintListBoxItem(int const rowNumber, Graphics& g, int const width, int const height, bool const rowIsSelected) override
     {
+        auto const& colours = getThemeColours(*this);
+
         auto [x, newWidth] = getContentXAndWidth();
 
         if (rowIsSelected) {
@@ -514,14 +524,14 @@ public:
             Path p;
             p.addRoundedRectangle(x, 0.0f, newWidth, height, Corners::largeCornerRadius, Corners::largeCornerRadius, roundTop, roundTop, false, false);
 
-            g.setColour(PlugDataColours::panelActiveBackgroundColour);
+            g.setColour(colours.panelActiveBackgroundColour);
             g.fillPath(p);
         }
 
-        g.setColour(PlugDataColours::toolbarOutlineColour.withAlpha(0.5f));
+        g.setColour(colours.toolbarOutlineColour.withAlpha(0.5f));
         g.drawHorizontalLine(height - 1.0f, x, x + newWidth);
 
-        Fonts::drawText(g, librariesToLoad[rowNumber], x + 12, 0, width - 9, height, PlugDataColours::panelTextColour, 15);
+        Fonts::drawText(g, librariesToLoad[rowNumber], x + 12, 0, width - 9, height, colours.panelTextColour, 15);
     }
 
     void deleteKeyPressed(int const row) override
@@ -695,15 +705,17 @@ public:
 private:
     void paint(Graphics& g) override
     {
-        Fonts::drawStyledText(g, "GEM", 4, 0, getWidth() - 4, 26, PlugDataColours::panelTextColour, Semibold, 14.5f);
+        auto const& colours = getThemeColours(*this);
+
+        Fonts::drawStyledText(g, "GEM", 4, 0, getWidth() - 4, 26, colours.panelTextColour, Semibold, 14.5f);
 
         auto b = getLocalBounds().withTrimmedTop(26).reduced(4);
         StackShadow::drawShadowForRect(g, b.reduced(3), 8, Corners::largeCornerRadius, 0.4f);
 
-        g.setColour(PlugDataColours::panelForegroundColour);
+        g.setColour(colours.panelForegroundColour);
         g.fillRoundedRectangle(b.toFloat(), Corners::largeCornerRadius);
 
-        g.setColour(PlugDataColours::toolbarOutlineColour);
+        g.setColour(colours.toolbarOutlineColour);
         g.drawRoundedRectangle(b.toFloat(), Corners::largeCornerRadius, 1.0f);
     }
 

@@ -78,10 +78,6 @@ Dialog::Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int const c
         }
         window->repaint();
     }
-
-    if (auto* pluginEditor = dynamic_cast<PluginEditor*>(editor)) {
-        pluginEditor->nvgSurface.setRenderThroughImage(true);
-    }
 }
 
 bool Dialog::wantsRoundedCorners() const
@@ -344,15 +340,17 @@ void Dialogs::showMultiChoiceDialog(std::unique_ptr<Dialog>* target, Component* 
             : icon(icon)
             , label("", title)
         {
+            auto const& colours = getThemeColours(*this);
+
             auto attributedTitle = AttributedString(title);
             attributedTitle.setJustification(Justification::horizontallyCentred);
             attributedTitle.setFont(Fonts::getBoldFont().withHeight(14));
-            attributedTitle.setColour(PlugDataColours::panelTextColour);
+            attributedTitle.setColour(colours.panelTextColour);
 
             for (int i = 0; i < options.size(); i++) {
                 auto* button = buttons.add(new TextButton(options[i]));
 
-                auto backgroundColour = PlugDataColours::dialogBackgroundColour;
+                auto backgroundColour = colours.dialogBackgroundColour;
                 button->setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
                 button->setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
                 button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
@@ -379,7 +377,7 @@ void Dialogs::showMultiChoiceDialog(std::unique_ptr<Dialog>* target, Component* 
         {
             AttributedString warningIcon(icon);
             warningIcon.setFont(Fonts::getIconFont().withHeight(48));
-            warningIcon.setColour(PlugDataColours::panelTextColour);
+            warningIcon.setColour(getThemeColours(*this).panelTextColour);
             warningIcon.setJustification(Justification::centred);
             warningIcon.draw(g, getLocalBounds().toFloat().removeFromTop(90));
 
@@ -511,7 +509,9 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
             void paint(Graphics& g) override
             {
-                auto textColour = PlugDataColours::sidebarTextColour;
+                auto const& colours = getThemeColours(*this);
+
+                auto textColour = colours.sidebarTextColour;
 
                 if (!isEnabled()) {
                     textColour = textColour.withAlpha(0.35f);
@@ -519,10 +519,10 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
                     auto bounds = getLocalBounds().toFloat();
                     bounds = bounds.withSizeKeepingCentre(bounds.getHeight(), bounds.getHeight());
 
-                    g.setColour(PlugDataColours::popupMenuActiveBackgroundColour);
+                    g.setColour(colours.popupMenuActiveBackgroundColour);
                     g.fillRoundedRectangle(bounds, Corners::defaultCornerRadius);
 
-                    textColour = PlugDataColours::sidebarTextColour;
+                    textColour = colours.sidebarTextColour;
                 }
 
                 Fonts::drawIcon(g, getButtonText(), std::max(0, getWidth() - getHeight()) / 2, 0, getHeight(), textColour, 12.8f);
@@ -725,7 +725,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
             auto const colour = findColour(PopupMenu::textColourId).withMultipliedAlpha(isActive ? 1.0f : 0.5f);
             if (isItemHighlighted() && isActive) {
-                g.setColour(PlugDataColours::popupMenuActiveBackgroundColour);
+                g.setColour(getThemeColours(*this).popupMenuActiveBackgroundColour);
                 g.fillRoundedRectangle(r.toFloat().reduced(0, 1), Corners::defaultCornerRadius);
             }
             g.setColour(colour);
@@ -766,8 +766,14 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
     popupMenu.addSeparator();
     popupMenu.addItem(Properties, "Properties", (originalComponent == cnv || (object && params.getParameters().not_empty())) && !locked);
-    // showObjectReferenceDialog
-    auto callback = [cnv, editor, object, originalComponent, selectedObjects](int const result) mutable {
+    
+    auto callback = [cnvPtr = Component::SafePointer<Canvas>(cnv), editor, objectPtr = Component::SafePointer<Object>(object), originalPtr = Component::SafePointer<Component>(originalComponent), selectedObjects](int const result) mutable {
+        auto* cnv = cnvPtr.getComponent();
+        if (!cnv)
+            return;
+        auto* object = objectPtr.getComponent();
+        auto* originalComponent = originalPtr.getComponent();
+
         cnv->grabKeyboardFocus();
         editor->showCalloutArea(false);
 
@@ -937,6 +943,9 @@ void Dialogs::dismissFileDialog()
 
 void Dialogs::showOpenDialog(std::function<void(URL)> const& callback, bool const canSelectFiles, bool const canSelectDirectories, String const& extension, String const& lastFileId, Component* parentComponent)
 {
+#if ENABLE_TESTING
+    return; // Don't open file dialogs during testing
+#endif
     bool nativeDialog = SettingsFile::getInstance()->wantsNativeDialog();
     auto initialFile = lastFileId.isNotEmpty() ? SettingsFile::getInstance()->getLastBrowserPathForId(lastFileId) : ProjectInfo::appDataDir;
     if (!initialFile.exists())
@@ -980,6 +989,9 @@ void Dialogs::showOpenDialog(std::function<void(URL)> const& callback, bool cons
 
 void Dialogs::showSaveDialog(std::function<void(URL)> const& callback, String const& extension, String const& lastFileId, Component* parentComponent, bool const directoryMode, String const& defaultFileName)
 {
+#if ENABLE_TESTING
+    return; // Don't open file dialogs during testing
+#endif
     bool nativeDialog = SettingsFile::getInstance()->wantsNativeDialog();
     auto initialFile = lastFileId.isNotEmpty() ? SettingsFile::getInstance()->getLastBrowserPathForId(lastFileId) : ProjectInfo::appDataDir;
     if (!initialFile.exists())

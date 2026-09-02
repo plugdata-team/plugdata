@@ -7,10 +7,10 @@
 #include <array>
 
 namespace {
-std::array<Colour, 9> getPaletteItemColours()
+std::array<Colour, 9> getPaletteItemColours(Component const& context)
 {
     return {
-        PlugDataColours::textObjectBackgroundColour,
+        getThemeColours(context).textObjectBackgroundColour,
         Colour::fromRGB(255, 232, 194),
         Colour::fromRGB(255, 247, 191),
         Colour::fromRGB(219, 242, 198),
@@ -36,7 +36,9 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto const colours = getPaletteItemColours();
+        auto const& themeColours = getThemeColours(*this);
+
+        auto const colours = getPaletteItemColours(*this);
         auto const hasCustomColour = itemTree.hasProperty("BgColor");
         auto const selectedColour = hasCustomColour
             ? Colour::fromString(itemTree.getProperty("BgColor").toString())
@@ -50,7 +52,7 @@ public:
             g.setColour(colour);
             g.fillEllipse(circleBounds);
 
-            g.setColour(PlugDataColours::outlineColour);
+            g.setColour(themeColours.outlineColour);
             g.drawEllipse(circleBounds, 1.0f);
 
             if ((!hasCustomColour && i == 0) || (hasCustomColour && selectedColour.toString() == colour.toString())) {
@@ -61,16 +63,16 @@ public:
         }
 
         auto const buttonBounds = getPickerButtonBounds();
-        g.setColour(PlugDataColours::sidebarActiveBackgroundColour);
+        g.setColour(themeColours.sidebarActiveBackgroundColour);
         g.fillEllipse(buttonBounds);
-        g.setColour(PlugDataColours::outlineColour);
+        g.setColour(themeColours.outlineColour);
         g.drawEllipse(buttonBounds, 1.0f);
-        Fonts::drawIcon(g, Icons::Eyedropper, buttonBounds.getSmallestIntegerContainer(), PlugDataColours::sidebarTextColour, 12);
+        Fonts::drawIcon(g, Icons::Eyedropper, buttonBounds.getSmallestIntegerContainer(), themeColours.sidebarTextColour, 12);
     }
 
     void mouseUp(MouseEvent const& e) override
     {
-        auto const colours = getPaletteItemColours();
+        auto const colours = getPaletteItemColours(*this);
         for (int i = 0; i < static_cast<int>(colours.size()); i++) {
             if (getCircleBounds(i).contains(e.position)) {
                 if (i == 0)
@@ -86,7 +88,7 @@ public:
         if (getPickerButtonBounds().contains(e.position)) {
             auto const colour = itemTree.hasProperty("BgColor")
                 ? Colour::fromString(itemTree.getProperty("BgColor").toString())
-                : PlugDataColours::textObjectBackgroundColour;
+                : getThemeColours(*this).textObjectBackgroundColour;
             auto* editorToUse = editor;
             auto* topLevelToUse = topLevelComponent.getComponent();
             auto const bounds = pickerBounds;
@@ -118,7 +120,7 @@ private:
 
     Rectangle<float> getPickerButtonBounds() const
     {
-        return getCircleBounds(static_cast<int>(getPaletteItemColours().size()));
+        return getCircleBounds(static_cast<int>(getPaletteItemColours(*this).size()));
     }
 
     void closeCalloutBox()
@@ -199,7 +201,7 @@ PaletteItem::~PaletteItem()
 
 void PaletteItem::lookAndFeelChanged()
 {
-    nameLabel.setFont(Fonts::getCurrentFont());
+    nameLabel.setFont(Fonts::getDefaultFont());
     updateTextColour();
 }
 
@@ -208,7 +210,7 @@ Colour PaletteItem::getBackgroundColour() const
     if (itemTree.hasProperty("BgColor"))
         return Colour::fromString(itemTree.getProperty("BgColor").toString());
 
-    return PlugDataColours::textObjectBackgroundColour;
+    return getThemeColours(*this).textObjectBackgroundColour;
 }
 
 void PaletteItem::updateTextColour()
@@ -254,16 +256,18 @@ void PaletteItem::setIsItemDragged(bool const isActive)
 
 void PaletteItem::paint(Graphics& g)
 {
+    auto const& colours = getThemeColours(*this);
+
     auto bounds = getLocalBounds().reduced(16.0f, 4.0f).toFloat();
     auto const backgroundColour = getBackgroundColour();
 
     if (isItemDragged) {
         Path dropShadowPath;
         dropShadowPath.addRoundedRectangle(bounds.reduced(4.0f), 5.0f);
-        auto dropShadowColour = PlugDataColours::objectSelectedOutlineColour;
+        auto dropShadowColour = colours.objectSelectedOutlineColour;
         StackShadow::drawShadowForPath(g, hash("palette_item"), dropShadowPath, 8, dropShadowColour.withAlpha(0.5f));
     }
-    auto outlineColour = isItemDragged ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour;
+    auto outlineColour = isItemDragged ? colours.objectSelectedOutlineColour : colours.objectOutlineColour;
 
     if (!isSubpatch) {
         auto lineBounds = bounds.reduced(2.5f);
@@ -302,7 +306,6 @@ void PaletteItem::paint(Graphics& g)
     Path p;
     p.startNewSubPath(x, lineBounds.getY());
 
-    auto ioletStroke = PathStrokeType(1.0f);
     SmallArray<std::tuple<Path, Colour>, 8> ioletPaths;
 
     for (int i = 0; i < inlets.size(); i++) {
@@ -328,7 +331,7 @@ void PaletteItem::paint(Graphics& g)
         // p.addCentredArc(inletBounds.getCentreX(), inletBounds.getCentreY(), inletRadius, inletRadius, 0.0f, fromRadians, toRadians, false);
         inletArc.addCentredArc(inletBounds.getCentreX(), inletBounds.getCentreY(), inletRadius, inletRadius, 0.0f, fromRadians, toRadians, false);
 
-        auto inletColour = inlets[i] ? PlugDataColours::signalColour : PlugDataColours::dataColour;
+        auto inletColour = inlets[i] ? colours.signalColour : colours.dataColour;
         ioletPaths.add(std::tuple<Path, Colour>(inletArc, inletColour));
     }
 
@@ -363,7 +366,7 @@ void PaletteItem::paint(Graphics& g)
         // p.addCentredArc(outletBounds.getCentreX(), lineBounds.getBottom(), outletRadius, outletRadius, 0, fromRadians, toRadians, false);
         outletArc.addCentredArc(outletBounds.getCentreX(), lineBounds.getBottom(), outletRadius, outletRadius, 0.0f, fromRadians, toRadians, false);
 
-        auto outletColour = outlets[i] ? PlugDataColours::signalColour : PlugDataColours::dataColour;
+        auto outletColour = outlets[i] ? colours.signalColour : colours.dataColour;
         ioletPaths.add(std::tuple<Path, Colour>(outletArc, outletColour));
     }
 
@@ -405,9 +408,6 @@ void PaletteItem::mouseDown(MouseEvent const& e)
 
 void PaletteItem::mouseDrag(MouseEvent const& e)
 {
-    if (!isRealClickEvent(e))
-        return;
-
     if (e.originalComponent == this && e.getDistanceFromDragStart() > 4) {
         if (auto* editor = findParentComponentOfClass<PluginEditor>()) {
             ObjectDragAndDrop::attachToMouse(editor, palettePatch);

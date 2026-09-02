@@ -120,16 +120,18 @@ class TouchPopupMenu {
 
         void paint(Graphics& g) override
         {
+            auto const& colours = getThemeColours(*this);
+
             auto b = getLocalBounds();
             auto& items = currentItems();
             bool inSubMenu = !navigationStack.empty();
 
             // NOTE: title will break if we have submenus nesting deeper than 1
-            g.setColour(PlugDataColours::popupMenuTextColour);
+            g.setColour(colours.popupMenuTextColour);
             g.setFont(Fonts::getSemiBoldFont().withHeight(15.f));
             g.drawText(currentTitle, b.removeFromTop(34), Justification::centred);
 
-            g.setColour(PlugDataColours::outlineColour.withAlpha(0.7f));
+            g.setColour(colours.outlineColour.withAlpha(0.7f));
             g.fillRect(b.removeFromTop(1).reduced(12, 0));
 
             g.setFont(Fonts::getDefaultFont().withHeight(16.f));
@@ -142,7 +144,7 @@ class TouchPopupMenu {
                 bool pressed = pressedIndex == rowIndex;
 
                 if (pressed) {
-                    g.setColour(PlugDataColours::popupMenuActiveBackgroundColour);
+                    g.setColour(colours.popupMenuActiveBackgroundColour);
                     g.fillRoundedRectangle(row.toFloat().reduced(4), Corners::defaultCornerRadius);
                 }
 
@@ -155,12 +157,12 @@ class TouchPopupMenu {
                 backArrow.startNewSubPath(x, halfH - arrowH * 0.5f);
                 backArrow.lineTo(x - arrowH * 0.5f, halfH);
                 backArrow.lineTo(x, halfH + arrowH * 0.5f);
-                g.setColour(PlugDataColours::popupMenuTextColour);
+                g.setColour(colours.popupMenuTextColour);
                 g.strokePath(backArrow, PathStrokeType(1.5f));
 
-                Fonts::drawFittedText(g, "Back", row.reduced(8, 0), PlugDataColours::popupMenuTextColour, 1, 1.0f, 15, Justification::centred);
+                Fonts::drawFittedText(g, "Back", row.reduced(8, 0), colours.popupMenuTextColour, 1, 1.0f, 15, Justification::centred);
 
-                g.setColour(PlugDataColours::outlineColour.withAlpha(0.7f));
+                g.setColour(colours.outlineColour.withAlpha(0.7f));
                 g.fillRect(row.removeFromBottom(1).reduced(12, 0));
 
                 rowIndex++;
@@ -168,17 +170,17 @@ class TouchPopupMenu {
 
             for (int i = 0; i < items.size(); ++i, ++rowIndex) {
                 auto& item = items[i];
-                auto itemTextColour = PlugDataColours::popupMenuTextColour.withAlpha(item.active ? 1.0f : 0.5f);
+                auto itemTextColour = colours.popupMenuTextColour.withAlpha(item.active ? 1.0f : 0.5f);
                 auto row = b.removeFromTop(itemHeight);
                 bool pressed = pressedIndex == rowIndex;
 
                 if (item.active && pressed) {
-                    g.setColour(PlugDataColours::popupMenuActiveBackgroundColour);
+                    g.setColour(colours.popupMenuActiveBackgroundColour);
                     g.fillRoundedRectangle(row.toFloat().reduced(4), Corners::defaultCornerRadius);
                 }
 
                 if (i < items.size() - 1) {
-                    g.setColour(PlugDataColours::outlineColour.withAlpha(0.7f));
+                    g.setColour(colours.outlineColour.withAlpha(0.7f));
                     g.fillRect(row.removeFromBottom(1).reduced(12, 0));
                 }
 

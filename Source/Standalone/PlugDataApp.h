@@ -105,7 +105,7 @@ public:
 
         auto* settings = SettingsFile::getInstance()->initialise();
 
-        auto const displayArea = Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea;
+        auto const displayArea = Desktop::getInstance().getDisplays().getPrimaryDisplay()->userBounds.getSmallestIntegerContainer();
         auto windowSize = settings->getProperty<VarArray>("window_size");
         auto bounds = displayArea.withSizeKeepingCentre(static_cast<int>(windowSize[0]), static_cast<int>(windowSize[1])).getIntersection(displayArea);
 
@@ -115,7 +115,7 @@ public:
         pd->lastUIWidth = bounds.getWidth();
         pd->lastUIHeight = bounds.getHeight();
 
-        mainWindow = new PlugDataWindow(pluginHolder->processor->createEditorIfNeeded());
+        mainWindow = new PlugDataWindow(pluginHolder->processor->createEditorAndMakeActive());
         mainWindow->setBoundsConstrained(bounds);
 
         mainWindow->setVisible(true);

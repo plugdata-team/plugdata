@@ -221,6 +221,14 @@ struct Decompress {
 #endif
                 } else if (typeFlag == '0' || typeFlag == '\0') {
                     // Regular file
+                    size_t fileOffset = offset + 512;
+
+                    // Reject entries whose declared size extends past the end of
+                    // the archive, so corrupt headers can't make us read out of bounds
+                    if (fileSize > size - fileOffset) {
+                        return false;
+                    }
+
                     fs::create_directories(outPath.parent_path());
 
                     std::ofstream out(outPath, std::ios::binary);
@@ -228,7 +236,6 @@ struct Decompress {
                         return false;
                     }
 
-                    size_t fileOffset = offset + 512;
                     out.write(reinterpret_cast<char const*>(data + fileOffset), fileSize);
 
                     if (!out.good()) {

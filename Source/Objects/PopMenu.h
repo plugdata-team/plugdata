@@ -21,8 +21,6 @@ class PopMenu final : public ObjectBase {
     Value savestate = SynchronousValue();
     Value loadbang = SynchronousValue();
 
-    CachedTextRender textRenderer;
-
     NVGcolor fgCol;
     NVGcolor bgCol;
 
@@ -59,8 +57,8 @@ public:
 
     void updateColours()
     {
-        bgCol = nvgColour(Colour::fromString(secondaryColour.toString()));
-        fgCol = nvgColour(Colour::fromString(primaryColour.toString()));
+        bgCol = nvgColour(getValue<Colour>(secondaryColour));
+        fgCol = nvgColour(getValue<Colour>(primaryColour));
         repaint();
     }
 
@@ -130,8 +128,8 @@ public:
             for (int i = 0; i < menu->x_n_items; i++) // Loop for menu items
                 items.add(String::fromUTF8(menu->x_items[i]->s_name));
 
-            primaryColour = convertTclColour(String::fromUTF8(menu->x_fg->s_name)).toString();
-            secondaryColour = convertTclColour(String::fromUTF8(menu->x_bg->s_name)).toString();
+            primaryColour = colourToVar(convertTclColour(String::fromUTF8(menu->x_fg->s_name)));
+            secondaryColour = colourToVar(convertTclColour(String::fromUTF8(menu->x_bg->s_name)));
             sizeProperty = VarArray(menu->x_width, menu->x_height);
             savestate = menu->x_savestate;
             loadbang = menu->x_lb;
@@ -198,40 +196,46 @@ public:
 
     void updateTextLayout()
     {
-        auto const text = currentItem >= 0 ? currentText : getValue<String>(labelNoSelection);
-        auto const colour = Colour(fgCol.r, fgCol.g, fgCol.b, fgCol.a);
-        auto const font = Fonts::getCurrentFont().withHeight(getValue<int>(fontSize) * 1.5f);
-
-        if (textRenderer.prepareLayout(text, font, colour, Fonts::getStringWidth(text, font) + 12, getValue<int>(sizeProperty), false)) {
-            repaint();
-        }
+        // The label is drawn directly in render() from the current state, so just trigger a repaint.
+        repaint();
     }
 
     void render(NVGcontext* nvg) override
     {
+        auto const& colours = getThemeColours();
+
         auto b = getLocalBounds().toFloat();
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), bgCol, nvgColour(object->isSelected() ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour), Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), bgCol, nvgColour(object->isSelected() ? colours.objectSelectedOutlineColour : colours.objectOutlineColour), getPlugDataLook(*this).getObjectCornerRadius());
 
         auto textBounds = getLocalBounds().reduced(2).translated(2, 0);
         if (!textBounds.isEmpty()) {
-            textRenderer.renderText(nvg, textBounds.toFloat(), getImageScale());
+            auto const text = currentItem >= 0 ? currentText : getValue<String>(labelNoSelection);
+            auto const colour = Colour(fgCol.r, fgCol.g, fgCol.b, fgCol.a);
+            auto const font = Fonts::getDefaultFont().withHeight(getValue<int>(fontSize) * 1.5f);
+
+            auto& llgc = *cnv->editor->getNanoLLGC();
+            Graphics g(llgc);
+            NVGGraphicsContext::ScopedAnchoredDraw anchor(llgc, textBounds.toFloat());
+            g.setFont(font);
+            g.setColour(colour);
+            g.drawText(text, textBounds.toFloat(), Justification::centredLeft);
         }
 
         auto const triangleBounds = b.removeFromRight(20).withSizeKeepingCentre(20, std::min(getHeight(), 12));
 
-        nvgStrokeColor(nvg, fgCol);
-        nvgBeginPath(nvg);
-        nvgMoveTo(nvg, triangleBounds.getCentreX() - 3, triangleBounds.getY() + 3);
-        nvgLineTo(nvg, triangleBounds.getCentreX(), triangleBounds.getY());
-        nvgLineTo(nvg, triangleBounds.getCentreX() + 3, triangleBounds.getY() + 3);
-        nvgStroke(nvg);
+        nanovg::nvgStrokeColor(nvg, fgCol);
+        nanovg::nvgBeginPath(nvg);
+        nanovg::nvgMoveTo(nvg, triangleBounds.getCentreX() - 3, triangleBounds.getY() + 3);
+        nanovg::nvgLineTo(nvg, triangleBounds.getCentreX(), triangleBounds.getY());
+        nanovg::nvgLineTo(nvg, triangleBounds.getCentreX() + 3, triangleBounds.getY() + 3);
+        nanovg::nvgStroke(nvg);
 
-        nvgBeginPath(nvg);
-        nvgMoveTo(nvg, triangleBounds.getCentreX() - 3, triangleBounds.getBottom() - 3);
-        nvgLineTo(nvg, triangleBounds.getCentreX(), triangleBounds.getBottom());
-        nvgLineTo(nvg, triangleBounds.getCentreX() + 3, triangleBounds.getBottom() - 3);
-        nvgStroke(nvg);
+        nanovg::nvgBeginPath(nvg);
+        nanovg::nvgMoveTo(nvg, triangleBounds.getCentreX() - 3, triangleBounds.getBottom() - 3);
+        nanovg::nvgLineTo(nvg, triangleBounds.getCentreX(), triangleBounds.getBottom());
+        nanovg::nvgLineTo(nvg, triangleBounds.getCentreX() + 3, triangleBounds.getBottom() - 3);
+        nanovg::nvgStroke(nvg);
     }
 
     void propertyChanged(Value& value) override
@@ -258,12 +262,12 @@ public:
             sendMessage("receive", { pd->generateSymbol(sendSymbol.toString()) });
             object->updateIolets();
         } else if (value.refersToSameSourceAs(primaryColour)) {
-            auto const colour = "#" + primaryColour.toString().substring(2);
+            auto const colour = "#" + getValue<Colour>(primaryColour).toString().substring(2);
             if (auto menu = ptr.get<t_fake_menu>())
                 menu->x_fg = pd->generateSymbol(colour);
             updateColours();
         } else if (value.refersToSameSourceAs(secondaryColour)) {
-            auto const colour = "#" + secondaryColour.toString().substring(2);
+            auto const colour = "#" + getValue<Colour>(secondaryColour).toString().substring(2);
             if (auto menu = ptr.get<t_fake_menu>())
                 menu->x_bg = pd->generateSymbol(colour);
             updateColours();
@@ -348,13 +352,13 @@ public:
         }
         case hash("fg"): {
             if (atoms.size() >= 1 && atoms[0].isSymbol()) {
-                primaryColour = convertTclColour(atoms[0].toString()).toString();
+                primaryColour = colourToVar(convertTclColour(atoms[0].toString()));
             }
             break;
         }
         case hash("bg"): {
             if (atoms.size() >= 1 && atoms[0].isSymbol()) {
-                secondaryColour = convertTclColour(atoms[0].toString()).toString();
+                secondaryColour = colourToVar(convertTclColour(atoms[0].toString()));
             }
             break;
         }

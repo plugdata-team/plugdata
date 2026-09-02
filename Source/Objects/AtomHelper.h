@@ -278,9 +278,10 @@ public:
             label->setFont(Font(FontOptions(fontHeight)));
             label->setText(text, dontSendNotification);
 
-            auto textColour = PlugDataColours::canvasTextColour;
-            if (std::abs(textColour.getBrightness() - PlugDataColours::canvasBackgroundColour.getBrightness()) < 0.3f) {
-                textColour = PlugDataColours::canvasBackgroundColour.contrasting();
+            auto const& colours = getThemeColours(*object);
+            auto textColour = colours.canvasTextColour;
+            if (std::abs(textColour.getBrightness() - colours.canvasBackgroundColour.getBrightness()) < 0.3f) {
+                textColour = colours.canvasBackgroundColour.contrasting();
             }
 
             label->setLabelColour(textColour);

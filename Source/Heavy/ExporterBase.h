@@ -57,7 +57,7 @@ struct ExporterBase : public Component
     {
         addAndMakeVisible(exportButton);
 
-        auto const backgroundColour = PlugDataColours::panelBackgroundColour;
+        auto const backgroundColour = getThemeColours(*this).panelBackgroundColour;
         exportButton.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
         exportButton.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
         exportButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
@@ -287,8 +287,9 @@ struct ExporterBase : public Component
 
             exportingView->stopMonitoring();
 
-            MessageManager::callAsync([this] {
-                repaint();
+            MessageManager::callAsync([_this = SafePointer(this)] {
+                if (_this)
+                    _this->repaint();
             });
 
             FileSystemWatcher::removeGlobalIgnorePath(outPath);

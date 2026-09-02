@@ -37,8 +37,8 @@ public:
     void update() override
     {
         if (auto function = ptr.get<t_fake_function>()) {
-            secondaryColour = colourFromHexArray(function->x_bgcolor).toString();
-            primaryColour = colourFromHexArray(function->x_fgcolor).toString();
+            secondaryColour = colourToVar(colourFromHexArray(function->x_bgcolor));
+            primaryColour = colourToVar(colourFromHexArray(function->x_fgcolor));
             sizeProperty = VarArray { var(function->x_width), var(function->x_height) };
             initialise = function->x_init;
 
@@ -102,48 +102,50 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        auto const& colours = getThemeColours();
+
         bool const selected = object->isSelected() && !cnv->isGraph;
         bool const editing = cnv->locked == var(true) || cnv->presentationMode == var(true) || ModifierKeys::getCurrentModifiers().isCtrlDown();
 
         auto const b = getLocalBounds().toFloat();
-        auto const backgroundColour = nvgColour(Colour::fromString(secondaryColour.toString()));
+        auto const backgroundColour = nvgColour(getValue<Colour>(secondaryColour));
 
-        auto const foregroundColour = nvgColour(Colour::fromString(primaryColour.toString()));
-        auto const selectedOutlineColour = nvgColour(PlugDataColours::objectSelectedOutlineColour);
-        auto const outlineColour = nvgColour(PlugDataColours::objectOutlineColour);
+        auto const foregroundColour = nvgColour(getValue<Colour>(primaryColour));
+        auto const selectedOutlineColour = nvgColour(colours.objectSelectedOutlineColour);
+        auto const outlineColour = nvgColour(colours.objectOutlineColour);
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, selected ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, selected ? selectedOutlineColour : outlineColour, getPlugDataLook(*this).getObjectCornerRadius());
 
-        nvgStrokeColor(nvg, foregroundColour);
+        nanovg::nvgStrokeColor(nvg, foregroundColour);
 
         auto realPoints = getRealPoints();
         auto lastPoint = realPoints[0];
         for (int i = 1; i < realPoints.size(); i++) {
             auto newPoint = realPoints[i];
-            nvgBeginPath(nvg);
-            nvgMoveTo(nvg, lastPoint.getX(), lastPoint.getY());
-            nvgLineTo(nvg, newPoint.getX(), newPoint.getY());
-            nvgStroke(nvg);
+            nanovg::nvgBeginPath(nvg);
+            nanovg::nvgMoveTo(nvg, lastPoint.getX(), lastPoint.getY());
+            nanovg::nvgLineTo(nvg, newPoint.getX(), newPoint.getY());
+            nanovg::nvgStroke(nvg);
             lastPoint = newPoint;
         }
 
         for (int i = 0; i < realPoints.size(); i++) {
             auto point = realPoints[i];
             // Make sure line isn't visible through the hole
-            nvgBeginPath(nvg);
-            nvgFillColor(nvg, backgroundColour);
-            nvgCircle(nvg, point.getX(), point.getY(), 2.5f);
-            nvgFill(nvg);
+            nanovg::nvgBeginPath(nvg);
+            nanovg::nvgFillColor(nvg, backgroundColour);
+            nanovg::nvgCircle(nvg, point.getX(), point.getY(), 2.5f);
+            nanovg::nvgFill(nvg);
 
-            nvgFillColor(nvg, foregroundColour);
-            nvgStrokeColor(nvg, hoverIdx == i && editing ? outlineColour : foregroundColour);
-            nvgBeginPath(nvg);
-            nvgCircle(nvg, point.getX(), point.getY(), 2.5f);
+            nanovg::nvgFillColor(nvg, foregroundColour);
+            nanovg::nvgStrokeColor(nvg, hoverIdx == i && editing ? outlineColour : foregroundColour);
+            nanovg::nvgBeginPath(nvg);
+            nanovg::nvgCircle(nvg, point.getX(), point.getY(), 2.5f);
             if (selectedIdx == i) {
-                nvgFill(nvg);
+                nanovg::nvgFill(nvg);
             }
-            nvgStrokeWidth(nvg, 1.5f);
-            nvgStroke(nvg);
+            nanovg::nvgStrokeWidth(nvg, 1.5f);
+            nanovg::nvgStroke(nvg);
         }
     }
 
@@ -403,10 +405,10 @@ public:
 
                 object->updateBounds();
             } else if (v.refersToSameSourceAs(primaryColour)) {
-                colourToHexArray(Colour::fromString(primaryColour.toString()), function->x_fgcolor);
+                colourToHexArray(getValue<Colour>(primaryColour), function->x_fgcolor);
                 repaint();
             } else if (v.refersToSameSourceAs(secondaryColour)) {
-                colourToHexArray(Colour::fromString(secondaryColour.toString()), function->x_bgcolor);
+                colourToHexArray(getValue<Colour>(secondaryColour), function->x_bgcolor);
                 repaint();
             } else if (v.refersToSameSourceAs(sendSymbol)) {
                 auto const symbol = sendSymbol.toString();

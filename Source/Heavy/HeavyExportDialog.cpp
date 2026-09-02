@@ -104,7 +104,7 @@ public:
         Path p;
         p.addRoundedRectangle(listboxBounds.getX(), listboxBounds.getY(), listboxBounds.getWidth(), listboxBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, false, false, true, false);
 
-        g.setColour(PlugDataColours::sidebarBackgroundColour);
+        g.setColour(getThemeColours(*this).sidebarBackgroundColour);
         g.fillPath(p);
     }
 
@@ -112,7 +112,7 @@ public:
     {
         auto const listboxBounds = getLocalBounds().removeFromLeft(listBoxWidth);
 
-        g.setColour(PlugDataColours::toolbarOutlineColour);
+        g.setColour(getThemeColours(*this).toolbarOutlineColour);
         g.drawLine(Line<float>(listboxBounds.getTopRight().toFloat(), listboxBounds.getBottomRight().toFloat()));
     }
 
@@ -152,13 +152,15 @@ public:
 
     void paintListBoxItem(int const row, Graphics& g, int const width, int const height, bool const rowIsSelected) override
     {
+        auto const& colours = getThemeColours(*this);
+
         if (isPositiveAndBelow(row, items.size())) {
             if (rowIsSelected) {
-                g.setColour(PlugDataColours::sidebarActiveBackgroundColour);
+                g.setColour(colours.sidebarActiveBackgroundColour);
                 g.fillRoundedRectangle(Rectangle<float>(3, 3, width - 6, height - 6), Corners::defaultCornerRadius);
             }
 
-            auto const textColour = PlugDataColours::sidebarTextColour;
+            auto const textColour = colours.sidebarTextColour;
 
             Fonts::drawText(g, items[row], Rectangle<int>(15, 0, width - 30, height), textColour, 15);
         }
@@ -243,7 +245,9 @@ HeavyExportDialog::~HeavyExportDialog()
 
 void HeavyExportDialog::paint(Graphics& g)
 {
-    g.setColour(PlugDataColours::panelBackgroundColour);
+    auto const& colours = getThemeColours(*this);
+
+    g.setColour(colours.panelBackgroundColour);
     g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
 
     auto const titlebarBounds = getLocalBounds().removeFromTop(40);
@@ -251,15 +255,15 @@ void HeavyExportDialog::paint(Graphics& g)
     Path p;
     p.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, true, true, false, false);
 
-    g.setColour(PlugDataColours::toolbarBackgroundColour);
+    g.setColour(colours.toolbarBackgroundColour);
     g.fillPath(p);
 
-    Fonts::drawStyledText(g, "Compiler", Rectangle<float>(0.0f, 4.0f, getWidth(), 32.0f), PlugDataColours::panelTextColour, Semibold, 15, Justification::centred);
+    Fonts::drawStyledText(g, "Compiler", Rectangle<float>(0.0f, 4.0f, getWidth(), 32.0f), colours.panelTextColour, Semibold, 15, Justification::centred);
 }
 
 void HeavyExportDialog::paintOverChildren(Graphics& g)
 {
-    g.setColour(PlugDataColours::toolbarOutlineColour);
+    g.setColour(getThemeColours(*this).toolbarOutlineColour);
     g.drawHorizontalLine(40, 0.0f, getWidth());
 }
 

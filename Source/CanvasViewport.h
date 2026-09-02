@@ -9,7 +9,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_animation/juce_animation.h>
 
-#include <nanovg.h>
+#include <nanovg_async.h>
 #include <utility>
 
 #include "Object.h"
@@ -109,31 +109,31 @@ class CanvasViewport : public Component
             if (approximatelyEqual(minimapAlpha, 0.0f))
                 return;
 
-            nvgGlobalAlpha(nvg, minimapAlpha);
+            nanovg::nvgGlobalAlpha(nvg, minimapAlpha);
 
             auto map = getMapBounds();
 
             float const x = cnv->viewport->getWidth() - (width + 10);
             float const y = cnv->viewport->getHeight() - (height + 10);
 
-            auto const canvasBackground = PlugDataColours::canvasBackgroundColour;
+            auto const canvasBackground = getThemeColours(*this).canvasBackgroundColour;
             auto const mapBackground = canvasBackground.contrasting(0.5f);
 
             // draw background
-            nvgFillColor(nvg, nvgColour(mapBackground.withAlpha(0.4f)));
-            nvgFillRoundedRect(nvg, x - 4, y - 4, width + 8, height + 8, Corners::largeCornerRadius);
+            nanovg::nvgFillColor(nvg, nvgColour(mapBackground.withAlpha(0.4f)));
+            nanovg::nvgFillRoundedRect(nvg, x - 4, y - 4, width + 8, height + 8, Corners::largeCornerRadius);
 
-            nvgFillColor(nvg, nvgColour(mapBackground.withAlpha(0.8f)));
+            nanovg::nvgFillColor(nvg, nvgColour(mapBackground.withAlpha(0.8f)));
 
             // draw objects
             for (auto const* object : cnv->objects) {
                 auto b = (object->getBounds().reduced(Object::margin).translated(map.offsetX, map.offsetY) - cnv->canvasOrigin).toFloat() * map.scale;
-                nvgFillRoundedRect(nvg, x + b.getX(), y + b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius * map.scale);
+                nanovg::nvgFillRoundedRect(nvg, x + b.getX(), y + b.getY(), b.getWidth(), b.getHeight(), getPlugDataLook(*this).getObjectCornerRadius() * map.scale);
             }
 
             // draw visible area
-            nvgDrawRoundedRect(nvg, x + (map.offsetX + map.viewBounds.getX() - cnv->canvasOrigin.x) * map.scale, y + (map.offsetY + map.viewBounds.getY() - cnv->canvasOrigin.y) * map.scale, map.viewBounds.getWidth() * map.scale, map.viewBounds.getHeight() * map.scale, nvgColour(canvasBackground.withAlpha(0.6f)), nvgColour(canvasBackground.contrasting(0.4f)), 0.0f);
-            nvgGlobalAlpha(nvg, 1.0f);
+            nanovg::nvgDrawRoundedRect(nvg, x + (map.offsetX + map.viewBounds.getX() - cnv->canvasOrigin.x) * map.scale, y + (map.offsetY + map.viewBounds.getY() - cnv->canvasOrigin.y) * map.scale, map.viewBounds.getWidth() * map.scale, map.viewBounds.getHeight() * map.scale, nvgColour(canvasBackground.withAlpha(0.6f)), nvgColour(canvasBackground.contrasting(0.4f)), 0.0f);
+            nanovg::nvgGlobalAlpha(nvg, 1.0f);
         }
 
         void mouseEnter(MouseEvent const& e) override
@@ -395,10 +395,11 @@ class CanvasViewport : public Component
 
         void lookAndFeelChanged() override
         {
-            auto const scrollbarColour = findColour(ScrollBar::ColourIds::thumbColourId);
-            scrollbarCol = nvgColour(scrollbarColour);
-            activeScrollbarCol = nvgColour(scrollbarColour.interpolatedWith(PlugDataColours::canvasBackgroundColour.contrasting(0.6f), 0.7f));
-            scrollbarBgCol = nvgColour(scrollbarColour.interpolatedWith(PlugDataColours::canvasBackgroundColour, 0.7f));
+            auto const& colours = getThemeColours(*this);
+
+            scrollbarCol = nvgColour(colours.scrollbarThumbColour);
+            activeScrollbarCol = nvgColour(colours.scrollbarThumbColour.interpolatedWith(colours.canvasBackgroundColour.contrasting(0.6f), 0.7f));
+            scrollbarBgCol = nvgColour(colours.scrollbarThumbColour.interpolatedWith(colours.canvasBackgroundColour, 0.7f));
 
             repaint();
         }
@@ -490,10 +491,10 @@ class CanvasViewport : public Component
             }
 
             scrollbarBgCol.a = (1.0f - growAnimation) * 150;
-            nvgDrawRoundedRect(nvg, fullBounds.getX(), fullBounds.getY(), fullBounds.getWidth(), fullBounds.getHeight(), scrollbarBgCol, scrollbarBgCol, thumbCornerRadius);
+            nanovg::nvgDrawRoundedRect(nvg, fullBounds.getX(), fullBounds.getY(), fullBounds.getWidth(), fullBounds.getHeight(), scrollbarBgCol, scrollbarBgCol, thumbCornerRadius);
 
             auto const scrollBarThumbCol = isMouseDragging ? activeScrollbarCol : scrollbarCol;
-            nvgDrawRoundedRect(nvg, growingBounds.getX(), growingBounds.getY(), growingBounds.getWidth(), growingBounds.getHeight(), scrollBarThumbCol, scrollBarThumbCol, thumbCornerRadius);
+            nanovg::nvgDrawRoundedRect(nvg, growingBounds.getX(), growingBounds.getY(), growingBounds.getWidth(), growingBounds.getHeight(), scrollBarThumbCol, scrollBarThumbCol, thumbCornerRadius);
         }
 
         NVGcolor scrollbarCol;
@@ -553,9 +554,14 @@ public:
         updater.addAnimator(moveAnimator);
         updater.addAnimator(bounceAnimator);
 
-        setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this, [this] {
+        setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this, true, [this] {
             return editor->getTabComponent().getVisibleCanvases().contains(this->cnv);
         }));
+    }
+
+    void render(NVGcontext* nvg) override
+    {
+        cnv->performRender(nvg, getLocalArea(editor, editor->nvgSurface.getInvalidArea()).expanded(2));
     }
 
     void render(NVGcontext* nvg, Rectangle<int> const area)
@@ -564,13 +570,13 @@ public:
 
         if (area.intersects(vbar.getBounds())) {
             NVGScopedState scopedState(nvg);
-            nvgTranslate(nvg, vbar.getX(), vbar.getY());
+            nanovg::nvgTranslate(nvg, vbar.getX(), vbar.getY());
             vbar.render(nvg);
         }
 
         if (area.intersects(hbar.getBounds())) {
             NVGScopedState scopedState(nvg);
-            nvgTranslate(nvg, hbar.getX(), hbar.getY());
+            nanovg::nvgTranslate(nvg, hbar.getX(), hbar.getY());
             hbar.render(nvg);
         }
     }
@@ -618,23 +624,39 @@ public:
         moveAnimator.complete();
         zoomAnimator.complete();
 
-        auto scrollFactor = 1.0f / (1.0f - wheel.deltaY);
-        if (e.mods.isCommandDown()) {
+        if (wheel.isInertial) {
+            if (suppressWheelInertia)
+                return;
+        } else {
+            // A real wheel event starts/continues a new gesture.
+            suppressWheelInertia = false;
+        }
+
+        if (e.eventComponent == this) {
+            if (useMouseWheelMoveIfNeeded(e, wheel))
+                return;
+        }
+
+        if (!wheel.isInertial && e.mods.isCommandDown()) {
+            suppressWheelInertia = true;
+
+            auto const scrollFactor = 1.0f / (1.0f - wheel.deltaY);
+
             if (wheel.isSmooth) {
-                applyScale(std::clamp(getValue<float>(cnv->zoomScale) * scrollFactor, 0.25f, 3.0f), e.position, false);
+                applyScale(
+                    std::clamp(getValue<float>(cnv->zoomScale) * scrollFactor,
+                               0.25f, 3.0f),
+                    e.position,
+                    false);
             } else {
                 mouseMagnify(e, scrollFactor);
             }
         }
-
-        if (e.eventComponent == this)
-            if (!useMouseWheelMoveIfNeeded(e, wheel))
-                Component::mouseWheelMove(e, wheel);
     }
 
     bool useMouseWheelMoveIfNeeded(MouseEvent const& e, MouseWheelDetails const& wheel)
     {
-        if (!(e.mods.isAltDown() || e.mods.isCtrlDown() || e.mods.isCommandDown())) {
+        if (wheel.isInertial || !(e.mods.isAltDown() || e.mods.isCtrlDown() || e.mods.isCommandDown())) {
             auto delta = Point<float>(wheel.deltaX, wheel.deltaY) * 224.0f;
             auto pos = getViewPosition();
 
@@ -902,6 +924,7 @@ private:
     float logicalScale = 1.0f;
     Rectangle<int> previousBounds;
     bool scaleChanged = false;
+    bool suppressWheelInertia = false;
 
     Point<float> smoothedDelta;
     float const smoothingFactor = 0.3f;

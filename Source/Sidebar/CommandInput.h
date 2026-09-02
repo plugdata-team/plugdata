@@ -199,10 +199,12 @@ public:
 
         commandInput.setMultiLine(true);
         commandInput.setReturnKeyStartsNewLine(false);
+        clearButton.setEnabled(false);
 
         commandInput.onTextChange = [this] {
             currentCommand = commandInput.getText();
-            updateSize();
+            clearButton.setEnabled(currentCommand.isNotEmpty());
+            updateHelpButtonState();
         };
 
         commandInput.onReturnKey = [this, pd = editor->pd] {
@@ -213,7 +215,7 @@ public:
             if (countBraces(text) > 0) {
                 commandInput.insertTextAtCaret("\n");
                 setConsoleTargetName("lua");
-                updateSize();
+                updateHelpButtonState();
                 return;
             }
 
@@ -235,7 +237,7 @@ public:
 
             commandInput.clear();
             updateCommandInputTarget();
-            updateSize();
+            updateHelpButtonState();
         };
 
         addAndMakeVisible(commandInput);
@@ -246,7 +248,7 @@ public:
             commandInput.clear();
             currentCommand.clear();
             updateCommandInputTarget();
-            updateSize();
+            updateHelpButtonState();
         };
 
         commandInput.setBorder({ 4, 3, 0, 0 });
@@ -261,7 +263,7 @@ public:
         if (currentCommand.isNotEmpty())
             commandInput.setText(currentCommand);
 
-        updateSize();
+        updateHelpButtonState();
 
         updateHelperCommands();
         Desktop::getInstance().addFocusChangeListener(this);
@@ -292,39 +294,43 @@ public:
         resized();
     }
 
-    void updateSize(bool animate = false)
+    void updateHelpButtonState(bool animate = false)
     {
-        int const extraHeight = hasInputFocus ? helperRowHeight : 0;
-        int const newHeight = std::max(commandInput.getTextHeight() + 4, 30) + extraHeight;
+        int const height = getInputHeight() + (hasInputFocus ? helperRowHeight : 0);
+        auto newBounds = Rectangle<int>(getX(), getBounds().getBottom() - height, getWidth(), height);
+        if(newBounds != getBounds())
+        {
+            setBounds(newBounds);
+            if(auto* parent = getParentComponent())
+                parent->resized();
+        }
 
-        auto const fromBounds = getBounds();
-        auto const targetBounds = Rectangle<int>(fromBounds.getX(), fromBounds.getBottom() - newHeight, fromBounds.getWidth(), newHeight);
-
-        if (fromBounds == targetBounds)
-            return;
 
         if (!animate) {
-            sizeAnimator.complete();
-            setBounds(targetBounds);
+            fadeAnimator.complete();
+            for (auto* btn : helperButtons)
+                btn->setVisible(hasInputFocus);
             return;
         }
 
-        sizeAnimator = ValueAnimatorBuilder { }
+        fadeAnimator = ValueAnimatorBuilder { }
                            .withEasing(Easings::createEaseInOut())
                            .withDurationMs(180)
-                           .withValueChangedCallback([this, fromBounds, targetBounds](auto v) {
-                               auto start = std::make_tuple(fromBounds.getX(), fromBounds.getY(), fromBounds.getWidth(), fromBounds.getHeight());
-                               auto end = std::make_tuple(targetBounds.getX(), targetBounds.getY(), targetBounds.getWidth(), targetBounds.getHeight());
-                               auto const [x, y, w, h] = makeAnimationLimits(start, end).lerp(v);
-                               setBounds(x, y, w, h);
+                           .withValueChangedCallback([this](auto v) {
+                               auto fade = makeAnimationLimits(0.0f, 1.0f).lerp(hasInputFocus ? v : 1.0f - v);
+
+                               for (auto* btn : helperButtons) {
+                                   if(hasInputFocus) btn->setVisible(true);
+                                   btn->setAlpha(fade);
+                               }
                            })
                            .build();
 
-        animatorUpdater.addAnimator(sizeAnimator, [this]() {
+        animatorUpdater.addAnimator(fadeAnimator, [this]() {
             for (auto* btn : helperButtons)
                 btn->setVisible(hasInputFocus);
         });
-        sizeAnimator.start();
+        fadeAnimator.start();
     }
 
     static int countBraces(String const& text)
@@ -357,6 +363,7 @@ public:
         }
 
         setConsoleTargetName(name);
+        clearButton.setEnabled(currentCommand.isNotEmpty());
     }
 
     static UnorderedMap<String, Object*> getUniqueObjectNames(Canvas* cnv)
@@ -455,7 +462,7 @@ public:
         auto markupDisplay = std::make_unique<MarkupDisplay::MarkupDisplayComponent>();
         markupDisplay->setURLHandler(this);
         markupDisplay->setFont(Fonts::getDefaultFont());
-        markupDisplay->setColour(PlugDataColour::canvasBackgroundColourId, PlugDataColours::levelMeterBackgroundColour);
+        markupDisplay->setColour(PlugDataColour::canvasBackgroundColourId, getThemeColours(*this).popupMenuActiveBackgroundColour);
         markupDisplay->setMarkupString(documentationString);
         markupDisplay->setSize(250, 200);
         markupDisplay->setVisible(true);
@@ -775,7 +782,7 @@ public:
         for (auto* btn : helperButtons)
             btn->setVisible(false);
 
-        updateSize(true); // animate on focus change
+        updateHelpButtonState(true); // animate on focus change
     }
 
     void handleURL(String const& url) override // when documentation links or codeblocks are clicked
@@ -786,27 +793,25 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
         auto bounds = getLocalBounds();
-        int const inputHeight = std::max(commandInput.getTextHeight() + 4, 30);
+        int const inputHeight = getInputHeight();
         auto const inputRow = bounds.removeFromBottom(inputHeight);
 
-        g.setColour(PlugDataColours::sidebarTextColour);
+        g.setColour(colours.toolbarOutlineColour.withAlpha(0.8f));
+        g.drawHorizontalLine(getHeight() - inputHeight, 0, getWidth());
+
+        g.setColour(colours.sidebarTextColour);
         g.setFont(Fonts::getSemiBoldFont().withHeight(15));
         g.drawText(consoleTargetName, inputRow.getX() + 9, inputRow.getY(),
             consoleTargetLength, inputRow.getHeight() - 1, Justification::centredLeft);
     }
 
-    void paint(Graphics& g) override
-    {
-        auto bounds = getLocalBounds();
-        g.setColour(PlugDataColours::levelMeterBackgroundColour);
-        g.fillRoundedRectangle(bounds.reduced(2, 1).toFloat(), Corners::defaultCornerRadius);
-    }
-
     void resized() override
     {
         auto bounds = getLocalBounds();
-        int const inputHeight = std::max(commandInput.getTextHeight() + 4, 30);
+        int const inputHeight = getInputHeight();
 
         if (hasInputFocus) {
             auto const helperSpace = std::max(0, bounds.getHeight() - inputHeight);
@@ -818,10 +823,25 @@ public:
             }
         }
 
-        auto const clearBounds = bounds.removeFromRight(30).removeFromBottom(inputHeight);
+        auto const clearBounds = bounds.removeFromRight(32).removeFromBottom(inputHeight);
         clearButton.setBounds(clearBounds);
         commandInput.setBounds(bounds.withTrimmedLeft(consoleTargetLength + 4).removeFromBottom(inputHeight));
     }
+
+    int getInputHeight() const
+    {
+        auto const border = commandInput.getBorder();
+        auto const viewportHeight = commandInput.getHeight() - border.getTopAndBottom();
+        auto const laidOutTextHeight = commandInput.getTextHeight();
+
+        if (laidOutTextHeight > viewportHeight)
+            return std::max(laidOutTextHeight + border.getTopAndBottom(), 30);
+
+        auto const endCaret = commandInput.getCaretRectangleForCharIndex(commandInput.getTotalNumChars());
+        return std::max(endCaret.getBottom() + border.getBottom(), 30);
+    }
+
+    String getConsoleTargetName() const { return consoleTargetName; }
 
     void setConsoleTargetName(String const& target)
     {
@@ -857,7 +877,7 @@ public:
     {
         if (key.getKeyCode() == KeyPress::returnKey && key.getModifiers().isShiftDown()) {
             commandInput.insertTextAtCaret("\n");
-            updateSize();
+            updateHelpButtonState();
             return true;
         }
         if (key.getKeyCode() == KeyPress::upKey && !commandInput.getText().containsChar('\n')) {
@@ -910,7 +930,7 @@ private:
     static constexpr int helperRowHeight = 26;
 
     VBlankAnimatorUpdater animatorUpdater { this };
-    Animator sizeAnimator = ValueAnimatorBuilder { }.build();
+    Animator fadeAnimator = ValueAnimatorBuilder { }.build();
 
     static inline StringArray const helperCommands = {
         "help", "man", "ls", "sel", "cnv", "pd"

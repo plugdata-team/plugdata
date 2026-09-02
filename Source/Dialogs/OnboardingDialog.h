@@ -18,14 +18,15 @@ struct OnboardingMockupColours {
 
     static OnboardingMockupColours fromCurrent(Component const& c)
     {
-        return { PlugDataColours::canvasBackgroundColour,
-                 PlugDataColours::sidebarBackgroundColour,
-                 PlugDataColours::toolbarBackgroundColour,
-                 PlugDataColours::outlineColour,
-                 PlugDataColours::textObjectBackgroundColour,
-                 PlugDataColours::objectOutlineColour,
-                 PlugDataColours::canvasTextColour,
-                 PlugDataColours::toolbarActiveColour };
+        auto const& colours = getThemeColours(c);
+        return { colours.canvasBackgroundColour,
+                 colours.sidebarBackgroundColour,
+                 colours.toolbarBackgroundColour,
+                 colours.outlineColour,
+                 colours.textObjectBackgroundColour,
+                 colours.objectOutlineColour,
+                 colours.canvasTextColour,
+                 colours.toolbarActiveColour };
     }
 
     static OnboardingMockupColours fromTheme(DynamicObject::Ptr tree)
@@ -92,45 +93,6 @@ static void drawDockedWindowMockup(Graphics& g, Rectangle<float> bounds,
     g.drawLine(titleBar.getX(), titleBar.getBottom(),
                titleBar.getRight(), titleBar.getBottom(), 1.0f);
 }
-
-static void drawFloatingWindowMockup(Graphics& g, Rectangle<float> bounds,
-                                     OnboardingMockupColours const& c)
-{
-    auto window = bounds.reduced(6.0f);
-
-    g.setColour(c.canvasBg);
-    g.fillRoundedRectangle(window, Corners::defaultCornerRadius);
-
-    auto titleBar = window.withHeight(14.0f);
-    Path titleClip;
-    titleClip.addRoundedRectangle(titleBar.getX(), titleBar.getY(),
-                                  titleBar.getWidth(), titleBar.getHeight(),
-                                  Corners::defaultCornerRadius, Corners::defaultCornerRadius, true, true, false, false);
-    g.setColour(c.toolbarBg);
-    g.fillPath(titleClip);
-    for (int i = 0; i < 3; ++i) {
-        g.setColour(c.canvasText.withAlpha(0.45f));
-        g.fillEllipse(titleBar.getX() + 6 + i * 7, titleBar.getCentreY() - 2.5f, 5, 5);
-    }
-
-    auto inner = window.withTrimmedTop(14.0f);
-    auto leftMini = inner.removeFromLeft(20).withSizeKeepingCentre(10, 32);
-    auto rightMini = inner.removeFromRight(20).withSizeKeepingCentre(10, 32);
-    auto bottomMini = inner.removeFromBottom(20).withSizeKeepingCentre(40, 10);
-
-    for (auto r : { leftMini, rightMini, bottomMini }) {
-        g.setColour(c.sidebarBg);
-        g.fillRoundedRectangle(r, 4.0f);
-        g.setColour(c.outline.withAlpha(0.85f));
-        g.drawRoundedRectangle(r, 4.0f, 1.0f);
-    }
-
-    g.setColour(c.outline);
-    g.drawRoundedRectangle(window, Corners::defaultCornerRadius, 1.0f);
-    g.drawLine(titleBar.getX(), titleBar.getBottom(),
-               titleBar.getRight(), titleBar.getBottom(), 1.0f);
-}
-
 
 class OnboardingPageIndicator final : public Component {
 public:
@@ -545,72 +507,6 @@ private:
     OnboardingThemeGrid grid;
     String selectedTheme;
     String selectedAltTheme;
-};
-
-class OnboardingPanelChoiceCard final : public OnboardingCard {
-public:
-    bool floating;
-    String label;
-
-    OnboardingPanelChoiceCard(bool isFloating, String lbl)
-        : floating(isFloating), label(std::move(lbl)) {}
-
-    void paintCardContent(Graphics& g, Rectangle<float> bounds) override
-    {
-        auto labelArea = bounds.removeFromBottom(28.0f);
-        auto cols = OnboardingMockupColours::fromCurrent(*this);
-        if (floating) drawFloatingWindowMockup(g, bounds, cols);
-        else          drawDockedWindowMockup(g, bounds, cols, /*drawObject=*/false);
-
-        g.setColour(findColour(PlugDataColour::panelTextColourId));
-        g.setFont(Fonts::getSemiBoldFont().withHeight(15.0f));
-        g.drawText(label, labelArea.toNearestInt(), Justification::centred);
-    }
-};
-
-class OnboardingPanelsPage final : public OnboardingPage {
-public:
-    OnboardingPanelsPage()
-        : OnboardingPage("Panel layout",
-                         "Choose your preferred UI layout.")
-    {
-        addAndMakeVisible(docked);
-        addAndMakeVisible(floating);
-        docked.onClick = [this] { setFloating(false); };
-        floating.onClick = [this] { setFloating(true); };
-        setFloating(SettingsFile::getInstance()->getProperty<int>("floating_panels") != 0);
-    }
-
-    void resized() override
-    {
-        auto area = getContentArea().reduced(10);
-        int const cardW = std::min(260, (area.getWidth() - 24) / 2);
-        int const cardH = std::min(area.getHeight(), 250);
-        int const totalW = cardW * 2 + 24;
-        int const x = area.getCentreX() - totalW / 2;
-        int const y = area.getCentreY() - cardH / 2;
-        docked.setBounds(x, y, cardW, cardH);
-        floating.setBounds(x + cardW + 24, y, cardW, cardH);
-    }
-
-    void apply() override
-    {
-        SettingsFile::getInstance()->setProperty("floating_panels", var(useFloating));
-    }
-
-private:
-    void setFloating(bool f)
-    {
-        useFloating = f;
-        docked.selected = !f;
-        floating.selected = f;
-        docked.repaint();
-        floating.repaint();
-    }
-
-    OnboardingPanelChoiceCard docked { false, "Docked" };
-    OnboardingPanelChoiceCard floating { true, "Floating" };
-    bool useFloating = false;
 };
 
 class OnboardingKeymapCard final : public OnboardingCard {
@@ -1116,7 +1012,6 @@ public:
         pages.add(new OnboardingWelcomePage());
         pages.add(new OnboardingUseCasePage());
         pages.add(new OnboardingThemePage());
-        pages.add(new OnboardingPanelsPage());
         pages.add(new OnboardingKeymapPage(editor));
         pages.add(new OnboardingDisplayPage());
         pages.add(new OnboardingDocsPage());
@@ -1158,22 +1053,24 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.setColour(PlugDataColours::panelBackgroundColour);
+        auto const& colours = getThemeColours(*this);
+
+        g.setColour(colours.panelBackgroundColour);
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
 
         auto const titlebarBounds = getLocalBounds().removeFromTop(toolbarHeight).toFloat();
         Path tb;
         tb.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, true, true, false, false);
-        g.setColour(PlugDataColours::toolbarBackgroundColour);
+        g.setColour(colours.toolbarBackgroundColour);
         g.fillPath(tb);
 
-        g.setColour(PlugDataColours::toolbarOutlineColour);
+        g.setColour(colours.toolbarOutlineColour);
         g.drawHorizontalLine(toolbarHeight, 0.0f, (float)getWidth());
 
-        g.setColour(PlugDataColours::toolbarOutlineColour);
+        g.setColour(colours.toolbarOutlineColour);
         g.drawHorizontalLine(getHeight() - footerHeight, 0.0f, (float)getWidth());
 
-        Fonts::drawStyledText(g, "Onboarding", Rectangle<float>(0.0f, 4.0f, (float)getWidth(), (float)toolbarHeight - 8.0f), PlugDataColours::panelTextColour, Semibold, 15, Justification::centred);
+        Fonts::drawStyledText(g, "Onboarding", Rectangle<float>(0.0f, 4.0f, (float)getWidth(), (float)toolbarHeight - 8.0f), colours.panelTextColour, Semibold, 15, Justification::centred);
     }
 
     void resized() override
@@ -1213,7 +1110,7 @@ private:
 
     void styleButton(TextButton& b, String const& text = "")
     {
-        auto const backgroundColour = PlugDataColours::panelBackgroundColour;
+        auto const backgroundColour = getThemeColours(*this).panelBackgroundColour;
         b.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
         b.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.10f));
         b.setColour(ComboBox::outlineColourId, Colours::transparentBlack);

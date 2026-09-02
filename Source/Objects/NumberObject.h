@@ -367,28 +367,30 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        auto const& colours = getThemeColours();
+
         auto const b = getLocalBounds().toFloat();
 
         bool const selected = object->isSelected() && !cnv->isGraph;
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundCol, nvgColour(selected ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour), Corners::objectCornerRadius);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundCol, nvgColour(selected ? colours.objectSelectedOutlineColour : colours.objectOutlineColour), getPlugDataLook(*this).getObjectCornerRadius());
 
         constexpr float indent = 9.0f;
         Rectangle<float> const iconBounds = { (b.getX() + 4.0f), (b.getY() + 4.0f), (indent - 4.0f), (b.getHeight() - 8.0f) };
 
         auto const centreY = iconBounds.getCentreY();
         auto const leftX = iconBounds.getX();
-        nvgBeginPath(nvg);
-        nvgMoveTo(nvg, leftX, centreY + 5.0f);
-        nvgLineTo(nvg, iconBounds.getRight(), centreY);
-        nvgLineTo(nvg, leftX, centreY - 5.0f);
-        nvgClosePath(nvg);
+        nanovg::nvgBeginPath(nvg);
+        nanovg::nvgMoveTo(nvg, leftX, centreY + 5.0f);
+        nanovg::nvgLineTo(nvg, iconBounds.getRight(), centreY);
+        nanovg::nvgLineTo(nvg, leftX, centreY - 5.0f);
+        nanovg::nvgClosePath(nvg);
 
         bool const highlighted = hasKeyboardFocus(true) && getValue<bool>(object->locked);
-        auto const flagCol = highlighted ? nvgColour(PlugDataColours::objectSelectedOutlineColour) : nvgColour(PlugDataColours::guiObjectInternalOutlineColour);
+        auto const flagCol = highlighted ? nvgColour(colours.objectSelectedOutlineColour) : nvgColour(colours.guiObjectInternalOutlineColour);
 
-        nvgFillColor(nvg, flagCol);
-        nvgFill(nvg);
+        nanovg::nvgFillColor(nvg, flagCol);
+        nanovg::nvgFill(nvg);
 
         input.render(nvg, cnv->editor->getNanoLLGC());
     }

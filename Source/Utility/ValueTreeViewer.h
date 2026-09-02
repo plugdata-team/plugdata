@@ -33,12 +33,13 @@ class ValueTreeNodeComponent final : public Component {
 
         void paint(Graphics& g) override
         {
-            if (!treeLine.isEmpty()) {
-                auto const colour = isHover && !node->isOpenInSearchMode() ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::panelTextColour.withAlpha(0.25f);
+            auto const& colours = getThemeColours(*this);
 
-                g.reduceClipRegion(treeLineImage, AffineTransform());
-                g.fillAll(colour);
-            }
+            auto const colour = isHover && !node->isOpenInSearchMode() ? colours.objectSelectedOutlineColour : colours.panelTextColour.withAlpha(0.25f);
+
+            g.setColour(colour);
+            g.drawVerticalLine(4.0f, 0.0f, getHeight() - 3.0f);
+            g.fillEllipse(Rectangle<float>(2.0f, getHeight() - 5.0f, 5.0f, 5.0f));
         }
 
         void mouseEnter(MouseEvent const& e) override
@@ -78,32 +79,9 @@ class ValueTreeNodeComponent final : public Component {
             }
         }
 
-        void resized() override
-        {
-            treeLine.clear();
-
-            if (getParentComponent()->isVisible()) {
-                // create a line to show the current branch
-                auto const b = getLocalBounds();
-                auto const lineEnd = Point<float>(4.0f, b.getHeight() - 3.0f);
-                treeLine.startNewSubPath(4.0f, 0.0f);
-                treeLine.lineTo(lineEnd);
-
-                if (!b.isEmpty()) {
-                    treeLineImage = Image(Image::PixelFormat::ARGB, b.getWidth(), b.getHeight(), true);
-                    Graphics treeLineG(treeLineImage);
-                    treeLineG.setColour(Colours::white);
-                    treeLineG.strokePath(treeLine, PathStrokeType(1.0f));
-                    auto const ballEnd = Rectangle<float>(0, 0, 5, 5).withCentre(lineEnd);
-                    treeLineG.fillEllipse(ballEnd);
-                }
-            }
-        }
 
     private:
         ValueTreeNodeComponent* node;
-        Path treeLine;
-        Image treeLineImage;
         bool isHover = false;
     };
 
@@ -171,7 +149,7 @@ public:
         p.lineTo(0.5f, 0.5f);
         p.lineTo(isOpen() ? 1.0f : 0.0f, isOpen() ? 0.0f : 1.0f);
 
-        g.setColour(PlugDataColours::sidebarTextColour);
+        g.setColour(getThemeColours(*this).sidebarTextColour);
         g.strokePath(p, PathStrokeType(1.5f, PathStrokeType::curved, PathStrokeType::rounded), p.getTransformToScaleToFit(arrowArea, true));
     }
 
@@ -250,9 +228,11 @@ public:
 
     void paint(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
         // Either show single selection or multi-selection
         if (getOwnerView()->selectedNode ? isSelected() : valueTreeNode.getProperty("Selected") == var(true)) {
-            auto const highlightCol = PlugDataColours::sidebarActiveBackgroundColour;
+            auto const highlightCol = colours.sidebarActiveBackgroundColour;
             g.setColour(isSelected() ? highlightCol.brighter(0.2f) : highlightCol);
             g.fillRoundedRectangle(getLocalBounds().withHeight(25).reduced(2).toFloat(), Corners::defaultCornerRadius);
         }
@@ -268,7 +248,7 @@ public:
             paintOpenCloseButton(g, arrowBounds);
         }
 
-        auto colour = PlugDataColours::sidebarTextColour;
+        auto colour = colours.sidebarTextColour;
 
         if (valueTreeNode.hasProperty("Icon")) {
             auto iconColour = colour;
@@ -292,7 +272,7 @@ public:
             //  ╰──────────╯
             auto sendSymbolText = valueTreeNode.getProperty("PDSymbol").toString();
             auto length = Fonts.getStringWidthInt(sendSymbolText, 15);
-            auto sendColour = PlugDataColours::objectSelectedOutlineColour.withRotatedHue(0.25);
+            auto sendColour = colours.objectSelectedOutlineColour.withRotatedHue(0.25);
             g.setColour(sendColour.withAlpha(0.2f));
             auto tagBounds = itemBounds.removeFromLeft(length).translated(4, 0).reduced(0, 5).expanded(2, 0);
             g.fillRoundedRectangle(tagBounds.toFloat(), Corners::defaultCornerRadius * 0.8f);
@@ -310,7 +290,7 @@ public:
             if (valueTreeNode.hasProperty("ReceiveSymbol")) {
                 auto receiveSymbolText = (valueTreeNode.hasProperty("ReceiveObject") ? "" : "r: ") + valueTreeNode.getProperty("ReceiveSymbol").toString();
                 auto length = Fonts::getStringWidth(receiveSymbolText, 15);
-                auto recColour = PlugDataColours::objectSelectedOutlineColour;
+                auto recColour = colours.objectSelectedOutlineColour;
                 g.setColour(recColour.withAlpha(0.2f));
                 auto tagBounds = itemBounds.removeFromLeft(length).translated(4, 0).reduced(0, 5).expanded(2, 0).toFloat();
                 Path flag;
@@ -341,7 +321,7 @@ public:
             if (valueTreeNode.hasProperty("SendSymbol")) {
                 auto sendSymbolText = (valueTreeNode.hasProperty("SendObject") ? "" : "s: ") + valueTreeNode.getProperty("SendSymbol").toString();
                 auto length = Fonts::getStringWidth(sendSymbolText, 15);
-                auto sendColour = PlugDataColours::objectSelectedOutlineColour.withRotatedHue(0.5f);
+                auto sendColour = colours.objectSelectedOutlineColour.withRotatedHue(0.5f);
                 g.setColour(sendColour.withAlpha(0.2f));
                 auto tagBounds = itemBounds.removeFromLeft(length).translated(4, 0).reduced(0, 5).expanded(2, 0).toFloat();
                 Path flag;
@@ -638,7 +618,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.fillAll(PlugDataColours::sidebarBackgroundColour);
+        g.fillAll(getThemeColours(*this).sidebarBackgroundColour);
     }
 
     int getTotalContentHeight() const

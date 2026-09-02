@@ -30,6 +30,7 @@ public:
         addAndMakeVisible(&installButton);
 
         installButton.onClick = [this] {
+            installButton.setEnabled(false);
             errorMessage = "";
             repaint();
 
@@ -59,6 +60,7 @@ public:
                     errorMessage = "Error: Could not download files (possibly no network connection)";
                     installButton.topText = "Try Again";
                 }
+                installButton.setEnabled(true);
                 repaint();
                 return;
             }
@@ -66,6 +68,7 @@ public:
             catch (...) {
                 errorMessage = "Error: Unknown error, contact support";
                 installButton.topText = "Try Again";
+                installButton.setEnabled(true);
                 repaint();
                 return;
             }
@@ -91,7 +94,9 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto const colour = PlugDataColours::panelTextColour;
+        auto const& colours = getThemeColours(*this);
+
+        auto const colour = colours.panelTextColour;
         if (needsUpdate) {
             Fonts::drawStyledText(g, "Toolchain needs to be updated", 0, getHeight() / 2 - 150, getWidth(), 40, colour, Bold, 32, Justification::horizontallyCentred);
         } else {
@@ -114,10 +119,10 @@ public:
             auto const downloadBarBg = Rectangle<float>(90.0f, 250.0f - downloadBarBgHeight * 0.5, width, downloadBarBgHeight);
             auto const downloadBar = Rectangle<float>(91.5f, 250.0f - downloadBarHeight * 0.5, progress, downloadBarHeight);
 
-            g.setColour(PlugDataColours::panelTextColour);
+            g.setColour(colours.panelTextColour);
             g.fillRoundedRectangle(downloadBarBg, Corners::defaultCornerRadius);
 
-            g.setColour(PlugDataColours::panelActiveBackgroundColour);
+            g.setColour(colours.panelActiveBackgroundColour);
             g.fillRoundedRectangle(downloadBar, Corners::defaultCornerRadius);
         }
 
@@ -126,7 +131,7 @@ public:
         }
 
         if (isTimerRunning()) {
-            getLookAndFeel().drawSpinningWaitAnimation(g, PlugDataColours::panelTextColour, getWidth() / 2 - 16, getHeight() / 2 + 118, 32, 32);
+            getLookAndFeel().drawSpinningWaitAnimation(g, colours.panelTextColour, getWidth() / 2 - 16, getHeight() / 2 + 118, 32, 32);
         }
     }
 
@@ -196,22 +201,26 @@ public:
         auto success = Decompress::extractTarXz((uint8_t const*)toolchainData.getData(), toolchainData.getSize(), toolchainDir.getParentDirectory(), expectedSize);
 
         if (!success || statusCode >= 400) {
-            MessageManager::callAsync([this] {
-                installButton.topText = "Try Again";
-                errorMessage = "Error: Could not extract downloaded package";
-                repaint();
-                stopTimer();
+            MessageManager::callAsync([_this = SafePointer(this)] {
+                if (!_this)
+                    return;
+                _this->installButton.topText = "Try Again";
+                _this->errorMessage = "Error: Could not extract downloaded package";
+                _this->installButton.setEnabled(true);
+                _this->repaint();
+                _this->stopTimer();
             });
             return;
         }
 
 #if JUCE_WINDOWS
-        File usbDriverInstaller = toolchainDir.getChildFile("etc").getChildFile("usb_driver").getChildFile("install-filter.exe");
-        File driverSpec = toolchainDir.getChildFile("etc").getChildFile("usb_driver").getChildFile("DFU_in_FS_Mode.inf");
+        File usbDriverInstaller = toolchainDir.getChildFile("usr").getChildFile("etc").getChildFile("usb_driver").getChildFile("install-filter.exe");
+        File driverSpec = toolchainDir.getChildFile("usr").getChildFile("etc").getChildFile("usb_driver").getChildFile("DFU_in_FS_Mode.inf");
 
         // Since we interact with ComponentPeer, better call it from the message thread
-        MessageManager::callAsync([this, usbDriverInstaller, driverSpec]() mutable {
-            OSUtils::runAsAdmin(usbDriverInstaller.getFullPathName().toStdString(), ("install --inf=" + driverSpec.getFullPathName()).toStdString(), editor->getPeer());
+        MessageManager::callAsync([_this = SafePointer(this), usbDriverInstaller, driverSpec]() mutable {
+            if (_this)
+                OSUtils::runAsAdmin(usbDriverInstaller.getFullPathName().toStdString(), ("install --inf=" + driverSpec.getFullPathName()).toStdString(), _this->editor->getPeer());
         });
 #endif
 
@@ -239,9 +248,12 @@ public:
         installProgress = 0.0f;
         stopTimer();
 
-        MessageManager::callAsync([this] {
-            dialog->setBlockFromClosing(false);
-            toolchainInstalledCallback();
+        MessageManager::callAsync([_this = SafePointer(this)] {
+            if (!_this)
+                return;
+            _this->dialog->setBlockFromClosing(false);
+            _this->installButton.setEnabled(true);
+            _this->toolchainInstalledCallback();
         });
     }
 
@@ -278,9 +290,11 @@ public:
 
         void paint(Graphics& g) override
         {
-            auto const colour = PlugDataColours::panelTextColour;
-            if (isMouseOver()) {
-                g.setColour(PlugDataColours::panelActiveBackgroundColour);
+            auto const& colours = getThemeColours(*this);
+
+            auto const colour = colours.panelTextColour.withAlpha(isEnabled() ? 1.0f : 0.5f);
+            if (isMouseOver() && isEnabled()) {
+                g.setColour(colours.panelActiveBackgroundColour);
                 g.fillRoundedRectangle(Rectangle<float>(1, 1, getWidth() - 2, getHeight() - 2), Corners::largeCornerRadius);
             }
 
@@ -291,7 +305,7 @@ public:
 
         void mouseUp(MouseEvent const& e) override
         {
-            if (!e.mods.isLeftButtonDown())
+            if (!e.mods.isLeftButtonDown() || !isEnabled())
                 return;
 
             onClick();

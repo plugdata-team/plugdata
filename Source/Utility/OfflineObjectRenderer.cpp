@@ -21,7 +21,7 @@
 #include "Objects/IEMHelper.h"
 #include "Objects/CanvasObject.h"
 
-ImageWithOffset OfflineObjectRenderer::patchToMaskedImage(String const& patch, float const scale, bool const makeInvalidImage)
+ImageWithOffset OfflineObjectRenderer::patchToMaskedImage(PlugDataLook const& look, String const& patch, float const scale, bool const makeInvalidImage)
 {
     auto const image = patchToTempImage(patch, scale);
     auto const width = image.image.getWidth();
@@ -30,7 +30,7 @@ ImageWithOffset OfflineObjectRenderer::patchToMaskedImage(String const& patch, f
 
     Graphics g(output);
     g.reduceClipRegion(image.image, AffineTransform());
-    auto const backgroundColour = PlugDataColours::objectSelectedOutlineColour.withAlpha(0.3f);
+    auto const backgroundColour = look.getColours().objectSelectedOutlineColour.withAlpha(0.3f);
     g.fillAll(backgroundColour);
 
     if (makeInvalidImage) {
@@ -296,26 +296,6 @@ SmallArray<Rectangle<int>> OfflineObjectRenderer::getObjectBoundsForPatch(String
     });
 
     return objectBounds;
-}
-
-String OfflineObjectRenderer::patchToSVG(String const& patch)
-{
-    auto objectRects = getObjectBoundsForPatch(patch);
-
-    String svgContent;
-    auto regionOfInterest = Rectangle<int>();
-    for (auto& b : objectRects) {
-        regionOfInterest = regionOfInterest.getUnion(b.reduced(Object::margin));
-    }
-
-    for (auto& b : objectRects) {
-        auto rect = b - regionOfInterest.getPosition();
-        svgContent += String::formatted(
-            "<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" rx=\"%.1f\" ry=\"%.1f\" />\n",
-            rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight(), Corners::objectCornerRadius, Corners::objectCornerRadius);
-    }
-
-    return "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">\n" + svgContent + "</svg>";
 }
 
 ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch, float const scale)

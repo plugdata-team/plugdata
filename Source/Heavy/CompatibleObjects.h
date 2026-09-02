@@ -28,7 +28,6 @@ class HeavyCompatibleObjects {
         "abs",
         "atan",
         "atan2",
-        "array",
         "b",
         "bang",
         "bendin",
@@ -61,6 +60,7 @@ class HeavyCompatibleObjects {
         "inlet",
         "int",
         "line",
+        "list",
         "loadbang",
         "log",
         "makenote",
@@ -176,6 +176,7 @@ class HeavyCompatibleObjects {
         "tabread4~",
         "tabread~",
         "tabwrite~",
+        "threshold~",
         "throw~",
         "vcf~",
         "vd~",
@@ -195,6 +196,7 @@ class HeavyCompatibleObjects {
         "hv.eq~",
         "hv.exp~",
         "hv.filter.gain~",
+        "hv.filter.sig~",
         "hv.filter~",
         "hv.flanger~",
         "hv.flanger2~",
@@ -287,7 +289,6 @@ class HeavyCompatibleObjects {
         "msg",
         "message",
         "invalid",
-        "text",
     };
 
     static StringArray initialiseCompatibleObjects()

@@ -51,7 +51,7 @@ public:
         addAndMakeVisible(flashButton);
         addAndMakeVisible(flashBootloaderButton);
 
-        auto const backgroundColour = PlugDataColours::panelBackgroundColour;
+        auto const backgroundColour = getThemeColours(*this).panelBackgroundColour;
         flashButton.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
         flashButton.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
         flashButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
@@ -90,8 +90,9 @@ public:
                 exportingView->showState(result ? ExportingProgressView::BootloaderFlashFailure : ExportingProgressView::BootloaderFlashSuccess);
                 exportingView->stopMonitoring();
 
-                MessageManager::callAsync([this] {
-                    repaint();
+                MessageManager::callAsync([_this = SafePointer(this)] {
+                    if (_this)
+                        _this->repaint();
                 });
             });
         };

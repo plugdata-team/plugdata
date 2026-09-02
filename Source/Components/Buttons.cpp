@@ -31,20 +31,18 @@ String MainToolbarButton::getTooltip()
 
 void MainToolbarButton::paint(Graphics& g)
 {
+    auto const& colours = getThemeColours(*this);
+
     bool const active = isOver() || isDown() || getToggleState();
 
     auto constexpr cornerSize = Corners::defaultCornerRadius;
-    auto const backgroundColour = active ? PlugDataColours::toolbarHoverColour : Colours::transparentBlack;
-    auto bounds = getLocalBounds().reduced(3, 4).toFloat();
+    auto const backgroundColour = active ? colours.toolbarHoverColour : Colours::transparentBlack;
+    auto bounds = getLocalBounds().reduced(4, 5).toFloat();
 
     g.setColour(backgroundColour);
     g.fillRoundedRectangle(bounds, cornerSize);
 
-    auto const textColour = PlugDataColours::toolbarTextColour.withMultipliedAlpha(isEnabled() ? 1.0f : 0.5f);
-
-#if JUCE_MAC
-    bounds = bounds.withTrimmedBottom(2);
-#endif
+    auto const textColour = colours.toolbarTextColour.withMultipliedAlpha(isEnabled() ? 1.0f : 0.5f);
 
     g.setFont(Fonts::getIconFont().withHeight(getHeight() / 2.7));
     g.setColour(textColour);
@@ -101,19 +99,27 @@ void SmallIconButton::mouseExit(MouseEvent const& e)
     repaint();
 }
 
+void SmallIconButton::setIconFontSize(int newSize)
+{
+    iconSize = newSize;
+    repaint();
+}
+
 void SmallIconButton::paint(Graphics& g)
 {
-    auto colour = PlugDataColours::toolbarTextColour;
+    auto const& colours = getThemeColours(*this);
+
+    auto colour = colours.toolbarTextColour;
 
     if (!isEnabled()) {
-        colour = Colours::grey;
+        colour = colour.withAlpha(0.35f);
     } else if (getToggleState()) {
-        colour = PlugDataColours::toolbarActiveColour;
+        colour = colours.toolbarActiveColour;
     } else if (isMouseOver()) {
-        colour = PlugDataColours::toolbarTextColour.brighter(0.8f);
+        colour = colours.toolbarTextColour.brighter(0.8f);
     }
 
-    Fonts::drawIcon(g, getButtonText(), getLocalBounds(), colour, 12);
+    Fonts::drawIcon(g, getButtonText(), getLocalBounds(), colour, iconSize);
 }
 
 WidePanelButton::WidePanelButton(String const& icon, int const iconSize)
@@ -134,6 +140,8 @@ void WidePanelButton::mouseExit(MouseEvent const& e)
 
 void WidePanelButton::paint(Graphics& g)
 {
+    auto const& colours = getThemeColours(*this);
+
     bool const flatOnLeft = isConnectedOnLeft();
     bool const flatOnRight = isConnectedOnRight();
     bool const flatOnTop = isConnectedOnTop();
@@ -150,14 +158,14 @@ void WidePanelButton::paint(Graphics& g)
         !(flatOnLeft || flatOnBottom),
         !(flatOnRight || flatOnBottom));
 
-    g.setColour(isMouseOver() ? PlugDataColours::panelActiveBackgroundColour : PlugDataColours::panelForegroundColour);
+    g.setColour(isMouseOver() ? colours.panelActiveBackgroundColour : colours.panelForegroundColour);
     g.fillPath(outline);
 
-    g.setColour(PlugDataColours::toolbarOutlineColour);
+    g.setColour(colours.toolbarOutlineColour);
     g.strokePath(outline, PathStrokeType(1));
 
-    Fonts::drawText(g, getButtonText(), getLocalBounds().reduced(12, 2), PlugDataColours::panelTextColour, 15);
-    Fonts::drawIcon(g, icon, getLocalBounds().reduced(12, 2).removeFromRight(24), PlugDataColours::panelTextColour, iconSize);
+    Fonts::drawText(g, getButtonText(), getLocalBounds().reduced(12, 2), colours.panelTextColour, 15);
+    Fonts::drawIcon(g, icon, getLocalBounds().reduced(12, 2).removeFromRight(24), colours.panelTextColour, iconSize);
 }
 
 SettingsToolbarButton::SettingsToolbarButton(String iconToUse, String textToShow)
@@ -170,10 +178,12 @@ SettingsToolbarButton::SettingsToolbarButton(String iconToUse, String textToShow
 
 void SettingsToolbarButton::paint(Graphics& g)
 {
+    auto const& colours = getThemeColours(*this);
+
     auto const b = getLocalBounds().reduced(2.0f, 4.0f);
 
     if (isMouseOver() || getToggleState()) {
-        auto background = PlugDataColours::toolbarHoverColour;
+        auto background = colours.toolbarHoverColour;
         if (getToggleState())
             background = background.darker(0.025f);
 
@@ -181,7 +191,7 @@ void SettingsToolbarButton::paint(Graphics& g)
         g.fillRoundedRectangle(b.toFloat(), Corners::defaultCornerRadius);
     }
 
-    auto const textColour = PlugDataColours::toolbarTextColour;
+    auto const textColour = colours.toolbarTextColour;
     auto const boldFont = Fonts::getBoldFont().withHeight(13.5f);
     auto const iconFont = Fonts::getIconFont().withHeight(13.5f);
 
@@ -213,14 +223,16 @@ CalloutMenuButton::CalloutMenuButton(String const& iconString, String const& des
 
 void CalloutMenuButton::paint(Graphics& g)
 {
-    g.setColour(isMouseOver() ? PlugDataColours::popupMenuActiveBackgroundColour : PlugDataColours::popupMenuBackgroundColour);
+    auto const& colours = getThemeColours(*this);
+
+    g.setColour(isMouseOver() ? colours.popupMenuActiveBackgroundColour : colours.popupMenuBackgroundColour);
     g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(2), Corners::defaultCornerRadius);
 
-    auto colour = PlugDataColours::toolbarTextColour;
+    auto colour = colours.toolbarTextColour;
     Fonts::drawText(g, description, getLocalBounds().withTrimmedLeft(32), colour, 14.5);
 
     if (getToggleState()) {
-        colour = PlugDataColours::toolbarActiveColour;
+        colour = colours.toolbarActiveColour;
     }
 
     Fonts::drawIcon(g, icon, getLocalBounds().withTrimmedLeft(8), colour, 14, false);
@@ -233,10 +245,10 @@ void CalloutMenuButton::paint(Graphics& g)
         auto width = std::max(Fonts::getStringWidthInt(text, font) + 4, 16);
         auto b = shortcutBounds.removeFromRight(width).toFloat().reduced(1.0f, 5.0f).translated(1.5f, 0.5f);
 
-        g.setColour(PlugDataColours::popupMenuTextColour.withAlpha(0.9f));
+        g.setColour(colours.popupMenuTextColour.withAlpha(0.9f));
         g.fillRoundedRectangle(b.toFloat(), 3.0f);
 
-        g.setColour(PlugDataColours::popupMenuBackgroundColour);
+        g.setColour(colours.popupMenuBackgroundColour);
 
         g.setFont(Fonts::getSemiBoldFont().withHeight(11));
         g.drawText(text, b, Justification::centred);
@@ -248,10 +260,10 @@ void CalloutMenuButton::paint(Graphics& g)
         auto width = std::max(Fonts::getStringWidthInt(keys[i].trim(), font) + 8, 15);
         auto b = shortcutBounds.removeFromRight(width).reduced(1, 5);
 
-        g.setColour(PlugDataColours::popupMenuTextColour.withAlpha(0.9f));
+        g.setColour(colours.popupMenuTextColour.withAlpha(0.9f));
         g.fillRoundedRectangle(b.toFloat(), 3.0f);
 
-        g.setColour(PlugDataColours::popupMenuBackgroundColour);
+        g.setColour(colours.popupMenuBackgroundColour);
 
         g.setFont(font);
         g.drawText(keys[i], b, Justification::centred);

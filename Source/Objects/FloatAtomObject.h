@@ -146,32 +146,36 @@ public:
 
     void lookAndFeelChanged() override
     {
-        input.setColour(Label::textWhenEditingColourId, PlugDataColours::canvasTextColour);
-        input.setColour(Label::textColourId, PlugDataColours::canvasTextColour);
+        auto const& colours = getThemeColours();
+
+        input.setColour(Label::textWhenEditingColourId, colours.canvasTextColour);
+        input.setColour(Label::textColourId, colours.canvasTextColour);
         repaint();
     }
 
     void render(NVGcontext* nvg) override
     {
+        auto const& colours = getThemeColours();
+
         auto const b = getLocalBounds().toFloat();
         auto const sb = b.reduced(0.5f);
 
         // Draw background
-        nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
-            nvgColour(PlugDataColours::guiObjectBackgroundColour), nvgColour(PlugDataColours::guiObjectBackgroundColour), nvgColour(PlugDataColours::guiObjectBackgroundColour),
-            Corners::objectCornerRadius, ObjectFlagType::FlagTop, PlugDataLook::getUseFlagOutline());
+        nanovg::nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
+            nvgColour(colours.guiObjectBackgroundColour), nvgColour(colours.guiObjectBackgroundColour), nvgColour(colours.guiObjectBackgroundColour),
+            getPlugDataLook(*this).getObjectCornerRadius(), ObjectFlagType::FlagTop, getPlugDataLook(*this).getUseFlagOutline());
 
         input.render(nvg, cnv->editor->getNanoLLGC());
 
         // draw flag
         bool const highlighted = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
-        auto const flagCol = highlighted ? nvgColour(PlugDataColours::objectSelectedOutlineColour) : nvgColour(PlugDataColours::guiObjectInternalOutlineColour);
-        auto const outlineCol = nvgColour((object->isSelected() || hasKeyboardFocus(true)) ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
+        auto const flagCol = highlighted ? nvgColour(colours.objectSelectedOutlineColour) : nvgColour(colours.guiObjectInternalOutlineColour);
+        auto const outlineCol = nvgColour((object->isSelected() || hasKeyboardFocus(true)) ? colours.objectSelectedOutlineColour : colours.objectOutlineColour);
 
         // Fill the internal of the shape with transparent colour, draw outline & flag with shader
-        nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),
-            nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
-            Corners::objectCornerRadius, ObjectFlagType::FlagTop, PlugDataLook::getUseFlagOutline());
+        nanovg::nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),
+            nanovg::nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
+            getPlugDataLook(*this).getObjectCornerRadius(), ObjectFlagType::FlagTop, getPlugDataLook(*this).getUseFlagOutline());
     }
 
     void updateLabel() override

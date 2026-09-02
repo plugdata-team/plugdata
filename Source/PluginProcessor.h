@@ -253,7 +253,7 @@ private:
 
     static inline String const else_version = "ELSE v1.0-rc14";
     static inline String const cyclone_version = "cyclone v0.9-4";
-    static inline String const heavylib_version = "heavylib v0.4.1";
+    static inline String const heavylib_version = "heavylib v0.5.0";
     static inline String const gem_version = "Gem v0.94";
     // this gets updated with live version data later
     static String pdlua_version;
@@ -291,7 +291,7 @@ private:
     int backupRunLoopInterval;
     TimedCallback backupRunLoop = TimedCallback([this] { runBackupLoop(); });
     CriticalSection backupLoopLock;
-    std::atomic<bool> isProcessingAudio;
+    AtomicValue<bool> isProcessingAudio;
     std::unique_ptr<Recorder> recorder;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginProcessor)
 };

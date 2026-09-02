@@ -353,6 +353,9 @@ public:
         , editor(pluginEditor)
     {
         setTitleBarHeight(0);
+#if JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD
+        setTitleBarButtonsRequired(0, false);
+#endif
         pluginHolder = ProjectInfo::getStandalonePluginHolder();
 
         drawWindowShadow = Desktop::canUseSemiTransparentWindows();
@@ -479,7 +482,7 @@ public:
         SettingsFile::getInstance()->setProperty("audio_setup", var());
 
         pluginHolder->createPlugin();
-        setContentOwned(new MainContentComponent(*this, pluginHolder->processor->createEditorIfNeeded()), true);
+        setContentOwned(new MainContentComponent(*this, pluginHolder->processor->createEditorAndMakeActive()), true);
         pluginHolder->startPlaying();
     }
 
@@ -512,13 +515,11 @@ public:
 
             if (openedEditors.size() == 1) {
                 editor->getTabComponent().closeAllTabs(true, nullptr, [this, editor, &openedEditors] {
-                    editor->nvgSurface.detachContext();
                     removeFromDesktop();
                     openedEditors.removeObject(editor);
                 });
             } else {
                 editor->getTabComponent().closeAllTabs(false, nullptr, [this, editor, &openedEditors] {
-                    editor->nvgSurface.detachContext();
                     removeFromDesktop();
                     openedEditors.removeObject(editor);
                 });
@@ -550,23 +551,27 @@ public:
     void maximiseButtonPressed() override
     {
 #if JUCE_LINUX || JUCE_BSD
-        if (auto* b = getMaximiseButton()) {
-            if (auto* peer = getPeer()) {
-                bool shouldBeMaximised = !isMaximised();
-                setPendingLinuxMaximisedState(shouldBeMaximised);
+        if (auto* peer = getPeer()) {
+            bool shouldBeMaximised = !isMaximised();
+            setPendingLinuxMaximisedState(shouldBeMaximised);
+
+            if (auto* b = getMaximiseButton())
                 b->setToggleState(shouldBeMaximised, dontSendNotification);
 
-                if (!useNativeTitlebar()) {
-                    OSUtils::maximiseLinuxWindow(peer, shouldBeMaximised);
-                }
-            } else {
-                b->setToggleState(false, dontSendNotification);
+            if (!useNativeTitlebar()) {
+                OSUtils::maximiseLinuxWindow(peer, shouldBeMaximised);
             }
+        } else {
+            if (auto* b = getMaximiseButton())
+                b->setToggleState(false, dontSendNotification);
         }
 #else
         setFullScreen(!isFullScreen());
         parentHierarchyChanged();
 #endif
+        if (auto* pluginEditor = dynamic_cast<PluginEditor*>(editor))
+            pluginEditor->updateStandaloneWindowControls();
+
         resized();
     }
 
@@ -582,17 +587,19 @@ public:
 #if JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD
     void paintOverChildren(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
 #    if JUCE_WINDOWS
         if (SystemStats::getOperatingSystemType() != SystemStats::Windows11) {
-            g.setColour(PlugDataColours::outlineColour);
+            g.setColour(colours.outlineColour);
             g.drawRect(0, 0, getWidth(), getHeight());
         }
 #    else
         if (drawWindowShadow && !useNativeTitlebar() && !isMaximised()) {
-            g.setColour(PlugDataColours::outlineColour.withAlpha(isActiveWindow() ? 1.0f : 0.5f));
+            g.setColour(colours.outlineColour.withAlpha(isActiveWindow() ? 1.0f : 0.5f));
             g.drawRoundedRectangle(18, 18, getWidth() - 36, getHeight() - 36, Corners::windowCornerRadius, 1.0f);
         } else if (drawWindowShadow && !useNativeTitlebar()) {
-            g.setColour(PlugDataColours::outlineColour.withAlpha(isActiveWindow() ? 1.0f : 0.5f));
+            g.setColour(colours.outlineColour.withAlpha(isActiveWindow() ? 1.0f : 0.5f));
             g.drawRect(0.5f, 0.5f, getWidth() - 1.0f, getHeight() - 1.0f, 1.0f);
         }
 #    endif
@@ -601,14 +608,11 @@ public:
 
     void activeWindowStatusChanged() override
     {
-#if JUCE_WINDOWS
-        // Windows looses the opengl buffers when minimised,
-        // regenerate here when restored from minimised
-        if (isActiveWindow()) {
-            if (auto* pluginEditor = dynamic_cast<PluginEditor*>(editor))
-                pluginEditor->nvgSurface.invalidateAll();
+        if (auto* pluginEditor = dynamic_cast<PluginEditor*>(editor)) {
+            pluginEditor->updateStandaloneWindowControls();
+            pluginEditor->nvgSurface.invalidateAll();
         }
-#endif
+
         repaint();
     }
 
@@ -636,6 +640,15 @@ public:
 
 #if !JUCE_IOS
         getLookAndFeel().positionDocumentWindowButtons(*this, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), getMinimiseButton(), getMaximiseButton(), getCloseButton(), false);
+#endif
+
+#if JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD
+        for (auto* button : { getMinimiseButton(), getMaximiseButton(), getCloseButton() })
+            if (button)
+                button->setVisible(false);
+
+        if (auto* pluginEditor = dynamic_cast<PluginEditor*>(editor))
+            pluginEditor->updateStandaloneWindowControls();
 #endif
 
         if (auto* content = getContentComponent()) {
@@ -667,6 +680,9 @@ private:
 
             if (auto* b = _this->getMaximiseButton())
                 b->setToggleState(_this->isMaximised(), dontSendNotification);
+
+            if (auto* pluginEditor = dynamic_cast<PluginEditor*>(_this->editor))
+                pluginEditor->updateStandaloneWindowControls();
 
             _this->resized();
             _this->repaint();
@@ -771,10 +787,12 @@ private:
 #if JUCE_IOS
         void paint(Graphics& g) override
         {
+            auto const& colours = getThemeColours(*this);
+
             if (editor) {
-                g.fillAll(PlugDataColours::toolbarBackgroundColour);
+                g.fillAll(colours.toolbarBackgroundColour);
             } else {
-                g.fillAll(PlugDataColours::toolbarBackgroundColour);
+                g.fillAll(colours.toolbarBackgroundColour);
             }
         }
 #endif
@@ -818,7 +836,7 @@ private:
         {
 #if JUCE_IOS
             if (editor != nullptr) {
-                auto totalArea = Desktop::getInstance().getDisplays().getPrimaryDisplay()->totalArea;
+                auto totalArea = Desktop::getInstance().getDisplays().getPrimaryDisplay()->logicalBounds.getSmallestIntegerContainer();
                 totalArea = OSUtils::getSafeAreaInsets().addedTo(totalArea);
                 return totalArea;
             }

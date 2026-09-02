@@ -23,18 +23,20 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        auto const& colours = getThemeColours();
+
         auto const b = getLocalBounds().toFloat();
         auto const fillColour = nvgColour(Colours::transparentBlack);
-        auto const outlineColour = nvgColour(object->isSelected() && !cnv->isGraph ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), fillColour, outlineColour, Corners::objectCornerRadius);
+        auto const outlineColour = nvgColour(object->isSelected() && !cnv->isGraph ? colours.objectSelectedOutlineColour : colours.objectOutlineColour);
+        nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), fillColour, outlineColour, getPlugDataLook(*this).getObjectCornerRadius());
 
         if (isDraggingOver) {
             auto const hoverBounds = getLocalBounds().reduced(1.5f).toFloat();
-            nvgBeginPath(nvg);
-            nvgRoundedRect(nvg, hoverBounds.getX(), hoverBounds.getY(), hoverBounds.getWidth(), hoverBounds.getHeight(), Corners::objectCornerRadius);
-            nvgStrokeWidth(nvg, 3.0f);
-            nvgStrokeColor(nvg, outlineColour);
-            nvgStroke(nvg);
+            nanovg::nvgBeginPath(nvg);
+            nanovg::nvgRoundedRect(nvg, hoverBounds.getX(), hoverBounds.getY(), hoverBounds.getWidth(), hoverBounds.getHeight(), getPlugDataLook(*this).getObjectCornerRadius());
+            nanovg::nvgStrokeWidth(nvg, 3.0f);
+            nanovg::nvgStrokeColor(nvg, outlineColour);
+            nanovg::nvgStroke(nvg);
         }
     }
 

@@ -14,6 +14,7 @@ extern "C" {
 #include "Heavy/CompatibleObjects.h"
 #include "Utility/NVGGraphicsContext.h"
 #include "Components/BouncingViewport.h"
+#include "Dialogs/Dialogs.h"
 #include "CanvasViewport.h"
 
 extern "C" {
@@ -142,9 +143,8 @@ public:
     void render(NVGcontext* nvg) override
     {
         NVGScopedState scopedState(nvg);
-        nvgTranslate(nvg, getX(), getY());
-        Graphics g(*cnv->editor->getNanoLLGC());
-        paintEntireComponent(g, true);
+        nanovg::nvgTranslate(nvg, getX(), getY());
+        cnv->editor->getNanoLLGC()->renderComponent(*this);
     }
 
 private:
@@ -168,7 +168,7 @@ private:
 
         auto const editorText = editor->getText();
         auto const xOffset = Fonts::getStringWidth(editorText, editor->getFont()) + 7.5f;
-        auto const colour = PlugDataColours::canvasTextColour.withAlpha(0.5f);
+        auto const colour = getThemeColours(*this).canvasTextColour.withAlpha(0.5f);
 
         Fonts::drawText(g, ghostText,
             getLocalBounds().toFloat().withTrimmedLeft(xOffset).translated(-1.25f, 0),
@@ -190,24 +190,21 @@ class SuggestionComponent final
         ListWithDetail,
         DetailOnly };
 
-    class Row final : public TextButton {
+    class Row final : public Component {
     public:
+        std::function<void()> onClick;
+        std::function<void()> onDoubleClick;
+
         explicit Row(SuggestionComponent* parentComponent)
             : owner(parentComponent)
         {
-            setButtonText("");
             setWantsKeyboardFocus(false);
-            setConnectedEdges(12);
-            setClickingTogglesState(true);
-            setTriggeredOnMouseDown(true);
-            setRadioGroupId(hash("suggestion_component"));
             setColour(TextButton::buttonOnColourId, findColour(ScrollBar::thumbColourId));
         }
 
         void setEntry(SuggestionEntry const& entry)
         {
             current = entry;
-            setButtonText(entry.displayName);
             setInterceptsMouseClicks(true, false);
             repaint();
         }
@@ -215,9 +212,62 @@ class SuggestionComponent final
         void clear()
         {
             current = { };
-            setButtonText("");
             setInterceptsMouseClicks(false, false);
             repaint();
+        }
+
+        bool isSelected()
+        {
+            return selected;
+        }
+
+        void setSelected(bool shouldBeSelected)
+        {
+            selected = shouldBeSelected;
+            if(shouldBeSelected) turnOffOtherButtonsInGroup();
+            repaint();
+        }
+
+        void turnOffOtherButtonsInGroup()
+        {
+            if (auto* p = getParentComponent())
+            {
+                for (auto* c : p->getChildren())
+                {
+                    if (c != this)
+                    {
+                        if (auto b = dynamic_cast<Row*> (c))
+                        {
+                            b->selected = false;
+                            b->repaint();
+                        }
+                    }
+                }
+            }
+        }
+
+        void mouseDown(MouseEvent const& e) override
+        {
+            if (!e.source.isTouch())
+                clicked();
+        }
+
+        void mouseUp(MouseEvent const& e) override
+        {
+            if (e.source.isTouch() && !e.mouseWasDraggedSinceMouseDown())
+                clicked();
+        }
+
+        void clicked()
+        {
+            selected = true;
+            turnOffOtherButtonsInGroup();
+            if (onClick) onClick();
+        }
+
+        void mouseDoubleClick(MouseEvent const& e) override
+        {
+            if(onDoubleClick) onDoubleClick();
         }
 
         SuggestionEntry const& getEntry() const { return current; }
@@ -226,19 +276,23 @@ class SuggestionComponent final
     private:
         void paint(Graphics& g) override
         {
+            auto const& colours = getThemeColours(*this);
+
             auto const scrollbarIndent = owner->port->canScrollVertically() ? 6 : 0;
             auto const buttonArea = getLocalBounds().withTrimmedRight(2 + scrollbarIndent).toFloat().reduced(4, 2);
 
             // When toggled, draw the highlight; otherwise stay transparent so
             // the popup's unified rounded rectangle shows through.
-            if (getToggleState()) {
-                g.setColour(PlugDataColours::popupMenuActiveBackgroundColour);
+            if (selected) {
+                g.setColour(colours.popupMenuActiveBackgroundColour);
                 g.fillRoundedRectangle(buttonArea, Corners::defaultCornerRadius);
             }
 
-            auto const textColour = PlugDataColours::popupMenuTextColour;
+            auto const textColour = colours.popupMenuTextColour;
+            auto const fontHeight = owner->getRowFontHeight();
             auto const yIndent = jmin(4, proportionOfHeight(0.3f));
-            auto leftIndent = current.icon != SuggestionEntry::IconType::None ? 36 : 11;
+            // The icon square is derived from the row height, so the text indent has to follow it
+            auto leftIndent = current.icon != SuggestionEntry::IconType::None ? getHeight() + 6 : 11;
             constexpr auto rightIndent = 14;
             auto textWidth = getWidth() - leftIndent - rightIndent;
 
@@ -246,17 +300,17 @@ class SuggestionComponent final
 
             if (textWidth > 0) {
                 Fonts::drawStyledText(g, displayed, leftIndent, yIndent, textWidth,
-                    getHeight() - yIndent * 2, textColour, Semibold, 14);
+                    getHeight() - yIndent * 2, textColour, Semibold, fontHeight);
             }
 
             if (current.description.isNotEmpty()) {
-                auto const nameWidth = Fonts::getStringWidth(displayed, Fonts::getSemiBoldFont().withHeight(14));
+                auto const nameWidth = Fonts::getStringWidth(displayed, Fonts::getSemiBoldFont().withHeight(fontHeight));
                 leftIndent += nameWidth;
                 textWidth = getWidth() - leftIndent - rightIndent;
 
                 Fonts::drawText(g, String::fromUTF8("  \xe2\x80\x93  ") + current.description,
                     Rectangle<int>(leftIndent, yIndent, textWidth, getHeight() - yIndent * 2),
-                    textColour, 14);
+                    textColour, fontHeight);
             }
 
             if (current.icon != SuggestionEntry::IconType::None)
@@ -265,22 +319,24 @@ class SuggestionComponent final
 
         void drawIcon(Graphics& g)
         {
+            auto const& colours = getThemeColours(*this);
+
             Colour iconColour;
             String iconText;
-            int textSize = 12;
+            int textSize = owner->getRowFontHeight() * 0.9f;
 
             switch (current.icon) {
             case SuggestionEntry::IconType::Data:
-                iconColour = PlugDataColours::dataColour;
+                iconColour = colours.dataColour;
                 iconText = "pd";
-                textSize = 10;
+                textSize *= 0.85f;
                 break;
             case SuggestionEntry::IconType::Signal:
-                iconColour = PlugDataColours::signalColour;
+                iconColour = colours.signalColour;
                 iconText = "~";
                 break;
             case SuggestionEntry::IconType::Gem:
-                iconColour = PlugDataColours::gemColour;
+                iconColour = colours.gemColour;
                 iconText = "g";
                 break;
             default:
@@ -298,6 +354,7 @@ class SuggestionComponent final
 
         SuggestionComponent* owner;
         SuggestionEntry current;
+        bool selected = false;
     };
 
     class ObjectDetailPanel final : public Component {
@@ -359,7 +416,7 @@ class SuggestionComponent final
             int const w = jmax(40, width - 16);
             int y = 12;
 
-            auto const text = PlugDataColours::popupMenuTextColour;
+            auto const text = getThemeColours(*this).popupMenuTextColour;
             auto const muted = text.withAlpha(0.55f);
 
             // Origin / category label
@@ -490,6 +547,13 @@ class SuggestionComponent final
     };
 
     class ResizerLookAndFeel : public LookAndFeel_V2 {
+    public:
+        explicit ResizerLookAndFeel(SuggestionComponent& owner)
+            : owner(owner)
+        {
+        }
+
+    private:
         void drawCornerResizer(Graphics& g, int const w, int const h, bool const isMouseOver, bool /*isMouseDragging*/) override
         {
             float const cornerSize = Corners::defaultCornerRadius;
@@ -503,16 +567,19 @@ class SuggestionComponent final
             Path triangle;
             triangle.addTriangle(Point<float>(0, h), Point<float>(w, h), Point<float>(w, 0));
 
-            g.setColour(PlugDataColours::objectSelectedOutlineColour.withAlpha(isMouseOver ? 1.0f : 0.6f));
+            g.setColour(getThemeColours(owner).objectSelectedOutlineColour.withAlpha(isMouseOver ? 1.0f : 0.6f));
             g.fillPath(triangle);
 
             g.restoreState();
         }
+
+        SuggestionComponent& owner;
     };
 
 public:
     SuggestionComponent()
-        : resizer(this, &constrainer)
+        : resizerLookAndFeel(*this)
+        , resizer(this, &constrainer)
     {
         resizer.setLookAndFeel(&resizerLookAndFeel);
         resizer.setAllowHostManagedResize(false);
@@ -520,7 +587,7 @@ public:
 
         detailPanel = std::make_unique<ObjectDetailPanel>();
         detailViewport = std::make_unique<BouncingViewport>();
-        detailViewport->setScrollBarsShown(true, false);
+        detailViewport->setScrollBarsShown(true, false, false, false);
         detailViewport->setViewedComponent(detailPanel.get(), false);
         detailViewport->setInterceptsMouseClicks(true, true);
         detailViewport->setViewportIgnoreDragFlag(true);
@@ -532,12 +599,12 @@ public:
             auto* row = new Row(this);
             rows.add(row);
             buttonHolder->addAndMakeVisible(row);
-            row->setColour(TextButton::buttonColourId, PlugDataColours::dialogBackgroundColour);
+            row->setColour(TextButton::buttonColourId, getThemeColours(*this).dialogBackgroundColour);
         }
 
         // Viewport
         port = std::make_unique<BouncingViewport>();
-        port->setScrollBarsShown(true, false);
+        port->setScrollBarsShown(true, false, false, false);
         port->setViewedComponent(buttonHolder.get(), false);
         port->setInterceptsMouseClicks(true, true);
         port->setViewportIgnoreDragFlag(true);
@@ -558,24 +625,46 @@ public:
         for (int i = 0; i < rows.size(); i++) {
             int const idx = i;
             rows[i]->onClick = [this, idx] { onRowClicked(idx); };
+            rows[i]->onDoubleClick = [this, idx] {
+                onRowClicked(idx);
+                if(currentObject)
+                    currentObject->hideEditor();
+            };
         }
     }
 
     ~SuggestionComponent() override
     {
+        // Detach from the touch dialog (which outlives us) before our Component base
+        // silently removes us from it
+        removeCalloutBox();
+
         resizer.setLookAndFeel(nullptr);
         rows.clear();
     }
 
     void createCalloutBox(Object* object, TextEditor* editor)
     {
+        // Defensive: a previous touch dialog should never still be around here
+        if (touchModeEditor || touchModeDialog)
+            removeCalloutBox();
+
         sendReceiveDatabase = { };
         currentObject = object;
-        openedEditor = editor;
-
-        setTransform(object->editor->getTransform());
+        usingTouchMode = SettingsFile::getInstance()->isUsingTouchMode();
+        objectEditor = editor;
+        lastQueriedText = "<unset>";
 
         editor->addComponentListener(this);
+
+        if (usingTouchMode) {
+            createTouchModeDialog(object, editor);
+            return;
+        }
+
+        openedEditor = editor;
+        setTransform(object->editor->getTransform());
+
         editor->addKeyListener(this);
 
         autoCompleteComponent = std::make_unique<AutoCompleteComponent>(editor, object->cnv);
@@ -585,16 +674,90 @@ public:
 
         updateBounds();
 
+        resizer.setVisible(true);
         setVisible(false);
         toFront(false);
 
         repaint();
     }
 
+    // In touch mode the suggestions live in a centred, darkened-background dialog with
+    // their own (larger) text editor, instead of a popup anchored to the object.
+    void createTouchModeDialog(Object* object, TextEditor* editor)
+    {
+        auto* pluginEditor = object->cnv->editor;
+
+        // The dialog is a child of the plugin editor, which already carries the editor
+        // transform, so we must not apply it a second time here.
+        setTransform(AffineTransform());
+        resizer.setVisible(false);
+        layoutMode = LayoutMode::ListOnly;
+
+        touchModeEditor = std::make_unique<TextEditor>();
+        touchModeEditor->setMultiLine(true);
+        touchModeEditor->setReturnKeyStartsNewLine(false);
+        touchModeEditor->setScrollbarsShown(false);
+        touchModeEditor->setJustification(Justification::centredLeft);
+        touchModeEditor->setBorder(BorderSize<int>(0, 4, 0, 4));
+        touchModeEditor->setFont(Fonts::getDefaultFont().withHeight(22.f));
+        touchModeEditor->setColour(TextEditor::outlineColourId, Colours::transparentBlack);
+        touchModeEditor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
+        touchModeEditor->setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
+        touchModeEditor->setColour(TextEditor::textColourId, getThemeColours(*this).popupMenuTextColour);
+        touchModeEditor->setTextToShowWhenEmpty("Type to create an object...", getThemeColours(*this).popupMenuTextColour.withAlpha(0.5f));
+        touchModeEditor->setText(editor->getText(), false);
+        touchModeEditor->moveCaretToEnd();
+
+        touchModeEditor->onTextChange = [this] { touchModeTextChanged(); };
+        touchModeEditor->onReturnKey = [this] { commitTouchModeEdit(); };
+        touchModeEditor->onEscapeKey = [this] { cancelTouchModeEdit(); };
+        touchModeEditor->addKeyListener(this);
+
+        addAndMakeVisible(*touchModeEditor);
+        openedEditor = touchModeEditor.get();
+
+        auto const dialogWidth = jlimit(280, 680, pluginEditor->getWidth() - 80);
+        touchModeListHeight = jlimit(160, 340, pluginEditor->getHeight() - 200);
+
+        auto* dialog = new Dialog(&pluginEditor->openedDialog, pluginEditor, dialogWidth, touchModeListHeight, false);
+        dialog->setViewedComponent(this, false);
+        pluginEditor->openedDialog.reset(dialog);
+
+        touchModeDialog = dialog;
+        touchModeDialogOwner = pluginEditor;
+
+        setVisible(true);
+        updateSuggestions(touchModeEditor->getText());
+        resized();
+
+        grabEditorFocus();
+    }
+
     void removeCalloutBox()
     {
+        if (isTearingDown)
+            return;
+
+        ScopedValueSetter<bool> const teardownGuard(isTearingDown, true);
+
         currentSelection = -1;
         numOptions = 0;
+
+        if (objectEditor) {
+            objectEditor->removeComponentListener(this);
+            objectEditor->removeKeyListener(this);
+        }
+
+        destroyTouchModeEditor();
+        closeTouchModeDialog();
+
+        if (usingTouchMode) {
+            MessageManager::callAsync([safeEditor = objectEditor] {
+                if (safeEditor && safeEditor->isShowing() && Component::getCurrentlyFocusedComponent() != safeEditor.getComponent())
+                    safeEditor->grabKeyboardFocus();
+            });
+        }
+
         setVisible(false);
 
         if (isOnDesktop())
@@ -602,13 +765,10 @@ public:
 
         autoCompleteComponent.reset();
 
-        if (openedEditor) {
-            openedEditor->removeComponentListener(this);
-            openedEditor->removeKeyListener(this);
-        }
-
         openedEditor = nullptr;
+        objectEditor = nullptr;
         currentObject = nullptr;
+        usingTouchMode = false;
 
         for (auto* row : rows)
             row->clear();
@@ -624,9 +784,110 @@ public:
         autocompleteNavigationBaseText.clear();
     }
 
+    void destroyTouchModeEditor()
+    {
+        if (!touchModeEditor)
+            return;
+
+        touchModeEditor->removeKeyListener(this);
+        touchModeEditor->onTextChange = nullptr;
+        touchModeEditor->onReturnKey = nullptr;
+        touchModeEditor->onEscapeKey = nullptr;
+        removeChildComponent(touchModeEditor.get());
+
+        MessageManager::callAsync([outgoing = std::shared_ptr<TextEditor>(touchModeEditor.release())] { ignoreUnused(outgoing); });
+    }
+
+    void closeTouchModeDialog()
+    {
+        auto* dialog = touchModeDialog.getComponent();
+        auto* owningEditor = touchModeDialogOwner.getComponent();
+
+        touchModeDialog = nullptr;
+        touchModeDialogOwner = nullptr;
+
+        if (!dialog)
+            return;
+
+        removeMouseListener(dialog);
+        if (getParentComponent() == dialog)
+            dialog->removeChildComponent(this);
+
+        dialog->setVisible(false);
+
+        MessageManager::callAsync([safeDialog = SafePointer<Dialog>(dialog), safeEditor = SafePointer<PluginEditor>(owningEditor)] {
+            if (safeEditor && safeDialog && safeEditor->openedDialog.get() == safeDialog.getComponent())
+                safeEditor->openedDialog.reset(nullptr);
+        });
+    }
+
+    void touchModeTextChanged()
+    {
+        if (!touchModeEditor)
+            return;
+
+        auto const text = touchModeEditor->getText();
+
+        // Notify, so the object keeps resizing to fit the text while we type
+        if (objectEditor)
+            objectEditor->setText(text, true);
+
+        updateSuggestions(text);
+        updateTouchDialogSize();
+    }
+
+    void updateTouchDialogSize()
+    {
+        auto* dialog = touchModeDialog.getComponent();
+        if (!dialog || !touchModeEditor)
+            return;
+
+        int const desiredHeight = measureTouchEditorHeight() + (hasSuggestionContent() ? touchModeListHeight : 0);
+        if (dialog->height != desiredHeight) {
+            dialog->height = desiredHeight;
+            dialog->resized();
+        }
+
+        resized();
+    }
+
+    bool hasSuggestionContent() const
+    {
+        return Dialog::isIphone() || (layoutMode == LayoutMode::DetailOnly ? detailPanel->hasContent() : numOptions > 0);
+    }
+
+    int measureTouchEditorHeight()
+    {
+        if (!touchModeEditor)
+            return 0;
+
+        touchModeEditor->setSize(jmax(1, getWindowBounds().getWidth() - 16), 1);
+        return jlimit(42, jmax(42, touchModeListHeight * 3 / 4), touchModeEditor->getTextHeight() + 16);
+    }
+
+    void commitTouchModeEdit()
+    {
+        // Async: hiding the object editor tears this component down
+        MessageManager::callAsync([safeObject = currentObject] {
+            if (safeObject)
+                safeObject->hideEditor();
+        });
+    }
+
+    void cancelTouchModeEdit()
+    {
+        MessageManager::callAsync([safeObject = currentObject, safeEditor = objectEditor] {
+            // For a newly created object, escape removes it again
+            if (safeEditor && safeEditor->onEscapeKey)
+                safeEditor->onEscapeKey();
+            else if (safeObject)
+                safeObject->hideEditor();
+        });
+    }
+
     void updateBounds()
     {
-        if (!currentObject)
+        if (!currentObject || usingTouchMode)
             return;
 
         auto const* cnv = currentObject->cnv;
@@ -675,10 +936,11 @@ public:
         return layoutMode == LayoutMode::ListWithDetail || layoutMode == LayoutMode::DetailOnly;
     }
 
-    bool shouldKeepEditorOpen(TextEditor* editor) const
+    void checkEditorFocusLoss(TextEditor* editor) const
     {
+        bool shouldKeepFocus = false;
         if (Component::getCurrentlyFocusedComponent() == editor || hasKeyboardFocus(true))
-            return true;
+            shouldKeepFocus = true;
 
         // On Linux, mouse-down on this temporary desktop window can make the
         // edited TextEditor lose native focus before JUCE assigns keyboard
@@ -686,10 +948,13 @@ public:
         // part of the editor interaction so resizing does not commit the edit.
         if (isVisible() && ModifierKeys::currentModifiers.isAnyMouseButtonDown()) {
             auto const mousePos = Desktop::getInstance().getMainMouseSource().getScreenPosition();
-            return getScreenBounds().toFloat().contains(mousePos);
+            shouldKeepFocus = getScreenBounds().toFloat().contains(mousePos);
         }
 
-        return false;
+        if(shouldKeepFocus)
+            grabEditorFocus();
+        else if(currentObject)
+            currentObject->hideEditor();
     }
 
 private:
@@ -723,7 +988,6 @@ private:
     {
         SuggestionQueryResult result;
         result.autocompleteSupported = true;
-        result.detailLookupSupported = true;
 
         auto& library = currentObject->cnv->pd->objectLibrary;
 
@@ -750,6 +1014,7 @@ private:
         if (!result.entries.empty() && found[0].startsWith(text))
             result.topAutocompleteText = found[0];
 
+        result.detailLookupSupported = text.isNotEmpty() && result.entries.size() > 0;
         return result;
     }
 
@@ -863,7 +1128,7 @@ private:
 
             for (auto* row : rows) {
                 row->clear();
-                row->setToggleState(false, dontSendNotification);
+                row->setSelected(false);
             }
 
             detailPanel->setObject(result.detailLookupTarget,
@@ -887,10 +1152,10 @@ private:
         for (int i = 0; i < rows.size(); i++) {
             if (i < numOptions) {
                 rows[i]->setEntry(result.entries[i]);
-                rows[i]->setToggleState(false, dontSendNotification);
+                rows[i]->setSelected(false);
             } else {
                 rows[i]->clear();
-                rows[i]->setToggleState(false, dontSendNotification);
+                rows[i]->setSelected(false);
             }
         }
 
@@ -906,7 +1171,7 @@ private:
 
         if (currentResultSupportsAutocomplete && editorHasText && result.topAutocompleteText.isNotEmpty() && numOptions > 0) {
             currentSelection = 0;
-            rows[0]->setToggleState(true, dontSendNotification);
+            rows[0]->setSelected(true);
         } else {
             currentSelection = -1;
         }
@@ -919,18 +1184,27 @@ private:
 
     void shrinkHeightToFitEntriesIfNeeded()
     {
-        if (!currentResultShouldShrinkHeightToFitEntries || layoutMode == LayoutMode::DetailOnly || numOptions <= 0)
+        // The touch dialog has a fixed size
+        if (usingTouchMode || !currentResultShouldShrinkHeightToFitEntries || layoutMode == LayoutMode::DetailOnly || numOptions <= 0)
             return;
 
         auto const margins = getMargin() * 2;
         int const numVisibleRows = std::min(numOptions, numRowsAllocated);
-        int const targetHeight = numVisibleRows * rowHeight + 12 + margins;
+        int const targetHeight = numVisibleRows * getRowHeight() + 12 + margins;
         if (targetHeight < getHeight())
             setSize(getWidth(), targetHeight);
     }
 
     void updatePopupVisibility()
     {
+        // The touch dialog stays on screen for as long as the edit is active: only its
+        // contents change when there is nothing to suggest
+        if (usingTouchMode) {
+            setVisible(true);
+            updateTouchDialogSize();
+            return;
+        }
+
         bool const editorHasText = openedEditor && openedEditor->getText().isNotEmpty();
         bool const hasContent = layoutMode == LayoutMode::DetailOnly ? detailPanel->hasContent() : numOptions > 0;
 
@@ -952,13 +1226,13 @@ private:
 
         if (requestedMode == LayoutMode::DetailOnly || requestedMode == LayoutMode::ListOnly) {
             layoutMode = requestedMode;
-            setSize(340 + margins, 160 + margins);
+            if(!usingTouchMode) setSize(340 + margins, 160 + margins);
         } else {
             int const targetWidth = wasSmallPanel ? savedListSize.x : getWidth();
             int const targetHeight = wasSmallPanel ? savedListSize.y : getHeight();
 
             layoutMode = decideListModeForWidth(targetWidth);
-            if (wasSmallPanel)
+            if (!usingTouchMode && wasSmallPanel)
                 setSize(targetWidth, targetHeight);
         }
 
@@ -1002,8 +1276,8 @@ private:
 
         for (int i = 0; i < rows.size(); i++) {
             bool const shouldBeOn = (i == newSelection);
-            if (rows[i]->getToggleState() != shouldBeOn)
-                rows[i]->setToggleState(shouldBeOn, dontSendNotification);
+            if (rows[i]->isSelected() != shouldBeOn)
+                rows[i]->setSelected(shouldBeOn);
         }
 
         currentSelection = newSelection;
@@ -1023,7 +1297,7 @@ private:
             }
             currentObject->updateBounds();
         } else if (!currentResultAutocompleteRequiresNavigation && currentResultSupportsAutocomplete
-            && autoCompleteComponent && fullText.isNotEmpty()) {
+             && fullText.isNotEmpty()) {
             auto const& baseText = autocompleteNavigationBaseText;
             if (baseText.isNotEmpty() && fullText.startsWith(baseText)) {
                 if (openedEditor->getText() != baseText) {
@@ -1031,15 +1305,18 @@ private:
                     openedEditor->setText(baseText, sendNotification);
                     openedEditor->moveCaretToEnd();
                 }
-
-                autoCompleteComponent->setEnabled(true);
-                autoCompleteComponent->setSuggestion(fullText);
+                if(autoCompleteComponent) {
+                    autoCompleteComponent->setEnabled(true);
+                    autoCompleteComponent->setSuggestion(fullText);
+                }
             } else {
                 lastQueriedText = fullText;
                 openedEditor->setText(fullText, sendNotification);
                 openedEditor->moveCaretToEnd();
-                autoCompleteComponent->setEnabled(true);
-                autoCompleteComponent->clear();
+                if(autoCompleteComponent) {
+                    autoCompleteComponent->setEnabled(true);
+                    autoCompleteComponent->clear();
+                }
             }
 
             currentObject->updateBounds();
@@ -1079,18 +1356,33 @@ private:
 
     void onRowClicked(int idx)
     {
-        if (!openedEditor)
+        if (!openedEditor || !isPositiveAndBelow(idx, rows.size()) || !rows[idx]->hasEntry())
             return;
 
-        if (idx == currentSelection && autoCompleteComponent && autoCompleteComponent->hasGhostText()) {
-            autoCompleteComponent->accept();
-        } else {
-            move(0, idx);
-        }
+        // Clicking a row completes the editor outright. Ghost text is an affordance for
+        // keyboard navigation, and hideEditor() commits the editor's raw text, so going
+        // through move() here would leave the typed prefix behind
+        for (int i = 0; i < rows.size(); i++)
+            rows[i]->setSelected(i == idx);
+
+        currentSelection = idx;
+
+        auto const fullText = rows[idx]->getEntry().getCompletionText();
+        openedEditor->setText(fullText, sendNotification);
+        openedEditor->moveCaretToEnd();
+
+        if (autoCompleteComponent)
+            autoCompleteComponent->clear();
 
         if (!openedEditor->isVisible())
             openedEditor->setVisible(true);
-        openedEditor->grabKeyboardFocus();
+        grabEditorFocus();
+    }
+
+    void grabEditorFocus() const
+    {
+        if (openedEditor)
+            openedEditor->grabKeyboardFocus();
     }
 
     void refreshDetailPanelContent()
@@ -1143,7 +1435,7 @@ private:
         if (getValue<bool>(currentObject->hvccMode)) {
             StringArray filtered;
             for (auto& object : list) {
-                if (HeavyCompatibleObjects::isCompatible(object) && object != "array")
+                if (HeavyCompatibleObjects::isCompatible(object))
                     filtered.add(object);
             }
             list = filtered;
@@ -1193,9 +1485,30 @@ private:
         return suggestions;
     }
 
+    int getRowHeight() const
+    {
+        return usingTouchMode ? 34 : 30;
+    }
+
+    // On iPhone the dialog is fullscreen and the on-screen keyboard covers its lower half.
+    // JUCE doesn't report the keyboard height, so leave enough slack below the last row
+    // that every entry can be scrolled clear of it.
+    int getListBottomPadding() const
+    {
+        if (!usingTouchMode || !Dialog::isIphone() || numOptions <= 0)
+            return 0;
+
+        return getHeight() / 2;
+    }
+
+    int getRowFontHeight() const
+    {
+        return usingTouchMode ? 16 : 14;
+    }
+
     int getMargin() const
     {
-        return canBeTransparent() ? 8 : 0;
+        return canBeTransparent() && !usingTouchMode ? 8 : 0;
     }
 
     Rectangle<int> getWindowBounds() const
@@ -1210,12 +1523,16 @@ private:
 
     void resized() override
     {
-        auto const wholeBounds = getWindowBounds();
+        auto wholeBounds = getWindowBounds();
+
+        if (usingTouchMode && touchModeEditor)
+            touchModeEditor->setBounds(wholeBounds.removeFromTop(measureTouchEditorHeight()).reduced(8, 4));
 
         // While in a list mode, the actual mode (ListOnly vs ListWithDetail)
         // is decided by the current width. This keeps the user-visible side
-        // panel in sync with the resizer drag.
-        if (layoutMode != LayoutMode::DetailOnly) {
+        // panel in sync with the resizer drag. In touch mode the size is fixed,
+        // so the mode picked by applyLayoutMode is the final one.
+        if (!usingTouchMode && layoutMode != LayoutMode::DetailOnly) {
             auto const refinedMode = decideListModeForWidth(getWidth());
             if (refinedMode != layoutMode) {
                 layoutMode = refinedMode;
@@ -1249,9 +1566,10 @@ private:
         if (layoutMode != LayoutMode::DetailOnly) {
             int const yScroll = port->getViewPositionY();
             port->setBounds(listBounds.reduced(2, 2));
-            buttonHolder->setBounds(listBounds.getX() + 6, listBounds.getY(), listBounds.getWidth(), std::min(numOptions, numRowsAllocated) * rowHeight + 8);
+            auto const currentRowHeight = getRowHeight();
+            buttonHolder->setBounds(listBounds.getX() + 6, listBounds.getY(), listBounds.getWidth() - 12, std::min(numOptions, numRowsAllocated) * currentRowHeight + 8 + getListBottomPadding());
             for (int i = 0; i < rows.size(); i++)
-                rows[i]->setBounds(3, i * rowHeight + 4, listBounds.getWidth() - 6, rowHeight - 1);
+                rows[i]->setBounds(3, i * currentRowHeight + 4, listBounds.getWidth() - 6, currentRowHeight - 1);
             port->setViewPosition(0, yScroll);
         }
 
@@ -1276,28 +1594,45 @@ private:
 
     void paint(Graphics& g) override
     {
+        // In touch mode the dialog paints our background and outline for us
+        if (usingTouchMode)
+            return;
+
+        auto const& colours = getThemeColours(*this);
+
         if (!canBeTransparent()) {
-            g.fillAll(PlugDataColours::canvasBackgroundColour);
+            g.fillAll(colours.canvasBackgroundColour);
         } else {
             StackShadow::drawShadowForRect(g, getLocalBounds().reduced(12), 12, Corners::defaultCornerRadius, 0.44f);
         }
 
         // Single rounded rectangle that covers list + header + detail panel.
-        g.setColour(PlugDataColours::popupMenuBackgroundColour);
+        g.setColour(colours.popupMenuBackgroundColour);
         g.fillRoundedRectangle(getWindowBounds().toFloat(), Corners::defaultCornerRadius);
     }
 
     void paintOverChildren(Graphics& g) override
     {
+        auto const& colours = getThemeColours(*this);
+
         auto const winBounds = getWindowBounds().toFloat();
 
-        g.setColour(PlugDataColours::outlineColour.darker(0.1f));
+        if (usingTouchMode) {
+            if (touchModeEditor && hasSuggestionContent()) {
+                auto const separatorY = static_cast<float>(touchModeEditor->getBottom()) + 6.0f;
+                g.setColour(colours.outlineColour.darker(0.1f));
+                g.drawLine(winBounds.getX() + 8.0f, separatorY, winBounds.getRight() - 8.0f, separatorY, 1.0f);
+            }
+            return;
+        }
+
+        g.setColour(colours.outlineColour.darker(0.1f));
         g.drawRoundedRectangle(winBounds, Corners::defaultCornerRadius, 1.0f);
 
         // Subtle separator between list and detail panel when both are visible.
         if (layoutMode == LayoutMode::ListWithDetail) {
             auto const sepX = static_cast<float>(detailViewport->getX()) - 0.5f;
-            g.setColour(PlugDataColours::outlineColour.darker(0.1f).withAlpha(0.5f));
+            g.setColour(colours.outlineColour.darker(0.1f).withAlpha(0.5f));
             g.drawLine(sepX, winBounds.getY() + 6.0f, sepX, winBounds.getBottom() - 6.0f, 1.0f);
         }
     }
@@ -1309,8 +1644,7 @@ private:
 
     void mouseDown(MouseEvent const&) override
     {
-        if (openedEditor)
-            openedEditor->grabKeyboardFocus();
+        grabEditorFocus();
     }
 
     void mouseUp(MouseEvent const& e) override
@@ -1345,6 +1679,16 @@ private:
     void componentBeingDeleted(Component&) override
     {
         removeCalloutBox();
+    }
+
+    void parentHierarchyChanged() override
+    {
+        if (!usingTouchMode || getParentComponent() != nullptr)
+            return;
+
+        touchModeDialog = nullptr;
+        touchModeDialogOwner = nullptr;
+        commitTouchModeEdit();
     }
 
     bool keyPressed(KeyPress const& key, Component* /*originatingComponent*/) override
@@ -1391,7 +1735,7 @@ private:
             autoCompleteComponent->accept();
         currentSelection = 0;
         if (!rows.isEmpty())
-            rows[0]->setToggleState(true, dontSendNotification);
+            rows[0]->setSelected(true);
     }
 
     SmallArray<std::tuple<String, String, String>> findNearbyMessages(String const& toSearch) const
@@ -1747,7 +2091,6 @@ private:
     }
 
     static constexpr int numRowsAllocated = 20;
-    static constexpr int rowHeight = 30;
     static constexpr int detailPanelMinWidth = 410; // below this width, hide the detail side panel
 
     std::unique_ptr<AutoCompleteComponent> autoCompleteComponent;
@@ -1755,6 +2098,7 @@ private:
     std::unique_ptr<Component> buttonHolder;
     std::unique_ptr<ObjectDetailPanel> detailPanel;
     std::unique_ptr<BouncingViewport> detailViewport;
+    std::unique_ptr<TextEditor> touchModeEditor;
     OwnedArray<Row> rows;
     ResizerLookAndFeel resizerLookAndFeel;
     MouseRateReducedComponent<ResizableCornerComponent> resizer;
@@ -1770,11 +2114,17 @@ private:
     bool currentResultSupportsDetail = false;
     bool autocompleteActivatedByNavigation = false;
     bool currentResultShouldShrinkHeightToFitEntries = false;
+    bool usingTouchMode = false;
+    bool isTearingDown = false;
 
     String lastQueriedText;
     String autocompleteNavigationBaseText;
-    SafePointer<TextEditor> openedEditor = nullptr;
+    SafePointer<TextEditor> openedEditor = nullptr; // Either points to touchModeEditor or objectEditor
+    SafePointer<TextEditor> objectEditor = nullptr;
     SafePointer<Object> currentObject = nullptr;
+    int touchModeListHeight = 0;
+    SafePointer<Dialog> touchModeDialog = nullptr;
+    SafePointer<PluginEditor> touchModeDialogOwner = nullptr;
     SmallArray<SendReceiveEntry> sendReceiveDatabase;
 
     StringArray excludeList = {
