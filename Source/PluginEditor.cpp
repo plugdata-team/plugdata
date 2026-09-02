@@ -1546,6 +1546,12 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
         result.setActive(true);
         break;
     }
+    case CommandIDs::Compile: {
+        result.setInfo("Compile...", "Open Heavy export dialog", "General", 0);
+        result.addDefaultKeypress(67, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
+        result.setActive(true);
+        break;
+    }
     default:
         break;
     }
@@ -1934,6 +1940,10 @@ bool PluginEditor::perform(InvocationInfo const& info)
         } else {
             getTabComponent().openInPluginMode(getCurrentCanvas()->refCountedPatch);
         }
+        return true;
+    }
+    case CommandIDs::Compile: {
+        Dialogs::showHeavyExportDialog(&openedDialog, this);
         return true;
     }
     default: {

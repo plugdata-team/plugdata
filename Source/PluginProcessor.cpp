@@ -939,6 +939,9 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
     }
 
     isProcessingAudio = false;
+#if ENABLE_TESTING
+    buffer.clear();
+#endif
 }
 
 // only used for standalone, and if blocksize if a multiple of 64

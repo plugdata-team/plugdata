@@ -11,7 +11,6 @@
 
 #include "Pd/Interface.h"
 #include "Pd/Patch.h"
-#include "Objects/AllGuis.h"
 #include <g_all_guis.h>
 
 #include "Utility/Fonts.h"

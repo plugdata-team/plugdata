@@ -34,14 +34,24 @@ option(ENABLE_SFIZZ "Enable sfizz for the [sfz~] object" ON)
 option(ENABLE_FFMPEG "Enable ffmpeg support for ELSE and Gem audio/video objects" ON)
 option(ENABLE_GEM "Enable Gem support" ON)
 option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
+option(ENABLE_TSAN "Enable ThreadSanitizer" OFF)
 option(ENABLE_PERFETTO "Enable Perfetto profiling (advanced)" OFF)
 option(ENABLE_WAYLAND "Enable native wayland support (experimental)" OFF)
 option(MACOS_LEGACY "Enable support for old macOS versions (lowers OSX_DEPLOYMENT TARGET and disables Metal" OFF)
 option(VERBOSE "" OFF)
 
+if(ENABLE_ASAN AND ENABLE_TSAN)
+  message(FATAL_ERROR "ENABLE_ASAN and ENABLE_TSAN are mutually exclusive")
+endif()
+
 if(ENABLE_ASAN)
   add_compile_options(-fsanitize=address)
   add_link_options(-fsanitize=address)
+endif()
+
+if(ENABLE_TSAN)
+  add_compile_options(-fsanitize=thread)
+  add_link_options(-fsanitize=thread)
 endif()
 
 if(CMAKE_GENERATOR STREQUAL "Ninja" AND MSVC)
@@ -201,6 +211,14 @@ else()
   add_link_options(-Wno-psabi)
 endif()
 
+message(STATUS "Generating GUI struct definitions")
+set(PLUGDATA_GENERATED_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Generated)
+execute_process(COMMAND ${Python3_EXECUTABLE} generate_all_guis.py ${PLUGDATA_GENERATED_DIRECTORY}/AllGuis.h WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts RESULT_VARIABLE GENERATE_ALLGUIS_RESULT)
+
+if(NOT GENERATE_ALLGUIS_RESULT EQUAL 0)
+    message(FATAL_ERROR "Generating AllGuis.h failed with error code ${GENERATE_ALLGUIS_RESULT}")
+endif()
+
 message(STATUS "Preparing documentation")
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Resources)
 execute_process(COMMAND ${Python3_EXECUTABLE} parse_documentation.py ${CMAKE_CURRENT_BINARY_DIR}/Resources WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts RESULT_VARIABLE PREPARE_DOCUMENTATION_RESULT)
@@ -256,16 +274,13 @@ file(GLOB plugdata_sources
     ${SOURCES_DIRECTORY}/Standalone/PlugDataWindow.h
 )
 
-
 # Set up testing
 if(ENABLE_TESTING)
-    list(APPEND plugdata_sources
+    file(GLOB plugdata_testing_sources
     ${CMAKE_CURRENT_SOURCE_DIR}/Tests/Tests.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Tests/Tests.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Tests/HelpfileFuzzTest.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Tests/ObjectFuzzTest.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.h
     )
-
+    list(APPEND plugdata_sources ${plugdata_testing_sources})
 endif()
 
 if(APPLE)
@@ -426,6 +441,7 @@ if(ENABLE_PERFETTO)
   list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/melatonin_perfetto")
 endif()
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Source/")
+list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${PLUGDATA_GENERATED_DIRECTORY}")
 
 add_library(plugdata_core STATIC ${plugdata_sources})
 target_compile_definitions(plugdata_core PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
@@ -831,12 +847,12 @@ elseif(APPLE)
     set(MACOS_COMPAT_LINKER_FLAGS "-Wl,-ld_classic")
   endif()
 
-  # LuaJIT ships its own DWARF unwind personality routine (_lj_err_unwind_dwarf).
-  # Together with the gcc/g++/objc personalities this exceeds what the modern
-  # linker's compact-unwind format can encode. Release builds dodge this via
-  # -ld_classic above, but that flag is gated to non-Debug configs, so Debug and
-  # sanitizer builds must fall back to DWARF unwind info instead of compact unwind.
-  set(MACOS_LUAJIT_UNWIND_FLAGS "$<$<CONFIG:Debug>:-Wl,-no_compact_unwind>")
+  # no_compact_unwind is necessary when TSAN is enabled, because otherwise the number of exception personalities exceeds the maximum number
+  if(ENABLE_TSAN)
+    set(MACOS_LUAJIT_UNWIND_FLAGS "-Wl,-no_compact_unwind")
+  else()
+    set(MACOS_LUAJIT_UNWIND_FLAGS "")
+  endif()
 
   if(NOT "${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
     set(LINK_CARBON "-framework Carbon")

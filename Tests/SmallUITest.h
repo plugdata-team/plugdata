@@ -40,6 +40,7 @@ private:
             picker->createComponentSnapshot(picker->getLocalBounds());
 
             ModalComponentManager::getInstance()->cancelAllModalComponents();
+            ColourPicker::getInstance()->hideEyedropper();
             expect(pickedColour != Colours::black, "interacting with the picker must produce colour callbacks");
 
             showSnapSettings();

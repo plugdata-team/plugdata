@@ -319,6 +319,11 @@ public:
         clearSingletonInstance();
     }
 
+    void hideEyedropper()
+    {
+        eyedropper.hideEyedropper(true);
+    }
+
     void lookAndFeelChanged() override
     {
         auto const& colours = getThemeColours(*this);
