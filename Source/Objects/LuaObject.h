@@ -1074,7 +1074,7 @@ public:
         };
 
         auto const scaleFactor = getApproximateScaleFactorForComponent(cnv->editor);
-        textEditor.reset(Dialogs::showTextEditorDialog(fileToOpen.loadFileAsString(), "lua: " + getText(), onClose, onSave, scaleFactor, true));
+        textEditor.reset(Dialogs::showTextEditorDialog(fileToOpen.loadFileAsString(), "lua: " + getText(), onClose, onSave, scaleFactor, true, fileToOpen));
 
         if (textEditor)
             cnv->editor->openTextEditors.add_unique(ptr);
@@ -1230,7 +1230,7 @@ public:
         };
 
         auto const scaleFactor = getApproximateScaleFactorForComponent(cnv->editor);
-        textEditor.reset(Dialogs::showTextEditorDialog(fileToOpen.loadFileAsString(), "lua: " + getText(), onClose, onSave, scaleFactor, true));
+        textEditor.reset(Dialogs::showTextEditorDialog(fileToOpen.loadFileAsString(), "lua: " + getText(), onClose, onSave, scaleFactor, true, fileToOpen));
 
         if (textEditor)
             cnv->editor->openTextEditors.add_unique(ptr);

@@ -2975,6 +2975,7 @@ struct TextEditorDialog final : public Component
     MainToolbarButton undoButton = MainToolbarButton(Icons::Undo);
     MainToolbarButton redoButton = MainToolbarButton(Icons::Redo);
     MainToolbarButton searchButton = MainToolbarButton(Icons::Search);
+    MainToolbarButton openExternallyButton = MainToolbarButton(Icons::OpenLink);
 
     SmallIconButton zoomComboButton;
     SearchEditor searchInput;
@@ -2984,13 +2985,15 @@ struct TextEditorDialog final : public Component
 
     String title;
     int margin;
+    File associatedFile;
 
-    explicit TextEditorDialog(String name, bool const enableSyntaxHighlighting, std::function<void(String, bool)> const& closeCallback, std::function<void(String)> const& saveCallback, float const scale)
+    explicit TextEditorDialog(String name, bool const enableSyntaxHighlighting, std::function<void(String, bool)> const& closeCallback, std::function<void(String)> const& saveCallback, float const scale, File fileToOpen = File())
         : resizer(this, &constrainer)
         , onClose(closeCallback)
         , onSave(saveCallback)
         , title(std::move(name))
         , margin(ProjectInfo::canUseSemiTransparentWindows() ? 15 : 0)
+        , associatedFile(std::move(fileToOpen))
         , desktopScale(scale)
     {
         closeButton.reset(LookAndFeel::getDefaultLookAndFeel().createDocumentWindowButton(-1));
@@ -3011,14 +3014,19 @@ struct TextEditorDialog final : public Component
         addToDesktop(0);
         setVisible(true);
 
-        // Position in centre of screen
-        setBounds((Desktop::getInstance().getDisplays().getPrimaryDisplay()->userBounds / desktopScale).withSizeKeepingCentre(700, 500).getSmallestIntegerContainer());
-
         addAndMakeVisible(saveButton);
         addAndMakeVisible(undoButton);
         addAndMakeVisible(redoButton);
         addAndMakeVisible(searchButton);
         addAndMakeVisible(zoomComboButton);
+
+        // Only text that is backed by a file on disk can be opened in an external editor
+        addChildComponent(openExternallyButton);
+        openExternallyButton.setVisible(associatedFile.existsAsFile());
+        openExternallyButton.setTooltip("Open in default text editor");
+
+        // Position in centre of screen
+        setBounds((Desktop::getInstance().getDisplays().getPrimaryDisplay()->userBounds / desktopScale).withSizeKeepingCentre(700, 500).getSmallestIntegerContainer());
 
         zoomComboButton.setButtonText(Icons::ThinDown);
 
@@ -3054,6 +3062,15 @@ struct TextEditorDialog final : public Component
         saveButton.onClick = [this] {
             onSave(editor.getText());
             editor.setUnchanged();
+        };
+
+        openExternallyButton.onClick = [this] {
+            // Make sure the external editor sees the text as it currently is in this dialog
+            if (editor.hasChanged()) {
+                onSave(editor.getText());
+                editor.setUnchanged();
+            }
+            associatedFile.startAsProcess();
         };
 
         searchButton.onClick = [this] {
@@ -3117,20 +3134,19 @@ struct TextEditorDialog final : public Component
         auto const closeButtonBounds = toolbarBounds.removeFromRight(30).reduced(0, 5).translated(-5, 1);
         closeButton->setBounds(closeButtonBounds);
 
-        toolbarBounds.removeFromRight(10);
-        auto const searchButtonBounds = toolbarBounds.removeFromRight(39);
-        auto const saveButtonBounds = toolbarBounds.removeFromLeft(39);
-        toolbarBounds.removeFromLeft(10);
-        auto const undoButtonBounds = toolbarBounds.removeFromLeft(39);
-        toolbarBounds.removeFromLeft(10);
-        auto const redoButtonBounds = toolbarBounds.removeFromLeft(39);
-
+        if (openExternallyButton.isVisible()) {
+            toolbarBounds.removeFromRight(10);
+            openExternallyButton.setBounds(toolbarBounds.removeFromRight(39));
+        }
+        searchButton.setBounds(toolbarBounds.removeFromRight(39));
         searchInput.setBounds(toolbarBounds.reduced(5, 5));
 
-        searchButton.setBounds(searchButtonBounds);
-        saveButton.setBounds(saveButtonBounds);
-        undoButton.setBounds(undoButtonBounds);
-        redoButton.setBounds(redoButtonBounds);
+        toolbarBounds.removeFromRight(10);
+        saveButton.setBounds(toolbarBounds.removeFromLeft(39));
+        toolbarBounds.removeFromLeft(10);
+        undoButton.setBounds(toolbarBounds.removeFromLeft(39));
+        toolbarBounds.removeFromLeft(10);
+        redoButton.setBounds(toolbarBounds.removeFromLeft(39));
 
         auto statusBarBounds = b.removeFromBottom(28);
         editor.setBounds(b);

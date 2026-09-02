@@ -133,7 +133,6 @@ private:
 
     void finish()
     {
-        ColourPicker::getInstance()->clearSingletonInstance();
         if (auto* sidebar = editor->getSidebarForPanel(Sidebar::InspectorPanel))
             sidebar->clearInspector();
 
