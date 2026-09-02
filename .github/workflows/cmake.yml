@@ -102,12 +102,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: plugdata-Win64
+          - name: Windows-64
             arch: x64
             artifact: plugdata-Win64.msi
             cmake_args: -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl
 
-          - name: plugdata-Win32
+          - name: Windows-32
             arch: x86
             artifact: plugdata-Win32.msi
             cmake_args: -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl
