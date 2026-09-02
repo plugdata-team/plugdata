@@ -220,16 +220,16 @@ public:
             args.add("--gui");
 
             var const metaTheme(new DynamicObject());
-            metaTheme.getDynamicObject()->setProperty("obj_corner_radius", Corners::objectCornerRadius);
-            metaTheme.getDynamicObject()->setProperty("cnv_txt_color", "#" + PlugDataColours::canvasTextColour.toDisplayString(false));
+            metaTheme.getDynamicObject()->setProperty("obj_corner_radius", getObjectCornerRadius(*this));
+            metaTheme.getDynamicObject()->setProperty("cnv_txt_color", "#" + getThemeColours(*this).canvasTextColour.toDisplayString(false));
 
             if (useTheme) {
-                metaTheme.getDynamicObject()->setProperty("cnv_color", "#" + PlugDataColours::canvasBackgroundColour.toDisplayString(false));
-                metaTheme.getDynamicObject()->setProperty("io_color", "#" + PlugDataColours::guiObjectInternalOutlineColour.toDisplayString(false));
-                metaTheme.getDynamicObject()->setProperty("bg_color", "#" + PlugDataColours::guiObjectBackgroundColour.toDisplayString(false));
-                metaTheme.getDynamicObject()->setProperty("sel_color", "#" + PlugDataColours::objectSelectedOutlineColour.toDisplayString(false));
-                metaTheme.getDynamicObject()->setProperty("com_txt_color", "#" + PlugDataColours::commentTextColour.toDisplayString(false));
-                metaTheme.getDynamicObject()->setProperty("out_color", "#" + PlugDataColours::outlineColour.toDisplayString(false));
+                metaTheme.getDynamicObject()->setProperty("cnv_color", "#" + getThemeColours(*this).canvasBackgroundColour.toDisplayString(false));
+                metaTheme.getDynamicObject()->setProperty("io_color", "#" + getThemeColours(*this).guiObjectInternalOutlineColour.toDisplayString(false));
+                metaTheme.getDynamicObject()->setProperty("bg_color", "#" + getThemeColours(*this).guiObjectBackgroundColour.toDisplayString(false));
+                metaTheme.getDynamicObject()->setProperty("sel_color", "#" + getThemeColours(*this).objectSelectedOutlineColour.toDisplayString(false));
+                metaTheme.getDynamicObject()->setProperty("com_txt_color", "#" + getThemeColours(*this).commentTextColour.toDisplayString(false));
+                metaTheme.getDynamicObject()->setProperty("out_color", "#" + getThemeColours(*this).outlineColour.toDisplayString(false));
 
             }
             metaDPF.getDynamicObject()->setProperty("ui_theme", "default");
