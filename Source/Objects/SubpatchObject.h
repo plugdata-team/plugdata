@@ -27,7 +27,7 @@ public:
                     _this->cnv->setSelected(_this->object, false);
                     if (auto* s = _this->object->editor->getSidebarForPanel(Sidebar::InspectorPanel))
                         s->hideParameters();
-                    _this->object->setType(_this->getText(), _this->ptr);
+                    _this->object->setType(_this->getText().toString(), _this->ptr);
                 }
             }
         });
@@ -90,7 +90,7 @@ public:
                     _this->cnv->setSelected(object, false);
                     if (auto* s = _this->object->editor->getSidebarForPanel(Sidebar::InspectorPanel))
                         s->hideParameters();
-                    _this->object->setType(_this->getText(), ptr);
+                    _this->object->setType(_this->getText().toString(), ptr);
                 });
             }
         }

@@ -1782,7 +1782,7 @@ private:
             if (!connectedObjects.empty() && !connectedObjects.contains(obj))
                 continue;
 
-            auto objectName = obj->getType();
+            auto objectName = obj->getType().toString();
             auto alreadyExists = std::ranges::find_if(objects, [objectName](auto const& toCompare) {
                 return toCompare.objectName == objectName;
             }) != objects.end();
@@ -1879,14 +1879,14 @@ private:
             currentDollsym = String::fromUTF8(realised->s_name);
         }
 
-        SmallArray<std::tuple<pd::WeakReference, String, String>> allObjects;
+        SmallArray<std::tuple<pd::WeakReference, SmallString, SmallString>> allObjects;
         for (auto& objectPtr : patch.getObjects()) {
-            String type, name;
+            SmallString type, name;
             if (auto object = objectPtr.get<t_pd>()) {
                 if (!pd::Interface::checkObject(object.get()))
                     continue;
                 name = pd::Interface::getObjectText(object.cast<t_text>());
-                type = String::fromUTF8(pd::Interface::getObjectClassName(object.get()));
+                type = pd::Interface::getObjectClassName(object.get());
             }
             allObjects.emplace_back(objectPtr, name, type);
         }
@@ -1896,7 +1896,7 @@ private:
                 break;
 
             SendReceiveEntry entry;
-            auto nameWithoutArgs = name.upToFirstOccurrenceOf(" ", false, false);
+            auto nameWithoutArgs = name.upToFirstOccurrenceOf(" ");
             switch (hash(type)) {
             case hash("bng"):
             case hash("hsl"):
@@ -1919,7 +1919,7 @@ private:
                     if (srl_is_valid(srlsym[1]))
                         entry.receiveSymbol = String::fromUTF8(iemgui->x_rcv_unexpanded->s_name);
                 }
-                entry.name = nameWithoutArgs;
+                entry.name = nameWithoutArgs.toString();
                 break;
             }
             case hash("keyboard"): {
@@ -1927,7 +1927,7 @@ private:
                     entry.sendSymbol = String(keyboardObject->x_send->s_name);
                     entry.receiveSymbol = String(keyboardObject->x_receive->s_name);
                 }
-                entry.name = nameWithoutArgs;
+                entry.name = nameWithoutArgs.toString();
                 break;
             }
             case hash("pic"): {
@@ -1935,13 +1935,13 @@ private:
                     entry.sendSymbol = String(picObject->x_send->s_name);
                     entry.receiveSymbol = String(picObject->x_receive->s_name);
                 }
-                entry.name = nameWithoutArgs;
+                entry.name = nameWithoutArgs.toString();
                 break;
             }
             case hash("scope~"): {
                 if (auto scopeObject = objectPtr.get<t_fake_scope>())
                     entry.receiveSymbol = String(scopeObject->x_receive->s_name);
-                entry.name = nameWithoutArgs;
+                entry.name = nameWithoutArgs.toString();
                 break;
             }
             case hash("function"): {
@@ -1949,13 +1949,13 @@ private:
                     entry.sendSymbol = String(keyboardObject->x_send->s_name);
                     entry.receiveSymbol = String(keyboardObject->x_receive->s_name);
                 }
-                entry.name = nameWithoutArgs;
+                entry.name = nameWithoutArgs.toString();
                 break;
             }
             case hash("note"): {
                 if (auto noteObject = objectPtr.get<t_fake_note>())
                     entry.receiveSymbol = String(noteObject->x_receive->s_name);
-                entry.name = nameWithoutArgs;
+                entry.name = nameWithoutArgs.toString();
                 break;
             }
             case hash("knob"): {
@@ -1963,7 +1963,7 @@ private:
                     entry.sendSymbol = String(knobObj->x_snd->s_name);
                     entry.receiveSymbol = String(knobObj->x_rcv->s_name);
                 }
-                entry.name = nameWithoutArgs;
+                entry.name = nameWithoutArgs.toString();
                 break;
             }
             case hash("gatom"): {
@@ -1988,8 +1988,8 @@ private:
                 break;
             }
             default: {
-                auto getFirstArgumentFromFullName = [](String const& fullName) -> String {
-                    return fullName.fromFirstOccurrenceOf(" ", false, true).upToFirstOccurrenceOf(" ", false, true);
+                auto getFirstArgumentFromFullName = [](SmallString const& fullName) -> String {
+                    return fullName.fromFirstOccurrenceOf(" ").upToFirstOccurrenceOf(" ").toString();
                 };
 
                 switch (hash(nameWithoutArgs)) {
@@ -1999,7 +1999,7 @@ private:
                 case hash("send~"):
                 case hash("throw~"):
                     entry.sendSymbol = getFirstArgumentFromFullName(name);
-                    entry.name = nameWithoutArgs;
+                    entry.name = nameWithoutArgs.toString();
                     break;
                 case hash("r"):
                 case hash("r~"):
@@ -2007,7 +2007,7 @@ private:
                 case hash("receive~"):
                 case hash("catch~"):
                     entry.receiveSymbol = getFirstArgumentFromFullName(name);
-                    entry.name = nameWithoutArgs;
+                    entry.name = nameWithoutArgs.toString();
                     break;
                 default:
                     break;
@@ -2029,7 +2029,7 @@ private:
             if (type == "canvas" || type == "graph") {
                 auto subpatch = pd::Patch(objectPtr, currentObject->cnv->pd, false);
                 if (depth < 3)
-                    result.add_array(getAllSendReceives(subpatch, total, prefix + name + " -> ", ++depth));
+                    result.add_array(getAllSendReceives(subpatch, total, prefix + name.toString() + " -> ", ++depth));
             }
         }
         return result;

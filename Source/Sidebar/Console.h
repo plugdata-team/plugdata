@@ -92,7 +92,7 @@ public:
             if (!object->gui)
                 continue;
 
-            auto tokens = StringArray::fromTokens(object->gui->getText(), false);
+            auto tokens = StringArray::fromTokens(object->gui->getText().toString(), false);
             tokens.removeRange(2, tokens.size() - 2);
 
             auto uniqueName = tokens.joinIntoString("_");

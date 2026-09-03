@@ -790,7 +790,7 @@ void Sidebar::showParameters(SmallArray<Component*>& objects, SmallArray<ObjectP
     auto name = String("empty");
     if (objects.size() == 1) {
         auto const obj = dynamic_cast<Object*>(objects[0]);
-        name = dynamic_cast<Canvas*>(objects[0]) ? "canvas" : (obj ? obj->getType(false) : "");
+        name = dynamic_cast<Canvas*>(objects[0]) ? "canvas" : (obj ? obj->getType(false).toString() : "");
     } else if (objects.size() > 1) {
         name = "(" + String(objects.size()) + " selected)";
     }

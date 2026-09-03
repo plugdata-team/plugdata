@@ -893,7 +893,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             object->openHelpPatch();
             break;
         case Reference:
-            Dialogs::showObjectReferenceDialog(&editor->openedDialog, editor, object->getType());
+            Dialogs::showObjectReferenceDialog(&editor->openedDialog, editor, object->getType().toString());
             break;
         case AlignLeft:
             cnv->alignObjects(Align::Left);

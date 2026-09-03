@@ -22,18 +22,18 @@ public:
     void setChannel(int const channel)
     {
         if (channel == 0) {
-            object->setType(getText().upToFirstOccurrenceOf(" ", false, false));
+            object->setType(getText().upToFirstOccurrenceOf(" ").toString());
         } else {
-            object->setType(getText().upToFirstOccurrenceOf(" ", false, false) + " " + String(channel));
+            object->setType(getText().upToFirstOccurrenceOf(" ").toString() + " " + String(channel));
         }
     }
 
     void setChannelAndCC(int const channel, int const cc)
     {
         if (channel == 0) {
-            object->setType(getText().upToFirstOccurrenceOf(" ", false, false) + " " + String(cc));
+            object->setType(getText().upToFirstOccurrenceOf(" ").toString() + " " + String(cc));
         } else {
-            object->setType(getText().upToFirstOccurrenceOf(" ", false, false) + " " + String(cc) + " " + String(channel));
+            object->setType(getText().upToFirstOccurrenceOf(" ").toString() + " " + String(cc) + " " + String(channel));
         }
     }
 
@@ -43,7 +43,7 @@ public:
 
 #define channelCallback(itemID) [this, itemID]() { setChannel(itemID - 1); }
 
-        auto const text = StringArray::fromTokens(getText(), false);
+        auto const text = StringArray::fromTokens(getText().toString(), false);
         auto const currentPort = text.size() > 1 ? text[1].getIntValue() : 0;
         auto const currentCC = text.size() > 2 ? text[2].getIntValue() : 0;
 

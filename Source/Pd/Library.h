@@ -61,14 +61,14 @@ public:
     static File findPatch(String const& patchToFind);
     static File findFile(String const& fileToFind);
 
-    static StackArray<StringArray, 2> parseIoletTooltips(ObjectReferenceTable::IoletsReference const& inlets, ObjectReferenceTable::IoletsReference const& outlets, String const& name, int numIn, int numOut);
+    static StackArray<StringArray, 2> parseIoletTooltips(ObjectReferenceTable::IoletsReference const& inlets, ObjectReferenceTable::IoletsReference const& outlets, SmallString const& name, int numIn, int numOut);
 
     void filesystemChanged() override;
 
     static File findHelpfile(String const& name);
     static File findHelpfile(t_gobj* obj, File const& parentPatchFile);
 
-    Library::ObjectReferenceTable const& getObjectInfo(String const& name);
+    Library::ObjectReferenceTable const& getObjectInfo(SmallString const& name);
 
     static String getObjectOrigin(t_gobj* obj);
 

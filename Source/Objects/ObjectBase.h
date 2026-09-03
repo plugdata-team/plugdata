@@ -152,10 +152,10 @@ public:
     virtual void lock(bool isLocked);
 
     // Returns the Pd class name of the object
-    String getType() const;
+    SmallString getType() const;
 
     // Returns the Pd class name of the object with the library prefix in front of it, eg "else"
-    String getTypeWithOriginPrefix() const;
+    SmallString getTypeWithOriginPrefix() const;
 
     enum MessageCallbackType {
         Sync,
@@ -207,7 +207,7 @@ public:
 
     virtual ObjectLabel* getLabel(int idx = 0);
 
-    virtual String getText();
+    virtual SmallString getText();
 
     virtual bool checkHvccCompatibility();
 
@@ -239,6 +239,9 @@ protected:
     void startEdition();
     void stopEdition();
 
+    // Returns pair of {name, isSubpatchOrAbstraction}
+    static std::pair<SmallString, bool> getTypeFromClass(pd::WeakReference classPtr);
+
     void setType();
 
     String getBinbufSymbol(int argIndex) const;
@@ -250,7 +253,7 @@ protected:
     // Send a float value to Pd
     void sendFloatValue(float value);
 
-    static bool recurseHvccCompatibility(String const& objectText, pd::Patch::Ptr patch, String const& prefix = "");
+    static bool recurseHvccCompatibility(SmallString const& objectText, pd::Patch::Ptr patch, String const& prefix = "");
 
     // Used by various ELSE objects, though sometimes with char*, sometimes with unsigned char*
     template<typename T>
@@ -271,7 +274,7 @@ public:
     ObjectParameters objectParameters;
 
 protected:
-    String type;
+    SmallString type;
     PropertyListener propertyListener;
 
     virtual std::unique_ptr<ComponentBoundsConstrainer> createConstrainer();

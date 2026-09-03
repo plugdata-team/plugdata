@@ -40,7 +40,7 @@ public:
         return subpatch;
     }
 
-    String getText() override
+    SmallString getText() override
     {
         if (auto clone = ptr.get<t_fake_clone>()) {
             auto const* sym = clone->x_s;
@@ -48,7 +48,7 @@ public:
             if (!sym || !sym->s_name)
                 return "";
 
-            return String::fromUTF8(sym->s_name);
+            return SmallString(sym->s_name);
         }
 
         return { };

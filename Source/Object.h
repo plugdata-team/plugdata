@@ -63,7 +63,7 @@ public:
     void hideEditor();
     bool isInitialEditorShown() const;
 
-    String getType(bool withOriginPrefix = true) const;
+    SmallString getType(bool withOriginPrefix = true) const;
 
     Rectangle<int> getSelectableBounds() const;
     Rectangle<int> getObjectBounds() const;

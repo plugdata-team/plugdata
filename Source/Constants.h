@@ -188,7 +188,6 @@ struct Icons {
     static inline String const GlyphBondo = CharPointer_UTF8("\xc3\xb4");
     static inline String const GlyphSfz = CharPointer_UTF8("\xc3\xb8");
 
-    // MIDI
     static inline String const GlyphMidiIn = CharPointer_UTF8("\xc4\x87");
     static inline String const GlyphMidiOut = CharPointer_UTF8("\xc4\x88");
     static inline String const GlyphNoteIn = CharPointer_UTF8("\xc4\x89");
@@ -276,6 +275,260 @@ struct Icons {
     static inline String const GlyphLowShelf = CharPointer_UTF8("\xc7\x91");
     static inline String const GlyphHighShelf = CharPointer_UTF8("\xc7\x92");
     static inline String const GlyphAllPass = CharPointer_UTF8("\xc7\x93");
+
+    // Patch
+    static inline String const GlyphSubpatch = CharPointer_UTF8("\xc7\x94");
+    static inline String const GlyphInlet = CharPointer_UTF8("\xc7\x95");
+    static inline String const GlyphOutlet = CharPointer_UTF8("\xc7\x96");
+    static inline String const GlyphSignalInlet = CharPointer_UTF8("\xc7\x97");
+    static inline String const GlyphSignalOutlet = CharPointer_UTF8("\xc7\x98");
+    static inline String const GlyphClone = CharPointer_UTF8("\xc7\x99");
+    static inline String const GlyphBlock = CharPointer_UTF8("\xc7\x9a");
+    static inline String const GlyphSwitch = CharPointer_UTF8("\xc7\x9b");
+    static inline String const GlyphDeclare = CharPointer_UTF8("\xc7\x9c");
+    static inline String const GlyphSavestate = CharPointer_UTF8("\xc7\x9d");
+    static inline String const GlyphPdcontrol = CharPointer_UTF8("\xc7\x9e");
+    static inline String const GlyphArgs = CharPointer_UTF8("\xc7\x9f");
+    static inline String const GlyphPresets = CharPointer_UTF8("\xc7\xa0");
+
+    // User Interface
+    static inline String const GlyphCircleSlider = CharPointer_UTF8("\xc7\xa1");
+    static inline String const GlyphIncdec = CharPointer_UTF8("\xc7\xa2");
+    static inline String const GlyphTabSelect = CharPointer_UTF8("\xc7\xa3");
+    static inline String const GlyphGuiCanvas = CharPointer_UTF8("\xc7\xa4");
+    static inline String const GlyphSlider2D = CharPointer_UTF8("\xc7\xa5");
+    static inline String const GlyphMousePad = CharPointer_UTF8("\xc7\xa6");
+    static inline String const GlyphMultiSlider = CharPointer_UTF8("\xc7\xa7");
+    static inline String const GlyphRangeSlider = CharPointer_UTF8("\xc7\xa8");
+    static inline String const GlyphMatrixCtl = CharPointer_UTF8("\xc7\xa9");
+    static inline String const GlyphDrumSeq = CharPointer_UTF8("\xc7\xaa");
+    static inline String const GlyphPopmenu = CharPointer_UTF8("\xc7\xab");
+    static inline String const GlyphDisplay = CharPointer_UTF8("\xc7\xac");
+    static inline String const GlyphTextNote = CharPointer_UTF8("\xc7\xad");
+    static inline String const GlyphPic = CharPointer_UTF8("\xc7\xae");
+    static inline String const GlyphOpenFile = CharPointer_UTF8("\xc7\xaf");
+    static inline String const GlyphBiplot = CharPointer_UTF8("\xc7\xb0");
+    static inline String const GlyphZBiplot = CharPointer_UTF8("\xc7\xb1");
+    static inline String const GlyphSignalNumbox = CharPointer_UTF8("\xc7\xb2");
+    static inline String const GlyphGainFader = CharPointer_UTF8("\xc7\xb3");
+    static inline String const GlyphGainFader2 = CharPointer_UTF8("\xc7\xb4");
+    static inline String const GlyphLevel = CharPointer_UTF8("\xc7\xb5");
+    static inline String const GlyphMeterBar = CharPointer_UTF8("\xc7\xb6");
+    static inline String const GlyphMeterBar2 = CharPointer_UTF8("\xc7\xb7");
+    static inline String const GlyphSignalGraph = CharPointer_UTF8("\xc7\xb8");
+    static inline String const GlyphSpectrum = CharPointer_UTF8("\xc7\xb9");
+    static inline String const GlyphScope3D = CharPointer_UTF8("\xc7\xba");
+    static inline String const GlyphPlaylist = CharPointer_UTF8("\xc7\xbb");
+
+    // General
+    static inline String const GlyphBangObject = CharPointer_UTF8("\xc7\xbc");
+    static inline String const GlyphFloatObject = CharPointer_UTF8("\xc7\xbd");
+    static inline String const GlyphIntObject = CharPointer_UTF8("\xc7\xbe");
+    static inline String const GlyphSymbolObject = CharPointer_UTF8("\xc7\xbf");
+    static inline String const GlyphValue = CharPointer_UTF8("\xc8\x80");
+    static inline String const GlyphChange = CharPointer_UTF8("\xc8\x81");
+    static inline String const GlyphSwap = CharPointer_UTF8("\xc8\x82");
+    static inline String const GlyphUntil = CharPointer_UTF8("\xc8\x83");
+    static inline String const GlyphChance = CharPointer_UTF8("\xc8\x84");
+    static inline String const GlyphKeyInput = CharPointer_UTF8("\xc8\x85");
+
+    // Lists & Text
+    static inline String const GlyphListAppend = CharPointer_UTF8("\xc8\x86");
+    static inline String const GlyphListPrepend = CharPointer_UTF8("\xc8\x87");
+    static inline String const GlyphListStore = CharPointer_UTF8("\xc8\x88");
+    static inline String const GlyphListSplit = CharPointer_UTF8("\xc8\x89");
+    static inline String const GlyphListLength = CharPointer_UTF8("\xc8\x8a");
+    static inline String const GlyphTextDefine = CharPointer_UTF8("\xc8\x8b");
+    static inline String const GlyphTextGet = CharPointer_UTF8("\xc8\x8c");
+    static inline String const GlyphTextSet = CharPointer_UTF8("\xc8\x8d");
+    static inline String const GlyphTextSeq = CharPointer_UTF8("\xc8\x8e");
+    static inline String const GlyphQlist = CharPointer_UTF8("\xc8\x8f");
+    static inline String const GlyphTextfile = CharPointer_UTF8("\xc8\x90");
+    static inline String const GlyphFormat = CharPointer_UTF8("\xc8\x91");
+    static inline String const GlyphMakeFilename = CharPointer_UTF8("\xc8\x92");
+
+    // Time & Sequencing
+    static inline String const GlyphPipe = CharPointer_UTF8("\xc8\x93");
+    static inline String const GlyphClockSync = CharPointer_UTF8("\xc8\x94");
+    static inline String const GlyphMetronome = CharPointer_UTF8("\xc8\x95");
+    static inline String const GlyphSpeed = CharPointer_UTF8("\xc8\x96");
+    static inline String const GlyphTempo = CharPointer_UTF8("\xc8\x97");
+    static inline String const GlyphScore = CharPointer_UTF8("\xc8\x98");
+    static inline String const GlyphPattern = CharPointer_UTF8("\xc8\x99");
+    static inline String const GlyphSequencer = CharPointer_UTF8("\xc8\x9a");
+    static inline String const GlyphEuclid = CharPointer_UTF8("\xc8\x9b");
+    static inline String const GlyphListSeq = CharPointer_UTF8("\xc8\x9c");
+    static inline String const GlyphRecordTrack = CharPointer_UTF8("\xc8\x9d");
+
+    // MIDI
+    static inline String const GlyphBendIn = CharPointer_UTF8("\xc8\x9e");
+    static inline String const GlyphBendOut = CharPointer_UTF8("\xc8\x9f");
+    static inline String const GlyphTouchIn = CharPointer_UTF8("\xc8\xa0");
+    static inline String const GlyphTouchOut = CharPointer_UTF8("\xc8\xa1");
+    static inline String const GlyphPolyTouchIn = CharPointer_UTF8("\xc8\xa2");
+    static inline String const GlyphPolyTouchOut = CharPointer_UTF8("\xc8\xa3");
+    static inline String const GlyphMidiRealtime = CharPointer_UTF8("\xc8\xa4");
+    static inline String const GlyphMakenote = CharPointer_UTF8("\xc8\xa5");
+    static inline String const GlyphStripnote = CharPointer_UTF8("\xc8\xa6");
+    static inline String const GlyphPolyVoices = CharPointer_UTF8("\xc8\xa7");
+    static inline String const GlyphMidiLearn = CharPointer_UTF8("\xc8\xa8");
+    static inline String const GlyphPanic = CharPointer_UTF8("\xc8\xa9");
+
+    // Input & Output
+    static inline String const GlyphOutMc = CharPointer_UTF8("\xc8\xaa");
+    static inline String const GlyphSigConv = CharPointer_UTF8("\xc8\xab");
+    static inline String const GlyphSnapshot = CharPointer_UTF8("\xc8\xac");
+    static inline String const GlyphThrow = CharPointer_UTF8("\xc8\xad");
+    static inline String const GlyphCatch = CharPointer_UTF8("\xc8\xae");
+    static inline String const GlyphSignalPrint = CharPointer_UTF8("\xc8\xaf");
+    static inline String const GlyphOscParse = CharPointer_UTF8("\xc8\xb0");
+    static inline String const GlyphOscFormat = CharPointer_UTF8("\xc8\xb1");
+    static inline String const GlyphPdlink = CharPointer_UTF8("\xc8\xb2");
+
+    // Arrays & Files
+    static inline String const GlyphTabread = CharPointer_UTF8("\xc8\xb3");
+    static inline String const GlyphTabread4 = CharPointer_UTF8("\xc8\xb4");
+    static inline String const GlyphTabwrite = CharPointer_UTF8("\xc8\xb5");
+    static inline String const GlyphSoundfiler = CharPointer_UTF8("\xc8\xb6");
+    static inline String const GlyphBuffer = CharPointer_UTF8("\xc8\xb7");
+    static inline String const GlyphSfload = CharPointer_UTF8("\xc8\xb8");
+    static inline String const GlyphTabosc = CharPointer_UTF8("\xc8\xb9");
+    static inline String const GlyphTabplay = CharPointer_UTF8("\xc8\xba");
+    static inline String const GlyphSignalTabread = CharPointer_UTF8("\xc8\xbb");
+    static inline String const GlyphSignalTabread4 = CharPointer_UTF8("\xc8\xbc");
+    static inline String const GlyphSignalTabwrite = CharPointer_UTF8("\xc8\xbd");
+    static inline String const GlyphReadsf = CharPointer_UTF8("\xc8\xbe");
+    static inline String const GlyphWritesf = CharPointer_UTF8("\xc8\xbf");
+    static inline String const GlyphSamplePlayer = CharPointer_UTF8("\xc9\x80");
+
+    // Oscillators
+    static inline String const GlyphCosine = CharPointer_UTF8("\xc9\x81");
+    static inline String const GlyphSine = CharPointer_UTF8("\xc9\x82");
+    static inline String const GlyphPulseOsc = CharPointer_UTF8("\xc9\x83");
+    static inline String const GlyphVSaw = CharPointer_UTF8("\xc9\x84");
+    static inline String const GlyphBlip = CharPointer_UTF8("\xc9\x85");
+    static inline String const GlyphFm = CharPointer_UTF8("\xc9\x86");
+    static inline String const GlyphPm = CharPointer_UTF8("\xc9\x87");
+    static inline String const GlyphWavetable2D = CharPointer_UTF8("\xc9\x88");
+    static inline String const GlyphOscBank = CharPointer_UTF8("\xc9\x89");
+    static inline String const GlyphLfo = CharPointer_UTF8("\xc9\x8a");
+
+    // Noise & Random
+    static inline String const GlyphNoise = CharPointer_UTF8("\xc9\x8b");
+    static inline String const GlyphWhiteNoise = CharPointer_UTF8("\xc9\x8c");
+    static inline String const GlyphPinkNoise = CharPointer_UTF8("\xc9\x8d");
+    static inline String const GlyphBrownNoise = CharPointer_UTF8("\xc9\x8e");
+    static inline String const GlyphGrayNoise = CharPointer_UTF8("\xc9\x8f");
+    static inline String const GlyphVelvet = CharPointer_UTF8("\xc9\x90");
+    static inline String const GlyphCrackle = CharPointer_UTF8("\xc9\x91");
+    static inline String const GlyphPerlin = CharPointer_UTF8("\xc9\x92");
+    static inline String const GlyphDust = CharPointer_UTF8("\xc9\x93");
+    static inline String const GlyphLfNoise = CharPointer_UTF8("\xc9\x94");
+    static inline String const GlyphStepNoise = CharPointer_UTF8("\xc9\x95");
+    static inline String const GlyphRampNoise = CharPointer_UTF8("\xc9\x96");
+    static inline String const GlyphRandPulse = CharPointer_UTF8("\xc9\x97");
+    static inline String const GlyphRandom = CharPointer_UTF8("\xc9\x98");
+    static inline String const GlyphRandFloat = CharPointer_UTF8("\xc9\x99");
+    static inline String const GlyphRandInt = CharPointer_UTF8("\xc9\x9a");
+    static inline String const GlyphDrunkard = CharPointer_UTF8("\xc9\x9b");
+    static inline String const GlyphMarkov = CharPointer_UTF8("\xc9\x9c");
+
+    // Envelopes
+    static inline String const GlyphLineSignal = CharPointer_UTF8("\xc9\x9d");
+    static inline String const GlyphVline = CharPointer_UTF8("\xc9\x9e");
+    static inline String const GlyphLineCtl = CharPointer_UTF8("\xc9\x9f");
+    static inline String const GlyphAdsr = CharPointer_UTF8("\xc9\xa0");
+    static inline String const GlyphAsr = CharPointer_UTF8("\xc9\xa1");
+    static inline String const GlyphDecayEnv = CharPointer_UTF8("\xc9\xa2");
+    static inline String const GlyphEnvGen = CharPointer_UTF8("\xc9\xa3");
+    static inline String const GlyphFuncGen = CharPointer_UTF8("\xc9\xa4");
+    static inline String const GlyphEnvelopeShape = CharPointer_UTF8("\xc9\xa5");
+    static inline String const GlyphSusLoop = CharPointer_UTF8("\xc9\xa6");
+    static inline String const GlyphRampEnv = CharPointer_UTF8("\xc9\xa7");
+    static inline String const GlyphGlide = CharPointer_UTF8("\xc9\xa8");
+    static inline String const GlyphLag = CharPointer_UTF8("\xc9\xa9");
+    static inline String const GlyphSlew = CharPointer_UTF8("\xc9\xaa");
+    static inline String const GlyphSmooth = CharPointer_UTF8("\xc9\xab");
+
+    // Filters
+    static inline String const GlyphLop = CharPointer_UTF8("\xc9\xac");
+    static inline String const GlyphHip = CharPointer_UTF8("\xc9\xad");
+    static inline String const GlyphBpFilter = CharPointer_UTF8("\xc9\xae");
+    static inline String const GlyphVcf = CharPointer_UTF8("\xc9\xaf");
+    static inline String const GlyphBiquad = CharPointer_UTF8("\xc9\xb0");
+    static inline String const GlyphSlop = CharPointer_UTF8("\xc9\xb1");
+    static inline String const GlyphLowpassRes = CharPointer_UTF8("\xc9\xb2");
+    static inline String const GlyphHighpassRes = CharPointer_UTF8("\xc9\xb3");
+    static inline String const GlyphBandpassRes = CharPointer_UTF8("\xc9\xb4");
+    static inline String const GlyphBandstopFilt = CharPointer_UTF8("\xc9\xb5");
+    static inline String const GlyphLowshelfFilt = CharPointer_UTF8("\xc9\xb6");
+    static inline String const GlyphHighshelfFilt = CharPointer_UTF8("\xc9\xb7");
+    static inline String const GlyphParametricEq = CharPointer_UTF8("\xc9\xb8");
+    static inline String const GlyphAllpassFilt = CharPointer_UTF8("\xc9\xb9");
+    static inline String const GlyphCombFilt = CharPointer_UTF8("\xc9\xba");
+    static inline String const GlyphResonantFilt = CharPointer_UTF8("\xc9\xbb");
+    static inline String const GlyphCrossover = CharPointer_UTF8("\xc9\xbc");
+    static inline String const GlyphMoog = CharPointer_UTF8("\xc9\xbd");
+
+    // Effects
+    static inline String const GlyphChorus = CharPointer_UTF8("\xc9\xbe");
+    static inline String const GlyphPhaser = CharPointer_UTF8("\xc9\xbf");
+    static inline String const GlyphTremolo = CharPointer_UTF8("\xca\x80");
+    static inline String const GlyphVibrato = CharPointer_UTF8("\xca\x81");
+    static inline String const GlyphVocoder = CharPointer_UTF8("\xca\x82");
+    static inline String const GlyphWaveshaper = CharPointer_UTF8("\xca\x83");
+    static inline String const GlyphDownsample = CharPointer_UTF8("\xca\x84");
+    static inline String const GlyphPitchShift = CharPointer_UTF8("\xca\x85");
+    static inline String const GlyphCompress = CharPointer_UTF8("\xca\x86");
+    static inline String const GlyphExpand = CharPointer_UTF8("\xca\x87");
+    static inline String const GlyphNoiseGate = CharPointer_UTF8("\xca\x88");
+    static inline String const GlyphNormalize = CharPointer_UTF8("\xca\x89");
+    static inline String const GlyphPlateReverb = CharPointer_UTF8("\xca\x8a");
+    static inline String const GlyphEchoReverb = CharPointer_UTF8("\xca\x8b");
+    static inline String const GlyphDelwrite = CharPointer_UTF8("\xca\x8c");
+    static inline String const GlyphDelread = CharPointer_UTF8("\xca\x8d");
+
+    // Analysis
+    static inline String const GlyphEnvFollow = CharPointer_UTF8("\xca\x8e");
+    static inline String const GlyphRms = CharPointer_UTF8("\xca\x8f");
+    static inline String const GlyphMovRms = CharPointer_UTF8("\xca\x90");
+    static inline String const GlyphPeakDetect = CharPointer_UTF8("\xca\x91");
+    static inline String const GlyphVuDetect = CharPointer_UTF8("\xca\x92");
+    static inline String const GlyphZerocross = CharPointer_UTF8("\xca\x93");
+    static inline String const GlyphPeriodDetect = CharPointer_UTF8("\xca\x94");
+    static inline String const GlyphBeatDetect = CharPointer_UTF8("\xca\x95");
+    static inline String const GlyphChangedSignal = CharPointer_UTF8("\xca\x96");
+    static inline String const GlyphSigmund = CharPointer_UTF8("\xca\x97");
+    static inline String const GlyphBonk = CharPointer_UTF8("\xca\x98");
+    static inline String const GlyphAboveThresh = CharPointer_UTF8("\xca\x99");
+    static inline String const GlyphSchmitt = CharPointer_UTF8("\xca\x9a");
+    static inline String const GlyphSampleHold = CharPointer_UTF8("\xca\x9b");
+
+    // Multichannel
+    static inline String const GlyphNumChans = CharPointer_UTF8("\xca\x9c");
+    static inline String const GlyphMixChans = CharPointer_UTF8("\xca\x9d");
+    static inline String const GlyphSumChans = CharPointer_UTF8("\xca\x9e");
+    static inline String const GlyphSliceChans = CharPointer_UTF8("\xca\x9f");
+    static inline String const GlyphRepeatChans = CharPointer_UTF8("\xca\xa0");
+    static inline String const GlyphGroupChans = CharPointer_UTF8("\xca\xa1");
+    static inline String const GlyphSelectChans = CharPointer_UTF8("\xca\xa2");
+    static inline String const GlyphLaceChans = CharPointer_UTF8("\xca\xa3");
+    static inline String const GlyphDelaceChans = CharPointer_UTF8("\xca\xa4");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     static inline String const GlyphFreqShift = CharPointer_UTF8("\xc6\x9a");
 
     // plugdata icon with three styles

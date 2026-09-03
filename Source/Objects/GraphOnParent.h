@@ -232,7 +232,7 @@ public:
                     _this->cnv->setSelected(_this->object, false);
                     if (auto* s = _this->object->editor->getSidebarForPanel(Sidebar::InspectorPanel))
                         s->hideParameters();
-                    _this->object->setType(_this->getText(), _this->ptr);
+                    _this->object->setType(_this->getText().toString(), _this->ptr);
                 }
             }
         });
@@ -338,7 +338,7 @@ public:
             editor.reset(TextObjectHelper::createTextEditor(object, Fonts::getDefaultFont().withHeight(13)));
             editor->setBorder(BorderSize<int>(2, 5, 2, 1));
             editor->setBounds(getLocalBounds().removeFromTop(18));
-            editor->setText(getText(), false);
+            editor->setText(getText().toString(), false);
             editor->selectAll();
 
             addAndMakeVisible(editor.get());
@@ -505,7 +505,7 @@ public:
             if (editor && editor->isVisible()) {
                 llgc.renderComponent(*editor);
             } else {
-                auto const text = getText();
+                auto const text = getText().toString();
                 if (text != "graph" && text.isNotEmpty()) {
                     Graphics g(llgc);
                     auto const textBounds = Rectangle<float>(5, 1, getWidth() - 5, 16);
@@ -654,7 +654,7 @@ public:
                     if (auto* s = _this->object->editor->getSidebarForPanel(Sidebar::InspectorPanel))
                         s->hideParameters();
 
-                    _this->object->setType(_this->getText(), _this->ptr);
+                    _this->object->setType(_this->getText().toString(), _this->ptr);
                 });
             } else {
                 updateCanvas();

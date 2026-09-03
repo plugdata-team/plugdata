@@ -296,7 +296,7 @@ StringArray Library::searchObjectDocumentation(String const& query)
     return result;
 }
 
-Library::ObjectReferenceTable const& Library::getObjectInfo(String const& name)
+Library::ObjectReferenceTable const& Library::getObjectInfo(SmallString const& name)
 {
     ensureDatabaseInitialised();
 
@@ -309,11 +309,11 @@ Library::ObjectReferenceTable const& Library::getObjectInfo(String const& name)
     return *documentationIndex[hashName];
 }
 
-StackArray<StringArray, 2> Library::parseIoletTooltips(ObjectReferenceTable::IoletsReference const& inlets, ObjectReferenceTable::IoletsReference const& outlets, String const& name, int const numIn, int const numOut)
+StackArray<StringArray, 2> Library::parseIoletTooltips(ObjectReferenceTable::IoletsReference const& inlets, ObjectReferenceTable::IoletsReference const& outlets, SmallString const& name, int const numIn, int const numOut)
 {
     StackArray<StringArray, 2> result;
 
-    auto const args = StringArray::fromTokens(name.fromFirstOccurrenceOf(" ", false, false), true);
+    auto const args = StringArray::fromTokens(name.fromFirstOccurrenceOf(" ").toString(), true);
     for (int type = 0; type < 2; type++) {
         int const total = type ? numOut : numIn;
         auto& descriptions = type ? outlets : inlets;

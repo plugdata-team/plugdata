@@ -21,7 +21,7 @@ public:
     virtual ~ImplementationBase();
 
     static ImplementationBase* createImplementation(String const& type, t_gobj* ptr, t_canvas const* cnv, PluginProcessor* pd);
-    static bool hasImplementation(char const* type);
+    static bool hasImplementation(SmallString const& type);
 
     virtual void update() { }
 

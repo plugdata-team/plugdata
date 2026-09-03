@@ -2992,6 +2992,64 @@ public:
         return StackString(data_.data() + startIndex, endIndex - startIndex);
     }
 
+    // Returns the section after the first occurrence of a substring.
+    StackString fromFirstOccurrenceOf(StackString substringToStartFrom) const
+    {
+        auto const stringEnd = data_.begin() + length();
+        auto const substringEnd = substringToStartFrom.data_.begin() + substringToStartFrom.length();
+        auto const occurrence = std::search(data_.begin(), stringEnd, substringToStartFrom.data_.begin(), substringEnd);
+
+        if (occurrence == stringEnd && substringToStartFrom.length() != 0)
+            return StackString();
+
+        return StackString(occurrence + substringToStartFrom.length(), stringEnd);
+    }
+
+    // Returns the section after the last occurrence of a substring.
+    StackString fromLastOccurrenceOf(StackString substringToFind) const
+    {
+        if (substringToFind.length() == 0)
+            return *this;
+
+        auto const stringEnd = data_.begin() + length();
+        auto const substringEnd = substringToFind.data_.begin() + substringToFind.length();
+        auto const occurrence = std::find_end(data_.begin(), stringEnd, substringToFind.data_.begin(), substringEnd);
+
+        if (occurrence == stringEnd)
+            return *this;
+
+        return StackString(occurrence + substringToFind.length(), stringEnd);
+    }
+
+    // Returns the section before the first occurrence of a substring.
+    StackString upToFirstOccurrenceOf(StackString substringToEndWith) const
+    {
+        auto const stringEnd = data_.begin() + length();
+        auto const substringEnd = substringToEndWith.data_.begin() + substringToEndWith.length();
+        auto const occurrence = std::search(data_.begin(), stringEnd, substringToEndWith.data_.begin(), substringEnd);
+
+        if (occurrence == stringEnd && substringToEndWith.length() != 0)
+            return *this;
+
+        return StackString(data_.begin(), occurrence);
+    }
+
+    // Returns the section before the last occurrence of a substring.
+    StackString upToLastOccurrenceOf(StackString substringToFind) const
+    {
+        if (substringToFind.length() == 0)
+            return *this;
+
+        auto const stringEnd = data_.begin() + length();
+        auto const substringEnd = substringToFind.data_.begin() + substringToFind.length();
+        auto const occurrence = std::find_end(data_.begin(), stringEnd, substringToFind.data_.begin(), substringEnd);
+
+        if (occurrence == stringEnd)
+            return *this;
+
+        return StackString(data_.begin(), occurrence);
+    }
+
     // Converts the string to upper case.
     StackString toUpperCase() const
     {
@@ -3012,6 +3070,19 @@ public:
     void clear() noexcept
     {
         data_.clear();
+    }
+
+    // Returns true if the string contains a specific substring.
+    bool contains(StackString const& substringToFind) const noexcept
+    {
+        auto const stringEnd = data_.begin() + length();
+        auto const substringLength = substringToFind.length();
+
+        if (substringLength == 0)
+            return true;
+
+        auto const substringEnd = substringToFind.data_.begin() + substringLength;
+        return std::search(data_.begin(), stringEnd, substringToFind.data_.begin(), substringEnd) != stringEnd;
     }
 
     // Returns true if the string contains a specific character.
