@@ -443,7 +443,6 @@ public:
                 { Icons::GlyphLevel, "#X obj 0 0 level~", "Level adjustment in dB", "Level", OtherObject },
                 { Icons::GlyphMeterBar, "#X obj 0 0 meter~", "Mono VU meter", "Meter", OtherObject },
                 { Icons::GlyphMeterBar2, "#X obj 0 0 meter2~", "Stereo VU meter", "Meter 2", OtherObject },
-                { Icons::GlyphSignalGraph, "#X obj 0 0 graph~", "Signal graph", "Graph~", OtherObject },
                 { Icons::GlyphSpectrum, "#X obj 0 0 spectrograph~", "Spectral graph", "Spectrum", OtherObject },
                 { Icons::GlyphScope3D, "#X obj 0 0 scope3d~", "3D oscilloscope", "Scope 3D", OtherObject },
                 { Icons::GlyphPlaylist, "#X obj 0 0 playlist~", "Sound file playlist", "Playlist", OtherObject }
@@ -568,7 +567,6 @@ public:
                 { Icons::GlyphMultiSnake, "#X obj 0 0 snake~ 2", "Multichannel snake", "Snake", OtherObject },
                 { Icons::GlyphMultiGet, "#X obj 0 0 get~", "Multichannel get", "Get", OtherObject },
                 { Icons::GlyphMultiPick, "#X obj 0 0 pick~", "Multichannel pick", "Pick", OtherObject },
-                { Icons::GlyphMultiSig, "#X obj 0 0 sigs~", "Multichannel value signal", "Sigs", OtherObject },
                 { Icons::GlyphMultiMerge, "#X obj 0 0 merge~", "Multichannel merge", "Merge", OtherObject },
                 { Icons::GlyphMultiUnmerge, "#X obj 0 0 unmerge~", "Multichannel unmerge", "Unmerge", OtherObject },
                 { Icons::GlyphNumChans, "#X obj 0 0 nchs~", "Number of channels in a connection", "Num Chans", OtherObject },
