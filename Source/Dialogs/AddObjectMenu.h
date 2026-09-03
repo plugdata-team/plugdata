@@ -384,10 +384,17 @@ public:
                 { Icons::GlyphComment, "#X text 0 0 comment", "(@keypress) Comment", "Comment", NewComment },
                 { Icons::GlyphArray, "#N canvas 0 0 450 250 (subpatch) 0;\n#X array @arrName 100 float 2;\n#X coords 0 1 100 -1 200 140 1;\n#X restore 0 0 graph;", "(@keypress) Array", "Array", NewArray },
                 { Icons::GlyphGOP, "#N canvas 0 0 450 250 (subpatch) 1;\n#X coords 0 1 100 -1 200 140 1 0 0;\n#X restore 0 0 graph;", "(@keypress) Graph on parent", "Graph", NewGraphOnParent },
+                { Icons::GlyphSubpatch, "#X obj 0 0 pd", "Subpatch", "Subpatch", OtherObject },
+                { Icons::GlyphInlet, "#X obj 0 0 inlet", "Control inlet", "Inlet", OtherObject },
+                { Icons::GlyphOutlet, "#X obj 0 0 outlet", "Control outlet", "Outlet", OtherObject },
+                { Icons::GlyphSignalInlet, "#X obj 0 0 inlet~", "Signal inlet", "Inlet~", OtherObject },
+                { Icons::GlyphSignalOutlet, "#X obj 0 0 outlet~", "Signal outlet", "Outlet~", OtherObject },
+                { Icons::GlyphClone, "#X obj 0 0 clone", "Multiple copies of an abstraction", "Clone", OtherObject },
+                { Icons::GlyphBlock, "#X obj 0 0 block~ 1024", "Set block size for DSP", "Block", OtherObject },
+                { Icons::GlyphSwitch, "#X obj 0 0 switch~", "Block size and DSP on/off control", "Switch", OtherObject }
             } },
         { "User Interface",
             {
-                // GUI object default settings are in ObjectManager.h
                 { Icons::GlyphBang, "bng", "(@keypress) Bang", "Bang", NewBang },
                 { Icons::GlyphToggle, "tgl", "(@keypress) Toggle", "Toggle", NewToggle },
                 { Icons::GlyphButton, "button", "Button", "Button", OtherObject },
@@ -404,11 +411,37 @@ public:
                 { Icons::GlyphMessbox, "messbox", "ELSE Message box", "Messbox", OtherObject },
                 { Icons::GlyphBicoeff, "#X obj 0 0 bicoeff 450 150 peaking", "Bicoeff generator", "Bicoeff", OtherObject },
                 { Icons::GlyphVUMeter, "vu", "(@keypress) VU meter", "VU Meter", NewVUMeter },
+                { Icons::GlyphCircleSlider, "#X obj 0 0 circle", "Circular slider", "Circle", OtherObject },
+                { Icons::GlyphIncdec, "#X obj 0 0 incdec", "Increment and decrement buttons", "Incdec", OtherObject },
+                { Icons::GlyphTabSelect, "#X obj 0 0 tab", "Tab selector", "Tab", OtherObject },
+                { Icons::GlyphGuiCanvas, "#X obj 0 0 guicanvas", "Canvas GUI", "GUI Canvas", OtherObject },
+                { Icons::GlyphSlider2D, "#X obj 0 0 slider2d", "Two-dimensional slider", "Slider 2D", OtherObject },
+                { Icons::GlyphMousePad, "#X obj 0 0 pad", "Mouse pad", "Pad", OtherObject },
+                { Icons::GlyphMultiSlider, "#X obj 0 0 multi.vsl", "Multi vertical slider", "Multi Sldr", OtherObject },
+                { Icons::GlyphRangeSlider, "#X obj 0 0 range.hsl", "Range horizontal slider", "Range Sldr", OtherObject },
+                { Icons::GlyphMatrixCtl, "#X obj 0 0 mtx.ctl", "Matrix control GUI", "Matrix", OtherObject },
+                { Icons::GlyphDrumSeq, "#X obj 0 0 drum.seq", "Drum sequence pattern GUI", "Drum Seq", OtherObject },
+                { Icons::GlyphPopmenu, "#X obj 0 0 popmenu", "Popup menu", "Popmenu", OtherObject },
+                { Icons::GlyphDisplay, "#X obj 0 0 display", "Display messages", "Display", OtherObject },
+                { Icons::GlyphTextNote, "#X obj 0 0 note", "Text note", "Note", OtherObject },
+                { Icons::GlyphPic, "#X obj 0 0 pic", "Load pictures", "Pic", OtherObject },
+                { Icons::Eyedropper, "#X obj 0 0 colors", "Pick and convert colours", "Colors", OtherObject },
+                { Icons::GlyphOpenFile, "#X obj 0 0 openfile", "Open folders, files and weblinks", "Openfile", OtherObject },
+                { Icons::GlyphBiplot, "#X obj 0 0 biplot", "Biquad plot", "Biplot", OtherObject },
+                { Icons::GlyphZBiplot, "#X obj 0 0 zbiplot", "Z-plane biquad plot", "Z-Biplot", OtherObject },
+                { Icons::GlyphSignalNumbox, "#X obj 0 0 numbox~", "Signal number box", "Numbox~", OtherObject },
+                { Icons::GlyphGainFader, "#X obj 0 0 gain~", "Mono gain", "Gain", OtherObject },
+                { Icons::GlyphGainFader2, "#X obj 0 0 gain2~", "Stereo gain", "Gain 2", OtherObject },
+                { Icons::GlyphLevel, "#X obj 0 0 level~", "Level adjustment in dB", "Level", OtherObject },
+                { Icons::GlyphMeterBar, "#X obj 0 0 meter~", "Mono VU meter", "Meter", OtherObject },
+                { Icons::GlyphMeterBar2, "#X obj 0 0 meter2~", "Stereo VU meter", "Meter 2", OtherObject },
+                { Icons::GlyphSignalGraph, "#X obj 0 0 graph~", "Signal graph", "Graph~", OtherObject },
+                { Icons::GlyphSpectrum, "#X obj 0 0 spectrograph~", "Spectral graph", "Spectrum", OtherObject },
+                { Icons::GlyphScope3D, "#X obj 0 0 scope3d~", "3D oscilloscope", "Scope 3D", OtherObject },
+                { Icons::GlyphPlaylist, "#X obj 0 0 playlist~", "Sound file playlist", "Playlist", OtherObject }
             } },
         { "General",
             {
-                { Icons::GlyphMetro, "#X obj 0 0 metro 1 120 permin", "Metro", "Metro", OtherObject },
-                { Icons::GlyphCounter, "#X obj 0 0 count 5", "Count", "Count", OtherObject },
                 { Icons::GlyphTrigger, "#X obj 0 0 trigger", "Trigger", "Trigger", OtherObject },
                 { Icons::GlyphMoses, "#X obj 0 0 moses", "Moses", "Moses", OtherObject },
                 { Icons::GlyphSpigot, "#X obj 0 0 spigot", "Spigot", "Spigot", OtherObject },
@@ -417,12 +450,48 @@ public:
                 { Icons::GlyphRoute, "#X obj 0 0 route", "Route", "Route", OtherObject },
                 { Icons::GlyphExpr, "#X obj 0 0 expr", "Expr", "Expr", OtherObject },
                 { Icons::GlyphLoadbang, "#X obj 0 0 loadbang", "Loadbang", "Loadbang", OtherObject },
-                { Icons::GlyphPack, "#X obj 0 0 pack", "Pack", "Pack", OtherObject },
-                { Icons::GlyphUnpack, "#X obj 0 0 unpack", "Unpack", "Unpack", OtherObject },
                 { Icons::GlyphPrint, "#X obj 0 0 print", "Print", "Print", OtherObject },
+                { Icons::GlyphBangObject, "#X obj 0 0 bang", "Convert any message to a bang", "Bang", OtherObject },
+                { Icons::GlyphFloatObject, "#X obj 0 0 float", "Store and recall a float", "Float", OtherObject },
+                { Icons::GlyphIntObject, "#X obj 0 0 int", "Store and recall an integer", "Int", OtherObject },
+                { Icons::GlyphSymbolObject, "#X obj 0 0 symbol", "Store and recall a symbol", "Symbol", OtherObject },
+                { Icons::GlyphValue, "#X obj 0 0 value", "Share a value between objects", "Value", OtherObject },
+                { Icons::GlyphChange, "#X obj 0 0 change", "Remove repeats from a stream", "Change", OtherObject },
+                { Icons::GlyphSwap, "#X obj 0 0 swap", "Swap two values", "Swap", OtherObject },
+                { Icons::GlyphUntil, "#X obj 0 0 until", "Looping mechanism", "Until", OtherObject },
+                { Icons::GlyphChance, "#X obj 0 0 chance", "Weighted random branching", "Chance", OtherObject },
+                { Icons::GlyphKeyInput, "#X obj 0 0 key", "Grab keyboard input", "Key", OtherObject },
+                { Icons::GlyphMetro, "#X obj 0 0 metro 1 120 permin", "Metro", "Metro", OtherObject },
+                { Icons::GlyphCounter, "#X obj 0 0 count 5", "Count", "Count", OtherObject },
                 { Icons::GlyphTimer, "#X obj 0 0 timer", "Timer", "Timer", OtherObject },
                 { Icons::GlyphDelay, "#X obj 0 0 delay 1 60 permin", "Delay", "Delay", OtherObject },
-                { Icons::GlyphSfz, "#X obj 0 0 sfz~", "Sfz sample player using sfizz", "Sfz", OtherObject },
+                { Icons::GlyphPipe, "#X obj 0 0 pipe 100", "Delay line for messages", "Pipe", OtherObject },
+                { Icons::GlyphScore, "#X obj 0 0 score", "Score sequencer", "Score", OtherObject },
+                { Icons::GlyphSequencer, "#X obj 0 0 sequencer 1 2 3 4", "Data sequencer", "Sequencer", OtherObject },
+                { Icons::GlyphEuclid, "#X obj 0 0 euclid 16 5", "Euclidean rhythm algorithm", "Euclid", OtherObject },
+                { Icons::GlyphRandom, "#X obj 0 0 random 100", "Pseudo random integers", "Random", OtherObject },
+                { Icons::GlyphRandFloat, "#X obj 0 0 rand.f", "Random float generator", "Rand Float", OtherObject },
+                { Icons::GlyphRandInt, "#X obj 0 0 rand.i 0 127", "Random integer generator", "Rand Int", OtherObject },
+                { Icons::GlyphDrunkard, "#X obj 0 0 drunkard", "Drunkard's walk algorithm", "Drunkard", OtherObject },
+                { Icons::GlyphMarkov, "#X obj 0 0 markov", "Create and play Markov chains", "Markov", OtherObject }
+            } },
+        { "Lists & Text",
+            {
+                { Icons::GlyphListAppend, "#X obj 0 0 list append", "Append lists", "Append", OtherObject },
+                { Icons::GlyphListPrepend, "#X obj 0 0 list prepend", "Prepend lists", "Prepend", OtherObject },
+                { Icons::GlyphListStore, "#X obj 0 0 list store", "Store and edit a list", "Store", OtherObject },
+                { Icons::GlyphListSplit, "#X obj 0 0 list split 1", "Split a list", "Split", OtherObject },
+                { Icons::GlyphListLength, "#X obj 0 0 list length", "Length of a list", "Length", OtherObject },
+                { Icons::GlyphTextDefine, "#X obj 0 0 text define", "Store a list of messages", "Text Def", OtherObject },
+                { Icons::GlyphTextGet, "#X obj 0 0 text get", "Read a line from a text", "Text Get", OtherObject },
+                { Icons::GlyphTextSet, "#X obj 0 0 text set", "Write a line to a text", "Text Set", OtherObject },
+                { Icons::GlyphTextSeq, "#X obj 0 0 text sequence", "Sequence a text", "Text Seq", OtherObject },
+                { Icons::GlyphQlist, "#X obj 0 0 qlist", "Text-based sequencer", "Qlist", OtherObject },
+                { Icons::GlyphTextfile, "#X obj 0 0 textfile", "Read and write text files", "Textfile", OtherObject },
+                { Icons::GlyphFormat, "#X obj 0 0 format", "Format messages", "Format", OtherObject },
+                { Icons::GlyphMakeFilename, "#X obj 0 0 makefilename file%d", "Format a symbol with a variable field", "Filename", OtherObject },
+                { Icons::GlyphPack, "#X obj 0 0 pack", "Pack", "Pack", OtherObject },
+                { Icons::GlyphUnpack, "#X obj 0 0 unpack", "Unpack", "Unpack", OtherObject }
             } },
         { "MIDI",
             {
@@ -438,6 +507,18 @@ public:
                 { Icons::GlyphMtof, "#X obj 0 0 mtof", "MIDI to frequency", "mtof", OtherObject },
                 { Icons::GlyphFtom, "#X obj 0 0 ftom", "Frequency to MIDI", "ftom", OtherObject },
                 { Icons::GlyphAutotune, "#X obj 0 0 autotune", "Pitch quantizer", "Autotune", OtherObject },
+                { Icons::GlyphBendIn, "#X obj 0 0 bendin", "Pitch bend in", "Bend in", OtherObject },
+                { Icons::GlyphBendOut, "#X obj 0 0 bendout", "Pitch bend out", "Bend out", OtherObject },
+                { Icons::GlyphTouchIn, "#X obj 0 0 touchin", "Aftertouch in", "Touch in", OtherObject },
+                { Icons::GlyphTouchOut, "#X obj 0 0 touchout", "Aftertouch out", "Touch out", OtherObject },
+                { Icons::GlyphPolyTouchIn, "#X obj 0 0 polytouchin", "Poly aftertouch in", "Ptouch in", OtherObject },
+                { Icons::GlyphPolyTouchOut, "#X obj 0 0 polytouchout", "Poly aftertouch out", "Ptouch out", OtherObject },
+                { Icons::GlyphMidiRealtime, "#X obj 0 0 midirealtimein", "MIDI realtime messages in", "Realtime", OtherObject },
+                { Icons::GlyphMakenote, "#X obj 0 0 makenote 64 250", "Send note-on and schedule note-off", "Makenote", OtherObject },
+                { Icons::GlyphStripnote, "#X obj 0 0 stripnote", "Strip note-off messages", "Stripnote", OtherObject },
+                { Icons::GlyphPolyVoices, "#X obj 0 0 poly 4 1", "Polyphonic voice allocator", "Poly", OtherObject },
+                { Icons::GlyphMidiLearn, "#X obj 0 0 midi.learn", "MIDI learn", "MIDI learn", OtherObject },
+                { Icons::GlyphPanic, "#X obj 0 0 panic", "Flush hanging MIDI notes", "Panic", OtherObject }
             } },
         { "Input & Output",
             {
@@ -455,6 +536,39 @@ public:
                 { Icons::GlyphReceive, "#X obj 0 0 r", "Receive", "Receive", OtherObject },
                 { Icons::GlyphSignalSend, "#X obj 0 0 s~", "Send~", "Send~", OtherObject },
                 { Icons::GlyphSignalReceive, "#X obj 0 0 r~", "Receive~", "Receive~", OtherObject },
+                { Icons::GlyphOutMc, "#X obj 0 0 out.mc~", "Multichannel output", "Out MC", OtherObject },
+                { Icons::GlyphSigConv, "#X obj 0 0 sig~", "Convert numbers to a signal", "Sig", OtherObject },
+                { Icons::GlyphSnapshot, "#X obj 0 0 snapshot~", "Convert a signal to a number", "Snapshot", OtherObject },
+                { Icons::GlyphThrow, "#X obj 0 0 throw~", "Throw a signal to a catch~", "Throw", OtherObject },
+                { Icons::GlyphCatch, "#X obj 0 0 catch~", "Catch signals from throw~", "Catch", OtherObject },
+                { Icons::GlyphSignalPrint, "#X obj 0 0 print~", "Print raw signal values", "Print~", OtherObject },
+                { Icons::GlyphOscParse, "#X obj 0 0 oscparse", "OSC packets to Pd lists", "OSC parse", OtherObject },
+                { Icons::GlyphOscFormat, "#X obj 0 0 oscformat", "Pd lists to OSC packets", "OSC format", OtherObject },
+                { Icons::GlyphPdlink, "#X obj 0 0 pdlink", "Send messages across a network by name", "Pdlink", OtherObject },
+                { Icons::GlyphEnvFollow, "#X obj 0 0 env~", "Envelope follower", "Env", OtherObject },
+                { Icons::GlyphRms, "#X obj 0 0 rms~", "Detect RMS amplitude", "RMS", OtherObject },
+                { Icons::GlyphPeakDetect, "#X obj 0 0 peak~", "Detect peak amplitude", "Peak", OtherObject },
+                { Icons::GlyphZerocross, "#X obj 0 0 zerocross~", "Impulses at zero crossings", "Zerocross", OtherObject },
+                { Icons::GlyphSigmund, "#X obj 0 0 sigmund~", "Sinusoidal analysis and pitch tracking", "Sigmund", OtherObject },
+                { Icons::GlyphBonk, "#X obj 0 0 bonk~", "Attack detection", "Bonk", OtherObject }
+            } },
+        { "Arrays & Files",
+            {
+                { Icons::GlyphSfz, "#X obj 0 0 sfz~", "Sfz sample player using sfizz", "Sfz", OtherObject },
+                { Icons::GlyphTabread, "#X obj 0 0 tabread", "Read a number from a table", "Tabread", OtherObject },
+                { Icons::GlyphTabread4, "#X obj 0 0 tabread4", "4-point interpolating table read", "Tabread4", OtherObject },
+                { Icons::GlyphTabwrite, "#X obj 0 0 tabwrite", "Write a number to a table", "Tabwrite", OtherObject },
+                { Icons::GlyphSoundfiler, "#X obj 0 0 soundfiler", "Read and write tables as soundfiles", "Soundfiler", OtherObject },
+                { Icons::GlyphBuffer, "#X obj 0 0 buffer", "Get and set an array buffer", "Buffer", OtherObject },
+                { Icons::GlyphSfload, "#X obj 0 0 sfload", "Load a sound file into an array", "Sfload", OtherObject },
+                { Icons::GlyphTabosc, "#X obj 0 0 tabosc4~", "4-point interpolating oscillator", "Tabosc4", OtherObject },
+                { Icons::GlyphTabplay, "#X obj 0 0 tabplay~", "Play a table as a sample", "Tabplay", OtherObject },
+                { Icons::GlyphSignalTabread, "#X obj 0 0 tabread~", "Non-interpolating table read", "Tabread~", OtherObject },
+                { Icons::GlyphSignalTabread4, "#X obj 0 0 tabread4~", "4-point interpolating table read", "Tabread4~", OtherObject },
+                { Icons::GlyphSignalTabwrite, "#X obj 0 0 tabwrite~", "Write a signal into an array", "Tabwrite~", OtherObject },
+                { Icons::GlyphReadsf, "#X obj 0 0 readsf~ 2", "Read a soundfile from disk", "Readsf", OtherObject },
+                { Icons::GlyphWritesf, "#X obj 0 0 writesf~ 2", "Write a soundfile to disk", "Writesf", OtherObject },
+                { Icons::GlyphSamplePlayer, "#X obj 0 0 player~", "Multichannel sample player", "Player", OtherObject }
             } },
         { "Oscillators",
             {
@@ -472,6 +586,64 @@ public:
                 { Icons::GlyphWavetable, "#X obj 0 0 wavetable~", "Wavetable", "Wavetab", OtherObject },
                 { Icons::GlyphWavetableBL, "#X obj 0 0 bl.wavetable~", "Wavetable band limited", "Bl. Wavetab", OtherObject },
                 { Icons::GlyphPlaits, "#X obj 0 0 plaits~", "Plaits", "Plaits", OtherObject },
+                { Icons::GlyphCosine, "#X obj 0 0 cos~", "Cosine oscillator and waveshaper", "Cos", OtherObject },
+                { Icons::GlyphSine, "#X obj 0 0 sine~ 440", "Sine oscillator", "Sine", OtherObject },
+                { Icons::GlyphPulseOsc, "#X obj 0 0 pulse~ 440 0.5", "Pulse train oscillator", "Pulse", OtherObject },
+                { Icons::GlyphVSaw, "#X obj 0 0 vsaw~ 440 0.5", "Variable sawtooth-triangle oscillator", "V. Saw", OtherObject },
+                { Icons::GlyphBlip, "#X obj 0 0 blip~ 440 10", "Band-limited cosine oscillator", "Blip", OtherObject },
+                { Icons::GlyphFm, "#X obj 0 0 fm~ 440 2 1", "Frequency modulation unit", "FM", OtherObject },
+                { Icons::GlyphPm, "#X obj 0 0 pm~ 440 1 1", "Phase modulation unit", "PM", OtherObject },
+                { Icons::GlyphWavetable2D, "#X obj 0 0 wt2d~", "Two-dimensional wavetable oscillator", "Wavetab 2D", OtherObject },
+                { Icons::GlyphOscBank, "#X obj 0 0 oscbank~", "Bank of oscillators", "Osc Bank", OtherObject },
+                { Icons::GlyphLfo, "#X obj 0 0 lfo 1", "Control rate LFO", "LFO", OtherObject },
+                { Icons::GlyphNoise, "#X obj 0 0 noise~", "White noise", "Noise", OtherObject },
+                { Icons::GlyphPinkNoise, "#X obj 0 0 pink~", "Pink noise", "Pink", OtherObject },
+                { Icons::GlyphBrownNoise, "#X obj 0 0 brown~", "Brown noise", "Brown", OtherObject },
+                { Icons::GlyphCrackle, "#X obj 0 0 crackle~", "Crackle noise", "Crackle", OtherObject },
+                { Icons::GlyphDust, "#X obj 0 0 dust~ 10", "Random impulses", "Dust", OtherObject },
+                { Icons::GlyphLfNoise, "#X obj 0 0 lfnoise~ 10", "Low frequency noise", "LF Noise", OtherObject },
+                { Icons::GlyphStepNoise, "#X obj 0 0 stepnoise~ 10", "Step noise", "Step Noise", OtherObject },
+                { Icons::GlyphRampNoise, "#X obj 0 0 rampnoise~ 10", "Ramp noise", "Ramp Noise", OtherObject }
+            } },
+        { "Envelopes",
+            {
+                { Icons::GlyphLineSignal, "#X obj 0 0 line~", "Audio ramp generator", "Line~", OtherObject },
+                { Icons::GlyphVline, "#X obj 0 0 vline~", "High-precision audio ramp generator", "VLine", OtherObject },
+                { Icons::GlyphLineCtl, "#X obj 0 0 line", "Series of linearly stepped numbers", "Line", OtherObject },
+                { Icons::GlyphAdsr, "#X obj 0 0 adsr~ 10 100 0.5 500", "Attack, decay, sustain, release envelope", "ADSR", OtherObject },
+                { Icons::GlyphAsr, "#X obj 0 0 asr~ 10 500", "Attack, sustain, release envelope", "ASR", OtherObject },
+                { Icons::GlyphDecayEnv, "#X obj 0 0 decay~", "Exponential decay", "Decay", OtherObject },
+                { Icons::GlyphEnvGen, "#X obj 0 0 envgen~ 0 100 1 500 0", "Envelope generator", "Env Gen", OtherObject },
+                { Icons::GlyphFuncGen, "#X obj 0 0 function~ 0 0.5 1 0.5 0", "Function generator", "Func Gen", OtherObject },
+                { Icons::GlyphEnvelopeShape, "#X obj 0 0 envelope~", "Envelope waveforms", "Envelope", OtherObject },
+                { Icons::GlyphSusLoop, "#X obj 0 0 susloop~", "Sustain looper for samplers", "Sus Loop", OtherObject },
+                { Icons::GlyphRampEnv, "#X obj 0 0 ramp~", "Resettable ramp", "Ramp", OtherObject },
+                { Icons::GlyphGlide, "#X obj 0 0 glide~ 100", "Signal glide and portamento", "Glide", OtherObject },
+                { Icons::GlyphLag, "#X obj 0 0 lag~ 100", "Non-linear lag", "Lag", OtherObject },
+                { Icons::GlyphSlew, "#X obj 0 0 slew~ 100", "Slew limiter", "Slew", OtherObject },
+                { Icons::GlyphSmooth, "#X obj 0 0 smooth~ 100", "Signal smoother", "Smooth", OtherObject }
+            } },
+        { "Filters",
+            {
+                { Icons::GlyphSVFilter, "#X obj 0 0 svfilter~ 1729 0.42", "State variable filter", "SVFilter", OtherObject },
+                { Icons::GlyphLop, "#X obj 0 0 lop~ 1000", "One-pole lowpass filter", "Lop", OtherObject },
+                { Icons::GlyphHip, "#X obj 0 0 hip~ 500", "One-pole highpass filter", "Hip", OtherObject },
+                { Icons::GlyphBpFilter, "#X obj 0 0 bp~ 1000 5", "2-pole bandpass filter", "BP", OtherObject },
+                { Icons::GlyphVcf, "#X obj 0 0 vcf~ 5", "Voltage-controlled bandpass filter", "VCF", OtherObject },
+                { Icons::GlyphBiquad, "#X obj 0 0 biquad~", "2-pole, 2-zero filter", "Biquad", OtherObject },
+                { Icons::GlyphSlop, "#X obj 0 0 slop~ 1000", "Slew-limiting lowpass filter", "Slop", OtherObject },
+                { Icons::GlyphLowpassRes, "#X obj 0 0 lowpass~ 1000 1", "Resonant lowpass filter", "Lowpass", OtherObject },
+                { Icons::GlyphHighpassRes, "#X obj 0 0 highpass~ 500 1", "Resonant highpass filter", "Highpass", OtherObject },
+                { Icons::GlyphBandpassRes, "#X obj 0 0 bandpass~ 1000 2", "Resonant bandpass filter", "Bandpass", OtherObject },
+                { Icons::GlyphBandstopFilt, "#X obj 0 0 bandstop~ 1000 2", "Bandstop filter", "Bandstop", OtherObject },
+                { Icons::GlyphLowshelfFilt, "#X obj 0 0 lowshelf~ 200 0.5 -6", "Lowshelf filter", "Lowshelf", OtherObject },
+                { Icons::GlyphHighshelfFilt, "#X obj 0 0 highshelf~ 4000 0.5 -6", "Highshelf filter", "Highshelf", OtherObject },
+                { Icons::GlyphParametricEq, "#X obj 0 0 eq~ 1000 2 6", "Parametric equalizer", "EQ", OtherObject },
+                { Icons::GlyphAllpassFilt, "#X obj 0 0 allpass.filt~ 2 500 1", "Allpass filter", "Allpass", OtherObject },
+                { Icons::GlyphCombFilt, "#X obj 0 0 comb.filt~ 10 0.9", "Comb filter", "Comb Filt", OtherObject },
+                { Icons::GlyphResonantFilt, "#X obj 0 0 resonant~ 1000 10", "Constant-skirt resonant filter", "Resonant", OtherObject },
+                { Icons::GlyphCrossover, "#X obj 0 0 crossover~", "Crossover filter", "Crossover", OtherObject },
+                { Icons::GlyphMoog, "#X obj 0 0 moog~ 1000 0.75 0.1", "Moog ladder filter", "Moog", OtherObject }
             } },
         { "Effects",
             {
@@ -486,10 +658,26 @@ public:
                 { Icons::GlyphReverb, "#X obj 0 0 free.rev~ 0.7 0.6 0.5 0.7", "Reverb", "Reverb", OtherObject },
                 { Icons::GlyphFreeze, "#X obj 0 0 freeze~", "Freeze", "Freeze", OtherObject },
                 { Icons::GlyphRingmod, "#X obj 0 0 rm~ 150", "Ringmod", "Ringmod", OtherObject },
-                { Icons::GlyphSVFilter, "#X obj 0 0 svfilter~ 1729 0.42", "State variable filter", "SVFilter", OtherObject },
                 { Icons::GlyphClip, "#X obj 0 0 clip~ -0.5 0.5", "Clip", "Clip", OtherObject },
                 { Icons::GlyphFold, "#X obj 0 0 fold~ -0.5 0.5", "Fold", "Fold", OtherObject },
                 { Icons::GlyphWrap, "#X obj 0 0 wrap2~ -0.5 0.5", "Wrap", "Wrap", OtherObject },
+                { Icons::GlyphChorus, "#X obj 0 0 chorus~ 0.5 0.5 0.5", "Chorus effect", "Chorus", OtherObject },
+                { Icons::GlyphPhaser, "#X obj 0 0 phaser~ 4 1 0.5", "Phaser effect", "Phaser", OtherObject },
+                { Icons::GlyphTremolo, "#X obj 0 0 tremolo~ 4 1", "Amplitude modulation", "Tremolo", OtherObject },
+                { Icons::GlyphVibrato, "#X obj 0 0 vibrato~ 5 50", "Vibrato", "Vibrato", OtherObject },
+                { Icons::GlyphVocoder, "#X obj 0 0 vocoder~ 24 75", "Channel vocoder", "Vocoder", OtherObject },
+                { Icons::GlyphWaveshaper, "#X obj 0 0 shaper~", "Waveshaper", "Shaper", OtherObject },
+                { Icons::GlyphDownsample, "#X obj 0 0 downsample~ 8000", "Downsample a signal", "Downsamp", OtherObject },
+                { Icons::GlyphPitchShift, "#X obj 0 0 pitch.shift~ 1200 75", "Pitch shifter", "Pitch Shift", OtherObject },
+                { Icons::GlyphFreqShift, "#X obj 0 0 freq.shift~ 100", "Frequency shifter", "Freq Shift", OtherObject },
+                { Icons::GlyphCompress, "#X obj 0 0 compress~ -20 4 10 100", "Compressor", "Compress", OtherObject },
+                { Icons::GlyphExpand, "#X obj 0 0 expand~ -40 2 10 100", "Expander", "Expand", OtherObject },
+                { Icons::GlyphNoiseGate, "#X obj 0 0 noisegate~ -60 10 100", "Noise gate", "Noise Gate", OtherObject },
+                { Icons::GlyphNormalize, "#X obj 0 0 norm~ -3", "Normalizer", "Normalize", OtherObject },
+                { Icons::GlyphPlateReverb, "#X obj 0 0 plate.rev~", "Plate reverb", "Plate Rev", OtherObject },
+                { Icons::GlyphEchoReverb, "#X obj 0 0 echo.rev~ 8 0.5", "Echo reverb", "Echo Rev", OtherObject },
+                { Icons::GlyphDelwrite, "#X obj 0 0 delwrite~", "Write into a delay line", "Delwrite", OtherObject },
+                { Icons::GlyphDelread, "#X obj 0 0 delread4~", "Interpolating delay line read", "Delread4", OtherObject }
             } },
         { "Multichannel",
             {
@@ -499,6 +687,15 @@ public:
                 { Icons::GlyphMultiSig, "#X obj 0 0 sigs~", "Multichannel value signal", "Sigs", OtherObject },
                 { Icons::GlyphMultiMerge, "#X obj 0 0 merge~", "Multichannel merge", "Merge", OtherObject },
                 { Icons::GlyphMultiUnmerge, "#X obj 0 0 unmerge~", "Multichannel unmerge", "Unmerge", OtherObject },
+                { Icons::GlyphNumChans, "#X obj 0 0 nchs~", "Number of channels in a connection", "Num Chans", OtherObject },
+                { Icons::GlyphMixChans, "#X obj 0 0 mix~", "Mix multichannel signals", "Mix", OtherObject },
+                { Icons::GlyphSumChans, "#X obj 0 0 sum~", "Sum channels into one", "Sum", OtherObject },
+                { Icons::GlyphSliceChans, "#X obj 0 0 slice~ 1", "Split a multichannel signal", "Slice", OtherObject },
+                { Icons::GlyphRepeatChans, "#X obj 0 0 repeat~ 4", "Copy a signal to multiple channels", "Repeat", OtherObject },
+                { Icons::GlyphGroupChans, "#X obj 0 0 group~ 2", "Group channels", "Group", OtherObject },
+                { Icons::GlyphSelectChans, "#X obj 0 0 select~", "Select inputs", "Select~", OtherObject },
+                { Icons::GlyphLaceChans, "#X obj 0 0 lace~", "Interleave multichannel signals", "Lace", OtherObject },
+                { Icons::GlyphDelaceChans, "#X obj 0 0 delace~", "Deinterleave a multichannel signal", "Delace", OtherObject }
             } },
         { "Math",
             {
@@ -517,6 +714,26 @@ public:
                 { Icons::GlyphGeneric, "", "Not equal", "!=", OtherObject },
                 { Icons::GlyphGeneric, "", "Minimum", "min", OtherObject },
                 { Icons::GlyphGeneric, "", "Maximum", "max", OtherObject },
+                { Icons::GlyphGeneric, "", "Integer division", "div", OtherObject },
+                { Icons::GlyphGeneric, "", "Integer remainder", "mod", OtherObject },
+                { Icons::GlyphGeneric, "", "Absolute value", "abs", OtherObject },
+                { Icons::GlyphGeneric, "", "Square root", "sqrt", OtherObject },
+                { Icons::GlyphGeneric, "", "Power", "pow", OtherObject },
+                { Icons::GlyphGeneric, "", "Logarithm", "log", OtherObject },
+                { Icons::GlyphGeneric, "", "Exponential", "exp", OtherObject },
+                { Icons::GlyphGeneric, "", "Sine", "sin", OtherObject },
+                { Icons::GlyphGeneric, "", "Cosine", "cos", OtherObject },
+                { Icons::GlyphGeneric, "", "Tangent", "tan", OtherObject },
+                { Icons::GlyphGeneric, "", "Arctangent", "atan", OtherObject },
+                { Icons::GlyphGeneric, "", "2-argument arctangent", "atan2", OtherObject },
+                { Icons::GlyphGeneric, "", "Wrap to the range 0 to 1", "wrap", OtherObject },
+                { Icons::GlyphGeneric, "", "Force a number into a range", "clip", OtherObject },
+                { Icons::GlyphGeneric, "", "Logical and", "&&", OtherObject },
+                { Icons::GlyphGeneric, "", "Logical or", "||", OtherObject },
+                { Icons::GlyphGeneric, "", "Bitwise and", "&", OtherObject },
+                { Icons::GlyphGeneric, "", "Bitwise or", "|", OtherObject },
+                { Icons::GlyphGeneric, "", "Left bit shift", "<<", OtherObject },
+                { Icons::GlyphGeneric, "", "Right bit shift", ">>", OtherObject }
             } },
         { "Signal Math",
             {
@@ -535,6 +752,15 @@ public:
                 { Icons::GlyphGenericSignal, "", "(signal) Not equal", "!=~", OtherObject },
                 { Icons::GlyphGenericSignal, "", "(signal) Minimum", "min~", OtherObject },
                 { Icons::GlyphGenericSignal, "", "(signal) Maximum", "max~", OtherObject },
+                { Icons::GlyphGenericSignal, "", "(signal) Absolute value", "abs~", OtherObject },
+                { Icons::GlyphGenericSignal, "", "(signal) Square root", "sqrt~", OtherObject },
+                { Icons::GlyphGenericSignal, "", "(signal) Reciprocal square root", "rsqrt~", OtherObject },
+                { Icons::GlyphGenericSignal, "", "(signal) Power", "pow~", OtherObject },
+                { Icons::GlyphGenericSignal, "", "(signal) Logarithm", "log~", OtherObject },
+                { Icons::GlyphGenericSignal, "", "(signal) Exponential", "exp~", OtherObject },
+                { Icons::GlyphGenericSignal, "", "(signal) Sine", "sin~", OtherObject },
+                { Icons::GlyphGenericSignal, "", "(signal) Hyperbolic tangent", "tanh~", OtherObject },
+                { Icons::GlyphGenericSignal, "", "(signal) Remainder modulo 1", "wrap~", OtherObject }
             } },
     };
 
@@ -716,10 +942,11 @@ public:
     void setSelectedCategory(String const& category)
     {
         auto const index = categories.indexOf(category);
-        if (index != selectedIndex) {
-            selectedIndex = index;
-            repaint();
-        }
+        if (index == selectedIndex)
+            return;
+
+        selectedIndex = index;
+        repaint();
     }
 
     void paint(Graphics& g) override
@@ -781,16 +1008,11 @@ private:
     static constexpr int rowHeight = 26;
 };
 
-class AddObjectMenuButton final : public Component {
-    String const icon;
-    String const text;
-
+class ObjectBrowserButton final : public Component {
 public:
     std::function<void()> onClick = [] { };
 
-    explicit AddObjectMenuButton(String const& iconStr, String const& textStr = String())
-        : icon(iconStr)
-        , text(textStr)
+    explicit ObjectBrowserButton()
     {
         setInterceptsMouseClicks(true, false);
     }
@@ -809,15 +1031,11 @@ public:
         auto const colour = colours.popupMenuTextColour;
         auto const iconArea = b.removeFromLeft(24).withSizeKeepingCentre(24, 24);
 
-        if (text.isNotEmpty()) {
-            Fonts::drawIcon(g, icon, iconArea.translated(3.0f, 0.0f), colour, 14.0f, true);
-            b.removeFromLeft(4);
-            b.removeFromRight(3);
+        Fonts::drawIcon(g, Icons::Object, iconArea, colour, 14.0f, true);
+        b.removeFromLeft(4);
+        b.removeFromRight(3);
 
-            Fonts::drawFittedText(g, text, b, colour, 1, 0.9f, 14.0f);
-        } else {
-            Fonts::drawIcon(g, icon, iconArea, colour, 14.0f, true);
-        }
+        Fonts::drawFittedText(g, "Object Browser", b, colour, 1, 0.9f, 14.0f);
     }
 
     void mouseUp(MouseEvent const& e) override
@@ -852,8 +1070,7 @@ class AddObjectMenu final : public Component {
 
 public:
     explicit AddObjectMenu(PluginEditor* e)
-        : objectBrowserButton(Icons::Object, "Object Browser")
-        , editor(e)
+        : editor(e)
         , objectList(e, [this](bool const shouldFade) { dismiss(shouldFade); })
     {
         auto const& colours = getThemeColours(*this);
@@ -1022,7 +1239,7 @@ private:
         categoryList.setSelectedCategory(isAtBottom ? objectList.getLastCategory() : objectList.getCategoryAt(visibleArea.getY()));
     }
 
-    AddObjectMenuButton objectBrowserButton;
+    ObjectBrowserButton objectBrowserButton;
     static inline SafePointer<CallOutBox> currentCalloutBox = nullptr;
     PluginEditor* editor;
     ObjectList objectList;
@@ -1031,7 +1248,7 @@ private:
     SearchEditor searchInput;
 
     static constexpr int panelWidth = 670;
-    static constexpr int panelHeight = 400;
+    static constexpr int panelHeight = 450;
     static constexpr int titlebarHeight = 32;
     static constexpr int sidebarWidth = 125;
 
