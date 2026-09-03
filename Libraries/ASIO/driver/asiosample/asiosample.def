@@ -1,9 +1,0 @@
-LIBRARY			ASIOSample
-DESCRIPTION		'ASIO Sample Driver'
-PROTMODE
-EXPORTS	
-				DllMain
-				DllGetClassObject
-				DllCanUnloadNow
-				DllRegisterServer
-				DllUnregisterServer

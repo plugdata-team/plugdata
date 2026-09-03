@@ -79,13 +79,23 @@ class CanvasViewport : public Component
             triggerAsyncUpdate();
         }
 
+        static Rectangle<int> getMinimapBounds(int const viewportWidth, int const viewportHeight)
+        {
+            return Rectangle<int>(viewportWidth - (width + 2 * padding + margin), viewportHeight - (height + 2 * padding + margin), width + 2 * padding, height + 2 * padding);
+        }
+
         auto getMapBounds()
         {
             struct
             {
                 Rectangle<float> fullBounds, viewBounds;
-                int offsetX, offsetY;
+                float offsetX, offsetY;
                 float scale;
+
+                Rectangle<float> mapRect(Rectangle<float> const& rect, Point<int> const canvasOrigin) const
+                {
+                    return (rect - canvasOrigin.toFloat()).translated(offsetX, offsetY) * scale;
+                }
             } b;
 
             b.viewBounds = cnv->viewport->getViewArea();
@@ -98,7 +108,7 @@ class CanvasViewport : public Component
 
             b.offsetX = -std::min(0.f, b.fullBounds.getX() - cnv->canvasOrigin.x);
             b.offsetY = -std::min(0.f, b.fullBounds.getY() - cnv->canvasOrigin.y);
-            b.scale = std::min<float>(width / (b.fullBounds.getWidth() + b.offsetX), height / (b.fullBounds.getHeight() + b.offsetY));
+            b.scale = std::min<float>(width / b.fullBounds.getWidth(), height / b.fullBounds.getHeight());
             boundsBeforeDrag = b.fullBounds;
 
             return b;
@@ -113,26 +123,28 @@ class CanvasViewport : public Component
 
             auto map = getMapBounds();
 
-            float const x = cnv->viewport->getWidth() - (width + 10);
-            float const y = cnv->viewport->getHeight() - (height + 10);
+            auto const componentBounds = getMinimapBounds(cnv->viewport->getWidth(), cnv->viewport->getHeight()).toFloat();
+            float const x = componentBounds.getX() + padding;
+            float const y = componentBounds.getY() + padding;
 
             auto const canvasBackground = getThemeColours(*this).canvasBackgroundColour;
             auto const mapBackground = canvasBackground.contrasting(0.5f);
 
             // draw background
             nanovg::nvgFillColor(nvg, nvgColour(mapBackground.withAlpha(0.4f)));
-            nanovg::nvgFillRoundedRect(nvg, x - 4, y - 4, width + 8, height + 8, Corners::largeCornerRadius);
+            nanovg::nvgFillRoundedRect(nvg, componentBounds.getX(), componentBounds.getY(), componentBounds.getWidth(), componentBounds.getHeight(), Corners::largeCornerRadius);
 
             nanovg::nvgFillColor(nvg, nvgColour(mapBackground.withAlpha(0.8f)));
 
             // draw objects
             for (auto const* object : cnv->objects) {
-                auto b = (object->getBounds().reduced(Object::margin).translated(map.offsetX, map.offsetY) - cnv->canvasOrigin).toFloat() * map.scale;
+                auto const b = map.mapRect(object->getBounds().reduced(Object::margin).toFloat(), cnv->canvasOrigin);
                 nanovg::nvgFillRoundedRect(nvg, x + b.getX(), y + b.getY(), b.getWidth(), b.getHeight(), getPlugDataLook(*this).getObjectCornerRadius() * map.scale);
             }
 
             // draw visible area
-            nanovg::nvgDrawRoundedRect(nvg, x + (map.offsetX + map.viewBounds.getX() - cnv->canvasOrigin.x) * map.scale, y + (map.offsetY + map.viewBounds.getY() - cnv->canvasOrigin.y) * map.scale, map.viewBounds.getWidth() * map.scale, map.viewBounds.getHeight() * map.scale, nvgColour(canvasBackground.withAlpha(0.6f)), nvgColour(canvasBackground.contrasting(0.4f)), 0.0f);
+            auto const viewRect = map.mapRect(map.viewBounds, cnv->canvasOrigin);
+            nanovg::nvgDrawRoundedRect(nvg, x + viewRect.getX(), y + viewRect.getY(), viewRect.getWidth(), viewRect.getHeight(), nvgColour(canvasBackground.withAlpha(0.6f)), nvgColour(canvasBackground.contrasting(0.4f)), 0.0f);
             nanovg::nvgGlobalAlpha(nvg, 1.0f);
         }
 
@@ -153,8 +165,7 @@ class CanvasViewport : public Component
             downPosition = cnv->viewport->getViewPosition();
 
             auto map = getMapBounds();
-            auto const realViewBounds = Rectangle<int>((map.offsetX + map.viewBounds.getX() - cnv->canvasOrigin.x) * map.scale, (map.offsetY + map.viewBounds.getY() - cnv->canvasOrigin.y) * map.scale, map.viewBounds.getWidth() * map.scale, map.viewBounds.getHeight() * map.scale);
-            isMouseDown = realViewBounds.contains(e.getMouseDownPosition());
+            isMouseDown = map.mapRect(map.viewBounds, cnv->canvasOrigin).contains(e.getMouseDownPosition().toFloat() - Point<float>(padding, padding));
         }
 
         void mouseUp(MouseEvent const& e) override
@@ -191,8 +202,10 @@ class CanvasViewport : public Component
         Rectangle<float> boundsBeforeDrag;
         bool isMouseDown : 1 = false;
         bool isMouseOver : 1 = false;
-        static constexpr float width = 180;
-        static constexpr float height = 130;
+        static constexpr int width = 180;
+        static constexpr int height = 130;
+        static constexpr int padding = 4;
+        static constexpr int margin = 14;
 
         VBlankAnimatorUpdater updater { this };
 
@@ -905,7 +918,7 @@ public:
         updateScrollbars();
         updateCanvasTransform();
 
-        minimap.setBounds(Rectangle<int>(getWidth() - 200, getHeight() - 150, 190, 140));
+        minimap.setBounds(Minimap::getMinimapBounds(getWidth(), getHeight()));
     }
 
     std::function<void()> onScroll = [] { };
