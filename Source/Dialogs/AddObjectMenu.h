@@ -6,9 +6,22 @@
 
 #pragma once
 #include "Dialogs.h"
+#include "Components/BouncingViewport.h"
 #include "Components/ObjectDragAndDrop.h"
+#include "Components/SearchEditor.h"
 
 #define DEBUG_PRINT_OBJECT_LIST 0
+
+// Replaces placeholders in a stored patch string with values that can only be resolved at drop time
+static String resolveObjectPatch(PluginEditor* editor, String patch)
+{
+    if (patch.contains("@arrName")) {
+        editor->pd->setThis();
+        patch = patch.replace("@arrName", String::fromUTF8(pd::Interface::getUnusedArrayName()->s_name));
+    }
+
+    return patch;
+}
 
 class ObjectItem final : public Component
     , public SettableTooltipClient {
@@ -70,12 +83,7 @@ public:
 
     String getPatchString()
     {
-        auto patchString = objectPatch;
-        if (patchString.contains("@arrName")) {
-            editor->pd->setThis();
-            patchString = patchString.replace("@arrName", String::fromUTF8(pd::Interface::getUnusedArrayName()->s_name));
-        }
-        return patchString;
+        return resolveObjectPatch(editor, objectPatch);
     }
 
     void mouseDrag(MouseEvent const& e) override
@@ -107,7 +115,92 @@ private:
     PluginEditor* editor;
 };
 
+class ObjectSearchItem final : public Component {
+public:
+    ObjectSearchItem(PluginEditor* e, String const& text, String const& icon, String const& description, String const& patch, std::function<void(bool)> const& dismissCalloutBox)
+        : titleText(text)
+        , iconText(icon)
+        , descriptionText(description)
+        , objectPatch(patch)
+        , dismissMenu(dismissCalloutBox)
+        , editor(e)
+    {
+    }
+
+    void paint(Graphics& g) override
+    {
+        auto const& colours = getThemeColours(*this);
+
+        auto bounds = getLocalBounds();
+
+        if (isHovering) {
+            g.setColour(colours.popupMenuActiveBackgroundColour);
+            g.fillRoundedRectangle(bounds.toFloat(), Corners::defaultCornerRadius);
+        }
+
+        auto const colour = colours.popupMenuTextColour;
+        Fonts::drawIcon(g, iconText, bounds.removeFromLeft(30).reduced(4), colour, 17);
+
+        auto const titleBounds = bounds.removeFromLeft(Fonts::getStringWidthInt(titleText, 14.0f) + 12);
+        Fonts::drawStyledText(g, titleText, titleBounds, colour, Semibold, 14);
+        Fonts::drawFittedText(g, descriptionText, bounds, colour.withAlpha(0.6f), 1, 1.0f, 14);
+    }
+
+    void mouseEnter(MouseEvent const& e) override
+    {
+        isHovering = true;
+        repaint();
+    }
+
+    void mouseExit(MouseEvent const& e) override
+    {
+        isHovering = false;
+        repaint();
+    }
+
+    void mouseDrag(MouseEvent const& e) override
+    {
+        if (e.getDistanceFromDragStart() > 3) {
+            ObjectDragAndDrop::attachToMouse(editor, resolveObjectPatch(editor, objectPatch));
+            dismissMenu(true);
+        }
+    }
+
+    void mouseUp(MouseEvent const& e) override
+    {
+        if (e.mouseWasDraggedSinceMouseDown()) {
+            dismissMenu(false);
+        } else if (!SettingsFile::getInstance()->isUsingTouchMode()) {
+            ObjectDragAndDrop::attachToMouse(editor, resolveObjectPatch(editor, objectPatch));
+            dismissMenu(false);
+        }
+    }
+
+private:
+    String titleText;
+    String iconText;
+    String descriptionText;
+    String objectPatch;
+    bool isHovering = false;
+    std::function<void(bool)> dismissMenu;
+    PluginEditor* editor;
+};
+
 class ObjectList final : public Component {
+
+    struct Section {
+        explicit Section(String const& sectionName, bool const grid = true)
+            : name(sectionName)
+            , isGrid(grid)
+        {
+        }
+
+        String name;
+        bool isGrid;
+        Rectangle<int> headerBounds;
+        OwnedArray<Component> items;
+    };
+
 public:
     ObjectList(PluginEditor* e, std::function<void(bool)> const& dismissCalloutBox)
         : editor(e)
@@ -118,49 +211,147 @@ public:
 #endif
     }
 
+    static auto const& getObjectsToShow()
+    {
+        return getValue<bool>(SettingsFile::getInstance()->getPropertyAsValue("hvcc_mode")) ? heavyObjectList : defaultObjectList;
+    }
+
     void resized() override
     {
-        auto const width = getWidth();
+        static constexpr int itemSize = 64;
+        
+        int const maxColumns = std::max(1, (getWidth() - margin * 2) / itemSize);
+        int y = margin;
 
-        int column = 0;
-        int const maxColumns = width / itemSize;
-        int offset = 0;
+        for (auto* section : sections) {
+            section->headerBounds = { margin + 4, y, getWidth() - margin * 2, section->name.isEmpty() ? 0 : headerHeight };
+            y += section->headerBounds.getHeight();
 
-        for (auto const button : objectButtons) {
-            button->setBounds(column * itemSize, offset, itemSize, itemSize);
-            column++;
-            if (column >= maxColumns) {
-                column = 0;
-                offset += itemSize;
+            if (section->isGrid) {
+                int column = 0;
+                for (auto* item : section->items) {
+                    item->setBounds(margin + column * itemSize, y, itemSize, itemSize);
+                    if (++column >= maxColumns) {
+                        column = 0;
+                        y += itemSize;
+                    }
+                }
+                if (column)
+                    y += itemSize;
+            } else {
+                for (auto* item : section->items) {
+                    item->setBounds(margin, y, getWidth() - margin * 2, rowHeight);
+                    y += rowHeight;
+                }
             }
+            y += margin * 2;
+        }
+
+        // The height depends on our width, so we need to update it here
+        if (y != getHeight())
+            setSize(getWidth(), y);
+    }
+
+    void paint(Graphics& g) override
+    {
+        auto const& colours = getThemeColours(*this);
+
+        for (auto const* section : sections) {
+            if (section->name.isEmpty())
+                continue;
+
+            if (section != sections.getFirst()) {
+                g.setColour(colours.outlineColour);
+                g.drawHorizontalLine(section->headerBounds.getY() - margin, margin + 4, getWidth() - margin - 4);
+            }
+            Fonts::drawStyledText(g, section->name, section->headerBounds, colours.popupMenuTextColour, Semibold, 15);
         }
     }
 
-    void showCategory(String const& categoryToView)
+    void showAllCategories()
     {
-        objectButtons.clear();
+        sections.clear();
 
-        auto objectsToShow = getValue<bool>(SettingsFile::getInstance()->getPropertyAsValue("hvcc_mode")) ? heavyObjectList : defaultObjectList;
-
-        for (auto& [categoryName, objectCategory] : objectsToShow) {
-
-            if (categoryName != categoryToView)
-                continue;
-
-            for (auto& [icon, patch, tooltip, name, objectID] : objectCategory) {
-                auto objectPatch = patch;
-                if (objectPatch.isEmpty())
-                    objectPatch = "#X obj 0 0 " + name;
-                else if (!objectPatch.startsWith("#")) {
-                    objectPatch = ObjectThemeManager::get()->getCompleteFormat(objectPatch);
-                }
-                auto* button = objectButtons.add(new ObjectItem(editor, name, icon, tooltip, objectPatch, objectID, dismissMenu));
-                addAndMakeVisible(button);
+        for (auto const& [categoryName, objectCategory] : getObjectsToShow()) {
+            auto* section = sections.add(new Section(categoryName));
+            for (auto const& [icon, patch, tooltip, name, objectID] : objectCategory) {
+                addObjectItem(section, icon, patch, tooltip, name, objectID);
             }
         }
 
         resized();
     }
+
+    // Objects from the menu itself come first, followed by a full search through the object library
+    void showSearchResults(String const& query)
+    {
+        sections.clear();
+
+        auto* section = sections.add(new Section({ }, false));
+        auto& library = *editor->pd->objectLibrary;
+        StringArray menuObjects;
+
+        for (bool const matchPrefix : { true, false }) {
+            for (auto const& [categoryName, objectCategory] : getObjectsToShow()) {
+                for (auto const& [icon, patch, tooltip, name, objectID] : objectCategory) {
+                    if (name.startsWithIgnoreCase(query) != matchPrefix)
+                        continue;
+                    if (!matchPrefix && !(name + " " + tooltip + " " + patch).containsIgnoreCase(query))
+                        continue;
+
+                    auto const objectPatch = getObjectPatch(patch, name);
+                    auto const objectName = getObjectNameFromPatch(objectPatch);
+                    menuObjects.add(objectName);
+
+                    // Objects that aren't in the documentation (atom boxes, arrays, ...) fall back to their tooltip
+                    auto description = library.getObjectInfo(objectName).description;
+                    if (description.isEmpty())
+                        description = tooltip.replace("(@keypress) ", "");
+
+                    addItem(section, new ObjectSearchItem(editor, name, icon, description.equalsIgnoreCase(name) ? String() : description, objectPatch, dismissMenu));
+                }
+            }
+        }
+
+        for (auto const& object : library.searchObjectDocumentation(query)) {
+            if (section->items.size() >= maxSearchResults)
+                break;
+            if (menuObjects.contains(object))
+                continue;
+
+            addItem(section, new ObjectSearchItem(editor, object, Icons::GlyphEmptyObject, library.getObjectInfo(object).description, ObjectThemeManager::get()->getCompleteFormat(object), dismissMenu));
+        }
+
+        resized();
+    }
+
+    int getCategoryY(String const& category) const
+    {
+        for (auto const* section : sections) {
+            if (section->name == category)
+                return section->headerBounds.getY() - margin;
+        }
+
+        return 0;
+    }
+
+    String getCategoryAt(int const y) const
+    {
+        String category;
+        for (auto const* section : sections) {
+            if (section->headerBounds.getY() > y + headerHeight)
+                break;
+            category = section->name;
+        }
+
+        return category;
+    }
+
+    String getLastCategory() const
+    {
+        return sections.isEmpty() ? String() : sections.getLast()->name;
+    }
+
 
     static void printAllObjects()
     {
@@ -182,10 +373,8 @@ public:
         std::cout << "==== end of list ====" << std::endl;
     }
 
-    OwnedArray<ObjectItem> objectButtons;
-
     static inline HeapArray<std::pair<String, HeapArray<std::tuple<String, String, String, String, ObjectIDs>>>> const defaultObjectList = {
-        { "Default",
+        { "Essentials",
             {
                 { Icons::GlyphEmptyObject, "#X obj 0 0", "(@keypress) Empty object", "Object", NewObject },
                 { Icons::GlyphMessage, "#X msg 0 0", "(@keypress) Message", "Message", NewMessage },
@@ -196,7 +385,7 @@ public:
                 { Icons::GlyphArray, "#N canvas 0 0 450 250 (subpatch) 0;\n#X array @arrName 100 float 2;\n#X coords 0 1 100 -1 200 140 1;\n#X restore 0 0 graph;", "(@keypress) Array", "Array", NewArray },
                 { Icons::GlyphGOP, "#N canvas 0 0 450 250 (subpatch) 1;\n#X coords 0 1 100 -1 200 140 1 0 0;\n#X restore 0 0 graph;", "(@keypress) Graph on parent", "Graph", NewGraphOnParent },
             } },
-        { "UI",
+        { "User Interface",
             {
                 // GUI object default settings are in ObjectManager.h
                 { Icons::GlyphBang, "bng", "(@keypress) Bang", "Bang", NewBang },
@@ -250,7 +439,7 @@ public:
                 { Icons::GlyphFtom, "#X obj 0 0 ftom", "Frequency to MIDI", "ftom", OtherObject },
                 { Icons::GlyphAutotune, "#X obj 0 0 autotune", "Pitch quantizer", "Autotune", OtherObject },
             } },
-        { "IO",
+        { "Input & Output",
             {
                 { Icons::GlyphAdc, "#X obj 0 0 adc~", "Adc", "Adc", OtherObject },
                 { Icons::GlyphDac, "#X obj 0 0 dac~", "Dac", "Dac", OtherObject },
@@ -267,7 +456,7 @@ public:
                 { Icons::GlyphSignalSend, "#X obj 0 0 s~", "Send~", "Send~", OtherObject },
                 { Icons::GlyphSignalReceive, "#X obj 0 0 r~", "Receive~", "Receive~", OtherObject },
             } },
-        { "Osc~",
+        { "Oscillators",
             {
                 { Icons::GlyphPhasor, "#X obj 0 0 phasor~", "Phasor", "Phasor", OtherObject },
                 { Icons::GlyphOsc, "#X obj 0 0 osc~ 440", "Osc", "Osc", OtherObject },
@@ -284,7 +473,7 @@ public:
                 { Icons::GlyphWavetableBL, "#X obj 0 0 bl.wavetable~", "Wavetable band limited", "Bl. Wavetab", OtherObject },
                 { Icons::GlyphPlaits, "#X obj 0 0 plaits~", "Plaits", "Plaits", OtherObject },
             } },
-        { "FX~",
+        { "Effects",
             {
                 { Icons::GlyphCrusher, "#X obj 0 0 crusher~ 0.1 0.1", "Crusher", "Crusher", OtherObject },
                 { Icons::GlyphDelayEffect, "#X obj 0 0 delay~ 22050 14700", "Delay", "Delay", OtherObject },
@@ -302,7 +491,7 @@ public:
                 { Icons::GlyphFold, "#X obj 0 0 fold~ -0.5 0.5", "Fold", "Fold", OtherObject },
                 { Icons::GlyphWrap, "#X obj 0 0 wrap2~ -0.5 0.5", "Wrap", "Wrap", OtherObject },
             } },
-        { "Multi~",
+        { "Multichannel",
             {
                 { Icons::GlyphMultiSnake, "#X obj 0 0 snake~ 2", "Multichannel snake", "Snake", OtherObject },
                 { Icons::GlyphMultiGet, "#X obj 0 0 get~", "Multichannel get", "Get", OtherObject },
@@ -329,7 +518,7 @@ public:
                 { Icons::GlyphGeneric, "", "Minimum", "min", OtherObject },
                 { Icons::GlyphGeneric, "", "Maximum", "max", OtherObject },
             } },
-        { "Math~",
+        { "Signal Math",
             {
                 { Icons::GlyphGenericSignal, "", "(signal) Add", "+~", OtherObject },
                 { Icons::GlyphGenericSignal, "", "(signal) Subtract", "-~", OtherObject },
@@ -350,7 +539,7 @@ public:
     };
 
     static inline HeapArray<std::pair<String, HeapArray<std::tuple<String, String, String, String, ObjectIDs>>>> const heavyObjectList = {
-        { "Default",
+        { "Essentials",
             {
                 { Icons::GlyphEmptyObject, "#X obj 0 0", "(@keypress) Empty object", "Object", NewObject },
                 { Icons::GlyphMessage, "#X msg 0 0", "(@keypress) Message", "Message", NewMessage },
@@ -360,7 +549,7 @@ public:
                 { Icons::GlyphArray, "#N canvas 0 0 450 250 (subpatch) 0;\n#X array @arrName 100 float 2;\n#X coords 0 1 100 -1 200 140 1;\n#X restore 0 0 graph;", "(@keypress) Array", "Array", NewArray },
                 { Icons::GlyphGOP, "#N canvas 0 0 450 250 (subpatch) 1;\n#X coords 0 1 100 -1 200 140 1 0 0;\n#X restore 0 0 graph;", "(@keypress) Graph on parent", "Graph", NewGraphOnParent },
             } },
-        { "UI",
+        { "User Interface",
             {
                 // GUI object default settings are in OjbectManager.h
                 { Icons::GlyphBang, "bng", "(@keypress) Bang", "Bang", NewBang },
@@ -405,7 +594,7 @@ public:
                 { Icons::GlyphMtof, "#X obj 0 0 mtof", "MIDI to frequency", "mtof", OtherObject },
                 { Icons::GlyphFtom, "#X obj 0 0 ftom", "Frequency to MIDI", "ftom", OtherObject },
             } },
-        { "IO",
+        { "Input & Output",
             {
                 { Icons::GlyphAdc, "#X obj 0 0 adc~", "Adc", "Adc", OtherObject },
                 { Icons::GlyphDac, "#X obj 0 0 dac~", "Dac", "Dac", OtherObject },
@@ -414,7 +603,7 @@ public:
                 { Icons::GlyphSignalSend, "#X obj 0 0 s~", "Send~", "Send~", OtherObject },
                 { Icons::GlyphSignalReceive, "#X obj 0 0 r~", "Receive~", "Receive~", OtherObject },
             } },
-        { "Osc~",
+        { "Oscillators",
             {
                 { Icons::GlyphPhasor, "#X obj 0 0 phasor~", "Phasor", "Phasor", OtherObject },
                 { Icons::GlyphOsc, "#X obj 0 0 osc~ 440", "Osc", "Osc", OtherObject },
@@ -429,7 +618,7 @@ public:
                 { Icons::GlyphLFOSquare, "#X obj 0 0 hv.lfo square", "Square LFO", "Sq LFO", OtherObject },
                 { Icons::GlyphPulse, "#X obj 0 0 hv.lfo pulse", "Pulse LFO", "Pulse LFO", OtherObject },
             } },
-        { "FX~",
+        { "Effects",
             {
                 { Icons::GlyphComp, "#X obj 0 0 hv.compressor~", "Compressor", "Compress", OtherObject },
                 { Icons::GlyphFlanger, "#X obj 0 0 hv.flanger~", "Flanger", "Flanger", OtherObject },
@@ -459,7 +648,7 @@ public:
                 { Icons::GlyphGeneric, "", "Minimum", "min", OtherObject },
                 { Icons::GlyphGeneric, "", "Maximum", "max", OtherObject },
             } },
-        { "Math~",
+        { "Signal Math",
             {
                 { Icons::GlyphGenericSignal, "", "(signal) Add", "+~", OtherObject },
                 { Icons::GlyphGenericSignal, "", "(signal) Subtract", "-~", OtherObject },
@@ -477,72 +666,119 @@ public:
     };
 
 private:
+    void addObjectItem(Section* section, String const& icon, String const& patch, String const& tooltip, String const& name, ObjectIDs const objectID)
+    {
+        addItem(section, new ObjectItem(editor, name, icon, tooltip, getObjectPatch(patch, name), objectID, dismissMenu));
+    }
+
+    void addItem(Section* section, Component* item)
+    {
+        section->items.add(item);
+        addAndMakeVisible(item);
+    }
+
+    static String getObjectPatch(String const& patch, String const& name)
+    {
+        if (patch.isEmpty())
+            return "#X obj 0 0 " + name;
+        if (!patch.startsWith("#"))
+            return ObjectThemeManager::get()->getCompleteFormat(patch);
+
+        return patch;
+    }
+
+    static String getObjectNameFromPatch(String const& patch)
+    {
+        return patch.fromFirstOccurrenceOf("#X obj 0 0 ", false, false).upToFirstOccurrenceOf(" ", false, false).trim();
+    }
+
+    OwnedArray<Section> sections;
     PluginEditor* editor;
     std::function<void(bool)> dismissMenu;
-    int const itemSize = 64;
+
+    static constexpr int headerHeight = 26;
+    static constexpr int rowHeight = 28;
+    static constexpr int margin = 8;
+    static constexpr int maxSearchResults = 50;
 };
 
-class ObjectCategoryView final : public Component {
+class ObjectCategoryList final : public Component {
 
 public:
-    ObjectCategoryView(PluginEditor* e, std::function<void(bool)> const& dismissCalloutBox)
-        : list(e, dismissCalloutBox)
+    std::function<void(String const&)> onCategoryClicked = [](String const&) { };
+
+    void setCategories(StringArray const& newCategories)
+    {
+        categories = newCategories;
+        repaint();
+    }
+
+    void setSelectedCategory(String const& category)
+    {
+        auto const index = categories.indexOf(category);
+        if (index != selectedIndex) {
+            selectedIndex = index;
+            repaint();
+        }
+    }
+
+    void paint(Graphics& g) override
     {
         auto const& colours = getThemeColours(*this);
 
-        addAndMakeVisible(list);
+        for (int i = 0; i < categories.size(); i++) {
+            auto const bounds = getRowBounds(i);
 
-        auto objectsToShow = getValue<bool>(SettingsFile::getInstance()->getPropertyAsValue("hvcc_mode")) ? ObjectList::heavyObjectList : ObjectList::defaultObjectList;
+            if (i == selectedIndex || i == hoveredIndex) {
+                g.setColour(i == selectedIndex ? colours.popupMenuActiveBackgroundColour : colours.popupMenuActiveBackgroundColour.withAlpha(0.5f));
+                g.fillRoundedRectangle(bounds.reduced(4, 1).toFloat(), Corners::defaultCornerRadius);
+            }
 
-        // make the 2nd category active (which will be after the default category if it exists)
-        if (objectsToShow.size() > 1) {
-            // this should always be populated, but just incase we are testing a new blank object list etc
-            list.showCategory(objectsToShow[1].first);
+            Fonts::drawText(g, categories[i], bounds.withTrimmedLeft(14), colours.popupMenuTextColour, 14);
         }
-        for (auto const& [categoryName, category] : objectsToShow) {
-            if (categoryName == "Default")
-                continue;
-
-            auto* button = categories.add(new TextButton(categoryName));
-            button->setConnectedEdges(12);
-            button->onClick = [this, cName = categoryName] {
-                list.showCategory(cName);
-                resized();
-            };
-            button->setClickingTogglesState(true);
-            button->setRadioGroupId(hash("add_menu_category"));
-            button->setColour(TextButton::textColourOffId, colours.popupMenuTextColour);
-            button->setColour(TextButton::textColourOnId, colours.popupMenuTextColour);
-            button->setColour(TextButton::buttonColourId, colours.popupMenuBackgroundColour.contrasting(0.035f));
-            button->setColour(TextButton::buttonOnColourId, colours.popupMenuBackgroundColour.contrasting(0.075f));
-            button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-            addAndMakeVisible(button);
-        }
-
-        if (categories.size() > 0) {
-            categories.getFirst()->setConnectedEdges(Button::ConnectedOnRight);
-            categories.getFirst()->setToggleState(true, dontSendNotification);
-            categories.getLast()->setConnectedEdges(Button::ConnectedOnLeft);
-        }
-        resized();
     }
 
-    void resized() override
+    void mouseMove(MouseEvent const& e) override
     {
-        auto bounds = getLocalBounds();
-        auto buttonBounds = bounds.removeFromTop(48).reduced(6, 14).translated(4, 0);
+        setHoveredRow(getRowAt(e.y));
+    }
 
-        auto const buttonWidth = buttonBounds.getWidth() / std::max(1, categories.size());
-        for (auto* category : categories) {
-            category->setBounds(buttonBounds.removeFromLeft(buttonWidth).expanded(1, 0));
-        }
+    void mouseExit(MouseEvent const& e) override
+    {
+        setHoveredRow(-1);
+    }
 
-        list.setBounds(bounds);
+    void mouseUp(MouseEvent const& e) override
+    {
+        auto const row = getRowAt(e.y);
+        if (isPositiveAndBelow(row, categories.size()))
+            onCategoryClicked(categories[row]);
     }
 
 private:
-    ObjectList list;
-    OwnedArray<TextButton> categories;
+    Rectangle<int> getRowBounds(int const index) const
+    {
+        return { 0, index * rowHeight, getWidth(), rowHeight };
+    }
+
+    int getRowAt(int const y) const
+    {
+        return y < 0 ? -1 : y / rowHeight;
+    }
+
+    void setHoveredRow(int const row)
+    {
+        if (row != hoveredIndex) {
+            hoveredIndex = row;
+            repaint();
+        }
+    }
+
+    StringArray categories;
+    int selectedIndex = -1;
+    int hoveredIndex = -1;
+
+    static constexpr int rowHeight = 26;
 };
 
 class AddObjectMenuButton final : public Component {
@@ -550,8 +786,6 @@ class AddObjectMenuButton final : public Component {
     String const text;
 
 public:
-    bool toggleState = false;
-    bool clickingTogglesState = false;
     std::function<void()> onClick = [] { };
 
     explicit AddObjectMenuButton(String const& iconStr, String const& textStr = String())
@@ -559,7 +793,6 @@ public:
         , text(textStr)
     {
         setInterceptsMouseClicks(true, false);
-        setAlwaysOnTop(true);
     }
 
     void paint(Graphics& g) override
@@ -568,17 +801,12 @@ public:
 
         auto b = getLocalBounds().reduced(4, 2);
 
-        auto colour = colours.popupMenuTextColour;
-
         if (isMouseOver()) {
             g.setColour(colours.popupMenuActiveBackgroundColour);
             g.fillRoundedRectangle(b.toFloat(), Corners::defaultCornerRadius);
         }
 
-        if (toggleState) {
-            colour = colours.toolbarActiveColour;
-        }
-
+        auto const colour = colours.popupMenuTextColour;
         auto const iconArea = b.removeFromLeft(24).withSizeKeepingCentre(24, 24);
 
         if (text.isNotEmpty()) {
@@ -586,7 +814,7 @@ public:
             b.removeFromLeft(4);
             b.removeFromRight(3);
 
-            Fonts::drawFittedText(g, text, b, colour, 14.0f);
+            Fonts::drawFittedText(g, text, b, colour, 1, 0.9f, 14.0f);
         } else {
             Fonts::drawIcon(g, icon, iconArea, colour, 14.0f, true);
         }
@@ -594,10 +822,6 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
-        if (clickingTogglesState) {
-            toggleState = !toggleState;
-        }
-
         onClick();
         repaint();
     }
@@ -613,94 +837,203 @@ public:
     }
 };
 
+class ObjectListViewport final : public BouncingViewport {
+public:
+    std::function<void()> onScroll = [] { };
+
+private:
+    void visibleAreaChanged(Rectangle<int> const& newVisibleArea) override
+    {
+        onScroll();
+    }
+};
+
 class AddObjectMenu final : public Component {
 
 public:
     explicit AddObjectMenu(PluginEditor* e)
-        : objectBrowserButton(Icons::Object, "Show Object Browser")
-        , pinButton(Icons::Pin)
+        : objectBrowserButton(Icons::Object, "Object Browser")
         , editor(e)
         , objectList(e, [this](bool const shouldFade) { dismiss(shouldFade); })
-        , categoriesList(e, [this](bool const shouldFade) { dismiss(shouldFade); })
     {
-        categoriesList.setVisible(true);
+        auto const& colours = getThemeColours(*this);
 
-        addAndMakeVisible(categoriesList);
-        addAndMakeVisible(objectList);
-        addAndMakeVisible(objectBrowserButton);
-        addAndMakeVisible(pinButton);
+        searchInput.setBackgroundColour(PlugDataColour::popupMenuActiveBackgroundColourId);
+        searchInput.setTextToShowWhenEmpty("Search objects...", colours.popupMenuTextColour.withAlpha(0.5f));
+        searchInput.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
+        searchInput.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
+        searchInput.setColour(TextEditor::textColourId, colours.popupMenuTextColour);
+        searchInput.setBorder({ 1, 23, 5, 1 });
+        searchInput.onTextChange = [this] { updateObjects(); };
 
-        setSize(515, 300);
+        viewport.setViewedComponent(&objectList, false);
+        viewport.setScrollBarsShown(true, false);
+        viewport.onScroll = [this] { updateSelectedCategory(); };
 
-        objectList.showCategory("Default");
+        StringArray categoryNames;
+        for (auto const& [categoryName, objectCategory] : ObjectList::getObjectsToShow())
+            categoryNames.add(categoryName);
+
+        categoryList.setCategories(categoryNames);
+        categoryList.onCategoryClicked = [this](String const& category) {
+            if (searchInput.getText().isNotEmpty()) {
+                searchInput.clear();
+                updateObjects();
+            }
+            viewport.setViewPosition(0, objectList.getCategoryY(category));
+            updateSelectedCategory();
+        };
+
         objectBrowserButton.onClick = [this] {
-            if (currentCalloutBox)
-                currentCalloutBox->dismiss();
-            Dialogs::showObjectBrowserDialog(&editor->openedDialog, editor);
+            dismiss(false);
+            MessageManager::callAsync([e = SafePointer(editor)] {
+                if (e)
+                    Dialogs::showObjectBrowserDialog(&e->openedDialog, e);
+            });
         };
 
-        pinButton.toggleState = SettingsFile::getInstance()->getProperty<bool>("add_object_menu_pinned");
-        pinButton.clickingTogglesState = true;
+        addAndMakeVisible(searchInput);
+        addAndMakeVisible(viewport);
+        addAndMakeVisible(categoryList);
+        addAndMakeVisible(objectBrowserButton);
 
-        pinButton.onClick = [this] {
-            SettingsFile::getInstance()->setProperty("add_object_menu_pinned", pinButton.toggleState);
-        };
-        pinButton.repaint();
+        setSize(panelWidth, panelHeight);
+        updateObjects();
 
         updater.addAnimator(alphaAnimator);
         alphaAnimator.complete();
+    }
+
+    void parentHierarchyChanged() override
+    {
+        // Don't pop up the on-screen keyboard as soon as the panel appears
+        if (SettingsFile::getInstance()->isUsingTouchMode())
+            return;
+
+        MessageManager::callAsync([_this = SafePointer(this)] {
+            if (_this && _this->isShowing())
+                _this->searchInput.grabKeyboardFocus();
+        });
     }
 
     void resized() override
     {
         auto bounds = getLocalBounds();
 
-        auto buttonsBounds = bounds.removeFromTop(26);
-        pinButton.setBounds(buttonsBounds.removeFromRight(28));
-        objectBrowserButton.setBounds(buttonsBounds);
-        bounds.removeFromTop(6);
-        objectList.setBounds(bounds.removeFromTop(75));
-        categoriesList.setBounds(bounds);
+        // The dialog puts its close button in the titlebar area
+        if (SettingsFile::getInstance()->isUsingTouchMode())
+            bounds.removeFromTop(titlebarHeight);
+
+        searchInput.setBounds(bounds.removeFromTop(36).reduced(6, 4));
+
+        auto sidebarBounds = bounds.removeFromLeft(sidebarWidth);
+        objectBrowserButton.setBounds(sidebarBounds.removeFromBottom(30).reduced(2, 0));
+        categoryList.setBounds(sidebarBounds.withTrimmedTop(4).withTrimmedBottom(6));
+
+        viewport.setBounds(bounds);
+        objectList.setSize(viewport.getMaximumVisibleWidth(), objectList.getHeight());
+    }
+
+    void paint(Graphics& g) override
+    {
+        if (!SettingsFile::getInstance()->isUsingTouchMode())
+            return;
+
+        // The dialog already painted our background, we only need the title itself
+        Fonts::drawStyledText(g, "Add New Object", Rectangle<int>(0, 4, getWidth(), titlebarHeight - 8), getThemeColours(*this).panelTextColour, Semibold, 15, Justification::centred);
+    }
+
+    void paintOverChildren(Graphics& g) override
+    {
+        auto const& colours = getThemeColours(*this);
+
+        g.setColour(colours.outlineColour);
+        g.drawVerticalLine(sidebarWidth, searchInput.getBottom() + 4.0f, getHeight() - 4.0f);
+        g.drawHorizontalLine(objectBrowserButton.getY() - 3, 10.0f, sidebarWidth - 10.0f);
+
+        Fonts::drawIcon(g, Icons::Search, searchInput.getX(), searchInput.getY(), searchInput.getHeight(), colours.popupMenuTextColour, 12);
     }
 
     void dismiss(bool const shouldHide)
     {
-        if (currentCalloutBox) {
-            // If the panel is pinned, only fade it out
-            if (shouldHide && pinButton.toggleState) {
-                startAlpha = currentCalloutBox->getAlpha();
-                targetAlpha = shouldHide ? 0.1f : 1.0f;
-                if (alphaAnimator.isComplete())
-                    alphaAnimator.start();
-            }
-            // Otherwise, fade the panel on drag start: calling dismiss or setVisible will lead to the drag event getting lost, so we just set alpha instead
-            // Ditto for calling animator.fadeOut because that will also call setVisible(false)
-            else if (shouldHide) {
-                startAlpha = currentCalloutBox->getAlpha();
-                targetAlpha = 0.0f;
-                if (alphaAnimator.isComplete())
-                    alphaAnimator.start();
-            }
-            // and destroy the panel on mouse-up
-            else {
-                currentCalloutBox->dismiss();
-            }
+        auto* panel = getPanelComponent();
+        if (!panel)
+            return;
+
+        // Fade the panel on drag start: calling dismiss or setVisible will lead to the drag event getting lost, so we just set alpha instead
+        // Ditto for calling animator.fadeOut because that will also call setVisible(false)
+        if (shouldHide) {
+            startAlpha = panel->getAlpha();
+            targetAlpha = 0.0f;
+            if (alphaAnimator.isComplete())
+                alphaAnimator.start();
+        }
+        // and destroy the panel on mouse-up
+        else if (auto* dialog = dynamic_cast<Dialog*>(panel)) {
+            MessageManager::callAsync([d = SafePointer(dialog)] {
+                if (d)
+                    d->closeDialog();
+            });
+        } else {
+            currentCalloutBox->dismiss();
         }
     }
 
     static void show(PluginEditor* editor, Rectangle<int> const bounds)
     {
-        auto addObjectMenu = std::make_unique<AddObjectMenu>(editor);
-        currentCalloutBox = &editor->showCalloutBox(std::move(addObjectMenu), bounds);
+        if (SettingsFile::getInstance()->isUsingTouchMode()) {
+            auto* dialog = new Dialog(&editor->openedDialog, editor, panelWidth, panelHeight + titlebarHeight, true);
+            dialog->setViewedComponent(new AddObjectMenu(editor));
+            editor->openedDialog.reset(dialog);
+        } else {
+            currentCalloutBox = &editor->showCalloutBox(std::make_unique<AddObjectMenu>(editor), bounds);
+        }
     }
 
 private:
+
+    Component* getPanelComponent() const
+    {
+        if (auto* dialog = findParentComponentOfClass<Dialog>())
+            return dialog;
+
+        return currentCalloutBox.getComponent();
+    }
+
+    void updateObjects()
+    {
+        auto const query = searchInput.getText().trim();
+        if (query.isEmpty())
+            objectList.showAllCategories();
+        else
+            objectList.showSearchResults(query);
+
+        objectList.setSize(viewport.getMaximumVisibleWidth(), objectList.getHeight());
+        viewport.setViewPosition(0, 0);
+        updateSelectedCategory();
+    }
+
+    void updateSelectedCategory()
+    {
+        auto const visibleArea = viewport.getViewArea();
+
+        // When we're scrolled all the way down, the last category can never reach the top of the viewport
+        auto const isAtBottom = viewport.canScrollVertically() && visibleArea.getBottom() >= objectList.getHeight();
+        categoryList.setSelectedCategory(isAtBottom ? objectList.getLastCategory() : objectList.getCategoryAt(visibleArea.getY()));
+    }
+
     AddObjectMenuButton objectBrowserButton;
-    AddObjectMenuButton pinButton;
     static inline SafePointer<CallOutBox> currentCalloutBox = nullptr;
     PluginEditor* editor;
     ObjectList objectList;
-    ObjectCategoryView categoriesList;
+    ObjectListViewport viewport;
+    ObjectCategoryList categoryList;
+    SearchEditor searchInput;
+
+    static constexpr int panelWidth = 670;
+    static constexpr int panelHeight = 400;
+    static constexpr int titlebarHeight = 32;
+    static constexpr int sidebarWidth = 125;
 
     float startAlpha, targetAlpha;
     VBlankAnimatorUpdater updater { this };
@@ -708,8 +1041,8 @@ private:
                                  .withDurationMs(220)
                                  .withEasing(Easings::createEaseOut())
                                  .withValueChangedCallback([this](float v) {
-                                     if (currentCalloutBox)
-                                         currentCalloutBox->setAlpha(makeAnimationLimits(startAlpha, targetAlpha).lerp(v));
+                                     if (auto* panel = getPanelComponent())
+                                         panel->setAlpha(makeAnimationLimits(startAlpha, targetAlpha).lerp(v));
                                  })
                                  .build();
 };

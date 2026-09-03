@@ -121,7 +121,6 @@ static var convertFromLegacyFormat(ValueTree s)
     copyBool("autoconnect", "autoconnect");
     copyBool("centre_resized_canvas", "centre_resized_canvas");
     copyBool("show_all_audio_device_rates", "show_all_audio_device_rates");
-    copyBool("add_object_menu_pinned", "add_object_menu_pinned");
     copyBool("autosave_enabled", "autosave_enabled");
     copyBool("patch_downwards_only", "patch_downwards_only");
     copyBool("search_order", "search_order");
