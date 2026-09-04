@@ -59,6 +59,8 @@ public:
 
         setInterceptsMouseClicks(true, false);
         setOpaque(false);
+
+        updateArrayPath();
     }
 
     ~GraphicalArray() override
@@ -304,6 +306,10 @@ public:
             repaint();
             break;
         }
+        case hash("visname"): {
+            updateSettings();
+            break;
+        }
         case hash("vis"): {
             visible = atoms[0].getFloat();
             repaint();
@@ -462,6 +468,15 @@ public:
         }
 
         return { };
+    }
+
+    bool getNameIsVisible() const
+    {
+        if (auto ptr = arr.get<t_fake_garray>()) {
+            return !ptr->x_hidename;
+        }
+
+        return true;
     }
 
     int getLineWidth() const
@@ -1285,10 +1300,11 @@ public:
 
     void updateLabel() override
     {
-
         auto title = String();
         for (auto const* graph : graphs) {
-            title += graph->getUnexpandedName() + (graph != graphs.getLast() ? "," : "");
+            if(graph->getNameIsVisible()) {
+                title += graph->getUnexpandedName() + (graph != graphs.getLast() ? "," : "");
+            }
         }
 
         ObjectLabel* label;
