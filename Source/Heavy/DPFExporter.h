@@ -19,10 +19,13 @@ public:
     Value jackEnableValue = Value(var(0));
 
     Value exportTypeValue = Value(var(1));
+    Value guiTypeValue = Value(var(1));
+    Value useThemeValue = Value(var(1));
     Value pluginTypeValue = Value(var(1));
 
-    Value disableSIMD = Value(var(0));
+    Value disableSIMD = Value(var(2));
 
+    PropertiesPanelProperty* useThemeProperty;
     PropertiesPanelProperty* midiinProperty;
     PropertiesPanelProperty* midioutProperty;
 
@@ -32,7 +35,10 @@ public:
         PropertiesArray properties;
         properties.add(new PropertiesPanel::EditableComponent<String>("Maker Name (optional)", makerNameValue));
         properties.add(new PropertiesPanel::EditableComponent<String>("Project License (optional)", projectLicenseValue));
-        properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Binary", "Binary + GUI", "Source code", "Source + GUI code" }));
+        properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Binary", "Source code" }));
+        properties.add(new PropertiesPanel::ComboComponent("Gui type", guiTypeValue, { "None", "Generic (ImGui)", "Custom (NanoVG)" }));
+        useThemeProperty = new PropertiesPanel::BoolComponent("Use theme", useThemeValue, { "No", "Yes" });
+        properties.add(useThemeProperty);
         properties.add(new PropertiesPanel::ComboComponent("Plugin type", pluginTypeValue, { "Effect", "Instrument", "Custom" }));
 
         midiinProperty = new PropertiesPanel::BoolComponent("Midi Input", midiinEnableValue, { "No", "yes" });
@@ -64,6 +70,7 @@ public:
             property->setPreferredHeight(28);
         }
 
+        guiTypeValue.addListener(this);
         pluginTypeValue.addListener(this);
         midiinEnableValue.addListener(this);
         midioutEnableValue.addListener(this);
@@ -88,6 +95,8 @@ public:
         state->setProperty("clap_enable_value", getValue<int>(clapEnableValue));
         state->setProperty("jack_enable_value", getValue<int>(jackEnableValue));
         state->setProperty("export_type_value", getValue<int>(exportTypeValue));
+        state->setProperty("gui_type_value", getValue<int>(guiTypeValue));
+        state->setProperty("use_theme_value", getValue<int>(useThemeValue));
         state->setProperty("plugin_type_value", getValue<int>(pluginTypeValue));
         state->setProperty("disable_simd", getValue<int>(disableSIMD));
         globalState->setProperty("dpf", state);
@@ -110,6 +119,8 @@ public:
         clapEnableValue = state->getProperty("clap_enable_value");
         jackEnableValue = state->getProperty("jack_enable_value");
         exportTypeValue = state->getProperty("export_type_value");
+        guiTypeValue = state->getProperty("gui_type_value");
+        useThemeValue = state->getProperty("use_theme_value");
         pluginTypeValue = state->getProperty("plugin_type_value");
         disableSIMD = state->getProperty("disable_simd");
     }
@@ -117,6 +128,9 @@ public:
     void valueChanged(Value& v) override
     {
         ExporterBase::valueChanged(v);
+
+        int const guiType = getValue<int>(guiTypeValue);
+        useThemeProperty->setEnabled(guiType == 3);
 
         int const pluginType = getValue<int>(pluginTypeValue);
         midiinProperty->setEnabled(pluginType == 3);
@@ -149,6 +163,8 @@ public:
         auto const projectLicense = getValue<String>(projectLicenseValue);
 
         auto const exportType = getValue<int>(exportTypeValue);
+        auto const guiType = getValue<int>(guiTypeValue);
+        auto const useTheme = getValue<int>(useThemeValue);
         auto const midiin = getValue<int>(midiinEnableValue);
         auto const midiout = getValue<int>(midioutEnableValue);
 
@@ -197,8 +213,32 @@ public:
         metaDPF.getDynamicObject()->setProperty("midi_output", midiout);
         metaDPF.getDynamicObject()->setProperty("plugin_formats", formats);
 
-        if (exportType == 2 || exportType == 4) {
-            metaDPF.getDynamicObject()->setProperty("enable_ui", true);
+        if (guiType == 2) {
+            metaDPF.getDynamicObject()->setProperty("enable_ui", 1);
+        } else if (guiType == 3) {
+            metaDPF.getDynamicObject()->setProperty("enable_ui", 2);
+            args.add("--gui");
+
+            var const metaTheme(new DynamicObject());
+            metaTheme.getDynamicObject()->setProperty("obj_corner_radius", getObjectCornerRadius(*this));
+            metaTheme.getDynamicObject()->setProperty("cnv_color", "#" + getThemeColours(*this).canvasBackgroundColour.toDisplayString(false));
+            metaTheme.getDynamicObject()->setProperty("cnv_txt_color", "#" + getThemeColours(*this).canvasTextColour.toDisplayString(false));
+
+            if (useTheme) {
+                metaDPF.getDynamicObject()->setProperty("ui_theme_set", 1);
+
+                metaTheme.getDynamicObject()->setProperty("io_color", "#" + getThemeColours(*this).guiObjectInternalOutlineColour.toDisplayString(false));
+                metaTheme.getDynamicObject()->setProperty("bg_color", "#" + getThemeColours(*this).guiObjectBackgroundColour.toDisplayString(false));
+                metaTheme.getDynamicObject()->setProperty("sel_color", "#" + getThemeColours(*this).objectSelectedOutlineColour.toDisplayString(false));
+                metaTheme.getDynamicObject()->setProperty("com_txt_color", "#" + getThemeColours(*this).commentTextColour.toDisplayString(false));
+                metaTheme.getDynamicObject()->setProperty("out_color", "#" + getThemeColours(*this).outlineColour.toDisplayString(false));;
+            }
+
+            metaDPF.getDynamicObject()->setProperty("ui_theme", "default");
+
+            var const metaThemes(new DynamicObject());
+            metaThemes.getDynamicObject()->setProperty("default", metaTheme);
+            metaDPF.getDynamicObject()->setProperty("ui_themes", metaThemes);
         }
 
         metaJson->setProperty("dpf", metaDPF);
@@ -235,12 +275,15 @@ public:
         auto const DPF = toolchainDir.getChildFile("lib").getChildFile("dpf");
         DPF.copyDirectoryTo(outputFile.getChildFile("dpf"));
 
-        if (exportType == 2 || exportType == 4) {
+        if (guiType == 2) {
             auto const DPFGui = toolchainDir.getChildFile("lib").getChildFile("dpf-widgets");
             DPFGui.copyDirectoryTo(outputFile.getChildFile("dpf-widgets"));
+        } else if (guiType == 3) {
+            auto const DPFGui = toolchainDir.getChildFile("lib").getChildFile("pdvg");
+            DPFGui.copyDirectoryTo(outputFile.getChildFile("pdvg"));
         }
 
-        if (exportType == 3 || exportType == 4) {
+        if (exportType == 2) {
             metaJsonFile.copyFileTo(outputFile.getChildFile("meta.json"));
         }
 
@@ -249,7 +292,7 @@ public:
 
         bool const generationExitCode = getExitCode();
         // Check if we need to compile
-        if (!generationExitCode && (exportType == 1 || exportType == 2)) {
+        if (!generationExitCode && (exportType == 1)) {
             auto const workingDir = File::getCurrentWorkingDirectory();
 
             outputFile.setAsCurrentWorkingDirectory();
@@ -304,7 +347,7 @@ public:
                 OSUtils::moveFileTo(outputFile.getChildFile("bin").getChildFile(name + ".clap"), outputFile.getChildFile(name + ".clap"));
             if (jack) {
 #if JUCE_MAC
-                if (exportType == 2) {
+                if (guiType == 2 || guiType == 3){
                     OSUtils::moveFileTo(outputFile.getChildFile("bin").getChildFile(name + ".app"), outputFile.getChildFile(name + ".app"));
                 } else {
                     OSUtils::moveFileTo(outputFile.getChildFile("bin").getChildFile(name), outputFile.getChildFile(name));
@@ -322,6 +365,7 @@ public:
             if (!compilationExitCode) {
                 outputFile.getChildFile("dpf").deleteRecursively();
                 outputFile.getChildFile("dpf-widgets").deleteRecursively();
+                outputFile.getChildFile("pdvg").deleteRecursively();
                 outputFile.getChildFile("build").deleteRecursively();
                 outputFile.getChildFile("plugin").deleteRecursively();
                 outputFile.getChildFile("bin").deleteRecursively();
