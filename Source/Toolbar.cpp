@@ -548,14 +548,16 @@ public:
 
         auto const idleColour = colours.toolbarTextColour.withAlpha(0.33f);
 
+        b.removeFromLeft(1);
+        
         auto top = b.removeFromTop(b.proportionOfHeight(0.5f)).toFloat();
         auto bottom = b.toFloat();
 
         g.setColour(blinkMidiIn ? colours.toolbarActiveColour : idleColour);
-        g.fillEllipse(top.withSizeKeepingCentre(5.0f, 5.0f));
+        g.fillEllipse(top.withSizeKeepingCentre(4.5f, 4.5f));
 
         g.setColour(blinkMidiOut ? colours.toolbarActiveColour : idleColour);
-        g.fillEllipse(bottom.withSizeKeepingCentre(5.0f, 5.0f));
+        g.fillEllipse(bottom.withSizeKeepingCentre(4.5f, 4.5f));
     }
 
     void midiReceivedChanged(bool const midiReceived) override
@@ -1794,11 +1796,11 @@ void AudioToolbar::resized()
 
     volumeComponent->setBounds(b.removeFromRight(110).reduced(0, 1));
 
-    b.removeFromRight(3);
+    b.removeFromRight(2);
 
     midiBlinker->setBounds(b.removeFromRight(44));
 
-    b.removeFromRight(3);
+    b.removeFromRight(2);
 
     cpuMeter->setBounds(b.removeFromRight(48));
 
