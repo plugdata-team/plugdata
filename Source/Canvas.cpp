@@ -2787,7 +2787,7 @@ void Canvas::receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms)
                     _this->setSelected(object, false);
                     if (auto* s = _this->editor->getSidebarForPanel(Sidebar::InspectorPanel))
                         s->hideParameters();
-                    object->setType(object->gui->getText(), object->gui->ptr);
+                    object->setType(object->gui->getText().toString(), object->gui->ptr);
                 }
             });
         }

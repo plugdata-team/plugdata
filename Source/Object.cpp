@@ -401,7 +401,7 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
     // Create gui for the object
     gui.reset(ObjectBase::createGui(objectPtr, this));
 
-    isGemObject = is_gem_object(gui->getText().toRawUTF8());
+    isGemObject = is_gem_object(gui->getText().toString().toRawUTF8());
 
     if (gui) {
         gui->initialise();
@@ -475,13 +475,14 @@ StackArray<Rectangle<float>, 4> Object::getCorners() const
     return corners;
 }
 
-String Object::getType(bool const withOriginPrefix) const
+SmallString Object::getType(bool const withOriginPrefix) const
 {
     if (gui && withOriginPrefix)
         return gui->getTypeWithOriginPrefix();
     if (gui)
         return gui->getType();
-    return String();
+
+    return SmallString();
 }
 
 void Object::triggerOverlayActiveState()
@@ -633,8 +634,8 @@ void Object::updateTooltips()
         }
     }
 
-    SmallArray<std::pair<int, String>, 16> inletMessages;
-    SmallArray<std::pair<int, String>, 16> outletMessages;
+    SmallArray<std::pair<int, SmallString>, 16> inletMessages;
+    SmallArray<std::pair<int, SmallString>, 16> outletMessages;
 
     if (auto const subpatch = gui->getPatch()) {
         cnv->pd->lockAudioThread();
@@ -655,13 +656,13 @@ void Object::updateTooltips()
                 pd::Interface::getObjectBounds(subpatchPtr, obj.getRaw<t_gobj>(), &x, &y, &w, &h);
 
                 // Anything after the first space will be the comment
-                inletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" ", false, false));
+                inletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" "));
             } else if (name == "outlet" || name == "outlet~") {
                 auto text = pd::Interface::getObjectText(checkedObject);
 
                 int x, y, w, h;
                 pd::Interface::getObjectBounds(subpatchPtr, obj.getRaw<t_gobj>(), &x, &y, &w, &h);
-                outletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" ", false, false));
+                outletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" "));
             }
         }
         cnv->pd->unlockAudioThread();
@@ -688,7 +689,7 @@ void Object::updateTooltips()
             continue;
 
         auto& [x, message] = iolet->isInlet() ? inletMessages[numIn++] : outletMessages[numOut++];
-        iolet->setTooltip(message);
+        iolet->setTooltip(message.toString());
         if (message.startsWith("(gemlist)"))
             iolet->setType(Iolet::GemState);
     }
@@ -1057,13 +1058,10 @@ void Object::mouseDrag(MouseEvent const& e)
             }
         }
 
-        // FIXME: stop the mousedrag event from blocking the objects from redrawing, we shouldn't need to do this? JUCE bug?
         if (ds.componentBeingDragged) {
             for (auto* object : selection) {
                 object->isObjectMouseActive = true;
-                auto const newPosition = object->originalBounds.getPosition() + dragDistance;
-
-                object->setTopLeftPosition(newPosition);
+                object->setTopLeftPosition(object->originalBounds.getPosition() + dragDistance);
             }
 
             if (cnv->viewport) {

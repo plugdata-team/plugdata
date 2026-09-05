@@ -1166,7 +1166,7 @@ void PluginEditor::updateSelection(Canvas* cnv)
     if (cnv) {
         auto objects = cnv->getSelectionOfType<Object>();
         if (objects.size() == 1) {
-            name = objects[0]->getType(false);
+            name = objects[0]->getType(false).toString();
         } else if (objects.size() > 1) {
             name = "(" + String(objects.size()) + " selected)";
         }
@@ -1194,7 +1194,7 @@ void PluginEditor::setCommandButtonObject(Object const* obj)
 {
     auto name = String("empty");
     if (obj->cnv) {
-        name = obj->getType(false);
+        name = obj->getType(false).toString();
         if (auto* s = getSidebarForPanel(Sidebar::InspectorPanel))
             s->setCommandTarget(name);
     }
@@ -1502,7 +1502,7 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
 
         if (auto* cnv = getCurrentCanvas()) {
             auto selection = cnv->getSelectionOfType<Object>();
-            bool const enabled = selection.size() == 1 && selection[0]->getType().isNotEmpty();
+            bool const enabled = selection.size() == 1 && !selection[0]->getType().isEmpty();
             result.setActive(enabled);
         } else {
             result.setActive(false);
@@ -1515,7 +1515,7 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
 
         if (auto* cnv = getCurrentCanvas()) {
             auto selection = cnv->getSelectionOfType<Object>();
-            bool const enabled = selection.size() == 1 && selection[0]->getType().isNotEmpty();
+            bool const enabled = selection.size() == 1 && !selection[0]->getType().isEmpty();
             result.setActive(enabled);
         } else {
             result.setActive(false);
@@ -1890,7 +1890,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
                 return false;
             }
 
-            Dialogs::showObjectReferenceDialog(&openedDialog, this, selection[0]->getType());
+            Dialogs::showObjectReferenceDialog(&openedDialog, this, selection[0]->getType().toString());
 
             return true;
         }

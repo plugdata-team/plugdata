@@ -225,7 +225,7 @@ public:
         auto const bgColour = ::getValue<Colour>(iemHelper.secondaryColour);
 
         if (mouseHover) {
-            auto const hoverColour = bgColour.contrasting(bgColour.getBrightness() > 0.5f ? 0.03f : 0.05f);
+            auto const hoverColour = bgColour.contrasting(bgColour.getBrightness() > 0.5f ? 0.05f : 0.08f);
             float const hoverX = isVertical ? 0 : hoverIdx * size;
             float const hoverY = isVertical ? hoverIdx * size : 0;
             auto const hoverBounds = Rectangle<float>(hoverX, hoverY, size, size).reduced(jmin<int>(size * 0.25f, 5));

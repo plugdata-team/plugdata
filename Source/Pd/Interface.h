@@ -61,7 +61,7 @@ struct Interface {
         return cnv;
     }
 
-    static char const* getObjectClassName(t_pd const* ptr)
+    static SmallString getObjectClassName(t_pd const* ptr)
     {
         return class_getname(pd_class(ptr));
     }
@@ -93,7 +93,7 @@ struct Interface {
         return reinterpret_cast<_instanceeditor*>(libpd_this_instance()->pd_gui->i_editor);
     }
 
-    static String getObjectText(t_object const* ptr)
+    static SmallString getObjectText(t_object const* ptr)
     {
         char* text = nullptr;
         int size = 0;

@@ -227,7 +227,7 @@ void ObjectBase::objectMovedOrResized(bool const resized)
     updateLabel();
 }
 
-String ObjectBase::getText()
+SmallString ObjectBase::getText()
 {
     if (auto obj = ptr.get<t_gobj>()) {
         if (!pd::Interface::checkObject(obj.get()))
@@ -256,30 +256,32 @@ bool ObjectBase::checkHvccCompatibility()
     } else if (HeavyCompatibleObjects::isCompatible(type)) {
         return true;
     } else {
-        pd->logWarning(String("Warning: object \"" + getType() + "\" is not supported in Compiled Mode").toRawUTF8());
+        pd->logWarning(String("Warning: object \"" + getType().toString() + "\" is not supported in Compiled Mode").toRawUTF8());
         return false;
     }
 }
 
-String ObjectBase::getTypeWithOriginPrefix() const
+SmallString ObjectBase::getTypeWithOriginPrefix() const
 {
     auto type = getType();
-    if (type.contains("/"))
+    if (type.containsChar('/'))
         return type;
 
+    String origin;
+    origin.preallocateBytes(32);
+
     if (auto* objectPtr = ptr.getRaw<t_gobj>()) {
-        auto const origin = pd::Library::getObjectOrigin(objectPtr);
-
-        if (origin == "ELSE" && type == "msg") {
-            return "ELSE/message";
-        }
-
-        if (origin.isEmpty())
-            return type;
-
-        return origin + "/" + type;
+        origin = pd::Library::getObjectOrigin(objectPtr);
     }
-    return { };
+
+    if (origin == "ELSE" && type == "msg") {
+        return "ELSE/message";
+    }
+
+    if (origin.isEmpty())
+        return type;
+
+    return origin + "/" + type.toString();
 }
 
 void ObjectBase::sendMessage(SmallString const& message, SmallArray<pd::Atom> const& args, MessageCallbackType callbackType)
@@ -297,73 +299,82 @@ void ObjectBase::sendMessage(SmallString const& message, SmallArray<pd::Atom> co
     }
 }
 
-String ObjectBase::getType() const
+SmallString ObjectBase::getType() const
 {
     return type;
 }
 
-void ObjectBase::setType()
+std::pair<SmallString, bool> ObjectBase::getTypeFromClass(pd::WeakReference classPtr)
 {
-    auto getObjectType = [this]() -> String {
-        if (auto obj = ptr.get<t_pd>()) {
-            // Check if it's an abstraction or subpatch
-            if (pd_class(obj.get()) == canvas_class && canvas_isabstraction(obj.cast<t_glist>())) {
-                char namebuf[MAXPDSTRING];
-                auto const* ob = obj.cast<t_object>();
-                int const ac = binbuf_getnatom(ob->te_binbuf);
-                t_atom const* av = binbuf_getvec(ob->te_binbuf);
-                if (ac < 1)
-                    return { };
-                atom_string(av, namebuf, MAXPDSTRING);
+    auto getObjectText = [](t_object* ob) -> SmallString {
+        char namebuf[MAXPDSTRING];
+        int const ac = binbuf_getnatom(ob->te_binbuf);
+        t_atom const* av = binbuf_getvec(ob->te_binbuf);
+        if (ac < 1)
+            return { };
+        atom_string(av, namebuf, MAXPDSTRING);
 
-                return String::fromUTF8(namebuf).fromLastOccurrenceOf("/", false, false);
-            }
-
-            auto* className = pd::Interface::getObjectClassName(obj.get());
-            if (!className)
-                return { };
-
-            // Deal with different text objects
-            switch (hash(className)) {
-            case hash("message"):
-                return "msg";
-            case hash("text"):
-                if (obj.cast<t_text>()->te_type == T_OBJECT)
-                    return "invalid";
-                if (obj.cast<t_text>()->te_type == T_TEXT)
-                    return "comment";
-                if (obj.cast<t_text>()->te_type == T_MESSAGE)
-                    return "msg";
-                break;
-            // Deal with atoms
-            case hash("gatom"):
-                if (obj.cast<t_fake_gatom>()->a_flavor == A_FLOAT)
-                    return "floatbox";
-                if (obj.cast<t_fake_gatom>()->a_flavor == A_SYMBOL)
-                    return "symbolbox";
-                if (obj.cast<t_fake_gatom>()->a_flavor == A_NULL)
-                    return "listbox";
-                break;
-            case hash("hsl"):
-                if (obj.cast<t_slider>()->x_orientation)
-                    return "vsl";
-                else
-                    return "hsl";
-            case hash("hradio"):
-                if (obj.cast<t_radio>()->x_orientation)
-                    return "vradio";
-                else
-                    return "hradio";
-            default:
-                break;
-            }
-
-            return String::fromUTF8(className);
+        auto name = SmallString(namebuf);
+        if(name.containsChar('/'))
+        {
+            int i = 0;
+            while(name[i] != '/') ++i;
+            name = name.substring(++i);
         }
-        return { };
+        return name;
     };
 
-    type = getObjectType();
+    if (auto obj = classPtr.get<t_pd>()) {
+        // Check if it's an abstraction or subpatch
+        auto* pdclass = pd_class(obj.get());
+        if ((pdclass == canvas_class) && canvas_isabstraction(obj.cast<t_glist>())) {
+            return {getObjectText(obj.cast<t_object>()), true};
+        }
+
+        auto const& className = pd::Interface::getObjectClassName(obj.get());
+
+        // Deal with different text objects
+        switch (hash(className)) {
+        case hash("message"):
+            return {"msg", false};
+        case hash("text"):
+            if (obj.cast<t_text>()->te_type == T_OBJECT)
+                return {"invalid", false};
+            if (obj.cast<t_text>()->te_type == T_TEXT)
+                return {"comment", false};
+            if (obj.cast<t_text>()->te_type == T_MESSAGE)
+                return {"msg", false};
+        // Deal with atoms
+        case hash("gatom"):
+            if (obj.cast<t_fake_gatom>()->a_flavor == A_FLOAT)
+                return {"floatbox", false};
+            if (obj.cast<t_fake_gatom>()->a_flavor == A_SYMBOL)
+                return {"symbolbox", false};
+            if (obj.cast<t_fake_gatom>()->a_flavor == A_NULL)
+                return {"listbox", false};
+            break;
+        case hash("hsl"):
+            if (obj.cast<t_slider>()->x_orientation)
+                return {"vsl", false};
+            else
+                return {"hsl", false};
+        case hash("hradio"):
+            if (obj.cast<t_radio>()->x_orientation)
+                return {"vradio", false};
+            else
+                return {"hradio", false};
+        default:
+            break;
+        }
+
+        return {className, false};
+    }
+    return { };
+}
+
+void ObjectBase::setType()
+{
+    type = getTypeFromClass(ptr).first;
 }
 
 // Gets position from pd and applies it to Object
@@ -902,7 +913,7 @@ std::unique_ptr<ComponentBoundsConstrainer> ObjectBase::createConstrainer()
     return std::make_unique<ObjectBoundsConstrainer>();
 }
 
-bool ObjectBase::recurseHvccCompatibility(String const& objectText, pd::Patch::Ptr patch, String const& prefix)
+bool ObjectBase::recurseHvccCompatibility(SmallString const& objectText, pd::Patch::Ptr patch, String const& prefix)
 {
     auto const instance = patch->instance;
 
@@ -913,23 +924,24 @@ bool ObjectBase::recurseHvccCompatibility(String const& objectText, pd::Patch::P
     bool compatible = true;
 
     for (auto object : patch->getObjects()) {
-        if (auto ptr = object.get<t_pd>()) {
-            String const type = pd::Interface::getObjectClassName(ptr.get());
-
-            if (type == "canvas" || type == "graph") {
-                pd::Patch::Ptr const subpatch = new pd::Patch(object, instance, false);
-
-                if (subpatch->isSubpatch()) {
-                    auto objName = pd::Interface::getObjectText(&ptr.cast<t_canvas>()->gl_obj);
-                    compatible = recurseHvccCompatibility(objName, subpatch, prefix + objName + " -> ") && compatible;
-                } else if (!HeavyCompatibleObjects::isCompatible(type)) {
-                    compatible = false;
-                    instance->logWarning(String("Warning: object \"" + prefix + type + "\" is not supported in Compiled Mode"));
+        auto [type, isSubpatchOrAbstraction] = getTypeFromClass(object);
+        if(isSubpatchOrAbstraction)
+        {
+            pd::Patch::Ptr const subpatch = new pd::Patch(object, instance, false);
+            if (subpatch->isSubpatch()) {
+                SmallString objName;
+                if(auto ptr = object.get<t_canvas>()) {
+                    objName = pd::Interface::getObjectText(&ptr.cast<t_canvas>()->gl_obj);
                 }
+                compatible = recurseHvccCompatibility(objName, subpatch, prefix + objName.toString() + " -> ") && compatible;
             } else if (!HeavyCompatibleObjects::isCompatible(type)) {
                 compatible = false;
-                instance->logWarning(String("Warning: object \"" + prefix + type + "\" is not supported in Compiled Mode"));
+                instance->logWarning(String("Warning: object \"" + prefix + type.toString() + "\" is not supported in Compiled Mode"));
             }
+        }
+        else if (!HeavyCompatibleObjects::isCompatible(type)) {
+            compatible = false;
+            instance->logWarning(String("Warning: object \"" + prefix + type.toString() + "\" is not supported in Compiled Mode"));
         }
     }
 

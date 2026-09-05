@@ -365,23 +365,23 @@ public:
         int index = 0;
 
         for (auto objectPtr : patch->getObjects()) {
-            String name, type;
+            SmallString name, type;
             int x = 0, y = 0;
             if (auto object = objectPtr.get<t_pd>()) {
                 if (!pd::Interface::checkObject(object.get()))
                     continue;
-                type = String::fromUTF8(pd::Interface::getObjectClassName(object.get()));
+                type = pd::Interface::getObjectClassName(object.get());
                 name = pd::Interface::getObjectText(object.cast<t_text>());
                 int w, h;
                 pd::Interface::getObjectBounds(patch->getPointer().get(), object.cast<t_gobj>(), &x, &y, &w, &h);
             }
 
             auto* top = topLevel ? topLevel : objectPtr.getRaw<void>();
-            auto nameWithoutArgs = name.upToFirstOccurrenceOf(" ", false, false);
+            auto nameWithoutArgs = name.upToFirstOccurrenceOf(" ");
             auto positionText = " (" + String(x) + ":" + String(y) + ")";
 
-            auto getFirstArgumentFromFullName = [](String const& fullName) -> String {
-                return fullName.fromFirstOccurrenceOf(" ", false, true).upToFirstOccurrenceOf(" ", false, true);
+            auto getFirstArgumentFromFullName = [](SmallString const& fullName) -> SmallString {
+                return fullName.fromFirstOccurrenceOf(" ").upToFirstOccurrenceOf(" ");
             };
 
             ValueTree element("Object");
@@ -420,8 +420,9 @@ public:
                         element.setProperty("PDSymbol", nameWithoutArgs + "-" + arg, nullptr);
                 }
 #endif
-                element.setProperty("ObjectName", name, nullptr);
-                element.setProperty("Name", name, nullptr);
+                auto nameString = name.toString();
+                element.setProperty("ObjectName", nameString, nullptr);
+                element.setProperty("Name", nameString, nullptr);
                 element.setProperty("RightText", positionText, nullptr);
                 element.setProperty("IsAbstraction", canvas_isabstraction(subpatch->getPointer().get()), nullptr);
                 element.setProperty("Object", reinterpret_cast<int64>(objectPtr.getRaw<void>()), nullptr);
@@ -439,10 +440,10 @@ public:
 
                 index++;
             } else {
-                String objectName = type;
-                String finalFormatedName;
-                String sendSymbol;
-                String receiveSymbol;
+                SmallString objectName = type;
+                SmallString finalFormatedName;
+                SmallString sendSymbol;
+                SmallString receiveSymbol;
 
                 switch (hash(type)) {
                 // IEM send-receive symbols
@@ -460,10 +461,10 @@ public:
                         t_symbol* srlsym[3];
                         iemgui_all_sym2dollararg(iemgui.get(), srlsym);
                         if (srl_is_valid(srlsym[0])) {
-                            sendSymbol = String::fromUTF8(iemgui->x_snd_unexpanded->s_name);
+                            sendSymbol = SmallString(iemgui->x_snd_unexpanded->s_name);
                         }
                         if (srl_is_valid(srlsym[1])) {
-                            receiveSymbol = String::fromUTF8(iemgui->x_rcv_unexpanded->s_name);
+                            receiveSymbol = SmallString(iemgui->x_rcv_unexpanded->s_name);
                         }
                     }
                     finalFormatedName = nameWithoutArgs;
@@ -471,46 +472,46 @@ public:
                 }
                 case hash("keyboard"): {
                     if (auto keyboardObject = objectPtr.get<t_fake_keyboard>()) {
-                        sendSymbol = String(keyboardObject->x_send->s_name);
-                        receiveSymbol = String(keyboardObject->x_receive->s_name);
+                        sendSymbol = SmallString(keyboardObject->x_send->s_name);
+                        receiveSymbol = SmallString(keyboardObject->x_receive->s_name);
                     }
                     finalFormatedName = nameWithoutArgs;
                     break;
                 }
                 case hash("pic"): {
                     if (auto picObject = objectPtr.get<t_fake_pic>()) {
-                        sendSymbol = String(picObject->x_send->s_name);
-                        receiveSymbol = String(picObject->x_receive->s_name);
+                        sendSymbol = SmallString(picObject->x_send->s_name);
+                        receiveSymbol = SmallString(picObject->x_receive->s_name);
                     }
                     finalFormatedName = nameWithoutArgs;
                     break;
                 }
                 case hash("scope~"): {
                     if (auto scopeObject = objectPtr.get<t_fake_scope>()) {
-                        receiveSymbol = String(scopeObject->x_receive->s_name);
+                        receiveSymbol = SmallString(scopeObject->x_receive->s_name);
                     }
                     finalFormatedName = nameWithoutArgs;
                     break;
                 }
                 case hash("function"): {
                     if (auto keyboardObject = objectPtr.get<t_fake_function>()) {
-                        sendSymbol = String(keyboardObject->x_send->s_name);
-                        receiveSymbol = String(keyboardObject->x_receive->s_name);
+                        sendSymbol = SmallString(keyboardObject->x_send->s_name);
+                        receiveSymbol = SmallString(keyboardObject->x_receive->s_name);
                     }
                     finalFormatedName = nameWithoutArgs;
                     break;
                 }
                 case hash("note"): {
                     if (auto noteObject = objectPtr.get<t_fake_note>()) {
-                        receiveSymbol = String(noteObject->x_receive->s_name);
+                        receiveSymbol = SmallString(noteObject->x_receive->s_name);
                     }
                     finalFormatedName = nameWithoutArgs;
                     break;
                 }
                 case hash("knob"): {
                     if (auto knobObj = objectPtr.get<t_fake_knob>()) {
-                        sendSymbol = String(knobObj->x_snd->s_name);
-                        receiveSymbol = String(knobObj->x_rcv->s_name);
+                        sendSymbol = SmallString(knobObj->x_snd->s_name);
+                        receiveSymbol = SmallString(knobObj->x_rcv->s_name);
                     }
                     finalFormatedName = nameWithoutArgs;
                     break;
@@ -531,8 +532,8 @@ public:
                     default:
                         break;
                     }
-                    receiveSymbol = String(gatomObject->a_symfrom->s_name);
-                    sendSymbol = String(gatomObject->a_symto->s_name);
+                    receiveSymbol = SmallString(gatomObject->a_symfrom->s_name);
+                    sendSymbol = SmallString(gatomObject->a_symto->s_name);
                     finalFormatedName = gatomName;
                     objectName = gatomName;
                     break;
@@ -549,7 +550,7 @@ public:
                     switch (objectPtr.get<t_fake_text_define>()->x_textbuf.b_ob.te_type) {
                     case T_TEXT: {
                         // if object & classname is text, then it's a comment
-                        finalFormatedName = String("comment: ") + name;
+                        finalFormatedName = String("comment: ") + name.toString();
                         objectName = "comment";
                         break;
                     }
@@ -561,7 +562,7 @@ public:
                             finalFormatedName = String("empty");
                             objectName = "empty";
                         } else {
-                            finalFormatedName = String("unknown: ") + name;
+                            finalFormatedName = String("unknown: ") + name.toString();
                             objectName = "unknown";
                         }
                         break;
@@ -629,14 +630,14 @@ public:
                     break;
                 }
                 }
-                element.setProperty("ObjectName", objectName, nullptr);
-                element.setProperty("Name", finalFormatedName, nullptr);
+                element.setProperty("ObjectName", objectName.toString(), nullptr);
+                element.setProperty("Name", finalFormatedName.toString(), nullptr);
                 // Add send/receive tags if they exist
-                if (sendSymbol.isNotEmpty() && sendSymbol != "empty" && sendSymbol != "nosndno") {
-                    element.setProperty("SendSymbol", sendSymbol, nullptr);
+                if (!sendSymbol.isEmpty() && sendSymbol != "empty" && sendSymbol != "nosndno") {
+                    element.setProperty("SendSymbol", sendSymbol.toString(), nullptr);
                 }
-                if (receiveSymbol.isNotEmpty() && receiveSymbol != "empty") {
-                    element.setProperty("ReceiveSymbol", receiveSymbol, nullptr);
+                if (!receiveSymbol.isEmpty() && receiveSymbol != "empty") {
+                    element.setProperty("ReceiveSymbol", receiveSymbol.toString(), nullptr);
                 }
                 element.setProperty("RightText", positionText, nullptr);
                 element.setProperty("Icon", Icons::Object, nullptr);

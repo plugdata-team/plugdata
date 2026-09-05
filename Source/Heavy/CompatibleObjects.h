@@ -7,7 +7,7 @@
 #pragma once
 
 class HeavyCompatibleObjects {
-    static inline StringArray const heavyObjects = {
+    static inline StackArray<SmallString, 173> const heavyObjects = {
         "!=",
         "%",
         "&",
@@ -186,7 +186,7 @@ class HeavyCompatibleObjects {
     // Heavylib abstractions:
     // These won't be used for the compatibility testing (it will recognise any abstractions as a canvas)
     // These are only for the suggestions
-    static inline StringArray const heavyAbstractions = {
+    static inline StackArray<SmallString, 31> const heavyAbstractions = {
         "hv.comb~",
         "hv.compressor~",
         "hv.compressor2~",
@@ -219,7 +219,7 @@ class HeavyCompatibleObjects {
         "hv.vline~"
     };
 
-    static inline StringArray const cycloneObjects = {
+    static inline StackArray<SmallString, 32> const cycloneObjects = {
         "acosh~",
         "acos~",
         "asinh~",
@@ -254,13 +254,13 @@ class HeavyCompatibleObjects {
         "tanx~",
     };
 
-    static inline StringArray const otherObjects = {
+    static inline StackArray<SmallString, 2> const otherObjects = {
         "pdnam~",
         "knob" // from ELSE library
     };
 
 
-    static inline StringArray const elseAbstractions = {
+    static inline StackArray<SmallString, 8> const elseAbstractions = {
         "above",
         "add",
         "avg",
@@ -274,7 +274,7 @@ class HeavyCompatibleObjects {
         // "sendmidi",
     };
 
-    static inline StringArray const pdAbstractions = {
+    static inline StackArray<SmallString, 5> const pdAbstractions = {
         "complex-mod~",
         "hilbert~",
         "rev1~",
@@ -282,7 +282,7 @@ class HeavyCompatibleObjects {
         "rev3~",
     };
 
-    static inline StringArray const extra = {
+    static inline StackArray<SmallString, 6> const extra = {
         "comment",
         "floatbox",
         "symbolbox",
@@ -291,25 +291,25 @@ class HeavyCompatibleObjects {
         "invalid",
     };
 
-    static StringArray initialiseCompatibleObjects()
+    static HeapArray<SmallString> initialiseCompatibleObjects()
     {
-        StringArray allObjects;
-        allObjects.addArray(heavyObjects);
-        allObjects.addArray(heavyAbstractions);
-        allObjects.addArray(cycloneObjects);
-        allObjects.addArray(otherObjects);
-        allObjects.addArray(elseAbstractions);
-        allObjects.addArray(pdAbstractions);
-        allObjects.addArray(extra);
+        HeapArray<SmallString> allObjects;
+        allObjects.add_array(heavyObjects);
+        allObjects.add_array(heavyAbstractions);
+        allObjects.add_array(cycloneObjects);
+        allObjects.add_array(otherObjects);
+        allObjects.add_array(elseAbstractions);
+        allObjects.add_array(pdAbstractions);
+        allObjects.add_array(extra);
 
         return allObjects;
     }
 
-    static inline StringArray allCompatibleObjects = initialiseCompatibleObjects();
+    static inline HeapArray<SmallString> allCompatibleObjects = initialiseCompatibleObjects();
 
 public:
-    static bool isCompatible(String const& type)
+    static bool isCompatible(SmallString const& type)
     {
-        return allCompatibleObjects.contains(type.upToFirstOccurrenceOf(" ", false, false));
+        return allCompatibleObjects.contains(type.upToFirstOccurrenceOf(" "));
     }
 };

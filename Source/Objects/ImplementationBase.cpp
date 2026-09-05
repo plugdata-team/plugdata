@@ -73,7 +73,7 @@ Canvas* ImplementationBase::getMainCanvas(t_canvas const* patchPtr, bool const a
     return nullptr;
 }
 
-bool ImplementationBase::hasImplementation(char const* type)
+bool ImplementationBase::hasImplementation(SmallString const& type)
 {
     switch (hash(type)) {
     case hash("canvas.mouse"):
@@ -135,7 +135,7 @@ void ObjectImplementationManager::handleAsyncUpdate()
 
     for (auto& [top, glist] : allCanvases) {
         for (t_gobj* y = glist->gl_list; y; y = y->g_next) {
-            auto const* name = pd::Interface::getObjectClassName(&y->g_pd);
+            auto const name = pd::Interface::getObjectClassName(&y->g_pd);
             if (ImplementationBase::hasImplementation(name)) {
                 allImplementations.add({ top, y });
                 allObjects.insert(y);
@@ -156,8 +156,8 @@ void ObjectImplementationManager::handleAsyncUpdate()
 
     for (auto& [cnv, obj] : allImplementations) {
         if (!objectImplementations.count(obj)) {
-            auto const name = String::fromUTF8(pd::Interface::getObjectClassName(&obj->g_pd));
-            objectImplementations[obj] = std::unique_ptr<ImplementationBase>(ImplementationBase::createImplementation(name, obj, cnv, pd));
+            auto const name = pd::Interface::getObjectClassName(&obj->g_pd);
+            objectImplementations[obj] = std::unique_ptr<ImplementationBase>(ImplementationBase::createImplementation(name.toString(), obj, cnv, pd));
         }
 
         objectImplementations[obj]->update();

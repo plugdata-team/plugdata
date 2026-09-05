@@ -26,6 +26,7 @@
 #include "StoreDekenTest.h"
 #include "DraggableNumberTest.h"
 #include "CoverageSweepTest.h"
+#include "AddObjectMenuTest.h"
 
 void runTests(PluginEditor* editor)
 {
@@ -54,36 +55,41 @@ void runTests(PluginEditor* editor)
         StoreDekenTest storeDekenTest(editor);
         DraggableNumberTest draggableNumberTest(editor);
         CoverageSweepTest coverageSweepTest(editor);
+        AddObjectMenuTest addObjectMenuTest(editor);
         ObjectFuzzTest objectFuzzer(editor);
         HelpFileFuzzTest helpfileFuzzer(editor);
         HelpFileErrorTest helpfileErrorTest(editor);
 
         UnitTestRunner runner;
 
-        runner.runTests({ &saveCloseRaceTest,
-                          &abstractionReloadRaceTest,
-                          &danglingBindingTest,
-                          &decompressTest,
-                          &markupDisplayTest,
-                          &stateRoundTripTest,
-                          &dialogCoverageTest,
-                          &objectInteractionTest,
-                          &inspectorTest,
-                          &textEditorDialogTest,
-                          &exportProgressTest,
-                          &smallUITest,
-                          &onboardingTest,
-                          &commandInputTest,
-                          &editWorkflowTest,
-                          &luaObjectTest,
-                          &storeDekenTest,
-                          &draggableNumberTest,
-                          &uiClickThroughTest,
-                          &editActionStressTest,
-                          &tabSplitStressTest,
-                          &helpfileFuzzer,
-                          &objectFuzzer,
-                          &helpfileErrorTest }, 23);
+        Array<UnitTest*> tests = { &saveCloseRaceTest,
+            &abstractionReloadRaceTest,
+            &danglingBindingTest,
+            &decompressTest,
+            &markupDisplayTest,
+            &stateRoundTripTest,
+            &dialogCoverageTest,
+            &objectInteractionTest,
+            &inspectorTest,
+            &textEditorDialogTest,
+            &exportProgressTest,
+            &smallUITest,
+            &onboardingTest,
+            &commandInputTest,
+            &editWorkflowTest,
+            &luaObjectTest,
+            &storeDekenTest,
+            &draggableNumberTest,
+            &addObjectMenuTest,
+            &uiClickThroughTest,
+            &editActionStressTest,
+            &tabSplitStressTest,
+            &helpfileFuzzer,
+            &objectFuzzer,
+            &helpfileErrorTest };
+
+
+        runner.runTests(tests, 23);
 
         // The suite has finished (whether tests passed or failed). Quit the app
         // so the process exits instead of idling forever - the CI harness waits

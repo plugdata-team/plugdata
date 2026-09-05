@@ -156,7 +156,7 @@ public:
         : ObjectBase(obj, parent)
         , isValid(valid)
     {
-        objectText = getText();
+        objectText = getText().toString();
 
         isLocked = getValue<bool>(cnv->locked);
 
@@ -401,7 +401,7 @@ public:
                 TextObjectHelper::setWidthInChars(gobj.get(), (b.getWidth() - 5) / glist_fontwidth(patch));
             }
 
-            auto const type = hash(getText().upToFirstOccurrenceOf(" ", false, false));
+            auto const type = hash(getText().toString().upToFirstOccurrenceOf(" ", false, false));
 
             if (type == hash("inlet") || type == hash("inlet~")) {
                 canvas_resortinlets(patch);

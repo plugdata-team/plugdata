@@ -356,7 +356,7 @@ public:
         if (auto* cnv = editor->getCurrentCanvas()) {
             auto objects = cnv->getSelectionOfType<Object>();
             if (objects.size() == 1) {
-                name = objects[0]->getType();
+                name = objects[0]->getType().toString();
             } else if (objects.size() > 1) {
                 name = "(" + String(objects.size()) + " selected)";
             }
@@ -374,13 +374,13 @@ public:
             if (!object->gui)
                 continue;
 
-            auto type = object->gui->getType();
+            auto type = object->gui->getType().toString();
             if (allAtoms.contains(type)) {
                 auto& found = nameCount[type];
                 found++;
                 result[type + "_" + String(found)] = object;
             } else {
-                auto tokens = StringArray::fromTokens(object->gui->getText(), false);
+                auto tokens = StringArray::fromTokens(object->gui->getText().toString(), false);
                 if (tokens.size()) {
                     auto const isGui = allGuis.contains(tokens[0]);
                     auto const numArgs = std::min(isGui ? 1 : 2, tokens.size());
@@ -541,10 +541,10 @@ public:
                 if (auto* cnv = getCurrentCanvas(true)) {
                     auto names = getUniqueObjectNames(cnv);
                     for (auto& [name, object] : names) {
-                        if (allGuis.contains(object->gui->getType())) {
+                        if (allGuis.contains(object->gui->getType().toString())) {
                             result.add({ 0, name });
                         } else {
-                            result.add({ 0, name + ": " + object->gui->getText() });
+                            result.add({ 0, name + ": " + object->gui->getText().toString() });
                         }
                     }
                 }
@@ -557,12 +557,12 @@ public:
                     for (auto& [name, object] : names) {
                         auto query = argv[1];
                         query = query.trimCharactersAtEnd("*"); // No need for wildcards here
-                        auto text = object->gui->getText();
+                        auto text = object->gui->getText().toString();
                         if (text.contains(query) || name.contains(query)) {
-                            if (allGuis.contains(object->gui->getType())) {
+                            if (allGuis.contains(object->gui->getType().toString())) {
                                 result.add({ 0, name });
                             } else {
-                                result.add({ 0, name + ": " + object->gui->getText() });
+                                result.add({ 0, name + ": " + text });
                             }
                         }
                     }

@@ -157,7 +157,6 @@ private:
         { "cpu_meter_mapping_mode", var(0) },
         { "centre_resized_canvas", var(true) },
         { "show_all_audio_device_rates", var(false) },
-        { "add_object_menu_pinned", var(false) },
         { "autosave_interval", var(5) },
         { "autosave_enabled", var(true) },
         { "patch_downwards_only", var(false) },
