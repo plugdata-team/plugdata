@@ -36,7 +36,7 @@ public:
         properties.add(new PropertiesPanel::EditableComponent<String>("Maker Name (optional)", makerNameValue));
         properties.add(new PropertiesPanel::EditableComponent<String>("Project License (optional)", projectLicenseValue));
         properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Binary", "Source code" }));
-        properties.add(new PropertiesPanel::ComboComponent("Gui type", guiTypeValue, { "None", "ImGui", "NanoVG" }));
+        properties.add(new PropertiesPanel::ComboComponent("Gui type", guiTypeValue, { "None", "Generic (ImGui)", "Custom (NanoVG)" }));
         useThemeProperty = new PropertiesPanel::BoolComponent("Use theme", useThemeValue, { "No", "Yes" });
         properties.add(useThemeProperty);
         properties.add(new PropertiesPanel::ComboComponent("Plugin type", pluginTypeValue, { "Effect", "Instrument", "Custom" }));
