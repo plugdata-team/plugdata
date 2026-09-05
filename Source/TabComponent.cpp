@@ -1158,7 +1158,7 @@ void TabComponent::resized()
             tabButton->setVisible(true);
 
             int const tabWidth = tabWidths[t];
-            auto targetBounds = splitBounds.removeFromLeft(tabWidth);
+            auto targetBounds = splitBounds.removeFromLeft(tabWidth).translated(0, -1);
             if (tabButton->isDragging) {
                 tabButton->setSize(tabWidth, 30);
                 if (splits[1]) {

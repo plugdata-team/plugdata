@@ -502,85 +502,109 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
     struct QuickActionsBar : public PopupMenu::CustomComponent {
         struct QuickActionButton : public TextButton {
-            explicit QuickActionButton(String const& buttonText)
-                : TextButton(buttonText)
+            QuickActionButton(String const& icon, String const& label)
+                : TextButton(label)
+                , iconGlyph(icon)
             {
+            }
+
+            int getPreferredWidth() const
+            {
+                auto const font = Fonts::getDefaultFont().withHeight(11.0f);
+                auto const textWidth = Fonts::getStringWidth(getButtonText(), font);
+                return static_cast<int>(std::ceil(textWidth)) + 2;
             }
 
             void paint(Graphics& g) override
             {
                 auto const& colours = getThemeColours(*this);
-
                 auto textColour = colours.sidebarTextColour;
 
                 if (!isEnabled()) {
                     textColour = textColour.withAlpha(0.35f);
                 } else if (isOver() || isDown()) {
-                    auto bounds = getLocalBounds().toFloat();
-                    bounds = bounds.withSizeKeepingCentre(bounds.getHeight(), bounds.getHeight());
-
                     g.setColour(colours.popupMenuActiveBackgroundColour);
-                    g.fillRoundedRectangle(bounds, Corners::defaultCornerRadius);
-
-                    textColour = colours.sidebarTextColour;
+                    g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::defaultCornerRadius);
                 }
 
-                Fonts::drawIcon(g, getButtonText(), std::max(0, getWidth() - getHeight()) / 2, 0, getHeight(), textColour, 12.8f);
+                Fonts::drawIcon(g, iconGlyph, 6, -2, getWidth() - 12, textColour, 15);
+
+                auto const labelBounds = Rectangle<int>(0, 22, getWidth(), 20);
+                g.setFont(Fonts::getDefaultFont().withHeight(11));
+                g.setColour(textColour);
+                g.drawText(getButtonText(), labelBounds, Justification::centred, false);
             }
+
+        private:
+            String iconGlyph;
         };
 
         explicit QuickActionsBar(PluginEditor* editor)
         {
-            auto commandIds = StackArray<CommandID, 5> { CommandIDs::Cut, CommandIDs::Copy, CommandIDs::Paste, CommandIDs::Duplicate, CommandIDs::Delete };
+            auto const commandIds = StackArray<CommandID, 5> {
+                CommandIDs::Cut,
+                CommandIDs::Copy,
+                CommandIDs::Paste,
+                CommandIDs::Duplicate,
+                CommandIDs::Delete
+            };
 
             int index = 0;
-            for (auto* button : StackArray<QuickActionButton*, 5> { &cut, &copy, &paste, &duplicate, &remove }) {
+            for (auto* button : getButtons()) {
                 addAndMakeVisible(button);
-                auto const id = commandIds[index];
+                auto const id = commandIds[index++];
 
                 button->setCommandToTrigger(&editor->commandManager, id, false);
 
                 if (auto* registeredInfo = editor->commandManager.getCommandForID(id)) {
                     ApplicationCommandInfo info(*registeredInfo);
                     editor->commandManager.getTargetForCommand(id, info);
+
                     bool const canPerformCommand = (info.flags & ApplicationCommandInfo::isDisabled) == 0;
                     button->setEnabled(canPerformCommand);
                 } else {
                     button->setEnabled(false);
                 }
-                index++;
             }
-
-            cut.setTooltip("Cut");
-            copy.setTooltip("Copy");
-            paste.setTooltip("Paste");
-            duplicate.setTooltip("Duplicate");
-            remove.setTooltip("Delete");
         }
 
         void getIdealSize(int& idealWidth, int& idealHeight) override
         {
-            idealWidth = 130;
-            idealHeight = 26;
+            int buttonWidth = 32;
+            for (auto* button : getButtons())
+                buttonWidth = std::max(buttonWidth, button->getPreferredWidth());
+
+            idealWidth = buttonWidth * 5;
+            idealHeight = 42;
         }
 
         void resized() override
         {
-            auto const buttonWidth = getWidth() / 5;
-            auto bounds = getLocalBounds();
+            auto const bounds = getLocalBounds();
+            auto const buttons = getButtons();
 
-            for (auto* button : SmallArray<TextButton*> { &cut, &copy, &paste, &duplicate, &remove }) {
-                constexpr auto buttonHeight = 26;
-                button->setBounds(bounds.removeFromLeft(buttonWidth).withHeight(buttonHeight));
+            for (int i = 0; i < 5; ++i) {
+                auto const left = bounds.getX() + bounds.getWidth() * i / 5;
+                auto const right = bounds.getX() + bounds.getWidth() * (i + 1) / 5;
+
+                buttons[i]->setBounds(
+                    left, bounds.getY(),
+                    right - left, bounds.getHeight());
             }
         }
 
-        QuickActionButton cut = QuickActionButton(Icons::Cut);
-        QuickActionButton copy = QuickActionButton(Icons::Copy);
-        QuickActionButton paste = QuickActionButton(Icons::Paste);
-        QuickActionButton duplicate = QuickActionButton(Icons::Duplicate);
-        QuickActionButton remove = QuickActionButton(Icons::Trash);
-    };
+    private:
+        StackArray<QuickActionButton*, 5> getButtons()
+        {
+            return { &cut, &copy, &paste, &duplicate, &remove };
+        }
+
+        QuickActionButton cut { Icons::Cut, "Cut" };
+        QuickActionButton copy { Icons::Copy, "Copy" };
+        QuickActionButton paste { Icons::Paste, "Paste" };
+        QuickActionButton duplicate { Icons::Duplicate, "Duplicate" };
+        QuickActionButton remove { Icons::Trash, "Delete" };
+    };;
 
     // We have a custom function for this, instead of the default JUCE way, because the default JUCE way is broken on Linux
     // It will not find a target to apply the command to once the popupmenu grabs focus...

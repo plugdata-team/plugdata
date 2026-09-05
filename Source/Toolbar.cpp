@@ -1194,19 +1194,19 @@ public:
         auto const& colours = getThemeColours(*this);
 
         auto const inactiveColour = colours.toolbarHoverColour;
-        auto const activeColour = colours.toolbarActiveColour.interpolatedWith(colours.toolbarBackgroundColour, 0.8f);
+        auto const activeColour = colours.toolbarActiveColour.interpolatedWith(colours.toolbarBackgroundColour, 0.86f);
 
         constexpr float cornerRadius = Corners::defaultCornerRadius;
 
         auto const textSegment = getLocalBounds().withWidth(getWidth());
         auto const iconSegment = getLocalBounds().withLeft(getWidth());
 
-        auto textColour = getToggleState() ? activeColour : inactiveColour;
+        auto buttonColour = getToggleState() ? activeColour : inactiveColour;
         if (isMouseOver() && !iconSegment.contains(getMouseXYRelative())) {
-            textColour = textColour.contrasting(0.2f);
+            buttonColour = buttonColour.contrasting(0.2f);
         }
 
-        g.setColour(textColour);
+        g.setColour(buttonColour);
         Path textPath;
         textPath.addRoundedRectangle(0.0f, textSegment.getY() + 0.5f, textSegment.getWidth(), textSegment.getHeight() - 1.0f, cornerRadius, cornerRadius, false, true, false, true);
         g.fillPath(textPath);
@@ -1221,7 +1221,8 @@ public:
             iconColour = iconColour.contrasting(0.2f);
         }
 
-        g.setColour(colours.toolbarTextColour.withAlpha(0.8f));
+        auto textColour = getToggleState() ? colours.toolbarActiveColour : colours.toolbarTextColour.withAlpha(0.8f);
+        g.setColour(textColour);
         g.setFont(Fonts::getSemiBoldFont().withHeight(13.5f));
         g.drawText(getButtonText(), 0, 0, getWidth(), getHeight(), Justification::centred);
     }
@@ -1532,12 +1533,16 @@ public:
         toggle.setTooltip("Enable/disable DSP");
         toggle.setClickingTogglesState(true);
         toggle.setToggleState(pd_getdspstate(), dontSendNotification);
-        toggle.onClick = [this] { toggle.getToggleState() ? pd->startDSP() : pd->releaseDSP(); };
+        toggle.onClick = [this] {
+            toggle.getToggleState() ? pd->startDSP() : pd->releaseDSP();
+            repaint();
+        };
 
         chevron.setTooltip("DSP options");
         chevron.setButtonText(Icons::ThinDown);
         chevron.onClick = [this] {
             showCallout();
+            repaint();
         };
 
         toggle.addMouseListener(this, false);
@@ -1591,31 +1596,28 @@ public:
         constexpr float cornerRadius = Corners::defaultCornerRadius;
         auto const chevronWidth = 14.0f;
 
+        auto const buttonColour = toggle.getToggleState() ? colours.toolbarActiveColour.interpolatedWith(colours.toolbarBackgroundColour, 0.86f) : colours.toolbarBackgroundColour;
+
         auto const togglePart = bounds.withWidth(bounds.getWidth() - chevronWidth);
         auto const chevronPart = bounds.withLeft(bounds.getRight() - chevronWidth);
 
-        // Draw toggle
-        if(toggleHovered || chevronHovered) {
-            {
-                Path p;
-                p.addRoundedRectangle(togglePart.getX(), togglePart.getY(),
-                                      togglePart.getWidth(), togglePart.getHeight(),
-                                      cornerRadius, cornerRadius,
-                                      true, false, true, false);
-                g.setColour(colours.toolbarHoverColour.withAlpha(toggleHovered ? 1.0f : 0.5f));
-                g.fillPath(p);
-            }
-
-
-            {
-                Path p;
-                p.addRoundedRectangle(chevronPart.getX(), chevronPart.getY(),
-                                      chevronPart.getWidth(), chevronPart.getHeight(),
-                                      cornerRadius, cornerRadius,
-                                      false, true, false, true);
-                g.setColour(colours.toolbarHoverColour.withAlpha(chevronHovered ? 1.0f : 0.5f));
-                g.fillPath(p);
-            }
+        {
+            Path p;
+            p.addRoundedRectangle(togglePart.getX(), togglePart.getY(),
+                                  togglePart.getWidth(), togglePart.getHeight(),
+                                  cornerRadius, cornerRadius,
+                                  true, false, true, false);
+            g.setColour(buttonColour.contrasting(toggleHovered ? 0.05f : 0.0f));
+            g.fillPath(p);
+        }
+        {
+            Path p;
+            p.addRoundedRectangle(chevronPart.getX(), chevronPart.getY(),
+                                  chevronPart.getWidth(), chevronPart.getHeight(),
+                                  cornerRadius, cornerRadius,
+                                  false, true, false, true);
+            g.setColour(buttonColour.contrasting(chevronHovered ? 0.05f : 0.0f));
+            g.fillPath(p);
         }
     }
 

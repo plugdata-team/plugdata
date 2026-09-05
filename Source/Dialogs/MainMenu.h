@@ -140,8 +140,7 @@ public:
             auto const colour = findColour(PopupMenu::textColourId).withMultipliedAlpha(isActive ? 1.0f : 0.5f);
             if (isItemHighlighted() && isActive) {
                 g.setColour(getThemeColours(*this).popupMenuActiveBackgroundColour);
-
-                g.fillRoundedRectangle(r.toFloat().reduced(0, 1), Corners::defaultCornerRadius);
+                g.fillRoundedRectangle(r.toFloat(), Corners::defaultCornerRadius);
             }
 
             g.setColour(colour);

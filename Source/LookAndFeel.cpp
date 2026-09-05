@@ -271,7 +271,7 @@ void PlugDataLook::getIdealPopupMenuItemSize(String const& text, bool const isSe
         if (standardMenuItemHeight > 0 && font.getHeight() > static_cast<float>(standardMenuItemHeight) / 1.3f)
             font.setHeight(static_cast<float>(standardMenuItemHeight) / 1.3f);
 
-        idealHeight = standardMenuItemHeight > 0 ? standardMenuItemHeight : roundToInt(font.getHeight() * 1.3f);
+        idealHeight = standardMenuItemHeight > 0 ? standardMenuItemHeight : roundToInt(font.getHeight() * 1.4f);
         idealWidth = Fonts::getStringWidth(text, font) + idealHeight;
 
 #if !JUCE_MAC
@@ -397,11 +397,10 @@ void PlugDataLook::drawPopupMenuItem(Graphics& g, Rectangle<int> const& area,
             auto width = std::max(Fonts::getStringWidthInt(text, font) + 4, 16);
             auto b = shortcutBounds.removeFromRight(width).toFloat().reduced(1.0f, 5.0f).translated(1.5f, 0.5f);
 
-            g.setColour(colours.popupMenuTextColour.withAlpha(isActive ? 0.9f : 0.35f));
+            g.setColour(colours.popupMenuBackgroundColour.contrasting(0.08f));
             g.fillRoundedRectangle(b.toFloat(), 3.0f);
 
-            g.setColour(colours.popupMenuBackgroundColour);
-
+            g.setColour(colours.popupMenuTextColour.withAlpha(isActive ? 0.8f : 0.3f));
             g.setFont(Fonts::getSemiBoldFont().withHeight(11));
             g.drawText(text, b, Justification::centred);
         }
@@ -476,7 +475,7 @@ void PlugDataLook::drawComboBox(Graphics& g, int const width, int const height, 
 
 PopupMenu::Options PlugDataLook::getOptionsForComboBoxPopupMenu(ComboBox& box, Label& label)
 {
-    auto options = PopupMenu::Options().withTargetComponent(&box).withItemThatMustBeVisible(box.getSelectedId()).withInitiallySelectedItem(box.getSelectedId()).withMinimumWidth(box.getWidth()).withMaximumNumColumns(1).withStandardItemHeight(22);
+    auto options = PopupMenu::Options().withTargetComponent(&box).withItemThatMustBeVisible(box.getSelectedId()).withInitiallySelectedItem(box.getSelectedId()).withMinimumWidth(box.getWidth()).withMaximumNumColumns(1).withStandardItemHeight(24);
 
 #if JUCE_IOS
     if (mainComponent)
