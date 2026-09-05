@@ -392,14 +392,6 @@ public:
                 { Icons::GlyphComment, "#X text 0 0 comment", "(@keypress) Comment", "Comment", NewComment },
                 { Icons::GlyphArray, "#N canvas 0 0 450 250 (subpatch) 0;\n#X array @arrName 100 float 2;\n#X coords 0 1 100 -1 200 140 1;\n#X restore 0 0 graph;", "(@keypress) Array", "Array", NewArray },
                 { Icons::GlyphGOP, "#N canvas 0 0 450 250 (subpatch) 1;\n#X coords 0 1 100 -1 200 140 1 0 0;\n#X restore 0 0 graph;", "(@keypress) Graph on parent", "Graph", NewGraphOnParent },
-                { Icons::GlyphSubpatch, "#X obj 0 0 pd", "Subpatch", "Subpatch", OtherObject },
-                { Icons::GlyphInlet, "#X obj 0 0 inlet", "Control inlet", "Inlet", OtherObject },
-                { Icons::GlyphOutlet, "#X obj 0 0 outlet", "Control outlet", "Outlet", OtherObject },
-                { Icons::GlyphSignalInlet, "#X obj 0 0 inlet~", "Signal inlet", "Inlet~", OtherObject },
-                { Icons::GlyphSignalOutlet, "#X obj 0 0 outlet~", "Signal outlet", "Outlet~", OtherObject },
-                { Icons::GlyphClone, "#X obj 0 0 clone", "Multiple copies of an abstraction", "Clone", OtherObject },
-                { Icons::GlyphBlock, "#X obj 0 0 block~ 1024", "Set block size for DSP", "Block", OtherObject },
-                { Icons::GlyphSwitch, "#X obj 0 0 switch~", "Block size and DSP on/off control", "Switch", OtherObject }
             } },
         { "User Interface",
             {
@@ -480,7 +472,13 @@ public:
                 { Icons::GlyphRandFloat, "#X obj 0 0 rand.f", "Random float generator", "Rand Float", OtherObject },
                 { Icons::GlyphRandInt, "#X obj 0 0 rand.i 0 127", "Random integer generator", "Rand Int", OtherObject },
                 { Icons::GlyphDrunkard, "#X obj 0 0 drunkard", "Drunkard's walk algorithm", "Drunkard", OtherObject },
-                { Icons::GlyphMarkov, "#X obj 0 0 markov", "Create and play Markov chains", "Markov", OtherObject }
+                { Icons::GlyphMarkov, "#X obj 0 0 markov", "Create and play Markov chains", "Markov", OtherObject },
+                { Icons::GlyphSubpatch, "#X obj 0 0 pd", "Subpatch", "Subpatch", OtherObject },
+                { Icons::GlyphInlet, "#X obj 0 0 inlet", "Control inlet", "Inlet", OtherObject },
+                { Icons::GlyphOutlet, "#X obj 0 0 outlet", "Control outlet", "Outlet", OtherObject },
+                { Icons::GlyphSignalInlet, "#X obj 0 0 inlet~", "Signal inlet", "Inlet~", OtherObject },
+                { Icons::GlyphSignalOutlet, "#X obj 0 0 outlet~", "Signal outlet", "Outlet~", OtherObject },
+                { Icons::GlyphClone, "#X obj 0 0 clone", "Multiple copies of an abstraction", "Clone", OtherObject },
             } },
         { "Data",
             {
@@ -513,7 +511,6 @@ public:
                 { Icons::GlyphReadsf, "#X obj 0 0 readsf~ 2", "Read a soundfile from disk", "Readsf", OtherObject },
                 { Icons::GlyphWritesf, "#X obj 0 0 writesf~ 2", "Write a soundfile to disk", "Writesf", OtherObject },
                 { Icons::GlyphSamplePlayer, "#X obj 0 0 player~", "Multichannel sample player", "Player", OtherObject },
-                { Icons::GlyphSfz, "#X obj 0 0 sfz~", "Sfz sample player using sfizz", "Sfz", OtherObject }
             } },
         { "MIDI",
             {
@@ -589,7 +586,9 @@ public:
                 { Icons::GlyphPeakDetect, "#X obj 0 0 peak~", "Detect peak amplitude", "Peak", OtherObject },
                 { Icons::GlyphZerocross, "#X obj 0 0 zerocross~", "Impulses at zero crossings", "Zerocross", OtherObject },
                 { Icons::GlyphSigmund, "#X obj 0 0 sigmund~", "Sinusoidal analysis and pitch tracking", "Sigmund", OtherObject },
-                { Icons::GlyphBonk, "#X obj 0 0 bonk~", "Attack detection", "Bonk", OtherObject }
+                { Icons::GlyphBonk, "#X obj 0 0 bonk~", "Attack detection", "Bonk", OtherObject },
+                { Icons::GlyphBlock, "#X obj 0 0 block~ 1024", "Set block size for DSP", "Block", OtherObject },
+                { Icons::GlyphSwitch, "#X obj 0 0 switch~", "Block size and DSP on/off control", "Switch", OtherObject }
             } },
         { "Sources",
             {
@@ -624,7 +623,8 @@ public:
                 { Icons::GlyphDust, "#X obj 0 0 dust~ 10", "Random impulses", "Dust", OtherObject },
                 { Icons::GlyphLfNoise, "#X obj 0 0 lfnoise~ 10", "Low frequency noise", "LF Noise", OtherObject },
                 { Icons::GlyphStepNoise, "#X obj 0 0 stepnoise~ 10", "Step noise", "Step Noise", OtherObject },
-                { Icons::GlyphRampNoise, "#X obj 0 0 rampnoise~ 10", "Ramp noise", "Ramp Noise", OtherObject }
+                { Icons::GlyphRampNoise, "#X obj 0 0 rampnoise~ 10", "Ramp noise", "Ramp Noise", OtherObject },
+                { Icons::GlyphSfz, "#X obj 0 0 sfz~", "Sfz sample player using sfizz", "Sfz", OtherObject }
             } },
         { "Envelopes",
             {
