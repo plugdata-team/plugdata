@@ -850,11 +850,11 @@ private:
     // Current search result
     PackageList searchResult;
 
-    MainToolbarButton searchButton = MainToolbarButton(Icons::Search);
+    MainToolbarButton searchButton = MainToolbarButton(Icons::SearchFilled);
     MainToolbarButton refreshButton = MainToolbarButton(Icons::Refresh);
 
     SettingsToolbarButton installedButton = SettingsToolbarButton(Icons::Checkmark, "Installed");
-    SettingsToolbarButton exploreButton = SettingsToolbarButton(Icons::Sparkle, "Explore");
+    SettingsToolbarButton exploreButton = SettingsToolbarButton(Icons::SparkleFilled, "Explore");
 
     PackageManager* packageManager = PackageManager::getInstance();
 
@@ -992,7 +992,7 @@ private:
             g.strokePath(p, PathStrokeType(1.0f));
 
             Fonts::drawStyledText(g, packageInfo.name, 64, 8, 200, 25, findColour(ComboBox::textColourId), Semibold, 15);
-            Fonts::drawIcon(g, Icons::Externals, Rectangle<int>(16, 14, 38, 38), findColour(ComboBox::textColourId));
+            Fonts::drawIcon(g, Icons::ExternalsFilled, Rectangle<int>(16, 14, 38, 38), findColour(ComboBox::textColourId));
 
             Fonts::drawFittedText(g, "Uploaded " + getRelativeTimeDescription(packageInfo.timestamp) + " by " + packageInfo.author, getWidth() - 418, 6, 400, 25, colours.panelTextColour, 1, 0.8f, 13.5f, Justification::centredRight);
 

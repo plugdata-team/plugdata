@@ -87,7 +87,7 @@ private:
     void showHiddenTabsMenu(int splitIndex);
 
     std::unique_ptr<NewTabButton> newTabButtons[2];
-    StackArray<MainToolbarButton, 2> tabOverflowButtons = { MainToolbarButton(Icons::ThinDown), MainToolbarButton(Icons::ThinDown) };
+    StackArray<MainToolbarButton, 2> tabOverflowButtons = { MainToolbarButton(Icons::ChrevronDown), MainToolbarButton(Icons::ChrevronDown) };
 
     StackArray<OwnedArray<TabBarButtonComponent>, 2> tabbars;
     StackArray<SafePointer<Canvas>, 2> splits = { nullptr, nullptr };

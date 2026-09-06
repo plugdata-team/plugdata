@@ -54,7 +54,7 @@ public:
     }
 
     SmallIconButton mainButton;
-    SmallIconButton chevron = SmallIconButton(Icons::ThinDown);
+    SmallIconButton chevron = SmallIconButton(Icons::ChrevronDown);
 };
 
 class EditModeButton final : public Component {
@@ -149,7 +149,7 @@ public:
     }
 
     MainButton mainButton;
-    SmallIconButton chevron = SmallIconButton(Icons::ThinDown);
+    SmallIconButton chevron = SmallIconButton(Icons::ChrevronDown);
 
 private:
     void updateText()
@@ -276,7 +276,7 @@ private:
         }
     }
 
-    SmallIconButton menuButton = SmallIconButton(Icons::ThinDown);
+    SmallIconButton menuButton = SmallIconButton(Icons::ChrevronDown);
     Statusbar* statusbar;
 };
 

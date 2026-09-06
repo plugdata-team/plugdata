@@ -101,6 +101,9 @@ private:
     static inline auto const pathIdentifier = Identifier("Path");
     static inline auto const iconIdentifier = Identifier("Icon");
 
+    static inline auto const fileIcon = Icons::File;
+    static inline auto const folderIcon = Icons::FolderFilled;
+
     ValueTree generateDirectoryValueTree(File const& directory)
     {
         static File versionDataDir = ProjectInfo::appDataDir.getChildFile("Versions");
@@ -114,7 +117,7 @@ private:
         ValueTree rootNode("Folder");
         rootNode.setProperty(nameIdentifier, directory.getFileName(), nullptr);
         rootNode.setProperty(pathIdentifier, directory.getFullPathName(), nullptr);
-        rootNode.setProperty(iconIdentifier, Icons::Folder, nullptr);
+        rootNode.setProperty(iconIdentifier, folderIcon, nullptr);
 
         // visitedDirectories keeps track of dirs we've already processed to prevent infinite loops
         static SmallArray<hash32> visitedDirectories = { };
@@ -140,7 +143,7 @@ private:
             ValueTree childNode(fileIdentifier);
             childNode.setProperty(nameIdentifier, file.getFileName(), nullptr);
             childNode.setProperty(pathIdentifier, file.getFullPathName(), nullptr);
-            childNode.setProperty(iconIdentifier, Icons::File, nullptr);
+            childNode.setProperty(iconIdentifier, fileIcon, nullptr);
 
             rootNode.appendChild(childNode, nullptr);
         }
@@ -151,10 +154,10 @@ private:
         struct {
             static int compareElements(ValueTree const& first, ValueTree const& second)
             {
-                if (first.getProperty(iconIdentifier) == Icons::File && second.getProperty(iconIdentifier) == Icons::Folder) {
+                if (first.getProperty(iconIdentifier) == fileIcon && second.getProperty(iconIdentifier) == folderIcon) {
                     return 1;
                 }
-                if (first.getProperty(iconIdentifier) == Icons::Folder && second.getProperty(iconIdentifier) == Icons::File) {
+                if (first.getProperty(iconIdentifier) == folderIcon && second.getProperty(iconIdentifier) == fileIcon) {
                     return -1;
                 }
 

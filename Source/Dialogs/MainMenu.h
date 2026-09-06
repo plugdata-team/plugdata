@@ -294,7 +294,7 @@ public:
         new IconMenuItem(Icons::Open, "Open patch...", false, false),
         new IconMenuItem(Icons::History, "Recently opened", true, false),
 
-        new IconMenuItem(Icons::SavePatch, "Save patch", false, false),
+        new IconMenuItem(Icons::Save, "Save patch", false, false),
         new IconMenuItem(Icons::SaveAs, "Save patch as...", false, false),
 
         new IconMenuItem(Icons::ExportState, "Workspace", true, false),

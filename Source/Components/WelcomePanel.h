@@ -157,7 +157,7 @@ class WelcomePanel final : public Component
             case Open: {
                 g.setFont(Fonts::getIconFont().withPointHeight(34.0f));
                 g.setColour(bgColour);
-                g.drawText(Icons::Folder, circleBounds.toNearestInt(), Justification::centred, false);
+                g.drawText(Icons::FolderFilled, circleBounds.toNearestInt(), Justification::centred, false);
 
                 g.setColour(colours.panelTextColour);
                 g.setFont(Fonts::getBoldFont().withPointHeight(12.0f));
@@ -170,7 +170,7 @@ class WelcomePanel final : public Component
             case Store: {
                 g.setFont(Fonts::getIconFont().withPointHeight(30.0f));
                 g.setColour(bgColour);
-                g.drawText(Icons::Sparkle, circleBounds.toNearestInt(), Justification::centred, false);
+                g.drawText(Icons::SparkleFilled, circleBounds.toNearestInt(), Justification::centred, false);
 
                 g.setColour(colours.panelTextColour);
                 g.setFont(Fonts::getBoldFont().withPointHeight(12.0f));

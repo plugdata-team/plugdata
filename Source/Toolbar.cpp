@@ -1205,7 +1205,7 @@ public:
 
         auto buttonColour = getToggleState() ? activeColour : inactiveColour;
         if (isMouseOver() && !iconSegment.contains(getMouseXYRelative())) {
-            buttonColour = buttonColour.contrasting(0.2f);
+            buttonColour = buttonColour.contrasting(0.05f);
         }
 
         g.setColour(buttonColour);
@@ -1220,7 +1220,7 @@ public:
 
         auto iconColour = inactiveColour;
         if (isMouseOver() && iconSegment.contains(getMouseXYRelative())) {
-            iconColour = iconColour.contrasting(0.2f);
+            iconColour = iconColour.contrasting(0.05f);
         }
 
         auto textColour = getToggleState() ? colours.toolbarActiveColour : colours.toolbarTextColour.withAlpha(0.8f);
@@ -1541,7 +1541,7 @@ public:
         };
 
         chevron.setTooltip("DSP options");
-        chevron.setButtonText(Icons::ThinDown);
+        chevron.setButtonText(Icons::ChrevronDownFilled);
         chevron.onClick = [this] {
             showCallout();
             repaint();
@@ -1566,7 +1566,7 @@ public:
     void resized() override
     {
         auto b = getLocalBounds();
-        chevron.setBounds(b.removeFromRight(14));
+        chevron.setBounds(b.removeFromRight(15));
         toggle.setBounds(b);
 
     }
@@ -1785,22 +1785,22 @@ void AudioToolbar::resized()
 {
     auto b = getLocalBounds().reduced(4, 0);
 
-    b.removeFromRight(7);
+    b.removeFromRight(4);
 
-    auto powerBounds = b.removeFromRight(42);
+    auto powerBounds = b.removeFromRight(40);
     powerButton->setBounds(powerBounds);
 
-    b.removeFromRight(7);
+    b.removeFromRight(6);
     auto limiterBounds = b.removeFromRight(46).reduced(0, 3);
     limiterButton->setBounds(limiterBounds);
 
     volumeComponent->setBounds(b.removeFromRight(110).reduced(0, 1));
 
-    b.removeFromRight(2);
+    b.removeFromRight(1);
 
     midiBlinker->setBounds(b.removeFromRight(44));
 
-    b.removeFromRight(2);
+    b.removeFromRight(1);
 
     cpuMeter->setBounds(b.removeFromRight(48));
 

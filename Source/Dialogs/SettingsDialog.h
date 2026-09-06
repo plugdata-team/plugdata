@@ -141,7 +141,7 @@ public:
     PluginEditor* editor;
     ComponentBoundsConstrainer constrainer;
 
-    MainToolbarButton searchButton = MainToolbarButton(Icons::Search);
+    MainToolbarButton searchButton = MainToolbarButton(Icons::SearchFilled);
     std::unique_ptr<PropertiesSearchPanel> searcher;
 
     static constexpr int toolbarHeight = 40;
@@ -155,7 +155,7 @@ public:
         SettingsToolbarButton(Icons::Audio, "Audio"),
         SettingsToolbarButton(Icons::MIDI, "MIDI"),
         SettingsToolbarButton(Icons::Pencil, "Themes"),
-        SettingsToolbarButton(Icons::Search, "Paths"),
+        SettingsToolbarButton(Icons::SearchFilled, "Paths"),
         SettingsToolbarButton(Icons::Keyboard, "Shortcuts"),
         SettingsToolbarButton(Icons::Wrench, "Advanced")
     };

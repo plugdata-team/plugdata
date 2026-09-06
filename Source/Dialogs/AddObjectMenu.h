@@ -1032,7 +1032,7 @@ public:
         auto const iconArea = b.removeFromLeft(24).withSizeKeepingCentre(24, 24);
 
         Fonts::drawIcon(g, Icons::Object, iconArea, colour, 14.0f, true);
-        b.removeFromLeft(4);
+        b.removeFromLeft(2);
         b.removeFromRight(3);
 
         Fonts::drawFittedText(g, "Object Browser", b, colour, 1, 0.9f, 14.0f);
@@ -1168,7 +1168,7 @@ public:
         g.drawVerticalLine(sidebarWidth, searchInput.getBottom() + 4.0f, getHeight() - 4.0f);
         g.drawHorizontalLine(objectBrowserButton.getY() - 3, 10.0f, sidebarWidth - 10.0f);
 
-        Fonts::drawIcon(g, Icons::Search, searchInput.getX(), searchInput.getY(), searchInput.getHeight(), colours.popupMenuTextColour, 12);
+        Fonts::drawIcon(g, Icons::SearchFilled, searchInput.getX(), searchInput.getY(), searchInput.getHeight(), colours.popupMenuTextColour, 12);
     }
 
     void dismiss(bool const shouldHide)
@@ -1250,7 +1250,7 @@ private:
     static constexpr int panelWidth = 670;
     static constexpr int panelHeight = 400;
     static constexpr int titlebarHeight = 32;
-    static constexpr int sidebarWidth = 125;
+    static constexpr int sidebarWidth = 130;
 
     float startAlpha, targetAlpha;
     VBlankAnimatorUpdater updater { this };

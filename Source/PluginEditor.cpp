@@ -137,7 +137,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     mainMenuButton.setButtonText(Icons::Menu);
     undoButton.setButtonText(Icons::Undo);
     redoButton.setButtonText(Icons::Redo);
-    welcomePanelSearchButton.setButtonText(Icons::Search);
+    welcomePanelSearchButton.setButtonText(Icons::SearchFilled);
 
     addKeyListener(commandManager.getKeyMappings());
 

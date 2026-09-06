@@ -245,11 +245,10 @@ void CalloutMenuButton::paint(Graphics& g)
         auto width = std::max(Fonts::getStringWidthInt(text, font) + 4, 16);
         auto b = shortcutBounds.removeFromRight(width).toFloat().reduced(1.0f, 5.0f).translated(1.5f, 0.5f);
 
-        g.setColour(colours.popupMenuTextColour.withAlpha(0.9f));
+        g.setColour(colours.popupMenuBackgroundColour.contrasting(0.08f));
         g.fillRoundedRectangle(b.toFloat(), 3.0f);
 
-        g.setColour(colours.popupMenuBackgroundColour);
-
+        g.setColour(colours.popupMenuTextColour.withAlpha(isEnabled() ? 0.8f : 0.3f));
         g.setFont(Fonts::getSemiBoldFont().withHeight(11));
         g.drawText(text, b, Justification::centred);
     }
@@ -260,7 +259,7 @@ void CalloutMenuButton::paint(Graphics& g)
         auto width = std::max(Fonts::getStringWidthInt(keys[i].trim(), font) + 8, 15);
         auto b = shortcutBounds.removeFromRight(width).reduced(1, 5);
 
-        g.setColour(colours.popupMenuTextColour.withAlpha(0.9f));
+        g.setColour(colours.popupMenuTextColour.withAlpha(isEnabled() ? 0.9f : 0.35f));
         g.fillRoundedRectangle(b.toFloat(), 3.0f);
 
         g.setColour(colours.popupMenuBackgroundColour);
