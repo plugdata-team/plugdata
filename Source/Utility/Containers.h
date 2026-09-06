@@ -2967,7 +2967,7 @@ public:
     // Checks if the string is empty.
     bool isEmpty() const noexcept
     {
-        return data_.empty();
+        return data_.empty() || data_.front() == '\0';
     }
 
     // Returns the character at the given index.
