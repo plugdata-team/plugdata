@@ -283,11 +283,6 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
                     cnv->saveAs();
                 break;
             }
-            case MainMenu::MenuItem::CompiledMode: {
-                auto* settingsFile = SettingsFile::getInstance();
-                settingsFile->setProperty("hvcc_mode", !settingsFile->getProperty<bool>("hvcc_mode"));
-                break;
-            }
             case MainMenu::MenuItem::Compile: {
                 Dialogs::showHeavyExportDialog(&editor->openedDialog, editor);
                 break;
