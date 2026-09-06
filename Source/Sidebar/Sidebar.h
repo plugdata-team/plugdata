@@ -17,6 +17,7 @@ class Inspector;
 class DocumentationBrowser;
 class AutomationPanel;
 class SearchPanel;
+class ReferencePanel;
 class PluginProcessor;
 class CommandInput;
 class Palettes;
@@ -110,6 +111,7 @@ public:
         ParamPanel,
         PatchSearchPanel,
         PalettePanel,
+        ObjectReferencePanel,
         InspectorPanel,
         NumSidePanels
     };
@@ -123,6 +125,7 @@ public:
         AutomationPanel* automationPanel,
         SearchPanel* searchPanel,
         Palettes* palettePanel,
+        ReferencePanel* referencePanel,
         Inspector* inspector,
         CommandInput* commandInput);
 
@@ -153,6 +156,8 @@ public:
 
     void setActiveSearchItem(void const* objPtr);
     void clearInspector();
+
+    void updateReference(String const& objectName);
 
     bool isShowingBrowser() const;
     bool isShowingSearch() const;
@@ -187,6 +192,9 @@ private:
     void updateSelectorButtonStates();
     bool refreshInspectorVisibility(bool allowManualShow);
 
+    // The inspector is shared between both sidebars, so check who it's parented to before touching it
+    bool isShowingInspector() const;
+
     Component* getPanelComponent(SidePanel id) const;
     SidebarSelectorButton* getSelectorButton(SidePanel id) const;
 
@@ -206,6 +214,7 @@ private:
     AutomationPanel* automationPanelPtr = nullptr;
     SearchPanel* searchPanelPtr = nullptr;
     Palettes* palettePanelPtr = nullptr;
+    ReferencePanel* referencePanelPtr = nullptr;
     Inspector* inspectorPtr = nullptr;
     CommandInput* commandInputPtr = nullptr;
 
@@ -219,7 +228,7 @@ private:
     std::unique_ptr<Component> resetInspectorButton;
 
     StringArray panelDisplayNames {
-        "Console", "Documentation Browser", "Automation Parameters", "Search", "Palettes", "Inspector"
+        "Console", "Documentation Browser", "Automation Parameters", "Search", "Palettes", "Object Reference", "Inspector"
     };
 
     struct PanelEntry {

@@ -1505,6 +1505,9 @@ void Canvas::updateSidebarSelection()
 
         if (auto* s = editor->getSidebarForPanel(Sidebar::InspectorPanel))
             s->showParameters(toShow, allParameters, showOnSelect);
+
+        if (auto* s = editor->getSidebarForPanel(Sidebar::ObjectReferencePanel))
+            s->updateReference(lassoSelection.size() == 1 ? lassoSelection[0]->getType().toString() : String());
     });
 }
 

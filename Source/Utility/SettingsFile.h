@@ -192,6 +192,7 @@ private:
         { "sidebar_panel_param", var("right") },
         { "sidebar_panel_search", var("right") },
         { "sidebar_panel_palette", var("right") },
+        { "sidebar_panel_reference", var("right") },
         { "sidebar_panel_inspector", var("right") },
         { "left_sidebar_width", var(250) },
         { "right_sidebar_width", var(250) },

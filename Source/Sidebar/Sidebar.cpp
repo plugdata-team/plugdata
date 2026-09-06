@@ -24,6 +24,7 @@
 #include "AutomationPanel.h"
 #include "SearchPanel.h"
 #include "Palettes.h"
+#include "ReferencePanel.h"
 
 String Sidebar::panelIdToString(SidePanel id)
 {
@@ -38,6 +39,8 @@ String Sidebar::panelIdToString(SidePanel id)
         return "search";
     case PalettePanel:
         return "palette";
+    case ObjectReferencePanel:
+        return "reference";
     case InspectorPanel:
         return "inspector";
     default:
@@ -57,6 +60,8 @@ Sidebar::SidePanel Sidebar::panelFromString(String const& s, SidePanel fallback)
         return PatchSearchPanel;
     if (s == "palette")
         return PalettePanel;
+    if (s == "reference")
+        return ObjectReferencePanel;
     if (s == "inspector")
         return InspectorPanel;
     return fallback;
@@ -82,6 +87,7 @@ Sidebar::Sidebar(Side sideIn, PluginProcessor* instance, PluginEditor* parent,
     AutomationPanel* automation,
     SearchPanel* search,
     Palettes* palette,
+    ReferencePanel* reference,
     Inspector* insp,
     CommandInput* cmdInput)
     : side(sideIn)
@@ -91,6 +97,7 @@ Sidebar::Sidebar(Side sideIn, PluginProcessor* instance, PluginEditor* parent,
     , automationPanelPtr(automation)
     , searchPanelPtr(search)
     , palettePanelPtr(palette)
+    , referencePanelPtr(reference)
     , inspectorPtr(insp)
     , commandInputPtr(cmdInput)
 {
@@ -144,6 +151,9 @@ void Sidebar::addPanel(SidePanel panel)
         break;
     case PalettePanel:
         icon = Icons::Palette;
+        break;
+    case ObjectReferencePanel:
+        icon = Icons::Help;
         break;
     case InspectorPanel:
         icon = Icons::Info;
@@ -530,6 +540,11 @@ void Sidebar::updateSelectorButtonStates()
     }
 }
 
+bool Sidebar::isShowingInspector() const
+{
+    return inspectorPtr && inspectorPtr->getParentComponent() == this && inspectorPtr->isVisible();
+}
+
 bool Sidebar::refreshInspectorVisibility(bool const allowManualShow)
 {
     if (!inspectorPtr || !hasPanel(InspectorPanel)) {
@@ -575,11 +590,24 @@ void Sidebar::showPanel(SidePanel const panelToShow)
     if (hasCurrentPanel && panelToShow == currentPanel
         && !sidebarHidden && !editor->welcomePanel->isVisible()
         && !(panelToShow == InspectorPanel && inspectorAutoShow)) {
+
+        // If the auto-shown inspector is covering that panel, reveal the panel instead of collapsing
+        if (inspectorAutoShow && isShowingInspector()) {
+            inspectorPtr->setVisible(false);
+            inspectorManuallyShown = false;
+            updateSelectorButtonStates();
+            updateCommandInputVisibility();
+            updateExtraSettingsButton();
+            resized();
+            repaint();
+            return;
+        }
+
         for (auto const& entry : panelTable)
             if (entry.button)
                 entry.button->setToggleState(false, dontSendNotification);
 
-        if (inspectorPtr)
+        if (isShowingInspector())
             inspectorPtr->setVisible(false);
         inspectorManuallyShown = false;
         showSidebar(false);
@@ -588,7 +616,7 @@ void Sidebar::showPanel(SidePanel const panelToShow)
     }
 
     if (panelToShow == InspectorPanel && inspectorAutoShow) {
-        if (inspectorPtr && inspectorPtr->isVisible()) {
+        if (isShowingInspector()) {
             inspectorManuallyShown = false;
             inspectorPtr->setVisible(false);
         } else {
@@ -602,6 +630,12 @@ void Sidebar::showPanel(SidePanel const panelToShow)
         resized();
         repaint();
         return;
+    }
+
+    // When auto-show has put the inspector on top of another panel, switching panel hides it again
+    if (inspectorAutoShow && isShowingInspector()) {
+        inspectorPtr->setVisible(false);
+        inspectorManuallyShown = false;
     }
 
     showSidebar(true);
@@ -654,6 +688,10 @@ void Sidebar::showPanel(SidePanel const panelToShow)
         if (hasPanel(PalettePanel))
             setPanelVis(palettePanelPtr, PalettePanel);
         break;
+    case ObjectReferencePanel:
+        if (hasPanel(ObjectReferencePanel) && referencePanelPtr)
+            setPanelVis(referencePanelPtr, ObjectReferencePanel);
+        break;
     case InspectorPanel:
         if (hasPanel(InspectorPanel) && inspectorPtr && inspectorHasParameters) {
             inspectorManuallyShown = false;
@@ -668,6 +706,12 @@ void Sidebar::showPanel(SidePanel const panelToShow)
     updateExtraSettingsButton();
     resized();
     repaint();
+}
+
+void Sidebar::updateReference(String const& objectName)
+{
+    if (hasPanel(ObjectReferencePanel) && referencePanelPtr)
+        referencePanelPtr->selectionChanged(objectName);
 }
 
 void Sidebar::clearInspector()
@@ -744,7 +788,7 @@ void Sidebar::showSidebar(bool const show)
             extraSettingsButton->setVisible(false);
         if (resetInspectorButton)
             resetInspectorButton->setVisible(false);
-        if (inspectorPtr)
+        if (isShowingInspector())
             inspectorPtr->setVisible(false);
         inspectorManuallyShown = false;
         updateSelectorButtonStates();
@@ -938,6 +982,8 @@ Component* Sidebar::getPanelComponent(SidePanel id) const
         return searchPanelPtr;
     case PalettePanel:
         return palettePanelPtr;
+    case ObjectReferencePanel:
+        return referencePanelPtr;
     case InspectorPanel:
         return inspectorPtr;
     default:
