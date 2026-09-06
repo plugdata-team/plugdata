@@ -42,7 +42,6 @@ struct Fonts {
     {
         instance->defaultTypeface = BinaryData::loadFont(BinaryData::InterVariable_ttf);
         instance->defaultFont = Font(FontOptions(instance->defaultTypeface));
-        instance->defaultFont.setPreferredFallbackFamilies({ "Noto Emoji Regular"});
         instance->updateWeightedFonts();
         instance->updateFallbackFonts();
     }
@@ -51,7 +50,6 @@ struct Fonts {
     {
         instance->defaultTypeface = font.getTypefacePtr();
         instance->defaultFont = Font(FontOptions(instance->defaultTypeface));
-        instance->defaultFont.setPreferredFallbackFamilies({ "Noto Emoji Regular"});
         instance->updateWeightedFonts();
         instance->updateFallbackFonts();
     }
@@ -261,12 +259,26 @@ private:
         semiBoldFont = getWeightedFont(defaultTypeface, 600.0f);
     }
 
+    // Families to try before handing over to the OS's own font fallback.
+    StringArray getFallbackFamilies() const
+    {
+        StringArray families { emojiTypeface->getName() };
+
+#if JUCE_MAC
+        // macOS resolves Han characters to PingFang, which uses Apple's private 'hvgl' table which breaks JUCE's font fallback
+        families.add("Hiragino Sans");    // CFF, Japanese + shared Han
+        families.add("Hiragino Sans GB"); // CFF, simplified Chinese
+#endif
+
+        return families;
+    }
+
     void updateFallbackFonts()
     {
-        auto emojiFontName = emojiTypeface->getName();
-        boldFont.setPreferredFallbackFamilies({ emojiFontName });
-        semiBoldFont.setPreferredFallbackFamilies({ emojiFontName });
-        defaultFont.setPreferredFallbackFamilies({ emojiFontName });
+        auto const families = getFallbackFamilies();
+        boldFont.setPreferredFallbackFamilies(families);
+        semiBoldFont.setPreferredFallbackFamilies(families);
+        defaultFont.setPreferredFallbackFamilies(families);
     }
 
     static Font getWeightedFont(Typeface::Ptr const& typeface, float const weight)

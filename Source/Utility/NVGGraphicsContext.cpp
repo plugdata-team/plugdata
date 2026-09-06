@@ -73,12 +73,16 @@ enum class DeferredTextMode : uint8_t {
 
 struct PreparedGlyph {
     int glyph = 0;
+    // Held per glyph: font fallback can resolve different glyphs of one string to different
+    // typefaces, and `glyph` is an index into this one. The Ptr also keeps the typeface alive
+    // until the render thread has pulled the outline out of it.
+    Typeface::Ptr typeface;
+    float scaleX = 1.0f;
+    float scaleY = 1.0f;
     Point<float> position;
 };
 
 struct PreparedText {
-    Font font { FontOptions() };
-    Typeface::Ptr typeface;
     std::vector<PreparedGlyph> glyphs;
 };
 
@@ -134,21 +138,19 @@ static uint64_t getSDFGlyphHash(Typeface const* typeface, int glyph)
 static std::unique_ptr<PreparedText> prepareDeferredText(DeferredTextPayload const& payload)
 {
     auto prepared = std::make_unique<PreparedText>();
-    prepared->font = payload.font;
-    prepared->typeface = prepared->font.getTypefacePtr();
 
-    if (prepared->typeface == nullptr)
+    if (payload.font.getTypefacePtr() == nullptr)
         return {};
 
     GlyphArrangement arrangement;
     auto const bounds = payload.bounds.toFloat();
 
     if (payload.mode == DeferredTextMode::Rectangle) {
-        arrangement.addCurtailedLineOfText(prepared->font, payload.text, 0.0f, 0.0f, bounds.getWidth(), false);
+        arrangement.addCurtailedLineOfText(payload.font, payload.text, 0.0f, 0.0f, bounds.getWidth(), false);
         arrangement.justifyGlyphs(0, arrangement.getNumGlyphs(), 0.0f, 0.0f, bounds.getWidth(), bounds.getHeight(), Justification(payload.justificationFlags));
         arrangement.moveRangeOfGlyphs(0, arrangement.getNumGlyphs(), bounds.getX(), bounds.getY());
     } else {
-        arrangement.addLineOfText(prepared->font, payload.text, 0.0f, 0.0f);
+        arrangement.addLineOfText(payload.font, payload.text, 0.0f, 0.0f);
 
         auto offsetX = bounds.getX();
         auto const horizontalFlags = payload.justificationFlags
@@ -171,8 +173,25 @@ static std::unique_ptr<PreparedText> prepareDeferredText(DeferredTextPayload con
     for (int i = 0; i < arrangement.getNumGlyphs(); ++i) {
         auto const& glyph = arrangement.getGlyph(i);
 
-        if (!glyph.isWhitespace())
-            prepared->glyphs.push_back({ glyph.getGlyphIndex(), { glyph.getLeft(), glyph.getBaselineY() } });
+        if (glyph.isWhitespace())
+            continue;
+
+        // Resolve against the glyph's own font, not the requested one: anything the requested font
+        // could not render has been substituted by fallback, and its index only means something in
+        // the substituted typeface.
+        auto const& glyphFont = glyph.getFont();
+        auto typeface = glyphFont.getTypefacePtr();
+
+        if (typeface == nullptr)
+            continue;
+
+        auto const scale = glyphFont.getHeightInPoints();
+
+        prepared->glyphs.push_back({ glyph.getGlyphIndex(),
+                                     std::move(typeface),
+                                     scale * glyphFont.getHorizontalScale(),
+                                     scale,
+                                     { glyph.getLeft(), glyph.getBaselineY() } });
     }
 
     return prepared;
@@ -180,11 +199,9 @@ static std::unique_ptr<PreparedText> prepareDeferredText(DeferredTextPayload con
 
 static void renderPreparedText(NVGcontext* nvg, PreparedText const& prepared)
 {
-    if (prepared.typeface == nullptr || prepared.glyphs.empty())
+    if (prepared.glyphs.empty())
         return;
 
-    auto const scale = prepared.font.getHeightInPoints();
-    auto const hscale = prepared.font.getHorizontalScale();
     auto const color = ::nvgCurrentFillColor(nvg);
 
     // Reused across calls on the render thread (no per-call allocation).
@@ -194,13 +211,13 @@ static void renderPreparedText(NVGcontext* nvg, PreparedText const& prepared)
     xforms.clear();
 
     for (auto const& glyph : prepared.glyphs) {
-        auto const hash = getSDFGlyphHash(prepared.typeface.get(), glyph.glyph);
+        auto const hash = getSDFGlyphHash(glyph.typeface.get(), glyph.glyph);
 
         if (!::nvgSDFGlyphCached(nvg, hash)) {
             constexpr float referenceEmPx = 32.0f;
 
             Path path;
-            prepared.typeface->getOutlineForGlyph(glyph.glyph, path);
+            glyph.typeface->getOutlineForGlyph(glyph.glyph, path);
 
             ::nvgSave(nvg);
             ::nvgResetTransform(nvg);
@@ -210,7 +227,7 @@ static void renderPreparedText(NVGcontext* nvg, PreparedText const& prepared)
             ::nvgRestore(nvg);
         }
 
-        auto const tx = AffineTransform::scale(scale * hscale, scale).translated(glyph.position);
+        auto const tx = AffineTransform::scale(glyph.scaleX, glyph.scaleY).translated(glyph.position);
         hashes.push_back(hash);
         xforms.push_back(tx.mat00); xforms.push_back(tx.mat10);
         xforms.push_back(tx.mat01); xforms.push_back(tx.mat11);
