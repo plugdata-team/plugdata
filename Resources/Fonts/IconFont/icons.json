@@ -112,7 +112,7 @@
     { "names": ["ShowIndex"], "fluent": "text_bullet_list_rtl_24_regular" },
     { "names": ["ShowXY"], "file": "custom/gui/ShowXY.svg" },
     { "names": ["Record"], "fluent": "record_24_filled" },
-    { "names": ["AudioSettings"], "fluent": "speaker_settings_24_regular" },
+    { "names": ["AudioSettings"], "fluent": "speaker_settings_24_filled" },
 
     "OBJECT ICONS",
 
