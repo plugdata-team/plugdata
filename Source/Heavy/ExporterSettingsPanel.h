@@ -12,6 +12,9 @@
 #include "OWLExporter.h"
 #include "PdExporter.h"
 #include "WASMExporter.h"
+#include "FMODExporter.h"
+#include "UnityExporter.h"
+#include "WwiseExporter.h"
 
 class ExporterSettingsPanel final : public Component
     , private ListBoxModel {
@@ -31,7 +34,10 @@ public:
         "DPF Audio Plugin",
         "OWL Platform",
         "Pd External",
-        "WebAssembly"
+        "WebAssembly",
+        "FMOD Plugin",
+        "Unity Plugin",
+        "Wwise Plugin"
     };
 
     static ExporterBase* createExporter(int const target, PluginEditor* editor, ExportingProgressView* exportingView)
@@ -47,6 +53,12 @@ public:
             return new PdExporter(editor, exportingView);
         case 5:
             return new WASMExporter(editor, exportingView);
+        case 6:
+            return new FMODExporter(editor, exportingView);
+        case 7:
+            return new UnityExporter(editor, exportingView);
+        case 8:
+            return new WwiseExporter(editor, exportingView);
         default:
             return new CppExporter(editor, exportingView);
         }
