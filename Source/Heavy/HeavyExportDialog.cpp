@@ -24,6 +24,10 @@
 #include "OWLExporter.h"
 #include "PdExporter.h"
 #include "WASMExporter.h"
+#include "FMODExporter.h"
+#include "UnityExporter.h"
+#include "WwiseExporter.h"
+
 
 class ExporterSettingsPanel final : public Component
     , private ListBoxModel {
@@ -43,7 +47,10 @@ public:
         "DPF Audio Plugin",
         "OWL Platform",
         "Pd External",
-        "WebAssembly"
+        "WebAssembly",
+        "FMOD Plugin",
+        "Unity Plugin",
+        "Wwise Plugin"
     };
 
     ExporterSettingsPanel(PluginEditor* editor, ExportingProgressView* exportingView)
@@ -54,6 +61,9 @@ public:
         addChildComponent(views.add(new OWLExporter(editor, exportingView)));
         addChildComponent(views.add(new PdExporter(editor, exportingView)));
         addChildComponent(views.add(new WASMExporter(editor, exportingView)));
+        addChildComponent(views.add(new FMODExporter(editor, exportingView)));
+        addChildComponent(views.add(new UnityExporter(editor, exportingView)));
+        addChildComponent(views.add(new WwiseExporter(editor, exportingView)));
 
         addAndMakeVisible(listBox);
 
@@ -94,6 +104,9 @@ public:
         views[3]->getState(state);
         views[4]->getState(state);
         views[5]->getState(state);
+        views[6]->getState(state);
+        views[7]->getState(state);
+        views[8]->getState(state);
         SettingsFile::getInstance()->setProperty("heavy_state", var(state.get()));
     }
 
