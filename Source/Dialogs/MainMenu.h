@@ -87,7 +87,7 @@ public:
 
         bool const hvccModeEnabled = SettingsFile::getInstance()->getProperty<bool>("hvcc_mode");
         auto const compileMenu = new PopupMenu();
-        compileMenu->addItem("Syntax checking", true, hvccModeEnabled, [](){
+        compileMenu->addItem("Compiled mode", true, hvccModeEnabled, [](){
             auto currentlyEnabled = SettingsFile::getInstance()->getProperty<bool>("hvcc_mode");
             SettingsFile::getInstance()->setProperty("hvcc_mode", !currentlyEnabled);
         });

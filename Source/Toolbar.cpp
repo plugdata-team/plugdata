@@ -20,6 +20,7 @@
 #include "Components/BouncingViewport.h"
 #include "Components/DraggableNumber.h"
 #include "Dialogs/Dialogs.h"
+#include "Heavy/HeavyExportDialog.h"
 #include "Utility/MidiDeviceManager.h"
 
 class IconTextButton final : public TextButton {
@@ -1727,6 +1728,9 @@ AudioToolbar::AudioToolbar(PluginProcessor* processor, PluginEditor* editor)
 
     setLatencyDisplay(pd->getLatencySamples() - pd::Instance::getBlockSize());
 
+    heavyToolbar = HeavyExportDialog::createHeavyToolbar(editor);
+    addChildComponent(heavyToolbar.get());
+
     addAndMakeVisible(*limiterButton);
 
     addAndMakeVisible(*cpuMeter);
@@ -1817,7 +1821,27 @@ void AudioToolbar::resized()
     if (recordingBadge->isVisible()) {
         recordingBadge->setBounds(b.removeFromRight(recordingBadge->getDesiredWidth()));
     }
+
+    if (!heavyToolbar)
+        return;
+
+    // Whatever the badges leave over is where the quick export toolbar goes
+    auto const width = heavyToolbar->getWidth();
+    heavyToolbar->setVisible(SettingsFile::getInstance()->getProperty<bool>("hvcc_mode") && b.getWidth() >= width);
+
+    if (heavyToolbar->isVisible()) {
+        // Centred in the window, until the badges or the window edge push it aside
+        auto const centre = getParentWidth() / 2 - getX();
+        heavyToolbar->setBounds(std::clamp(centre - width / 2, b.getX(), b.getRight() - width), b.getY(), width, b.getHeight());
+    }
 }
+
+void AudioToolbar::settingsChanged(String const& name, var const& value)
+{
+    if (name == "hvcc_mode")
+        resized();
+}
+
 
 void AudioToolbar::showLimiterState(bool enabled)
 {

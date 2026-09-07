@@ -13,12 +13,20 @@ struct ExporterBase : public Component
     , public Value::Listener
     , public ThreadPool {
 
+    // What the export button does: write to a folder the user picks, or run straight onto the device
+    enum ExportAction {
+        Export,
+        Flash,
+        FlashBootloader
+    };
+
     ChildProcess process;
     TextButton exportButton = TextButton("Export");
 
     Value inputPatchValue = SynchronousValue();
     Value projectNameValue;
     Value projectCopyrightValue;
+    Value exportTypeValue = SynchronousValue(var(1));
 
     bool blockDialog = false;
 
@@ -116,15 +124,7 @@ struct ExporterBase : public Component
             canvasDirty = false;
         }
 
-        exportButton.onClick = [this] {
-            Dialogs::showSaveDialog([this](URL const& url) {
-                auto const result = url.getLocalFile();
-                if (result.getParentDirectory().exists()) {
-                    startExport(result);
-                }
-            },
-                "", "HeavyExport", nullptr, true);
-        };
+        exportButton.onClick = [this] { triggerExport(); };
 
         unsavedLabel.setColour(Label::textColourId, Colours::orange);
         addChildComponent(unsavedLabel);
@@ -164,6 +164,57 @@ struct ExporterBase : public Component
 
     virtual void getState(DynamicObject::Ptr state) = 0;
     virtual void setState(DynamicObject::Ptr state) = 0;
+
+    // Options of the "Export type" property, empty if the exporter has only one
+    virtual StringArray getExportTypes() const { return { }; }
+
+    virtual ExportAction getExportAction() const { return Export; }
+
+    // Everything the exporter needs before it can run
+    virtual bool canPerformExport() const { return validPatchSelected; }
+
+    // Hands the chosen patch over to another exporter
+    void copyPatchSelectionTo(ExporterBase& other) const
+    {
+        other.patchFile = patchFile;
+        other.realPatchFile = realPatchFile;
+        other.projectNameValue = projectNameValue.getValue();
+        other.projectCopyrightValue = projectCopyrightValue.getValue();
+
+        other.blockDialog = true;
+        other.inputPatchValue = inputPatchValue.getValue();
+        other.blockDialog = false;
+    }
+
+    String getExportActionName() const
+    {
+        switch (getExportAction()) {
+        case Flash:
+            return "Flash";
+        case FlashBootloader:
+            return "Bootloader";
+        default:
+            return "Export";
+        }
+    }
+
+    // Runs the export: flashing goes into a temp folder, everything else into a folder the user picks
+    void triggerExport()
+    {
+        if (getExportAction() == Export) {
+            Dialogs::showSaveDialog([this](URL const& url) {
+                auto const result = url.getLocalFile();
+                if (result.getParentDirectory().exists()) {
+                    startExport(result);
+                }
+            },
+                "", "HeavyExport", nullptr, true);
+        } else {
+            auto const tempFolder = File::getSpecialLocation(File::tempDirectory).getChildFile("Heavy-" + Uuid().toString().substring(10));
+            deleteTempFileLater(tempFolder);
+            startExport(tempFolder);
+        }
+    }
 
     String pathToString(File const& file)
     {
@@ -272,9 +323,11 @@ struct ExporterBase : public Component
 
         // Make sure we don't add the file location twice
         searchPaths.removeDuplicates(false);
-        addJob([this, patchPath, outPath, projectTitle, projectCopyright, searchPaths]() mutable {
+        auto const action = getExportAction();
+        addJob([this, action, patchPath, outPath, projectTitle, projectCopyright, searchPaths]() mutable {
             exportingView->monitorProcessOutput(getProcess());
-            exportingView->showState(ExportingProgressView::Exporting);
+            exportingView->showState(action == Export ? ExportingProgressView::Exporting : ExportingProgressView::Flashing);
+            exportingView->reportStatus("Generating code");
 
             FileSystemWatcher::addGlobalIgnorePath(outPath);
 
@@ -283,7 +336,10 @@ struct ExporterBase : public Component
             if (shouldQuit)
                 return;
 
-            exportingView->showState(result ? ExportingProgressView::Failure : ExportingProgressView::Success);
+            if (action == FlashBootloader)
+                exportingView->showState(result ? ExportingProgressView::BootloaderFlashFailure : ExportingProgressView::BootloaderFlashSuccess);
+            else
+                exportingView->showState(result ? ExportingProgressView::Failure : ExportingProgressView::Success);
 
             exportingView->stopMonitoring();
 
@@ -322,13 +378,22 @@ struct ExporterBase : public Component
             }
         }
 
-        exportButton.setEnabled(validPatchSelected);
+        updateExportButton();
+    }
+
+    // Not safe to call from the constructor: the export action is decided by the derived exporter
+    void updateExportButton()
+    {
+        exportButton.setEnabled(canPerformExport());
+        exportButton.setButtonText(getExportActionName());
     }
 
     void resized() override
     {
+        auto const bottomStrip = exportButton.isVisible() || unsavedLabel.isVisible() ? 50 : 0;
+
         unsavedLabel.setBounds(10, getHeight() - 42, getWidth(), 42);
-        panel.setBounds(0, 0, getWidth(), getHeight() - 50);
+        panel.setBounds(0, 0, getWidth(), getHeight() - bottomStrip);
         exportButton.setBounds(getLocalBounds().removeFromBottom(23).removeFromRight(80).translated(-10, -10));
     }
 

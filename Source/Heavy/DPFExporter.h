@@ -18,7 +18,6 @@ public:
     Value clapEnableValue = Value(var(1));
     Value jackEnableValue = Value(var(0));
 
-    Value exportTypeValue = Value(var(1));
     Value pluginTypeValue = Value(var(1));
 
     Value disableSIMD = Value(var(0));
@@ -32,7 +31,7 @@ public:
         PropertiesArray properties;
         properties.add(new PropertiesPanel::EditableComponent<String>("Maker Name (optional)", makerNameValue));
         properties.add(new PropertiesPanel::EditableComponent<String>("Project License (optional)", projectLicenseValue));
-        properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Binary", "Binary + GUI", "Source code", "Source + GUI code" }));
+        properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, getExportTypes()));
         properties.add(new PropertiesPanel::ComboComponent("Plugin type", pluginTypeValue, { "Effect", "Instrument", "Custom" }));
 
         midiinProperty = new PropertiesPanel::BoolComponent("Midi Input", midiinEnableValue, { "No", "yes" });
@@ -71,6 +70,11 @@ public:
         panel.addSection("DPF", properties);
         panel.addSection("Plugin formats", pluginFormats);
         panel.addSection("Advanced", pro_properties);
+    }
+
+    StringArray getExportTypes() const override
+    {
+        return { "Binary", "Binary + GUI", "Source code", "Source + GUI code" };
     }
 
     void getState(DynamicObject::Ptr globalState) override
@@ -133,8 +137,6 @@ public:
 
     bool performExport(String const& pdPatch, String const& outdir, String const& name, String const& copyright, StringArray const& searchPaths) override
     {
-        exportingView->showState(ExportingProgressView::Exporting);
-
         auto const heavyPath = pathToString(heavyExecutable);
         StringArray args = { heavyPath.quoted(), pdPatch.quoted(), "-o", outdir.quoted() };
 
@@ -250,6 +252,8 @@ public:
         bool const generationExitCode = getExitCode();
         // Check if we need to compile
         if (!generationExitCode && (exportType == 1 || exportType == 2)) {
+            exportingView->reportStatus("Compiling");
+
             auto const workingDir = File::getCurrentWorkingDirectory();
 
             outputFile.setAsCurrentWorkingDirectory();

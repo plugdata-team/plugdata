@@ -45,23 +45,13 @@ public:
         emsdkPathValue = state->getProperty("emsdk_path_value");
     }
 
-    void valueChanged(Value& v) override
+    bool canPerformExport() const override
     {
-        ExporterBase::valueChanged(v);
-
-        String const emsdkPath = getValue<String>(emsdkPathValue);
-
-        if (emsdkPath.isNotEmpty()) {
-            exportButton.setEnabled(true);
-        } else {
-            exportButton.setEnabled(false);
-        }
+        return ExporterBase::canPerformExport() && getValue<String>(emsdkPathValue).isNotEmpty();
     }
 
     bool performExport(String const& pdPatch, String const& outdir, String const& name, String const& copyright, StringArray const& searchPaths) override
     {
-        exportingView->showState(ExportingProgressView::Exporting);
-
         auto const heavyPath = pathToString(heavyExecutable);
         StringArray args = { heavyPath.quoted(), pdPatch.quoted(), "-o", outdir.quoted() };
         args.add("-n" + name);
@@ -92,6 +82,7 @@ public:
         auto buildScript = "source " + emsdkPath + "/emsdk_env.sh; " + compileString;
 #endif
 
+        exportingView->reportStatus("Compiling");
         startShellScript(buildScript);
 
         waitForProcessToFinish(-1);

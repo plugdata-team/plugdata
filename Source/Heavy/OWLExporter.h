@@ -8,19 +8,18 @@
 class OWLExporter final : public ExporterBase {
 public:
     Value targetBoardValue = Value(var(2));
-    Value exportTypeValue = SynchronousValue(var(3));
     Value storeSlotValue = SynchronousValue(var(1));
-
-    TextButton flashButton = TextButton("Flash");
 
     PropertiesPanelProperty* storeSlotProperty;
 
     OWLExporter(PluginEditor* editor, ExportingProgressView* exportingView)
         : ExporterBase(editor, exportingView)
     {
+        exportTypeValue = var(3);
+
         Array<PropertiesPanelProperty*> properties;
         properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, { "OWL1", "OWL2", "OWL3" }));
-        properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary", "Load", "Store" }));
+        properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, getExportTypes()));
         storeSlotProperty = new PropertiesPanel::ComboComponent(
             "Store slot", storeSlotValue, { "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F" });
         properties.add(storeSlotProperty);
@@ -31,23 +30,20 @@ public:
 
         panel.addSection("OWL", properties);
 
-        exportButton.setVisible(false);
-        addAndMakeVisible(flashButton);
-
-        auto const backgroundColour = getThemeColours(*this).panelBackgroundColour;
-        flashButton.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
-        flashButton.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
-        flashButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-
         targetBoardValue.addListener(this);
         exportTypeValue.addListener(this);
         storeSlotValue.addListener(this);
+    }
 
-        flashButton.onClick = [this] {
-            auto const tempFolder = File::getSpecialLocation(File::tempDirectory).getChildFile("Heavy-" + Uuid().toString().substring(10));
-            deleteTempFileLater(tempFolder);
-            startExport(tempFolder);
-        };
+    StringArray getExportTypes() const override
+    {
+        return { "Source code", "Binary", "Load", "Store" };
+    }
+
+    ExportAction getExportAction() const override
+    {
+        int const exportType = getValue<int>(exportTypeValue);
+        return exportType == 3 || exportType == 4 ? Flash : Export;
     }
 
     void getState(DynamicObject::Ptr globalState) override
@@ -75,24 +71,11 @@ public:
         storeSlotValue = state->getProperty("store_slot_value");
     }
 
-    void resized() override
-    {
-        ExporterBase::resized();
-        flashButton.setBounds(exportButton.getBounds());
-    }
-
     void valueChanged(Value& v) override
     {
         ExporterBase::valueChanged(v);
 
-        flashButton.setEnabled(validPatchSelected);
-
-        int const exportType = getValue<int>(exportTypeValue);
-        bool const flash = exportType == 3 || exportType == 4;
-        exportButton.setVisible(!flash);
-        flashButton.setVisible(flash);
-
-        storeSlotProperty->setEnabled(exportType == 4);
+        storeSlotProperty->setEnabled(getValue<int>(exportTypeValue) == 4);
     }
 
     bool performExport(String const& pdPatch, String const& outdir, String const& name, String const& copyright, StringArray const& searchPaths) override
@@ -127,6 +110,7 @@ public:
         waitForProcessToFinish(-1);
         exportingView->flushConsole();
 
+        exportingView->reportStatus("Compiling");
         exportingView->logToConsole("Compiling...\n");
 
         if (shouldQuit)

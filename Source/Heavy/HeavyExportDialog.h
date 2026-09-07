@@ -10,6 +10,7 @@ class ToolchainInstaller;
 class ExporterSettingsPanel;
 class Dialog;
 class HelpDialog;
+class PluginEditor;
 
 class HeavyExportDialog final : public Component {
     bool hasToolchain = false;
@@ -22,6 +23,8 @@ class HeavyExportDialog final : public Component {
     // std::unique_ptr<HelpDialog> helpDialog;
 
 public:
+    static std::unique_ptr<Component> createHeavyToolbar(PluginEditor* editor);
+
     explicit HeavyExportDialog(Dialog* dialog);
 
     ~HeavyExportDialog() override;

@@ -33,8 +33,6 @@ public:
 
     bool performExport(String const& pdPatch, String const& outdir, String const& name, String const& copyright, StringArray const& searchPaths) override
     {
-        exportingView->showState(ExportingProgressView::Exporting);
-
         auto const heavyPath = pathToString(heavyExecutable);
 
         StringArray args = { heavyPath.quoted(), pdPatch.quoted(), "-o", outdir.quoted() };
