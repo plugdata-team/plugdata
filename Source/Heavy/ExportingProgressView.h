@@ -5,7 +5,8 @@
  */
 #pragma once
 
-class ExporterConsole : public Component {
+class ExporterConsole : public Component
+    , public AsyncUpdater {
 public:
     ExporterConsole()
     {
@@ -18,6 +19,9 @@ public:
 
     void clear()
     {
+        cancelPendingUpdate();
+        pendingText.clear();
+
         string.clear();
         plainText.clear();
         glyphPositions.clear();
@@ -32,11 +36,20 @@ public:
         repaint();
     }
 
+    // Laying the text out is O(everything logged so far), so a burst of output is coalesced into one pass
     void append(String const& text)
+    {
+        pendingText += text;
+        triggerAsyncUpdate();
+    }
+
+    void handleAsyncUpdate() override
     {
         auto shouldAutoScroll = viewport.getViewPositionY() + viewport.getViewHeight() > getHeight() - 10;
 
-        parseAnsiText(text);
+        parseAnsiText(pendingText);
+        pendingText.clear();
+
         layout.createLayout(string, viewport.getWidth() - 8);
         setSize(viewport.getWidth(), layout.getHeight() + 4);
 
@@ -468,6 +481,7 @@ private:
     }
 
     Viewport viewport;
+    String pendingText;
     AttributedString string;
     TextLayout layout;
     String plainText;
@@ -487,6 +501,7 @@ class ExportingProgressView final : public Component
 
     ExporterConsole console;
     ChildProcess* processToMonitor;
+    bool showsConsole;
 
 public:
     enum ExportState {
@@ -523,8 +538,10 @@ public:
     static constexpr int maxLength = 8192;
     char processOutput[maxLength];
 
-    ExportingProgressView()
+    // The quick export toolbar drives this headlessly and shows the output in a console of its own
+    explicit ExportingProgressView(bool const showsConsole = true)
         : Thread("Console thread")
+        , showsConsole(showsConsole)
     {
         setVisible(false);
         addChildComponent(continueButton);
@@ -606,7 +623,9 @@ public:
             if (_this->state == Exporting || _this->state == Flashing) {
                 _this->currentStatus.clear();
                 _this->deliveredOutput.clear();
-                _this->console.clear();
+
+                if (_this->showsConsole)
+                    _this->console.clear();
             }
             if (_this->console.isShowing()) {
                 _this->console.grabKeyboardFocus();
@@ -647,7 +666,10 @@ public:
                 return;
 
             _this->deliveredOutput += text;
-            _this->console.append(text);
+
+            if (_this->showsConsole)
+                _this->console.append(text);
+
             NullCheckedInvocation::invoke(_this->onConsoleOutput, text);
         });
     }

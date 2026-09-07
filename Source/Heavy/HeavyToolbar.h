@@ -98,7 +98,7 @@ class HeavyToolbar final : public Component
 public:
     explicit HeavyToolbar(PluginEditor* parentEditor)
         : editor(parentEditor)
-        , exportingView(new ExportingProgressView())
+        , exportingView(new ExportingProgressView(false))
         , target(ExporterSettingsPanel::getSelectedTarget())
     {
         exportingView->onStateChange = [this] {
@@ -248,14 +248,8 @@ public:
 
         stopTimer(HoldTimer);
 
-        if (getSectionAt(e.getPosition()) != Run || !hasToolchain())
-            return;
-
-        // Nothing to export yet, so let the user choose a patch first
-        if (auto* currentExporter = getExporter(); currentExporter->canPerformExport())
-            currentExporter->triggerExport();
-        else
-            showSettingsCallout();
+        if (getSectionAt(e.getPosition()) == Run)
+            runExport();
     }
 
     void mouseEnter(MouseEvent const&) override
@@ -463,9 +457,9 @@ private:
         auto const exportTypes = currentExporter->getExportTypes();
 
         PopupMenu menu;
-        int const selected = getValue<int>(currentExporter->exportTypeValue);
+        // These run once and don't change the stored setting, so nothing is ticked
         for (int i = 0; i < exportTypes.size(); i++) {
-            menu.addItem(i + 1, exportTypes[i], true, i + 1 == selected);
+            menu.addItem(i + 1, exportTypes[i]);
         }
 
         if (!exportTypes.isEmpty())
@@ -478,14 +472,24 @@ private:
                 if (!_this || !result)
                     return;
 
-                if (result == verifyMenuId) {
+                if (result == verifyMenuId)
                     _this->verifyPatch();
-                    return;
-                }
-
-                _this->getExporter()->exportTypeValue = result;
-                _this->saveState();
+                else
+                    _this->runExport(result);
             });
+    }
+
+    // An exportType other than 0 comes from the menu, and applies to this run only
+    void runExport(int const exportType = 0)
+    {
+        if (!hasToolchain())
+            return;
+
+        // Nothing to export yet, so let the user choose a patch first
+        if (auto* currentExporter = getExporter(); currentExporter->canPerformExport())
+            currentExporter->triggerExport(exportType);
+        else
+            showSettingsCallout();
     }
 
     // Compiles the patch to C++ in a temp folder purely to see whether it succeeds

@@ -42,7 +42,7 @@ public:
 
     ExportAction getExportAction() const override
     {
-        int const exportType = getValue<int>(exportTypeValue);
+        int const exportType = getExportType();
         return exportType == 3 || exportType == 4 ? Flash : Export;
     }
 
@@ -81,9 +81,9 @@ public:
     bool performExport(String const& pdPatch, String const& outdir, String const& name, String const& copyright, StringArray const& searchPaths) override
     {
         auto const target = getValue<int>(targetBoardValue);
-        bool const compile = getValue<int>(exportTypeValue) - 1;
-        bool const load = getValue<int>(exportTypeValue) == 3;
-        bool const store = getValue<int>(exportTypeValue) == 4;
+        bool const compile = getExportType() - 1;
+        bool const load = getExportType() == 3;
+        bool const store = getExportType() == 4;
         int const slot = getValue<int>(storeSlotValue);
 
         auto const heavyPath = pathToString(heavyExecutable);

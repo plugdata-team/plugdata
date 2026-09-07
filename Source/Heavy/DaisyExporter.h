@@ -63,7 +63,7 @@ public:
 
     ExportAction getExportAction() const override
     {
-        switch (getValue<int>(exportTypeValue)) {
+        switch (getExportType()) {
         case 3:
             return Flash;
         case 4:
@@ -197,8 +197,8 @@ public:
         }
 
         auto target = getValue<int>(targetBoardValue) - 1;
-        bool compile = getValue<int>(exportTypeValue) - 1;
-        bool flash = getValue<int>(exportTypeValue) == 3;
+        bool compile = getExportType() - 1;
+        bool flash = getExportType() == 3;
         bool usbMidi = getValue<int>(usbMidiValue);
         bool print = getValue<int>(debugPrintValue);
         auto blocksize = getValue<int>(blocksizeValue);

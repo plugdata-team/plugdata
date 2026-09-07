@@ -150,7 +150,7 @@ public:
         auto const makerName = getValue<String>(makerNameValue);
         auto const projectLicense = getValue<String>(projectLicenseValue);
 
-        auto const exportType = getValue<int>(exportTypeValue);
+        auto const exportType = getExportType();
         auto const midiin = getValue<int>(midiinEnableValue);
         auto const midiout = getValue<int>(midioutEnableValue);
 

@@ -28,6 +28,9 @@ struct ExporterBase : public Component
     Value projectCopyrightValue;
     Value exportTypeValue = SynchronousValue(var(1));
 
+    // Set for a single run from the quick export menu, leaving the stored setting alone
+    int exportTypeOverride = 0;
+
     bool blockDialog = false;
 
 #if JUCE_WINDOWS
@@ -168,6 +171,9 @@ struct ExporterBase : public Component
     // Options of the "Export type" property, empty if the exporter has only one
     virtual StringArray getExportTypes() const { return { }; }
 
+    // What this run exports as, which isn't always what the settings say
+    int getExportType() const { return exportTypeOverride ? exportTypeOverride : getValue<int>(exportTypeValue); }
+
     virtual ExportAction getExportAction() const { return Export; }
 
     // Everything the exporter needs before it can run
@@ -198,14 +204,19 @@ struct ExporterBase : public Component
         }
     }
 
-    // Runs the export: flashing goes into a temp folder, everything else into a folder the user picks
-    void triggerExport()
+    // Runs the export: flashing goes into a temp folder, everything else into a folder the user picks.
+    // An exportType other than 0 applies to this run only.
+    void triggerExport(int const exportType = 0)
     {
+        exportTypeOverride = exportType;
+
         if (getExportAction() == Export) {
             Dialogs::showSaveDialog([this](URL const& url) {
                 auto const result = url.getLocalFile();
                 if (result.getParentDirectory().exists()) {
                     startExport(result);
+                } else {
+                    exportTypeOverride = 0;
                 }
             },
                 "", "HeavyExport", nullptr, true);
@@ -344,8 +355,11 @@ struct ExporterBase : public Component
             exportingView->stopMonitoring();
 
             MessageManager::callAsync([_this = SafePointer(this)] {
-                if (_this)
-                    _this->repaint();
+                if (!_this)
+                    return;
+
+                _this->exportTypeOverride = 0;
+                _this->repaint();
             });
 
             FileSystemWatcher::removeGlobalIgnorePath(outPath);

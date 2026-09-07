@@ -108,7 +108,7 @@ public:
 
         bool const generationExitCode = getExitCode();
         // Check if we need to compile
-        if (!generationExitCode && getValue<int>(exportTypeValue) == 2) {
+        if (!generationExitCode && getExportType() == 2) {
             exportingView->reportStatus("Compiling");
 
             auto const workingDir = File::getCurrentWorkingDirectory();
