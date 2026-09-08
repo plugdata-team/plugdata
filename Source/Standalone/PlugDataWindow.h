@@ -400,10 +400,10 @@ public:
         }
 
         if (!nativeWindow) {
-#if JUCE_WINDOWS
-            setOpaque(true);
-#else
+#if JUCE_LINUX || JUCE_BSD
             setOpaque(false);
+#else
+            setOpaque(true);
 #endif
             setResizable(false, false);
             // we also need to set the constrainer of THIS window so it's set for the peer
