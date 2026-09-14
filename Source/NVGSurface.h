@@ -190,9 +190,6 @@ public:
 
     void resized() override;
 
-    void addBufferedObject(NVGComponent* component);
-    void removeBufferedObject(NVGComponent* component);
-
     // Reads back a region of the rendered framebuffer into a JUCE image.
     // 'logicalArea' is in this component's (i.e. the editor's) logical coordinates.
     // The returned image is in logical resolution, opaque, top-left origin.
@@ -253,8 +250,6 @@ private:
     int mainFramebufferHeight = 0;
 
     static inline UnorderedMap<NVGcontext*, NVGSurface*> surfaces;
-
-    UnorderedSegmentedSet<WeakReference<NVGComponent>> bufferedObjects;
 
     float lastRenderScale = 0.0f;
 

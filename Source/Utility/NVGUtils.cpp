@@ -46,10 +46,6 @@ void NVGComponent::setJUCEPath(NVGcontext* nvg, Path const& p)
     }
 }
 
-void NVGComponent::updateFramebuffers(NVGcontext*)
-{
-}
-
 void NVGComponent::render(NVGcontext*)
 {
 }
@@ -333,12 +329,15 @@ void NVGFramebuffer::ensureFramebuffer(NVGcontext* ctx, int const width, int con
 void NVGFramebuffer::renderToFramebuffer(NVGcontext* nvg, int const width, int const height, std::function<void(NVGcontext*)> renderCallback, int const imageFlags)
 {
     ensureFramebuffer(nvg, width, height, imageFlags);
+    auto const pixelScale = nanovg::nvgCurrentPixelScale(nvg);
 
     // Commit the draw as a resource-queue pass: the layer brackets it with
     // bind/unbind and replays it on the render thread, after the create above and
     // before the frame that samples this framebuffer -- so a coalesced frame can't
     // drop the render and leave stale/empty dots (the old flicker).
     nanovg::commitFramebufferPass(nvg, fb, std::move(renderCallback));
+
+    nanovg::setCurrentPixelScale(nvg, pixelScale);
 
     fbDirty = false;
 }

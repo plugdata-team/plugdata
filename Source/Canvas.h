@@ -91,7 +91,6 @@ public:
     void focusGained(FocusChangeType cause) override;
     void focusLost(FocusChangeType cause) override;
 
-    void updateFramebuffers(NVGcontext* nvg) override;
     void performRender(NVGcontext* nvg, Rectangle<int> invalidRegion);
     void renderResizeHandle(NVGcontext* nvg, NVGcolor colour);
 
@@ -269,11 +268,13 @@ public:
     Component objectLayer;
     Component connectionLayer;
 
-    NVGCachedPath resizeHandlePath;
     NVGImage presentationShadowImage;
+    NVGImage resizeHandleImage;
     NVGFramebuffer dotsLargeImage;
 
 private:
+    void updateCanvasDots(NVGcontext* nvg);
+
     void changeListenerCallback(ChangeBroadcaster* c) override;
 
     SelectedItemSet<WeakReference<Component>> previousSelectedComponents;
