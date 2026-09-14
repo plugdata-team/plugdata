@@ -7,6 +7,8 @@
 #include <juce_opengl/juce_opengl.h>
 using namespace juce::gl;
 
+#include <queue>
+
 #include <nanovg_async.h>
 #include "Utility/Config.h"
 #include "Utility/NVGUtils.h"
@@ -614,6 +616,34 @@ void Connection::mouseDown(MouseEvent const& e)
     cnv->setSelected(this, true);
     repaint();
 
+    static auto getClosestCornerIdx = [](PathPlan const& plan, Point<float> const position) {
+        int closestIdx = -1;
+        auto closestDistance = 8.0f;
+
+        for (int n = 1; n < static_cast<int>(plan.size()) - 1; n++) {
+            auto const distance = plan[n].getDistanceFrom(position);
+            if (distance < closestDistance) {
+                closestDistance = distance;
+                closestIdx = n;
+            }
+        }
+
+        return closestIdx;
+    };
+
+    // Double-clicking adds a corner, or removes the one under the mouse
+    auto const position = cnv->getLocalPoint(this, e.position);
+    auto const isOnReconnectHandle = startReconnectHandle.contains(position) || endReconnectHandle.contains(position);
+
+    if (e.getNumberOfClicks() == 2 && e.mods.isLeftButtonDown() && !e.mods.isAnyModifierKeyDown() && !isOnReconnectHandle) {
+        if (auto const cornerIdx = getClosestCornerIdx(currentPlan, position); cornerIdx >= 0) {
+            removeCorner(cornerIdx);
+        } else {
+            addCorner(position);
+        }
+        return;
+    }
+
     if (currentPlan.size() <= 2)
         return;
 
@@ -709,12 +739,244 @@ int Connection::getClosestLineIdx(Point<float> const& position, PathPlan const& 
         auto line = Line<float>(plan[n - 1], plan[n]);
         Point<float> nearest;
 
+        // Zero-length segments have no direction to drag in
+        if (line.getLength() < 1.0f)
+            continue;
+
         if (line.getDistanceFromPoint(cnv->getLocalPoint(this, position), nearest) < 3) {
             return n;
         }
     }
 
     return -1;
+}
+
+int Connection::getNumCorners() const
+{
+    int numCorners = 0;
+    auto lastDirection = ZeroLength;
+
+    for (int n = 0; n < static_cast<int>(currentPlan.size()) - 1; n++) {
+        auto const delta = currentPlan[n + 1] - currentPlan[n];
+
+        // Sub-pixel segments don't count as a corner
+        if (delta.getDistanceFromOrigin() < 1.0f)
+            continue;
+
+        auto const direction = std::abs(delta.y) > std::abs(delta.x) ? Vertical : Horizontal;
+        if (lastDirection != ZeroLength && direction != lastDirection)
+            numCorners++;
+
+        lastDirection = direction;
+    }
+
+    return numCorners;
+}
+
+// Direction of the segment between point idx and idx + 1
+Connection::SegmentDirection Connection::getSegmentDirection(int const idx) const
+{
+    auto const delta = currentPlan[idx + 1] - currentPlan[idx];
+
+    if (delta.getDistanceFromOrigin() < 0.01f)
+        return ZeroLength;
+
+    return std::abs(delta.y) > std::abs(delta.x) ? Vertical : Horizontal;
+}
+
+// Removes points that would make the path go diagonal when it gets dragged or an object moves,
+// without changing the shape of the path
+void Connection::sanitisePlan()
+{
+    for (int n = 1; n < static_cast<int>(currentPlan.size()) - 1;) {
+        auto const lastIdx = static_cast<int>(currentPlan.size()) - 1;
+        auto const before = currentPlan[n - 1];
+        auto const point = currentPlan[n];
+        auto const after = currentPlan[n + 1];
+
+        auto const isOnTopOfBefore = getSegmentDirection(n - 1) == ZeroLength;
+        auto const isOnTopOfAfter = getSegmentDirection(n) == ZeroLength;
+
+        // A zero-length segment can only turn into a corner if the segments around it run the same way.
+        // At the iolets, updatePath() snaps it vertically, so the segment next to it has to be horizontal
+        bool isUnusable;
+        if (isOnTopOfBefore && isOnTopOfAfter) {
+            isUnusable = true;
+        } else if (isOnTopOfBefore) {
+            isUnusable = n == 1 ? getSegmentDirection(n) != Horizontal : getSegmentDirection(n - 2) != getSegmentDirection(n);
+        } else if (isOnTopOfAfter) {
+            isUnusable = n == lastIdx - 1 ? getSegmentDirection(n - 1) != Horizontal : getSegmentDirection(n + 1) != getSegmentDirection(n - 1);
+        } else {
+            isUnusable = (approximatelyEqual(before.x, point.x) && approximatelyEqual(point.x, after.x))
+                || (approximatelyEqual(before.y, point.y) && approximatelyEqual(point.y, after.y));
+        }
+
+        if (isUnusable) {
+            // Line up the remaining points exactly, so no segment ends up slightly off-axis
+            if (isOnTopOfBefore) {
+                currentPlan[n - 1] = point;
+                if (isOnTopOfAfter)
+                    currentPlan[n + 1] = point;
+            } else if (isOnTopOfAfter) {
+                currentPlan[n + 1] = point;
+            } else if (approximatelyEqual(before.x, point.x)) {
+                currentPlan[n + 1].x = before.x;
+            } else {
+                currentPlan[n + 1].y = before.y;
+            }
+
+            currentPlan.remove_at(n);
+            n = std::max(1, n - 1);
+        } else {
+            n++;
+        }
+    }
+}
+
+void Connection::addCorner(Point<float> const& position)
+{
+    if (!inlet || !outlet)
+        return;
+
+    if (!segmented) {
+        auto const pstart = getStartPoint();
+        auto const pend = getEndPoint();
+
+        auto plan = PathPlan();
+        plan.add(pstart);
+
+        // Run the middle segment through the clicked position, in the direction the connection mostly goes
+        if (std::abs(pend.y - pstart.y) >= std::abs(pend.x - pstart.x)) {
+            plan.emplace_back(position.x, pstart.y);
+            plan.emplace_back(position.x, pend.y);
+        } else {
+            plan.emplace_back(pstart.x, position.y);
+            plan.emplace_back(pend.x, position.y);
+        }
+
+        plan.add(pend);
+
+        currentPlan = plan;
+        segmented = true;
+    } else {
+        static auto getClosestSegmentIdx = [](PathPlan const& plan, Point<float> const position) {
+            int closestIdx = -1;
+            auto closestDistance = std::numeric_limits<float>::max();
+
+            for (int n = 0; n < static_cast<int>(plan.size()) - 1; n++) {
+                Point<float> nearest;
+                auto const distance = Line<float>(plan[n], plan[n + 1]).getDistanceFromPoint(position, nearest);
+                if (distance < closestDistance) {
+                    closestDistance = distance;
+                    closestIdx = n;
+                }
+            }
+
+            return closestIdx;
+        };
+
+        auto const segmentIdx = getClosestSegmentIdx(currentPlan, position);
+        if (segmentIdx < 0)
+            return;
+
+        auto const direction = getSegmentDirection(segmentIdx);
+
+        // Insert the corner twice, the zero-length segment in between becomes the new step
+        Point<float> corner;
+        Line<float>(currentPlan[segmentIdx], currentPlan[segmentIdx + 1]).getDistanceFromPoint(position, corner);
+        currentPlan.insert(segmentIdx + 1, corner);
+        currentPlan.insert(segmentIdx + 1, corner);
+
+        // Move one half of the segment halfway towards its neighbour to make the step visible.
+        // The half that's attached to an iolet can't move
+        auto const lastIdx = static_cast<int>(currentPlan.size()) - 1;
+        int startIdx = -1, endIdx = 0, beforeIdx = 0, afterIdx = 0;
+
+        if (segmentIdx + 3 < lastIdx) {
+            // The half after the corner
+            startIdx = segmentIdx + 2;
+            endIdx = segmentIdx + 3;
+            beforeIdx = segmentIdx + 1;
+            afterIdx = segmentIdx + 4;
+        } else if (segmentIdx > 0) {
+            // The half before the corner
+            startIdx = segmentIdx;
+            endIdx = segmentIdx + 1;
+            beforeIdx = segmentIdx - 1;
+            afterIdx = segmentIdx + 2;
+        }
+
+        if (startIdx >= 0) {
+            if (direction == Vertical) {
+                auto const halfway = (currentPlan[beforeIdx].x + currentPlan[afterIdx].x) * 0.5f;
+                currentPlan[startIdx].x = halfway;
+                currentPlan[endIdx].x = halfway;
+            } else {
+                auto const halfway = (currentPlan[beforeIdx].y + currentPlan[afterIdx].y) * 0.5f;
+                currentPlan[startIdx].y = halfway;
+                currentPlan[endIdx].y = halfway;
+            }
+        }
+    }
+
+    sanitisePlan();
+    updatePath();
+    repaint();
+    pushPathState();
+}
+
+void Connection::removeCorner(int const cornerIdx)
+{
+    if (cornerIdx < 1 || cornerIdx >= static_cast<int>(currentPlan.size()) - 1)
+        return;
+
+    // Removing the last corner would leave a diagonal, so go back to a curve
+    if (getNumCorners() <= 1) {
+        setSegmented(false);
+        return;
+    }
+
+    // Points on top of each other form a single corner
+    int first = cornerIdx, last = cornerIdx;
+    while (first > 1 && currentPlan[first - 1].getDistanceFrom(currentPlan[cornerIdx]) < 1.0f)
+        first--;
+    while (last < static_cast<int>(currentPlan.size()) - 2 && currentPlan[last + 1].getDistanceFrom(currentPlan[cornerIdx]) < 1.0f)
+        last++;
+
+    currentPlan.remove_range(first, last + 1);
+
+    // Line up the two points that are now connected. A point can only move along its other segment,
+    // otherwise the rest of the path breaks
+    auto const prevIdx = first - 1;
+    auto const nextIdx = first;
+    auto const lastIdx = static_cast<int>(currentPlan.size()) - 1;
+
+    if (!approximatelyEqual(currentPlan[prevIdx].x, currentPlan[nextIdx].x) && !approximatelyEqual(currentPlan[prevIdx].y, currentPlan[nextIdx].y)) {
+        if (nextIdx < lastIdx) {
+            if (approximatelyEqual(currentPlan[nextIdx].x, currentPlan[nextIdx + 1].x)) {
+                currentPlan[nextIdx].y = currentPlan[prevIdx].y;
+            } else {
+                currentPlan[nextIdx].x = currentPlan[prevIdx].x;
+            }
+        } else if (prevIdx > 0) {
+            if (approximatelyEqual(currentPlan[prevIdx].x, currentPlan[prevIdx - 1].x)) {
+                currentPlan[prevIdx].y = currentPlan[nextIdx].y;
+            } else {
+                currentPlan[prevIdx].x = currentPlan[nextIdx].x;
+            }
+        }
+    }
+
+    sanitisePlan();
+
+    if (getNumCorners() == 0) {
+        setSegmented(false);
+        return;
+    }
+
+    updatePath();
+    repaint();
+    pushPathState();
 }
 
 void Connection::setPath(Path const& newPath)
@@ -1059,211 +1321,331 @@ void Connection::applyBestPath()
     repaint();
 }
 
+// Finds the cheapest rectangular route around the obstacles. A route only has to bend next to an
+// obstacle, so we only need to search a grid of lanes that run along their edges
+PathPlan Connection::findRoute(Point<float> const start, Point<float> const end, SmallArray<Rectangle<float>> const& obstacles) const
+{
+    // Sorts and deduplicates the lanes, and adds one through the middle of every corridor: routes
+    // there look tidier than routes that squeeze past an object
+    static auto prepareRouteLanes = [](SmallArray<float>& lanes, float const firstEnd, float const secondEnd, float const gridOrigin, float const gridSize) {
+        // The start and end lanes have to stay exact, or the cable won't line up with its iolets
+        for (auto& lane : lanes) {
+            if (std::abs(lane - firstEnd) < 0.5f)
+                lane = firstEnd;
+            else if (std::abs(lane - secondEnd) < 0.5f)
+                lane = secondEnd;
+        }
+
+        std::ranges::sort(lanes);
+
+        SmallArray<float> result;
+        for (auto const lane : lanes) {
+            if (result.empty() || lane - result.back() > 0.01f)
+                result.add(lane);
+        }
+
+        auto const numLanes = static_cast<int>(result.size());
+        for (int n = 1; n < numLanes; n++) {
+            if (result[n] - result[n - 1] < routeClearance * 4.0f)
+                continue;
+
+            auto middle = (result[n - 1] + result[n]) * 0.5f;
+
+            // Snap to the canvas grid, if that still keeps clear of both sides
+            if (gridSize > 0.0f) {
+                auto const snapped = gridOrigin + std::round((middle - gridOrigin) / gridSize) * gridSize;
+                if (snapped - result[n - 1] > routeClearance && result[n] - snapped > routeClearance)
+                    middle = snapped;
+            }
+
+            result.add(middle);
+        }
+
+        std::ranges::sort(result);
+        lanes = result;
+    };
+
+    static auto findLaneIndex = [](SmallArray<float> const& lanes, float const coordinate) {
+        for (int n = 0; n < static_cast<int>(lanes.size()); n++) {
+            if (approximatelyEqual(lanes[n], coordinate))
+                return n;
+        }
+
+        return -1;
+    };
+
+    auto columns = SmallArray<float> { start.x, end.x };
+    auto rows = SmallArray<float> { start.y, end.y };
+
+    for (auto const& obstacle : obstacles) {
+        columns.add(obstacle.getX() - routeClearance);
+        columns.add(obstacle.getRight() + routeClearance);
+        rows.add(obstacle.getY() - routeClearance);
+        rows.add(obstacle.getBottom() + routeClearance);
+    }
+
+    auto const* settings = SettingsFile::getInstance();
+    auto const snapToGrid = settings->getProperty<int>("grid_enabled") && settings->getProperty<int>("grid_type") & 1;
+    auto const gridSize = snapToGrid ? static_cast<float>(cnv->objectGrid.gridSize) : 0.0f;
+
+    prepareRouteLanes(columns, start.x, end.x, cnv->canvasOrigin.x, gridSize);
+    prepareRouteLanes(rows, start.y, end.y, cnv->canvasOrigin.y, gridSize);
+
+    auto const numColumns = static_cast<int>(columns.size());
+    auto const numRows = static_cast<int>(rows.size());
+    auto const startColumn = findLaneIndex(columns, start.x);
+    auto const startRow = findLaneIndex(rows, start.y);
+    auto const endColumn = findLaneIndex(columns, end.x);
+    auto const endRow = findLaneIndex(rows, end.y);
+
+    if (numColumns * numRows > routeMaxGridPoints || startColumn < 0 || startRow < 0 || endColumn < 0 || endRow < 0)
+        return {};
+
+    // Mark which grid segments run into an obstacle. Obstacles grow by a bit less than the lanes are
+    // offset from them, so the lanes alongside an obstacle stay free
+    auto blockedHorizontally = HeapArray<uint8_t>(numRows * numColumns, 0);
+    auto blockedVertically = HeapArray<uint8_t>(numRows * numColumns, 0);
+
+    for (auto const& obstacle : obstacles) {
+        auto const blocked = obstacle.expanded(routeClearance - 1.0f);
+
+        for (int row = 0; row < numRows; row++) {
+            if (rows[row] <= blocked.getY() || rows[row] >= blocked.getBottom())
+                continue;
+
+            for (int column = 0; column + 1 < numColumns; column++) {
+                if (columns[column] < blocked.getRight() && columns[column + 1] > blocked.getX())
+                    blockedHorizontally[row * numColumns + column] = true;
+            }
+        }
+
+        for (int column = 0; column < numColumns; column++) {
+            if (columns[column] <= blocked.getX() || columns[column] >= blocked.getRight())
+                continue;
+
+            for (int row = 0; row + 1 < numRows; row++) {
+                if (rows[row] < blocked.getBottom() && rows[row + 1] > blocked.getY())
+                    blockedVertically[row * numColumns + column] = true;
+            }
+        }
+    }
+
+    // Lanes close to an object cost extra, and so do lanes far from the middle of the route, so that
+    // cables cross over halfway
+    auto const middle = (start + end) * 0.5f;
+
+    auto laneCost = [&obstacles](float const lane, float const middleOfRoute, bool const isColumn) {
+        auto nearestObject = routePreferredClearance;
+
+        for (auto const& obstacle : obstacles) {
+            auto const distance = isColumn ? std::min(std::abs(lane - obstacle.getX()), std::abs(lane - obstacle.getRight()))
+                                           : std::min(std::abs(lane - obstacle.getY()), std::abs(lane - obstacle.getBottom()));
+            nearestObject = std::min(nearestObject, distance);
+        }
+
+        return routePreferredClearance - nearestObject + std::min(std::abs(lane - middleOfRoute) * 0.05f, 5.0f);
+    };
+
+    SmallArray<float> columnCost, rowCost;
+    for (auto const column : columns)
+        columnCost.add(laneCost(column, middle.x, true));
+    for (auto const row : rows)
+        rowCost.add(laneCost(row, middle.y, false));
+
+    // Dijkstra, with the direction we arrived from as part of the state, so corners can cost extra
+    constexpr int arrivedHorizontally = 0, arrivedVertically = 1;
+
+    auto stateFor = [numColumns](int const column, int const row, int const direction) {
+        return (row * numColumns + column) * 2 + direction;
+    };
+
+    auto costs = HeapArray<float>(numColumns * numRows * 2, std::numeric_limits<float>::max());
+    auto cameFrom = HeapArray<int>(numColumns * numRows * 2, -1);
+
+    // The cable leaves the outlet going down
+    auto const firstState = stateFor(startColumn, startRow, arrivedVertically);
+    costs[firstState] = 0.0f;
+
+    std::priority_queue<std::pair<float, int>, std::vector<std::pair<float, int>>, std::greater<>> queue;
+    queue.emplace(0.0f, firstState);
+
+    auto bestCost = std::numeric_limits<float>::max();
+    auto bestState = -1;
+
+    while (!queue.empty()) {
+        auto const [cost, state] = queue.top();
+        queue.pop();
+
+        if (cost > bestCost)
+            break;
+
+        if (cost > costs[state])
+            continue;
+
+        auto const direction = state % 2;
+        auto const column = state / 2 % numColumns;
+        auto const row = state / 2 / numColumns;
+
+        if (column == endColumn && row == endRow) {
+            // Arriving sideways costs another corner, the cable enters the inlet from above
+            auto const total = cost + (direction == arrivedVertically ? 0.0f : routeBendPenalty + columnCost[endColumn]);
+            if (total < bestCost) {
+                bestCost = total;
+                bestState = state;
+            }
+            continue;
+        }
+
+        auto step = [&](int const nextColumn, int const nextRow, int const nextDirection, bool const isBlocked) {
+            if (isBlocked)
+                return;
+
+            auto const nextState = stateFor(nextColumn, nextRow, nextDirection);
+            auto const length = nextDirection == arrivedVertically ? std::abs(rows[nextRow] - rows[row]) : std::abs(columns[nextColumn] - columns[column]);
+            auto const corner = nextDirection == direction ? 0.0f : routeBendPenalty + (nextDirection == arrivedVertically ? columnCost[column] : rowCost[row]);
+            auto const nextCost = cost + length + corner;
+
+            if (nextCost < costs[nextState]) {
+                costs[nextState] = nextCost;
+                cameFrom[nextState] = state;
+                queue.emplace(nextCost, nextState);
+            }
+        };
+
+        if (column > 0)
+            step(column - 1, row, arrivedHorizontally, blockedHorizontally[row * numColumns + column - 1]);
+        if (column + 1 < numColumns)
+            step(column + 1, row, arrivedHorizontally, blockedHorizontally[row * numColumns + column]);
+        if (row > 0)
+            step(column, row - 1, arrivedVertically, blockedVertically[(row - 1) * numColumns + column]);
+        if (row + 1 < numRows)
+            step(column, row + 1, arrivedVertically, blockedVertically[row * numColumns + column]);
+    }
+
+    if (bestState < 0)
+        return {};
+
+    PathPlan route;
+    for (auto state = bestState; state >= 0; state = cameFrom[state]) {
+        auto const column = state / 2 % numColumns;
+        auto const row = state / 2 / numColumns;
+        route.emplace_back(columns[column], rows[row]);
+    }
+
+    std::ranges::reverse(route);
+    return route;
+}
+
+// Fallback for when there's no way around: whichever L or Z shape runs into the fewest objects
+PathPlan Connection::findSimpleRoute(Point<float> const start, Point<float> const end, SmallArray<Rectangle<float>> const& obstacles)
+{
+    static auto routeIntersectsObstacle = [](Line<float> const segment, SmallArray<Rectangle<float>> const& obstacles) {
+        for (auto const& obstacle : obstacles) {
+            if (obstacle.expanded(routeClearance - 1.0f).intersects(segment))
+                return true;
+        }
+
+        return false;
+    };
+
+    auto const middle = (start + end) * 0.5f;
+
+    auto const candidates = SmallArray<PathPlan> {
+        PathPlan { start, { start.x, middle.y }, { end.x, middle.y }, end },
+        PathPlan { start, { middle.x, start.y }, { middle.x, end.y }, end },
+        PathPlan { start, { start.x, end.y }, end },
+        PathPlan { start, { end.x, start.y }, end }
+    };
+
+    PathPlan bestRoute;
+    auto bestCost = std::numeric_limits<float>::max();
+
+    for (auto const& candidate : candidates) {
+        auto cost = 0.0f;
+
+        for (int n = 1; n < static_cast<int>(candidate.size()); n++) {
+            auto const segment = Line<float>(candidate[n - 1], candidate[n]);
+            cost += segment.getLength() + (n > 1 ? routeBendPenalty : 0.0f);
+
+            if (routeIntersectsObstacle(segment, obstacles))
+                cost += routeBlockedPenalty;
+        }
+
+        if (cost < bestCost) {
+            bestCost = cost;
+            bestRoute = candidate;
+        }
+    }
+
+    return bestRoute;
+}
+
 void Connection::findPath()
 {
+    // The connected objects count as obstacles too, so a cable that runs backwards goes around them.
+    // Objects that contain the start or end of the route are skipped, there'd be no way out of those
+    static auto getRouteObstacles = [](PooledPtrArray<Object>& objects, Rectangle<float> const searchBounds, Point<float> const start, Point<float> const end) {
+        SmallArray<Rectangle<float>> obstacles;
+
+        for (auto const* object : objects) {
+            auto const bounds = object->getBounds().toFloat().reduced(Object::margin);
+
+            if (!bounds.intersects(searchBounds))
+                continue;
+
+            auto const withClearance = bounds.expanded(routeClearance);
+            if (withClearance.contains(start) || withClearance.contains(end))
+                continue;
+
+            obstacles.add(bounds);
+        }
+
+        // Only keep the closest objects, so the search stays fast in busy patches
+        if (obstacles.size() > routeMaxObstacles) {
+            auto const centre = searchBounds.getCentre();
+            std::ranges::sort(obstacles, [centre](auto const& lhs, auto const& rhs) {
+                return lhs.getCentre().getDistanceSquaredFrom(centre) < rhs.getCentre().getDistanceSquaredFrom(centre);
+            });
+            obstacles.resize(routeMaxObstacles);
+        }
+
+        return obstacles;
+    };
+
     if (!outlet || !inlet)
         return;
 
-    auto pstart = getStartPoint();
-    auto pend = getEndPoint();
+    auto const pstart = getStartPoint();
+    auto const pend = getEndPoint();
 
-    auto pathStack = PathPlan();
-    auto bestPath = PathPlan();
+    // Leave the outlet and enter the inlet with a short straight segment, if there's room for it
+    auto const verticalDistance = pend.y - pstart.y;
+    auto const stubLength = verticalDistance > 0.0f ? std::min(routeStubLength, verticalDistance * 0.4f) : routeStubLength;
 
-    pathStack.reserve(8);
+    auto const start = pstart.translated(0.0f, stubLength);
+    auto const end = pend.translated(0.0f, -stubLength);
 
-    auto numFound = 0;
+    auto const obstacles = getRouteObstacles(cnv->objects, Rectangle<float>(start, end).expanded(routeDetourMargin), start, end);
 
-    auto const distance = pstart.getDistanceFrom(pend);
-    auto const distanceX = std::abs(pstart.x - pend.x);
-    auto const distanceY = std::abs(pstart.y - pend.y);
+    auto route = findRoute(start, end, obstacles);
+    if (route.size() < 2)
+        route = findSimpleRoute(start, end, obstacles);
 
-    int const maxXResolution = std::clamp<int>(distanceX / 10, 6, 14);
-    int const maxYResolution = std::clamp<int>(distanceY / 10, 6, 14);
+    currentPlan.clear();
+    currentPlan.add(pstart);
+    for (auto const& point : route)
+        currentPlan.add(point);
+    currentPlan.add(pend);
 
-    int resolutionX = 6;
-    int resolutionY = 6;
+    sanitisePlan();
 
-    auto obstacles = SmallArray<Rectangle<float>>();
-    auto const searchBounds = Rectangle<float>(pstart, pend);
-
-    for (auto const* object : cnv->objects) {
-        if (object->getBounds().toFloat().intersects(searchBounds)) {
-            obstacles.add(object->getBounds().toFloat());
-        }
+    // A straight cable needs a corner to bend on when the objects move apart
+    if (getNumCorners() == 0) {
+        auto const middleY = (pstart.y + pend.y) * 0.5f;
+        currentPlan = PathPlan { pstart, { pstart.x, middleY }, { pend.x, middleY }, pend };
     }
-
-    // Look for paths at an increasing resolution
-    while (!numFound && resolutionX < maxXResolution && distance > 40) {
-
-        // Find paths on a resolution*resolution lattice ObjectGrid
-        float incrementX = std::max<float>(1, distanceX / resolutionX);
-        float incrementY = std::max<float>(1, distanceY / resolutionY);
-
-        numFound = findLatticePaths(bestPath, pathStack, pend, pstart, { incrementX, incrementY });
-
-        if (resolutionX < maxXResolution)
-            resolutionX++;
-        if (resolutionY < maxXResolution)
-            resolutionY++;
-
-        if (resolutionX > maxXResolution || resolutionY > maxYResolution)
-            break;
-
-        pathStack.clear();
-    }
-
-    PathPlan simplifiedPath;
-
-    if (!bestPath.empty()) {
-        simplifiedPath.add(bestPath.front());
-
-        bool direction = approximatelyEqual(bestPath[0].x, bestPath[1].x);
-
-        if (!direction)
-            simplifiedPath.add(bestPath.front());
-
-        for (int n = 1; n < bestPath.size(); n++) {
-            if ((bestPath[n].x != bestPath[n - 1].x && direction) || (bestPath[n].y != bestPath[n - 1].y && !direction)) {
-                simplifiedPath.add(bestPath[n - 1]);
-                direction = !direction;
-            }
-        }
-
-        simplifiedPath.add(bestPath.back());
-
-        if (!direction)
-            simplifiedPath.add(bestPath.back());
-    } else {
-        if (pend.y < pstart.y) {
-            int const xHalfDistance = (pstart.x - pend.x) / 2;
-
-            simplifiedPath.add(pend); // double to make it draggable
-            simplifiedPath.add(pend);
-            simplifiedPath.emplace_back(pend.x + xHalfDistance, pend.y);
-            simplifiedPath.emplace_back(pend.x + xHalfDistance, pstart.y);
-            simplifiedPath.add(pstart);
-            simplifiedPath.add(pstart);
-        } else {
-            int const yHalfDistance = (pstart.y - pend.y) / 2;
-            simplifiedPath.add(pend);
-            simplifiedPath.emplace_back(pend.x, pend.y + yHalfDistance);
-            simplifiedPath.emplace_back(pstart.x, pend.y + yHalfDistance);
-            simplifiedPath.add(pstart);
-        }
-    }
-    std::ranges::reverse(simplifiedPath);
-
-    currentPlan = simplifiedPath;
 
     pushPathState();
-}
-
-int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<float> pend, Point<float> pstart, Point<float> increment)
-{
-    auto obstacles = SmallArray<Object*>();
-    auto const searchBounds = Rectangle<float>(pend, pstart);
-
-    for (auto* object : cnv->objects) {
-        if (object->getBounds().toFloat().intersects(searchBounds)) {
-            obstacles.add(object);
-        }
-    }
-
-    // Stop after we've found a path
-    if (!bestPath.empty())
-        return 0;
-
-    // Add point to path
-    pathStack.add(pend);
-
-    // Check if it intersects any object
-    if (pathStack.size() > 1 && straightLineIntersectsObject(Line<float>(pathStack.back(), *(pathStack.end() - 2)), obstacles)) {
-        return 0;
-    }
-
-    bool const endVertically = pathStack[0].y > pstart.y;
-
-    // Check if we've reached the destination
-    if (std::abs(pend.x - pstart.x) < increment.x * 0.5 && std::abs(pend.y - pstart.y) < increment.y * 0.5) {
-        bestPath = pathStack;
-        return 1;
-    }
-
-    // Count the number of found paths
-    int count = 0;
-
-    // Get current stack to revert to after each trial
-    auto pathCopy = pathStack;
-
-    auto followLine = [this, &count, &pathCopy, &bestPath, &pathStack, &increment](Point<float> currentOutlet, Point<float> const currentInlet, bool const isX) {
-        auto& coord1 = isX ? currentOutlet.x : currentOutlet.y;
-        auto const& coord2 = isX ? currentInlet.x : currentInlet.y;
-        auto const& incr = isX ? increment.x : increment.y;
-
-        if (std::abs(coord1 - coord2) >= incr) {
-            coord1 > coord2 ? coord1 -= incr : coord1 += incr;
-            count += findLatticePaths(bestPath, pathStack, currentOutlet, currentInlet, increment);
-            pathStack = pathCopy;
-        }
-    };
-
-    // If we're halfway on the axis, change preferred direction by inverting search order
-    // This will make it do a staircase effect
-    if (endVertically) {
-        if (std::abs(pend.y - pstart.y) >= std::abs(pathStack[0].y - pstart.y) * 0.5) {
-            followLine(pend, pstart, false);
-            followLine(pend, pstart, true);
-        } else {
-            followLine(pend, pstart, true);
-            followLine(pend, pstart, false);
-        }
-    } else {
-        if (std::abs(pend.x - pstart.x) >= std::abs(pathStack[0].x - pstart.x) * 0.5) {
-            followLine(pend, pstart, true);
-            followLine(pend, pstart, false);
-        } else {
-            followLine(pend, pstart, false);
-            followLine(pend, pstart, true);
-        }
-    }
-
-    return count;
-}
-
-bool Connection::straightLineIntersectsObject(Line<float> const toCheck, SmallArray<Object*>& objects) const
-{
-
-    for (auto const& object : objects) {
-        auto bounds = object->getBounds().expanded(1);
-
-        if (object == outobj || object == inobj || !bounds.intersects(getBounds()))
-            continue;
-
-        auto intersectV = [](Line<float> first, Line<float> second) {
-            if (first.getStartY() > first.getEndY()) {
-                first = { first.getEnd(), first.getStart() };
-            }
-
-            return first.getStartX() > second.getStartX() && first.getStartX() < second.getEndX() && second.getStartY() > first.getStartY() && second.getStartY() < first.getEndY();
-        };
-
-        auto intersectH = [](Line<float> first, Line<float> second) {
-            if (first.getStartX() > first.getEndX()) {
-                first = { first.getEnd(), first.getStart() };
-            }
-
-            return first.getStartY() > second.getStartY() && first.getStartY() < second.getEndY() && second.getStartX() > first.getStartX() && second.getStartX() < first.getEndX();
-        };
-
-        bool const intersectsV = toCheck.isVertical() && (intersectV(toCheck, Line<float>(bounds.getTopLeft().toFloat(), bounds.getTopRight().toFloat())) || intersectV(toCheck, Line<float>(bounds.getBottomRight().toFloat(), bounds.getBottomLeft().toFloat())));
-
-        bool const intersectsH = toCheck.isHorizontal() && (intersectH(toCheck, Line<float>(bounds.getTopRight().toFloat(), bounds.getBottomRight().toFloat())) || intersectH(toCheck, Line<float>(bounds.getTopLeft().toFloat(), bounds.getBottomLeft().toFloat())));
-        if (intersectsV || intersectsH) {
-            return true;
-        }
-    }
-    return false;
 }
 
 void ConnectionPathUpdater::timerCallback()

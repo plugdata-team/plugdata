@@ -82,6 +82,11 @@ public:
     bool intersects(Rectangle<float> toCheck, int accuracy = 4) const;
     int getClosestLineIdx(Point<float> const& position, PathPlan const& plan) const;
 
+    // Corner editing, positions are in canvas coordinates
+    int getNumCorners() const;
+    void addCorner(Point<float> const& position);
+    void removeCorner(int cornerIdx);
+
     void setPointer(t_outconnect* ptr);
     t_outconnect* getPointer() const;
 
@@ -93,13 +98,9 @@ public:
     void componentMovedOrResized(Component& component, bool wasMoved, bool wasResized) override;
 
     // Pathfinding
-    int findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<float> start, Point<float> end, Point<float> increment);
-
     void findPath();
 
     void applyBestPath();
-
-    bool straightLineIntersectsObject(Line<float> toCheck, SmallArray<Object*>& objects) const;
 
     void receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms) override;
 
@@ -110,6 +111,26 @@ public:
     StringArray getMessageFormated() const;
 
 private:
+    enum SegmentDirection { ZeroLength,
+        Horizontal,
+        Vertical };
+
+    SegmentDirection getSegmentDirection(int idx) const;
+    void sanitisePlan();
+
+    PathPlan findRoute(Point<float> start, Point<float> end, SmallArray<Rectangle<float>> const& obstacles) const;
+    static PathPlan findSimpleRoute(Point<float> start, Point<float> end, SmallArray<Rectangle<float>> const& obstacles);
+
+    // Pathfinding settings, in canvas pixels
+    static constexpr float routeClearance = 10.0f;
+    static constexpr float routePreferredClearance = 20.0f;
+    static constexpr float routeBendPenalty = 40.0f;
+    static constexpr float routeStubLength = 16.0f;
+    static constexpr float routeDetourMargin = 160.0f;
+    static constexpr float routeBlockedPenalty = 10000.0f;
+    static constexpr int routeMaxObstacles = 24;
+    static constexpr int routeMaxGridPoints = 16384;
+
     int getMultiConnectNumber() const;
     int getNumSignalChannels() const;
     int getNumberOfConnections() const;
