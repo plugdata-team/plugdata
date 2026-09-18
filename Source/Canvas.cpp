@@ -555,9 +555,7 @@ void Canvas::renderResizeHandle(NVGcontext* nvg, NVGcolor const colour)
         return;
 
     nanovg::nvgFillPaint(nvg, nanovg::nvgImageAlphaPattern(nvg, -resizeHandleMargin, -resizeHandleMargin, resizeHandleImageSize, resizeHandleImageSize, 0, resizeHandleImage.getImageId(), colour));
-    nanovg::nvgBeginPath(nvg);
-    nanovg::nvgRect(nvg, -resizeHandleMargin, -resizeHandleMargin, resizeHandleImageSize, resizeHandleImageSize);
-    nanovg::nvgFill(nvg);
+    nanovg::nvgFillRect(nvg, -resizeHandleMargin, -resizeHandleMargin, resizeHandleImageSize, resizeHandleImageSize);
 }
 
 // Callback from canvasViewport to perform actual rendering

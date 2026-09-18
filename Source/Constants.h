@@ -157,7 +157,7 @@ UnorderedMap<ObjectIDs, String> const objectNames {
 
 struct Corners {
     static constexpr float windowCornerRadius = 12.0f;
-    static constexpr float largeCornerRadius = 8.0f;
+    static constexpr float largeCornerRadius = 10.0f;
     static constexpr float defaultCornerRadius = 6.0f;
     static constexpr float resizeHanleCornerRadius = 2.75f;
 };
