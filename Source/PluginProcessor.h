@@ -168,7 +168,7 @@ public:
 
     bool toggleRecording(PluginEditor* editor);
 
-    int lastUIWidth = 1000, lastUIHeight = 660;
+    std::atomic<int> lastUIWidth = 1000, lastUIHeight = 660;
 
     AtomicValue<float>* volume;
     DynamicObject::Ptr pluginModeTheme;

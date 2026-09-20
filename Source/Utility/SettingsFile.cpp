@@ -27,6 +27,8 @@ JUCE_IMPLEMENT_SINGLETON(SettingsFile)
 
 SettingsFile::~SettingsFile()
 {
+    stopTimer();
+    
     // Save current settings before quitting
     saveSettings();
 

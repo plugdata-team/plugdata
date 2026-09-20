@@ -47,6 +47,16 @@ public:
 
     void updateMidiDevices()
     {
+        // Guard for Linux VST3/LV2, where this may not always run on the message thread
+        if (!MessageManager::existsAndIsCurrentThread()) {
+            MessageManager::callAsync([safeThis = WeakReference(this)] {
+                if (safeThis)
+                    safeThis->updateMidiDevices();
+            });
+            return;
+        }
+
+
         availableMidiInputs.clear();
         availableMidiOutputs.clear();
         availableMidiInputs.add_array(MidiInput::getAvailableDevices());
@@ -467,4 +477,6 @@ private:
     SmallArray<MidiDeviceInfo> availableMidiOutputs;
 
     AtomicValue<int> internalSynthPort;
+
+    JUCE_DECLARE_WEAK_REFERENCEABLE(MidiDeviceManager)
 };

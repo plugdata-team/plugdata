@@ -1283,13 +1283,8 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     xml.setAttribute("TailLength", getValue<float>(tailLength));
     xml.setAttribute("Legacy", false);
 
-    if (auto const* editor = getActiveEditor()) {
-        xml.setAttribute("Width", editor->getWidth());
-        xml.setAttribute("Height", editor->getHeight());
-    } else {
-        xml.setAttribute("Width", lastUIWidth);
-        xml.setAttribute("Height", lastUIHeight);
-    }
+    xml.setAttribute("Width", lastUIWidth.load());
+    xml.setAttribute("Height", lastUIHeight.load());
 
     xml.addChildElement(patchesTree);
 
@@ -1609,11 +1604,6 @@ void PluginProcessor::setTheme(String themeToUse, bool const force)
 
     lnf->setTheme(themeTree);
 
-    for (auto* editor : getEditors())
-        editor->setTheme(themeTree);
-
-    updateAllEditorsLNF();
-
     // Only update iolet geometry if we need to
     // This is based on if the previous or current differ
     auto const previousIoletGeom = oldThemeTree ? oldThemeTree->getProperty("iolet_spacing_edge") : var();
@@ -1622,11 +1612,31 @@ void PluginProcessor::setTheme(String themeToUse, bool const force)
     // if one does, propertyState =  1;
     // if previous and current both don't have iolet spacing property, propertyState = 2
     int const propertyState = previousIoletGeom.isVoid() + currentIoletGeom.isVoid();
-    if (propertyState == 1 || (propertyState == 0 ? static_cast<int>(previousIoletGeom) != static_cast<int>(currentIoletGeom) : 0)) {
-        PluginEditor::updateIoletGeometryForAllObjects(this);
-    }
+    bool const ioletGeometryChanged = propertyState == 1 || (propertyState == 0 ? static_cast<int>(previousIoletGeom) != static_cast<int>(currentIoletGeom) : 0);
 
     currentThemeName = themeToUse;
+
+    // Applying a theme touches the editors, so it has to happen on the message thread. We get called
+    // from the constructor too, which the host runs on whichever thread it likes (there are no
+    // editors yet at that point, so this simply becomes a no-op)
+    auto applyThemeToEditors = [instance = juce::WeakReference(static_cast<pd::Instance*>(this)), themeTree, ioletGeometryChanged] {
+        auto* pd = static_cast<PluginProcessor*>(instance.get());
+        if (!pd)
+            return;
+
+        for (auto* editor : pd->getEditors())
+            editor->setTheme(themeTree);
+
+        pd->updateAllEditorsLNF();
+
+        if (ioletGeometryChanged)
+            PluginEditor::updateIoletGeometryForAllObjects(pd);
+    };
+
+    if (MessageManager::existsAndIsLockedByCurrentThread())
+        applyThemeToEditors();
+    else
+        MessageManager::callAsync(std::move(applyThemeToEditors));
 }
 
 void PluginProcessor::runBackupLoop()

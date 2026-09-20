@@ -461,7 +461,7 @@ void NVGSurface::snapshotEditorSize()
     // Message thread only. Publishes the editor's logical size so the render thread
     // can size the drawable/framebuffer without touching the editor Component, whose
     // bounds are message-thread-only.
-    JUCE_ASSERT_MESSAGE_THREAD;
+    JUCE_ASSERT_MESSAGE_MANAGER_IS_LOCKED;
     editorWidth.store(jmax(1, editor->getWidth()), std::memory_order_relaxed);
     editorHeight.store(jmax(1, editor->getHeight()), std::memory_order_relaxed);
 }
