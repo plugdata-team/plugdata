@@ -138,7 +138,8 @@ public:
             if (menu->x_idx >= 0 && menu->x_idx < items.size()) {
                 currentText = items[currentItem];
             }
-            labelNoSelection = (menu->x_label == gensym("empty") || !menu->x_label) ? String("") : String::fromUTF8(menu->x_label->s_name);
+            auto const label = menu->x_label ? String::fromUTF8(menu->x_label->s_name) : String();
+            labelNoSelection = (label == "empty" || label.trim().isEmpty()) ? String("") : label;
 
             sendSymbol = getSendSymbol();
             receiveSymbol = getReceiveSymbol();
@@ -259,7 +260,7 @@ public:
             sendMessage("send", { pd->generateSymbol(sendSymbol.toString()) });
             object->updateIolets();
         } else if (value.refersToSameSourceAs(receiveSymbol)) {
-            sendMessage("receive", { pd->generateSymbol(sendSymbol.toString()) });
+            sendMessage("receive", { pd->generateSymbol(receiveSymbol.toString()) });
             object->updateIolets();
         } else if (value.refersToSameSourceAs(primaryColour)) {
             auto const colour = "#" + getValue<Colour>(primaryColour).toString().substring(2);
@@ -272,8 +273,10 @@ public:
                 menu->x_bg = pd->generateSymbol(colour);
             updateColours();
         } else if (value.refersToSameSourceAs(parameterName)) {
-            if (auto knb = ptr.get<t_fake_menu>())
-                knb->x_param = pd->generateSymbol(parameterName.toString());
+            if (auto menu = ptr.get<t_fake_menu>()) {
+                auto const param = parameterName.toString();
+                menu->x_param = pd->generateSymbol(param.isEmpty() ? String("empty") : param);
+            }
         } else if (value.refersToSameSourceAs(variableName)) {
             if (auto knb = ptr.get<t_fake_menu>()) {
                 auto* s = pd->generateSymbol(variableName.toString());
@@ -294,8 +297,10 @@ public:
             if (auto menu = ptr.get<t_fake_menu>())
                 menu->x_lb = getValue<bool>(loadbang);
         } else if (value.refersToSameSourceAs(labelNoSelection)) {
-            if (auto menu = ptr.get<t_fake_menu>())
-                menu->x_label = pd->generateSymbol(getValue<String>(labelNoSelection));
+            if (auto menu = ptr.get<t_fake_menu>()) {
+                auto const label = getValue<String>(labelNoSelection);
+                menu->x_label = pd->generateSymbol(label.isEmpty() ? String(" ") : label);
+            }
             updateTextLayout();
             repaint();
         } else if (value.refersToSameSourceAs(fontSize)) {

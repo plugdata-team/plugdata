@@ -233,6 +233,13 @@ t_gobj* Patch::createObject(int const x, int const y, String const& name)
 
     ObjectThemeManager::get()->formatObject(tokens);
 
+    // Make sure empty arguments don't get removed, causing argument order to shift
+    if (tokens.contains("\\")) {
+        auto const protectedText = tokens.joinIntoString(" ").replace("\\ ", "__%SPACE%__");
+        tokens.clear();
+        tokens.addTokens(protectedText, true);
+    }
+
     if (tokens[0] == "garray") {
         if (auto patch = ptr.get<t_glist>()) {
             auto arrayPasta = "#N canvas 0 0 450 250 (subpatch) 0;\n#X array @arrName 100 float 2;\n#X coords 0 1 100 -1 200 140 1;\n#X restore " + String(x) + " " + String(y) + " graph;";
