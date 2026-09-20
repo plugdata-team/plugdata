@@ -1206,17 +1206,7 @@ void Object::performRender(NVGcontext* nvg)
     }
 
     if (selectedFlag && showHandles) {
-        int angle = 360;
-        for (auto& corner : getCorners()) {
-            NVGScopedState scopedState(nvg);
-            // Rotate around centre
-            nanovg::nvgTranslate(nvg, corner.getCentreX(), corner.getCentreY());
-            nanovg::nvgRotate(nvg, degreesToRadians<float>(angle));
-            nanovg::nvgTranslate(nvg, -4.5f, -4.5f);
-
-            cnv->renderResizeHandle(nvg, nvgColour(colours.objectSelectedOutlineColour));
-            angle -= 90;
-        }
+        cnv->renderResizeHandles(nvg, nvgColour(colours.objectSelectedOutlineColour), b.toFloat().expanded(2.5f));
     }
 
     if (gui && gui->isTransparent() && !getValue<bool>(locked) && !cnv->isGraph) {

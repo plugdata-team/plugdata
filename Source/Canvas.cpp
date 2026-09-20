@@ -176,27 +176,7 @@ public:
         nanovg::nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), iCol, nvgColour(colours.objectSelectedOutlineColour), getPlugDataLook(*this).getObjectCornerRadius());
 
         // Draw handles at edge
-        auto getCorners = [this] {
-            auto const rect = getBounds().reduced(tabMargin);
-            constexpr float offset = 2.0f;
-
-            Array<Rectangle<float>> corners = { Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopLeft().toFloat()).translated(offset, offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomLeft().toFloat()).translated(offset, -offset),
-                Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomRight().toFloat()).translated(-offset, -offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopRight().toFloat()).translated(-offset, offset) };
-
-            return corners;
-        };
-
-        int angle = 360;
-        for (auto& corner : getCorners()) {
-            NVGScopedState scopedState(nvg);
-            // Rotate around centre
-            nanovg::nvgTranslate(nvg, corner.getCentreX(), corner.getCentreY());
-            nanovg::nvgRotate(nvg, degreesToRadians<float>(angle));
-            nanovg::nvgTranslate(nvg, -4.5f, -4.5f);
-
-            cnv->renderResizeHandle(nvg, nvgColour(colours.objectSelectedOutlineColour));
-            angle -= 90;
-        }
+        cnv->renderResizeHandles(nvg, nvgColour(colours.objectSelectedOutlineColour), b.toFloat().expanded(2.5f));
     }
 
 private:
@@ -510,7 +490,7 @@ void Canvas::updateCanvasDots(NVGcontext* nvg)
     }
 }
 
-void Canvas::renderResizeHandle(NVGcontext* nvg, NVGcolor const colour)
+void Canvas::renderResizeHandles(NVGcontext* nvg, NVGcolor const colour, Rectangle<float> const bounds)
 {
     auto constexpr resizeHandleSize = 9.0f;
     auto constexpr resizeHandleMargin = 1.0f;
@@ -553,9 +533,18 @@ void Canvas::renderResizeHandle(NVGcontext* nvg, NVGcolor const colour)
 
     if (!resizeHandleImage.isValid())
         return;
+    
+    auto const imageId = resizeHandleImage.getImageId();
+    NVGScopedState scopedState(nvg);
+    for (int i = 0; i < 4; i++) {
+        bool const isRight = i == 1 || i == 2;
+        bool const isBottom = i >= 2;
+        auto const x = isRight ? bounds.getRight() + resizeHandleMargin : bounds.getX() - resizeHandleMargin;
+        auto const y = isBottom ? bounds.getBottom() + resizeHandleMargin : bounds.getY() - resizeHandleMargin;
 
-    nanovg::nvgFillPaint(nvg, nanovg::nvgImageAlphaPattern(nvg, -resizeHandleMargin, -resizeHandleMargin, resizeHandleImageSize, resizeHandleImageSize, 0, resizeHandleImage.getImageId(), colour));
-    nanovg::nvgFillRect(nvg, -resizeHandleMargin, -resizeHandleMargin, resizeHandleImageSize, resizeHandleImageSize);
+        nanovg::nvgFillPaint(nvg, nanovg::nvgImageAlphaPattern(nvg, x, y, resizeHandleImageSize, resizeHandleImageSize, i * MathConstants<float>::halfPi, imageId, colour));
+        nanovg::nvgFillRect(nvg, isRight ? x - resizeHandleImageSize : x, isBottom ? y - resizeHandleImageSize : y, resizeHandleImageSize, resizeHandleImageSize);
+    }
 }
 
 // Callback from canvasViewport to perform actual rendering

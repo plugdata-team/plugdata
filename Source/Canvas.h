@@ -92,7 +92,7 @@ public:
     void focusLost(FocusChangeType cause) override;
 
     void performRender(NVGcontext* nvg, Rectangle<int> invalidRegion);
-    void renderResizeHandle(NVGcontext* nvg, NVGcolor colour);
+    void renderResizeHandles(NVGcontext* nvg, NVGcolor colour, Rectangle<float> bounds);
 
     void resized() override;
 
