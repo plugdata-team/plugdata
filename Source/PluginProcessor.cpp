@@ -790,6 +790,7 @@ bool PluginProcessor::isBusesLayoutSupported(BusesLayout const& layouts) const
 
 void PluginProcessor::settingsChanged(String const& name, var const& value)
 {
+    if (!instance) return;
     if (name == "paths" || name == "libraries" || name == "enable_gem") {
         updateSearchPaths();
     }
