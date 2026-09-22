@@ -168,7 +168,9 @@ public:
 
     bool toggleRecording(PluginEditor* editor);
 
-    std::atomic<int> lastUIWidth = 1000, lastUIHeight = 660;
+    // Written from PluginEditor::resized() on the message thread, but read from
+    // getStateInformation(), which the host can call from any thread
+    AtomicValue<int> lastUIWidth = 1000, lastUIHeight = 660;
 
     AtomicValue<float>* volume;
     DynamicObject::Ptr pluginModeTheme;

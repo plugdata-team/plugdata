@@ -1301,6 +1301,8 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     xml.setAttribute("TailLength", getValue<float>(tailLength));
     xml.setAttribute("Legacy", false);
 
+    // Don't query the editor here: the host can call this from any thread, and
+    // PluginEditor::resized() already keeps these up to date for us
     xml.setAttribute("Width", lastUIWidth.load());
     xml.setAttribute("Height", lastUIHeight.load());
 
