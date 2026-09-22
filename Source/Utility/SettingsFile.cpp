@@ -235,15 +235,10 @@ SettingsFile* SettingsFile::initialise()
         for (auto& [name, var] : defaultSettings) {
             if (name == "themes") {
                 settings["themes"] = JSON::fromString(PlugDataLook::defaultThemesJSON);
-                loadThemeFromDiff(*var.getArray());
                 continue;
             }
             settings[name] = var.clone();
         }
-        for (auto& [name, value] : settings) {
-            value.addListener(this);
-        }
-
         auto settingsFileToUse = settingsFile;
         bool xmlSettings = false;
         if (oldSettingsFile.existsAsFile() && !settingsFile.existsAsFile()) {
@@ -282,7 +277,8 @@ SettingsFile* SettingsFile::initialise()
         if (jsonObject) {
             for (auto& var : jsonObject->getProperties()) {
                 if (var.name == Identifier("themes")) {
-                    loadThemeFromDiff(*var.value.getArray());
+                    if (auto* themes = var.value.getArray())
+                        loadThemeFromDiff(getProperty<VarArray>("themes"), *themes);
                     continue;
                 }
                 settings[var.name.toString()] = var.value;
@@ -298,6 +294,10 @@ SettingsFile* SettingsFile::initialise()
     initialisePathsTree();
     initialiseThemesTree();
     initialiseOverlayTree();
+
+    // First-run settings need the same notifications as settings loaded from disk.
+    for (auto& [name, value] : settings)
+        value.addListener(this);
 
     setProperty("version", PLUGDATA_VERSION);
 
@@ -330,6 +330,7 @@ void SettingsFile::resetSettingsState()
 
 void SettingsFile::startChangeListener()
 {
+    settingsFileWatcher.unignorePath(settingsFile);
     settingsFileWatcher.addFolder(settingsFile.getParentDirectory());
     settingsFileWatcher.addListener(this);
 }
@@ -482,20 +483,18 @@ bool SettingsFile::wantsNativeDialog() const
 
 void SettingsFile::initialiseThemesTree()
 {
-    // Initialise selected themes tree
     auto selectedThemes = getProperty<VarArray>("active_themes");
-    auto currentTheme = getProperty<String>("theme");
-
-    if (!getTheme(currentTheme)) {
-        currentTheme = "light";
-        setProperty("theme", selectedThemes[0].toString());
-    }
-    if (!getTheme(selectedThemes[0])) {
+    if (!getTheme(selectedThemes[0].toString())) {
         selectedThemes.set(0, "light");
     }
-    if (!getTheme(selectedThemes[1])) {
+    if (!getTheme(selectedThemes[1].toString())) {
         selectedThemes.set(1, "dark");
     }
+    if (selectedThemes[0] == selectedThemes[1])
+        selectedThemes.set(1, selectedThemes[0].toString() == "dark" ? "light" : "dark");
+
+    setProperty("active_themes", selectedThemes);
+    auto const currentTheme = getProperty<String>("theme");
     if (selectedThemes[0].toString() != currentTheme && selectedThemes[1].toString() != currentTheme) {
         setProperty("theme", selectedThemes[0].toString());
     }
@@ -565,9 +564,8 @@ void SettingsFile::releaseFileLock()
     lockFile.deleteFile();
 }
 
-void SettingsFile::loadThemeFromDiff(Array<var>& savedThemes)
+void SettingsFile::loadThemeFromDiff(Array<var>& currentThemes, Array<var> const& savedThemes)
 {
-    auto& currentThemes = *settings["themes"].getValue().getArray();
     for (auto const& savedTheme : savedThemes) {
         auto const* savedThemeObj = savedTheme.getDynamicObject();
         if (!savedThemeObj)
@@ -595,6 +593,9 @@ void SettingsFile::reloadSettings()
 {
     jassert(isInitialised);
 
+    if (settingsFile.loadFileAsString().hashCode64() == lastContentHash)
+        return;
+
     if (acquireFileLock()) {
         auto const newSettings = settingsFile.loadFileAsString();
         auto const contentHash = newSettings.hashCode64();
@@ -605,35 +606,44 @@ void SettingsFile::reloadSettings()
         }
 
         var settingsToLoad = JSON::fromString(newSettings);
-        if (settingsToLoad.isVoid()) {
+        if (!settingsToLoad.isObject()) {
             releaseFileLock();
             return;
         }
 
-        for (auto& [name, var] : defaultSettings) {
-            if (name == "themes") {
-                settings["themes"] = JSON::fromString(PlugDataLook::defaultThemesJSON);
-                loadThemeFromDiff(*var.getArray());
-                continue;
-            }
-            settings[name] = var;
-        }
+        // Assemble the final values before touching live Values. Defaults contain mutable
+        // arrays and objects, so sharing them would also change our save-diff baseline.
+        UnorderedMap<String, var> loadedSettings;
+        for (auto const& [name, value] : defaultSettings)
+            loadedSettings[name] = value.clone();
+        loadedSettings["themes"] = JSON::fromString(PlugDataLook::defaultThemesJSON);
 
         auto* jsonObject = settingsToLoad.getDynamicObject();
         for (auto& var : jsonObject->getProperties()) {
             if (var.name == Identifier("themes")) {
-                loadThemeFromDiff(*var.value.getArray());
+                if (auto* themes = var.value.getArray())
+                    loadThemeFromDiff(*loadedSettings["themes"].getArray(), *themes);
                 continue;
             }
-            settings[var.name.toString()] = var.value;
+            auto const name = var.name.toString();
+            if (!defaultSettings.contains(name) || var.value.hasSameTypeAs(defaultSettings.at(name)))
+                loadedSettings[name] = var.value;
         }
+
+        for (auto const& [name, value] : loadedSettings)
+            settings[name] = value;
+        initialiseThemesTree();
+
+        for (auto const& [name, value] : settings)
+            reloadedValues[name] = value.getValue();
+
+        stopTimer();
+        lastContentHash = contentHash;
+        releaseFileLock();
 
         for (auto* listener : listeners) {
             listener->settingsFileReloaded();
         }
-
-        lastContentHash = contentHash;
-        releaseFileLock();
     }
 }
 
@@ -644,6 +654,9 @@ void SettingsFile::filesystemChanged()
 
 void SettingsFile::triggerSettingsChange(String const& name)
 {
+    reloadedValues.erase(name);
+    if (name == "active_themes")
+        initialiseThemesTree();
     for (auto* listener : listeners) {
         listener->settingsChanged(name, settings[name]);
     }
@@ -654,10 +667,21 @@ void SettingsFile::valueChanged(Value& v)
 {
     for (auto& [name, var] : settings) {
         if (var.refersToSameSourceAs(v)) {
+            bool fromReload = false;
+            if (auto const it = reloadedValues.find(name); it != reloadedValues.end()) {
+                fromReload = it->second.equalsWithSameType(v.getValue());
+                reloadedValues.erase(it);
+            }
+            if (fromReload && (name == "theme" || name == "themes" || name == "active_themes"))
+                return;
+            if (name == "active_themes")
+                initialiseThemesTree();
             for (auto* listener : listeners) {
                 listener->settingsChanged(name, v);
             }
-            break;
+            if (!fromReload)
+                startTimer(saveTimeoutMs);
+            return;
         }
     }
     startTimer(saveTimeoutMs);

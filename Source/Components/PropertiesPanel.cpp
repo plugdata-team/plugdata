@@ -256,9 +256,10 @@ PropertiesPanel::FontComponent::FontComponent(String const& propertyName, Value 
         comboBox.getRootMenu()->addCustomItem(n + 1, std::make_unique<FontEntry>(extraFontOptions[n]), nullptr, extraFontOptions[n]);
     }
 
-    comboBox.setText(value.toString());
+    comboBox.setText(value.toString(), dontSendNotification);
     comboBox.getProperties().set("Style", "Inspector");
     fontValue.referTo(value);
+    fontValue.addListener(this);
 
     comboBox.onChange = [this, extraFontOptions, propertyName] {
         auto fontName = extraFontOptions[comboBox.getSelectedItemIndex()];
@@ -282,6 +283,16 @@ PropertiesPanel::FontComponent::FontComponent(String const& propertyName, Value 
     addAndMakeVisible(comboBox);
 
     lookAndFeelChanged();
+}
+
+PropertiesPanel::FontComponent::~FontComponent()
+{
+    fontValue.removeListener(this);
+}
+
+void PropertiesPanel::FontComponent::valueChanged(Value& value)
+{
+    comboBox.setText(value.toString(), dontSendNotification);
 }
 
 PropertiesPanelProperty* PropertiesPanel::FontComponent::createCopy()

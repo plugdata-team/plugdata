@@ -192,8 +192,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     }
 
     autoconnect.referTo(settingsFile->getPropertyAsValue("autoconnect"));
-    theme.referTo(settingsFile->getPropertyAsValue("theme"));
-    theme.addListener(this);
 
     addAndMakeVisible(tabComponent);
 
@@ -384,8 +382,9 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
 #if ENABLE_TESTING
     // Call after window is ready
-    ::Timer::callAfterDelay(200, [this]() {
-        runTests(this);
+    ::Timer::callAfterDelay(200, [_this = SafePointer(this)]() {
+        if (_this)
+            runTests(_this.getComponent());
     });
 #endif
 
@@ -442,7 +441,6 @@ PluginEditor::~PluginEditor()
     removeModifierKeyListener(&pd->keyHandler);
 
     nvgSurface.detachContext();
-    theme.removeListener(this);
     if (auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent())) {
         SettingsFile::getInstance()->setProperty("window_size", Array<var> { window->getWidth(), window->getHeight() });
         SettingsFile::getInstance()->saveSettings();
@@ -1087,15 +1085,6 @@ Canvas* PluginEditor::getCurrentCanvas()
 float PluginEditor::getRenderScale() const
 {
     return nvgSurface.getRenderScale();
-}
-
-void PluginEditor::valueChanged(Value& v)
-{
-    // Update theme
-    if (v.refersToSameSourceAs(theme)) {
-        pd->setTheme(theme.toString());
-        getTopLevelComponent()->repaint();
-    }
 }
 
 void PluginEditor::settingsChanged(String const& name, var const& value)

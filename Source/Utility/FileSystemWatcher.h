@@ -80,6 +80,11 @@ public:
         pathsToIgnore.remove_one(pathToIgnore);
     }
 
+    void unignorePath(File const& path)
+    {
+        unignoredPaths.add_unique(path);
+    }
+
 private:
     class Impl;
 
@@ -90,17 +95,28 @@ private:
         if (f.isHidden() || f.getFileName().startsWith("."))
             return;
 
-        for (auto const& pathToIgnore : pathsToIgnore) {
-            if (f.isAChildOf(pathToIgnore) || f == pathToIgnore) {
-                return;
-            }
-        }
+        if (isIgnored(f))
+            return;
 
         listeners.call(&FileSystemWatcher::Listener::fileChanged, f, fsEvent);
     }
 
+    bool isIgnored(File const& f) const
+    {
+        if (unignoredPaths.contains(f))
+            return false;
+
+        for (auto const& pathToIgnore : pathsToIgnore) {
+            if (f.isAChildOf(pathToIgnore) || f == pathToIgnore)
+                return true;
+        }
+
+        return false;
+    }
+
     ListenerList<Listener> listeners;
     OwnedArray<Impl> watched;
+    SmallArray<File> unignoredPaths;
     static inline SmallArray<File> pathsToIgnore;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FileSystemWatcher)

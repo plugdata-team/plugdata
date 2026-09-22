@@ -385,9 +385,7 @@ void Canvas::changeListenerCallback(ChangeBroadcaster* c)
 
 void Canvas::lookAndFeelChanged()
 {
-    dotsLargeImage.setDirty(); // Make sure bg colour actually gets updated
-
-    // The handle mask bakes in the object corner radius
+    dotsLargeImage.setDirty();
     resizeHandleImage.setDirty();
 }
 

@@ -175,8 +175,9 @@ public:
     float pluginModeScale = 1.0f;
 
     String currentThemeName;
+    bool appliedIoletSpacingEdge = false;
 
-    SettingsFile* settingsFile;
+    SettingsFile* settingsFile = nullptr;
 
     std::unique_ptr<pd::Library> objectLibrary;
 

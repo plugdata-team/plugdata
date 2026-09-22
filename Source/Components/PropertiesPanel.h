@@ -121,13 +121,15 @@ public:
         ComboBox comboBox;
     };
 
-    class FontComponent final : public PropertiesPanelProperty {
+    class FontComponent final : public PropertiesPanelProperty
+        , private Value::Listener {
     public:
         Value fontValue;
         StringArray options = Font::findAllTypefaceNames();
         bool isFontMissing = false;
 
         FontComponent(String const& propertyName, Value const& value, File const& extraFontsDir = File());
+        ~FontComponent() override;
 
         PropertiesPanelProperty* createCopy() override;
 
@@ -138,6 +140,8 @@ public:
         void resized() override;
 
     private:
+        void valueChanged(Value& value) override;
+
         ComboBox comboBox;
     };
 

@@ -48,7 +48,6 @@ class Inspector;
 class CommandInput;
 
 class PluginEditor final : public AudioProcessorEditor
-    , public Value::Listener
     , public ApplicationCommandTarget
     , public FileDragAndDropTarget
     , public ModifierKeyBroadcaster
@@ -102,7 +101,6 @@ public:
 
     void modifierKeysChanged(ModifierKeys const& modifiers) override;
 
-    void valueChanged(Value& v) override;
     void settingsChanged(String const& name, var const& value) override;
 
     void updateCommandStatus();
@@ -175,7 +173,6 @@ public:
     std::unique_ptr<Statusbar> statusbar;
     std::unique_ptr<AudioToolbar> audioToolbar;
 
-    Value theme;
     Value autoconnect;
 
     NVGSurface nvgSurface;
