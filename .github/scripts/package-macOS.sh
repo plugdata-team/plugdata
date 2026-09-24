@@ -16,6 +16,9 @@ CLAP="./Plugins/CLAP/."
 AAX="./Plugins/AAX/."
 APP="./Plugins/Standalone/."
 
+# AAX plugins are temporarily left out of the installer, set to 1 to package them again
+PACKAGE_AAX=0
+
 BINARY_DATA_FILE="./Plugins/Standalone/plugdata.app/Contents/Resources/plugdata.lproj/plugdata-resources.bin"
 
 OUTPUT_BASE_FILENAME="${PRODUCT_NAME}.pkg"
@@ -165,7 +168,7 @@ if [[ -d $CLAP ]]; then
 fi
 
 # try to build AAX package
-if [[ -d $AAX ]]; then
+if [[ -d $AAX && $PACKAGE_AAX == 1 ]]; then
   build_flavor "AAX" $AAX "com.plugdata.aax.pkg.${PRODUCT_NAME}" "/Library/Application Support/Avid/Audio/Plug-Ins" "$MIN_OS_VERSION"
 fi
 
@@ -198,7 +201,7 @@ if [[ -d $CLAP ]]; then
 	CLAP_CHOICE="<line choice=\"com.plugdata.clap.pkg.${PRODUCT_NAME}\"/>"
 	CLAP_CHOICE_DEF="<choice id=\"com.plugdata.clap.pkg.${PRODUCT_NAME}\" visible=\"true\" start_selected=\"true\" title=\"CLAP Plug-in\"><pkg-ref id=\"com.plugdata.clap.pkg.${PRODUCT_NAME}\"/></choice><pkg-ref id=\"com.plugdata.clap.pkg.${PRODUCT_NAME}\" version=\"${VERSION}\" onConclusion=\"none\">${PRODUCT_NAME}_CLAP.pkg</pkg-ref>"
 fi
-if [[ -d $AAX ]]; then
+if [[ -d $AAX && $PACKAGE_AAX == 1 ]]; then
 	AAX_PKG_REF="<pkg-ref id=\"com.plugdata.aax.pkg.${PRODUCT_NAME}\"/>"
 	AAX_CHOICE="<line choice=\"com.plugdata.aax.pkg.${PRODUCT_NAME}\"/>"
 	AAX_CHOICE_DEF="<choice id=\"com.plugdata.aax.pkg.${PRODUCT_NAME}\" visible=\"true\" start_selected=\"false\" title=\"AAX Plug-in\"><pkg-ref id=\"com.plugdata.aax.pkg.${PRODUCT_NAME}\"/></choice><pkg-ref id=\"com.plugdata.aax.pkg.${PRODUCT_NAME}\" version=\"${VERSION}\" onConclusion=\"none\">${PRODUCT_NAME}_AAX.pkg</pkg-ref>"
@@ -260,9 +263,26 @@ fi
 # Sign installer
 productsign -s "Developer ID Installer: Timothy Schoen (7SV7JPRR2L)" ${PRODUCT_NAME}.pkg $1
 
-# Notarize installer
+# Notarize installer, and fail the build if that doesn't work, so we never upload an installer that Gatekeeper blocks
 xcrun notarytool store-credentials "notary_login" --apple-id ${AC_USERNAME} --password ${AC_PASSWORD} --team-id "7SV7JPRR2L"
-xcrun notarytool submit $1 --keychain-profile "notary_login" --wait
-xcrun stapler staple $1
+NOTARY_RESULT=$(xcrun notarytool submit $1 --keychain-profile "notary_login" --wait --output-format plist)
+NOTARY_STATUS=$(echo "$NOTARY_RESULT" | plutil -extract status raw -o - - 2>/dev/null) || NOTARY_STATUS="no result"
+NOTARY_ID=$(echo "$NOTARY_RESULT" | plutil -extract id raw -o - - 2>/dev/null) || NOTARY_ID=""
+echo "Notarization status: $NOTARY_STATUS"
+if [[ "$NOTARY_STATUS" != "Accepted" ]]; then
+    # The notary log lists the issues that were found
+    [[ -n "$NOTARY_ID" ]] && xcrun notarytool log "$NOTARY_ID" --keychain-profile "notary_login"
+    exit 1
+fi
+
+# The ticket can take a moment to become available after notarization, so retry stapling a few times
+for attempt in 1 2 3; do
+    xcrun stapler staple $1 && break
+    if [[ $attempt == 3 ]]; then
+        echo "Stapling failed"
+        exit 1
+    fi
+    sleep 30
+done
 
 .github/scripts/generate-upload-info.sh $1

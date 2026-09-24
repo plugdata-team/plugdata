@@ -5,6 +5,9 @@ if [[ $1 == "plugdata-Win64.msi" ]]; then
   X64BitMode="x64"
 fi
 
+# AAX plugins are temporarily left out of the installer, set to 1 to package them again
+PACKAGE_AAX=0
+
 rm -f ./plugdata.wxs
 cat > ./plugdata.wxs <<-EOL
 <?xml version="1.0"?>
@@ -16,11 +19,13 @@ cat > ./plugdata.wxs <<-EOL
 <?define PlatformCommonFilesFolder = "CommonFiles64Folder" ?>
 <?define WixPlatform = "x64" ?>
 <?define VstArch = "x86_64-win" ?>
+<?define PackageAAX = "$PACKAGE_AAX" ?>
 <?else ?>
 <?define Win64 = "no" ?>
 <?define PlatformProgramFilesFolder = "ProgramFilesFolder" ?>
 <?define PlatformCommonFilesFolder = "CommonFilesFolder" ?>
 <?define VstArch = "x86-win" ?>
+<?define PackageAAX = "0" ?>
 <?endif ?>
 <Wix
 	xmlns="http://schemas.microsoft.com/wix/2006/wi">
@@ -53,7 +58,7 @@ cat > ./plugdata.wxs <<-EOL
                         <CopyFile Id="BINARYDATA_TO_LV2"     FileId="BINARYDATA_BIN" DestinationDirectory="LV2_PLUGIN_DIR"    DestinationName="plugdata-resources.bin"/>
                         <CopyFile Id="BINARYDATA_TO_LV2_FX"  FileId="BINARYDATA_BIN" DestinationDirectory="LV2_FX_PLUGIN_DIR" DestinationName="plugdata-resources.bin"/>
                         <CopyFile Id="BINARYDATA_TO_CLAP"    FileId="BINARYDATA_BIN" DestinationDirectory="CLAP_INSTALL_DIR"  DestinationName="plugdata-resources.bin"/>
-                        <?if \$(var.Win64) = "yes" ?>
+                        <?if \$(var.PackageAAX) = "1" ?>
                         <CopyFile Id="BINARYDATA_TO_AAX"     FileId="BINARYDATA_BIN" DestinationDirectory="AAX_ARCH"    DestinationName="plugdata-resources.bin"/>
                         <CopyFile Id="BINARYDATA_TO_AAX_FX"  FileId="BINARYDATA_BIN" DestinationDirectory="AAX_FX_ARCH" DestinationName="plugdata-resources.bin"/>
                         <?endif ?>
@@ -149,7 +154,7 @@ cat > ./plugdata.wxs <<-EOL
 						<File Id="CLAP_FX_PLUGIN" Source="Plugins\CLAP\plugdata-fx.clap"/>
 					</Component>
 				</Directory>
-				<?if \$(var.Win64) = "yes" ?>
+				<?if \$(var.PackageAAX) = "1" ?>
 				<Directory Id="AVID_DIR" Name="Avid">
                     <Directory Id="AVID_AUDIO_DIR" Name="Audio">
                         <Directory Id="AAX_INSTALL_DIR" Name="Plug-Ins">
@@ -202,7 +207,7 @@ cat > ./plugdata.wxs <<-EOL
 			<ComponentRef Id="CLAP_FILES"/>
 			<ComponentRef Id="CLAP_FX_FILES"/>
 		</Feature>
-		<?if \$(var.Win64) = "yes" ?>
+		<?if \$(var.PackageAAX) = "1" ?>
         <Feature Id="AAX" Level="2" Title="AAX Plugin">
             <ComponentRef Id="AAX_FILES"/>
             <ComponentRef Id="AAX_FX_FILES"/>
