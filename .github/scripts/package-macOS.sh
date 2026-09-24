@@ -16,7 +16,7 @@ CLAP="./Plugins/CLAP/."
 AAX="./Plugins/AAX/."
 APP="./Plugins/Standalone/."
 
-BINARY_DATA_FILE="./Plugins/Standalone/plugdata.app/Contents/Resources/plugdata-resources.bin"
+BINARY_DATA_FILE="./Plugins/Standalone/plugdata.app/Contents/Resources/plugdata.lproj/plugdata-resources.bin"
 
 OUTPUT_BASE_FILENAME="${PRODUCT_NAME}.pkg"
 
@@ -45,9 +45,6 @@ build_flavor()
   mkdir -p $TMPDIR
   cp -a $flavorprod $TMPDIR
 
-  rm -f $TMPDIR/*/Contents/Resources/plugdata-resources.bin
-  rm -f $TMPDIR/*/plugdata-resources.bin
-
   if [ -n "$AC_USERNAME" ]; then
     find $TMPDIR -type f \( -name "*.so" -o -name "*.dylib" \) -exec \
         /usr/bin/codesign --verbose --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" \
@@ -59,6 +56,12 @@ build_flavor()
         --options runtime \
         --entitlements ./Resources/Installer/Entitlements.plist {} \;
   fi
+
+  # Remove the resource file only after signing: the shared package's postinstall restores it into each installed bundle.
+  # Inside a .lproj folder, codesign seals it as optional, so the signatures stay valid both without it (which is what
+  # gets notarized), and after the identical file is restored
+  rm -f $TMPDIR/*/Contents/Resources/plugdata.lproj/plugdata-resources.bin
+  rm -f $TMPDIR/*/plugdata-resources.bin
 
   pkgbuild --analyze --root $TMPDIR ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.plist
   plutil -replace BundleIsRelocatable -bool NO ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.plist
@@ -73,32 +76,42 @@ build_shared_data()
   mkdir -p "$TMPDIR"
   cp "$BINARY_DATA_FILE" "$TMPDIR/"
 
-  # Create postinstall script that copies dylib into whichever plugin bundles were installed
+  # Create postinstall script that copies the resource file into whichever plugin bundles were installed
   SCRIPTS_DIR=${TARGET_DIR}/tmp_scripts
   mkdir -p "$SCRIPTS_DIR"
   cat > "$SCRIPTS_DIR/postinstall" << 'EOF'
 #!/bin/bash
 
-DYLIB="/tmp/plugdata_shared/plugdata-resources.bin"
+RESOURCES_FILE="/tmp/plugdata_shared/plugdata-resources.bin"
+RESOURCES_HASH=$(/usr/bin/openssl dgst -sha256 -binary "$RESOURCES_FILE" | /usr/bin/base64)
 
-LOCATIONS=(
-    "/Library/Audio/Plug-Ins/VST3/plugdata.vst3/Contents/Resources/"
-    "/Library/Audio/Plug-Ins/VST3/plugdata-fx.vst3/Contents/Resources/"
-    "/Library/Audio/Plug-Ins/AAX/plugdata.aaxplugin/Contents/Resources/"
-    "/Library/Audio/Plug-Ins/AAX/plugdata-fx.aaxplugin/Contents/Resources/"
-    "/Library/Audio/Plug-Ins/Components/plugdata.component/Contents/Resources/"
-    "/Library/Audio/Plug-Ins/Components/plugdata-fx.component/Contents/Resources/"
-    "/Library/Audio/Plug-Ins/Components/plugdata-midi.component/Contents/Resources/"
-    "/Library/Audio/Plug-Ins/CLAP/plugdata.clap/Contents/Resources/"
-    "/Library/Audio/Plug-Ins/CLAP/plugdata-fx.clap/Contents/Resources/"
-    "/Library/Audio/Plug-Ins/LV2/plugdata.lv2/"
-    "/Library/Audio/Plug-Ins/LV2/plugdata-fx.lv2/"
-    "/Applications/plugdata.app/Contents/Resources/"
+BUNDLES=(
+    "/Library/Audio/Plug-Ins/VST3/plugdata.vst3"
+    "/Library/Audio/Plug-Ins/VST3/plugdata-fx.vst3"
+    "/Library/Application Support/Avid/Audio/Plug-Ins/plugdata.aaxplugin"
+    "/Library/Application Support/Avid/Audio/Plug-Ins/plugdata-fx.aaxplugin"
+    "/Library/Audio/Plug-Ins/Components/plugdata.component"
+    "/Library/Audio/Plug-Ins/Components/plugdata-fx.component"
+    "/Library/Audio/Plug-Ins/Components/plugdata-midi.component"
+    "/Library/Audio/Plug-Ins/CLAP/plugdata.clap"
+    "/Library/Audio/Plug-Ins/CLAP/plugdata-fx.clap"
+    "/Applications/plugdata.app"
 )
 
-for loc in "${LOCATIONS[@]}"; do
-    if [[ -d "$loc" ]]; then
-        cp "$DYLIB" "$loc"
+for bundle in "${BUNDLES[@]}"; do
+    # Only restore the file into bundles whose signature seals this exact file, anything else would break the signature
+    # (for example a bundle left over from an older version, because that format was deselected in the installer)
+    SEAL="$bundle/Contents/_CodeSignature/CodeResources"
+    if [[ -d "$bundle" ]] && { [[ ! -f "$SEAL" ]] || grep -qF "$RESOURCES_HASH" "$SEAL"; }; then
+        mkdir -p "$bundle/Contents/Resources/plugdata.lproj"
+        cp "$RESOURCES_FILE" "$bundle/Contents/Resources/plugdata.lproj/"
+    fi
+done
+
+# LV2 bundles aren't signed as a whole, only their binaries are
+for bundle in "/Library/Audio/Plug-Ins/LV2/plugdata.lv2" "/Library/Audio/Plug-Ins/LV2/plugdata-fx.lv2"; do
+    if [[ -d "$bundle" ]]; then
+        cp "$RESOURCES_FILE" "$bundle/"
     fi
 done
 

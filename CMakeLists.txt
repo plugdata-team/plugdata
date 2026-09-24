@@ -734,11 +734,18 @@ endif()
 function(copy_binarydata target)
     if(TARGET ${target})
         if(APPLE AND NOT "${target}" MATCHES "_LV2$")
+            # On macOS, the resources go into a .lproj folder, because codesign seals files in there as optional.
+            # That lets the installer ship the file only once, and restore it into each signed bundle (see package-macOS.sh)
+            if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
+                set(RESOURCES_LOCATION "Resources")
+            else()
+                set(RESOURCES_LOCATION "Resources/plugdata.lproj")
+            endif()
             target_sources(${target} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/BinaryData/plugdata-resources.bin)
             set_source_files_properties(
                 ${CMAKE_CURRENT_BINARY_DIR}/BinaryData/plugdata-resources.bin
                 PROPERTIES
-                MACOSX_PACKAGE_LOCATION "Resources"
+                MACOSX_PACKAGE_LOCATION "${RESOURCES_LOCATION}"
             )
         else()
             add_custom_command(TARGET ${target} PRE_LINK
@@ -763,6 +770,8 @@ copy_binarydata(plugdata_fx_LV2)
 copy_binarydata(plugdata_AU)
 copy_binarydata(plugdata_fx_AU)
 copy_binarydata(plugdata_midi_AU)
+copy_binarydata(plugdata_AAX)
+copy_binarydata(plugdata_fx_AAX)
 endif()
 
 target_include_directories(plugdata_core PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/BinaryData)

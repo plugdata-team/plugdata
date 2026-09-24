@@ -273,10 +273,11 @@ inline juce::File getResourceFile() {{
     }}
     return destFile;
 #elif JUCE_MAC
+    // Inside a .lproj folder, because codesign seals files in there as optional (see package-macOS.sh)
     if (juce::PluginHostType::getPluginLoadedAs() != juce::AudioProcessor::wrapperType_LV2)
         return juce::File::getSpecialLocation(juce::File::currentExecutableFile)
             .getParentDirectory().getParentDirectory()
-            .getChildFile("Resources/plugdata-resources.bin");
+            .getChildFile("Resources/plugdata.lproj/plugdata-resources.bin");
 #endif
     return juce::File::getSpecialLocation(juce::File::currentExecutableFile)
         .getParentDirectory()
