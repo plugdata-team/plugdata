@@ -584,8 +584,6 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         }
     }
 
-    currentRenderArea = invalidRegion;
-
     auto drawBorder = [this, nvg](bool const bg, bool const fg) {
         auto const& colours = getThemeColours(*this);
 

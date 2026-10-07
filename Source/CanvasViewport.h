@@ -574,7 +574,9 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        cnv->performRender(nvg, getLocalArea(editor, editor->nvgSurface.getInvalidArea()).expanded(2));
+        auto const renderArea = getLocalArea(editor, editor->nvgSurface.getInvalidArea()).expanded(2).getIntersection(getLocalBounds());
+        if (!renderArea.isEmpty())
+            cnv->performRender(nvg, renderArea);
     }
 
     void render(NVGcontext* nvg, Rectangle<int> const area)

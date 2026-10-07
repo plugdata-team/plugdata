@@ -519,15 +519,6 @@ public:
 
         auto const b = getLocalBounds().toFloat();
         if (canvas) {
-            auto invalidArea = cnv->currentRenderArea;
-
-            invalidArea = invalidArea.getIntersection(cnv->getLocalArea(this, getLocalBounds()));
-
-            if (invalidArea.isEmpty())
-                return;
-
-            invalidArea = canvas->getLocalArea(cnv, invalidArea).expanded(1);
-
             NVGScopedState scopedState(nvg);
             nanovg::nvgIntersectRoundedScissor(nvg, b.getX() + 0.75f, b.getY() + 0.75f, b.getWidth() - 1.5f, b.getHeight() - 1.5f, getPlugDataLook(*this).getObjectCornerRadius());
             nanovg::nvgTranslate(nvg, canvas->getX(), canvas->getY());
