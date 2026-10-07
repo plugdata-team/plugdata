@@ -334,7 +334,10 @@ public:
                 label = std::unique_ptr<DraggableNumber>(draggableNumber);
 
                 // By setting the text before attaching the value, we can prevent an unnesssary/harmful call to ValueChanged
-                draggableNumber->setText(property.toString(), dontSendNotification);
+                if constexpr (std::is_floating_point_v<T>)
+                    draggableNumber->setText(formatFloat(getValue<T>(property)), dontSendNotification);
+                else
+                    draggableNumber->setText(property.toString(), dontSendNotification);
                 draggableNumber->setFont(draggableNumber->getFont().withHeight(14.5f));
                 draggableNumber->setEditableOnClick(true);
 
@@ -391,6 +394,24 @@ public:
             addAndMakeVisible(label.get());
 
             label->addMouseListener(this, true);
+        }
+
+        // A float stored in a var becomes a double, which prints as e.g. 0.6000000238.
+        // Use the shortest text that reads back as the same float instead.
+        static String formatFloat(float const value)
+        {
+            std::ostringstream stream;
+            stream.imbue(std::locale::classic());
+
+            for (int digits = 6; digits <= std::numeric_limits<float>::max_digits10; digits++) {
+                stream.str({});
+                stream.precision(digits);
+                stream << value;
+                if (String(stream.str()).getFloatValue() == value)
+                    break;
+            }
+
+            return stream.str();
         }
 
         T clampValue(T value)
