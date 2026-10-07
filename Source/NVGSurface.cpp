@@ -167,10 +167,6 @@ void NVGSurface::createRenderContext()
     auto* asyncNvg = nanovg::create(baseNvg, false);
     nvg.store(asyncNvg);
 
-#    if JUCE_LINUX || JUCE_BSD
-    nvgSetCornerRadius(12.0f * calculateRenderScale());
-#    endif
-
     surfaces[asyncNvg] = this;
     MessageManager::callAsync([_this = SafePointer(this)] {
         if (_this)
@@ -279,6 +275,10 @@ void NVGSurface::presentFramebuffer(int viewWidth, int viewHeight)
 
     nvgViewport(0, 0, viewWidth, viewHeight);
 
+#if NANOVG_GL_IMPLEMENTATION && (JUCE_LINUX || JUCE_BSD)
+    nvgSetCornerRadius(roundedBottomCorners.load() ? 12.0f * calculateRenderScale() : 0.0f);
+#endif
+
     if (mainFramebuffer) {
         nvgBlitFramebuffer(baseNvg, reinterpret_cast<NVGframebuffer*>(mainFramebuffer), 0, 0, viewWidth, viewHeight);
     } else {
@@ -369,9 +369,15 @@ void NVGSurface::renderBackendFrame()
 #if PLUGDATA_NVG_FRAME_TIME_OVERLAY
         drawFrameTimeOverlay(viewWidth, viewHeight, pixelScale);
 #endif
-
-        presentFramebuffer(viewWidth, viewHeight);
     }
+
+#if NANOVG_GL_IMPLEMENTATION
+    // OpenGLContext swaps buffers after every renderOpenGL() call, so we need to present every frame
+    presentFramebuffer(viewWidth, viewHeight);
+#else
+    if (didRender)
+        presentFramebuffer(viewWidth, viewHeight);
+#endif
 }
 
 #if NANOVG_GL_IMPLEMENTATION
@@ -475,6 +481,11 @@ void NVGSurface::updateBounds(Rectangle<int>)
 {
     currentBounds = editor->getLocalBounds();
     snapshotEditorSize();
+
+#if JUCE_LINUX || JUCE_BSD
+    // Maximising, plugin mode and the native titlebar setting all resize the editor
+    roundedBottomCorners.store(editor->wantsRoundedCorners());
+#endif
 
     if (getBounds() != currentBounds)
         setBounds(currentBounds);

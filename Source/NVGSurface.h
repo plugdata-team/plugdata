@@ -262,6 +262,12 @@ private:
     AtomicValue<int> editorWidth { 1 };
     AtomicValue<int> editorHeight { 1 };
 
+#if JUCE_LINUX || JUCE_BSD
+    // Whether the window's transparent bottom corners are cut out when presenting.
+    // Set on the message thread, read on the render thread.
+    AtomicValue<bool> roundedBottomCorners { false };
+#endif
+
     // Framebuffer readback (eyedropper). The request is filled on the message
     // thread and serviced on the render thread, which owns the framebuffer.
     CriticalSection readbackLock;                 // serialises readback requests

@@ -553,7 +553,12 @@ public:
 #if JUCE_LINUX || JUCE_BSD
         if (auto* peer = getPeer()) {
             bool shouldBeMaximised = !isMaximised();
-            setPendingLinuxMaximisedState(shouldBeMaximised);
+
+            // X11 window managers report the new state separately from the resize, so assume the
+            // requested state for a moment. On Wayland it arrives together with the new size, and
+            // assuming it early would lay the window out for the new state at the old size.
+            if (!OSUtils::isWaylandWindow(peer))
+                setPendingLinuxMaximisedState(shouldBeMaximised);
 
             if (auto* b = getMaximiseButton())
                 b->setToggleState(shouldBeMaximised, dontSendNotification);

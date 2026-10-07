@@ -11,6 +11,10 @@
 #include "OSUtils.h"
 #include "Config.h"
 
+#if JUCE_LINUX || JUCE_BSD
+#    include <juce_gui_basics/native/juce_WaylandWindowState_linux.h>
+#endif
+
 #if !defined(__APPLE__)
 #    undef JUCE_GUI_BASICS_INCLUDE_XHEADERS
 #    include <raw_keyboard_input/raw_keyboard_input.cpp>
@@ -218,24 +222,22 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 // Selects Linux and BSD
 #if defined(__unix__) && !defined(__APPLE__)
 
+bool OSUtils::isWaylandWindow(juce::ComponentPeer* peer)
+{
+    return juce::isWaylandComponentPeer(peer);
+}
+
 void OSUtils::updateLinuxWindowConstraints(juce::ComponentPeer* peer)
 {
     if (peer == nullptr)
         return;
 
-#   if JUCE_WAYLAND
-    const bool requiresX11 =
-        (peer->getStyleFlags() & juce::ComponentPeer::windowRequiresX11) != 0;
-
-    if (!requiresX11
-        && WaylandWindowSystem::shouldUseWaylandBackend()
-        && WaylandWindowSystem::getInstance()->isWaylandAvailable())
+    if (isWaylandWindow(peer))
     {
         // Wayland refreshes constraints even when bounds are unchanged.
         peer->setBounds(peer->getBounds(), peer->isFullScreen());
         return;
     }
-#   endif
 
     auto* x11 = juce::XWindowSystem::getInstance();
     const auto window = reinterpret_cast<::Window>(peer->getNativeHandle());
@@ -249,11 +251,9 @@ void OSUtils::updateLinuxWindowConstraints(juce::ComponentPeer* peer)
 
 bool OSUtils::isLinuxWindowMaximised(ComponentPeer* peer)
 {
-#    if JUCE_WAYLAND
-    if (WaylandWindowSystem::getInstance()->isWaylandAvailable()) {
-        return peer->isFullScreen();
-    }
-#    endif
+    if (isWaylandWindow(peer))
+        return juce::isWaylandWindowMaximised(*peer);
+
     enum window_state_t {
         WINDOW_STATE_NONE = 0,
         WINDOW_STATE_MODAL = (1 << 0),
@@ -338,12 +338,12 @@ bool OSUtils::isLinuxWindowMaximised(ComponentPeer* peer)
 
 void OSUtils::maximiseLinuxWindow(ComponentPeer* peer, bool shouldBeMaximised)
 {
-#    if JUCE_WAYLAND
-    if (WaylandWindowSystem::getInstance()->isWaylandAvailable()) {
-        peer->setFullScreen(shouldBeMaximised);
+    // Not peer->setFullScreen(): on Wayland that requests a fullscreen window rather than a maximised one
+    if (isWaylandWindow(peer)) {
+        juce::setWaylandWindowMaximised(*peer, shouldBeMaximised);
         return;
     }
-#    endif
+
     juce::XWindowSystem::getInstance()->setMaximised((::Window)peer->getNativeHandle(), shouldBeMaximised);
 }
 
