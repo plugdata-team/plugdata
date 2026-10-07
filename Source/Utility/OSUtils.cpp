@@ -220,12 +220,31 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 
 void OSUtils::updateLinuxWindowConstraints(juce::ComponentPeer* peer)
 {
-#    if JUCE_WAYLAND
-    if (WaylandWindowSystem::getInstance()->isWaylandAvailable()) {
+    if (peer == nullptr)
+        return;
+
+#   if JUCE_WAYLAND
+    const bool requiresX11 =
+        (peer->getStyleFlags() & juce::ComponentPeer::windowRequiresX11) != 0;
+
+    if (!requiresX11
+        && WaylandWindowSystem::shouldUseWaylandBackend()
+        && WaylandWindowSystem::getInstance()->isWaylandAvailable())
+    {
+        // Wayland refreshes constraints even when bounds are unchanged.
+        peer->setBounds(peer->getBounds(), peer->isFullScreen());
         return;
     }
-#    endif
-    juce::XWindowSystem::getInstance()->updateConstraints(reinterpret_cast<::Window>(peer->getNativeHandle()));
+#   endif
+
+    auto* x11 = juce::XWindowSystem::getInstance();
+    const auto window = reinterpret_cast<::Window>(peer->getNativeHandle());
+
+    if (window != 0)
+    {
+        const auto physicalBounds = x11->getWindowBounds(window, 0);
+        x11->updateSizeHints(window, *peer, physicalBounds);
+    }
 }
 
 bool OSUtils::isLinuxWindowMaximised(ComponentPeer* peer)
