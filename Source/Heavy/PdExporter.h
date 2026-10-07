@@ -150,10 +150,14 @@ public:
             waitForProcessToFinish(-1);
             exportingView->flushConsole();
 
+            workingDir.setAsCurrentWorkingDirectory();
+
+            // A cancelled build doesn't get copied to the externals folder
+            if (shouldQuit)
+                return true;
+
             // Delay to get correct exit code
             Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
-
-            workingDir.setAsCurrentWorkingDirectory();
 
 #if JUCE_MAC
             auto external = outputFile.getChildFile(name + "~.pd_darwin");

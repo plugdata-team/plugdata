@@ -358,6 +358,10 @@ public:
             // Restore original working directory
             workingDir.setAsCurrentWorkingDirectory();
 
+            // A cancelled build doesn't get flashed
+            if (shouldQuit)
+                return true;
+
             // Delay to get correct exit code
             Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
 

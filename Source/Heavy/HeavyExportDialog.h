@@ -22,6 +22,8 @@ class HeavyExportDialog final : public Component {
 
     // std::unique_ptr<HelpDialog> helpDialog;
 
+    void updateToolchainView();
+
 public:
     static std::unique_ptr<Component> createHeavyToolbar(PluginEditor* editor);
 

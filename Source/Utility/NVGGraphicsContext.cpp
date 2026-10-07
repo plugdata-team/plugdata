@@ -601,7 +601,7 @@ void NVGGraphicsContext::setPath(Path const& path, AffineTransform const& transf
         switch (i.elementType) {
         case Path::Iterator::startNewSubPath:
             nanovg::nvgMoveTo(nvg, i.x1, i.y1);
-            nanovg::nvgPathWinding(nvg, NVG_NONZERO);
+            nanovg::nvgPathWinding(nvg, NVG_NONZERO); // NOTE: this doesn't actually correctly handle even-odd windings, but afaik we don't use them anyway
             break;
         case Path::Iterator::lineTo:
             nanovg::nvgLineTo(nvg, i.x1, i.y1);

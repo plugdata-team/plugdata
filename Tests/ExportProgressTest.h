@@ -70,8 +70,7 @@ private:
 
         // Drive the production installer. It downloads the platform toolchain
         // archive and unpacks it via Decompress::extractTarXz.
-        installerDialogOwner.reset(new Dialog(&installerDialogOwner, editor, 600, 400, false));
-        installer = std::make_unique<ToolchainInstaller>(editor, installerDialogOwner.get());
+        installer = std::make_unique<ToolchainInstaller>(editor);
         installer->toolchainInstalledCallback = [this] {
             expect(ExporterBase::heavyExecutable.existsAsFile(), "installer must produce the Heavy executable");
             runExport();
@@ -92,8 +91,8 @@ private:
         if (ExporterBase::heavyExecutable.existsAsFile())
             return; // the installed callback handles the rest
 
-        if (installer && installer->errorMessage.isNotEmpty()) {
-            logMessage("Toolchain download unavailable (" + installer->errorMessage + ") - soft-passing the export test");
+        if (auto const& error = ToolchainInstall::getInstance()->error; error.isNotEmpty()) {
+            logMessage("Toolchain download unavailable (" + error + ") - soft-passing the export test");
             finishSoft();
             return;
         }
@@ -178,7 +177,6 @@ private:
             exporter.reset(); // ThreadPool dtor joins the export job
         }
         installer.reset();
-        installerDialogOwner.reset();
 
         Timer::callAfterDelay(100, [this, then] {
             if (view) {
@@ -197,6 +195,5 @@ private:
     std::unique_ptr<ExportingProgressView> view;
     std::unique_ptr<CppExporter> exporter;
     std::unique_ptr<ToolchainInstaller> installer;
-    std::unique_ptr<Dialog> installerDialogOwner;
     File patchFile, outputDir;
 };

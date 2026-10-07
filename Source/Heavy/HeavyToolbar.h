@@ -7,6 +7,7 @@
 
 #include "ExportingProgressView.h"
 #include "ExporterSettingsPanel.h"
+#include "ToolchainInstaller.h"
 
 namespace HeavyToolbarConstants {
 
@@ -91,10 +92,12 @@ private:
     ExporterConsole console;
 };
 
-// Quick export widget for the main toolbar: [ run | target | settings ] plus the last result
+// Quick export widget for the main toolbar: [ run | target | settings ] plus the last result.
+// Turns into a single install button until the toolchain is there, and into [ run | cancel ] while exporting
 class HeavyToolbar final : public Component
     , public MultiTimer
-    , public TooltipClient {
+    , public TooltipClient
+    , public ToolchainInstall::Listener {
 public:
     explicit HeavyToolbar(PluginEditor* parentEditor)
         : editor(parentEditor)
@@ -105,10 +108,6 @@ public:
             bool const verifying = verifyOutputDir != File();
 
             switch (exportingView->state) {
-            case ExportingProgressView::Exporting:
-            case ExportingProgressView::Flashing:
-                startTimer(SpinnerTimer, 20);
-                break;
             case ExportingProgressView::Success:
             case ExportingProgressView::BootloaderFlashSuccess:
                 editor->pd->logMessage(verifying ? "Patch compiles successfully" : "Export successful");
@@ -117,12 +116,18 @@ public:
             case ExportingProgressView::BootloaderFlashFailure:
                 editor->pd->logError(verifying ? "Patch failed to compile" : "Export failed");
                 break;
+            case ExportingProgressView::NotExporting:
+                editor->pd->logMessage(verifying ? "Verification cancelled" : "Export cancelled");
+                break;
             default:
                 break;
             }
 
+            updateSpinner();
+
+            // Whichever way it ended, the next export starts out cancellable
             if (!isExporting()) {
-                stopTimer(SpinnerTimer);
+                cancelling = false;
 
                 // The generated code was only ever there to prove the patch compiles
                 if (verifying) {
@@ -137,12 +142,18 @@ public:
 
         exportingView->onStatusChange = [this] { repaint(); };
 
+        ToolchainInstall::getInstance()->addListener(this);
+        updateToolchainState();
+
         setSize(HeavyToolbarConstants::totalWidth, getHeight());
     }
 
     ~HeavyToolbar() override
     {
         setWindowMovable(true);
+
+        if (auto* install = ToolchainInstall::getInstanceWithoutCreating())
+            install->removeListener(this);
 
         if (exporter)
             saveState();
@@ -153,64 +164,14 @@ public:
 
     void paint(Graphics& g) override
     {
-        using namespace HeavyToolbarConstants;
-
-        auto const& colours = getThemeColours(*this);
-        auto const bounds = getLocalBounds().toFloat().reduced(0, 3.5f);
-        constexpr float cornerRadius = Corners::defaultCornerRadius;
-
-        for (auto const section : { Run, Target, Settings }) {
-            auto const sectionBounds = getSectionBounds(section);
-            bool const isFirst = section == Run;
-            bool const isLast = section == Settings;
-
-            Path p;
-            p.addRoundedRectangle(sectionBounds.getX(), sectionBounds.getY(), sectionBounds.getWidth(), sectionBounds.getHeight(),
-                cornerRadius, cornerRadius, isFirst, isLast, isFirst, isLast);
-
-            g.setColour(colours.toolbarHoverColour.contrasting(hoveredSection == section ? 0.05f : 0.0f));
-            g.fillPath(p);
-        }
-
-        g.setColour(colours.toolbarOutlineColour.withAlpha(0.5f));
-        g.drawVerticalLine(roundToInt(getSectionBounds(Target).getX()), bounds.getY() + 3.0f, bounds.getBottom() - 3.0f);
-        g.drawVerticalLine(roundToInt(getSectionBounds(Settings).getX()), bounds.getY() + 3.0f, bounds.getBottom() - 3.0f);
-
-        auto const runBounds = getSectionBounds(Run);
+        // An export that's already running keeps its cancel button, whatever the update check says
         if (isExporting()) {
-            getLookAndFeel().drawSpinningWaitAnimation(g, colours.toolbarTextColour, roundToInt(runBounds.getCentreX()) - 7, roundToInt(runBounds.getCentreY()) - 7, 14, 14);
+            paintExportingSections(g);
+        } else if (needsToolchain) {
+            paintInstallButton(g);
         } else {
-            auto const triangle = Rectangle<float>(11.0f, 12.0f).withCentre(runBounds.getCentre());
-
-            Path arrow;
-            arrow.addTriangle(triangle.getX(), triangle.getY(), triangle.getX(), triangle.getBottom(), triangle.getRight(), triangle.getCentreY());
-
-            g.setColour(colours.toolbarTextColour);
-            g.fillPath(arrow.createPathWithRoundedCorners(2.0f));
-
-            // Hints that holding the button opens the export type menu
-            if (hoveredSection == Run) {
-                auto const chevron = Rectangle<float>(5.0f, 2.5f).withCentre(runBounds.getBottomRight().translated(-5.0f, -4.5f));
-
-                Path hint;
-                hint.startNewSubPath(chevron.getX(), chevron.getY());
-                hint.lineTo(chevron.getCentreX(), chevron.getBottom());
-                hint.lineTo(chevron.getRight(), chevron.getY());
-
-                g.setColour(colours.toolbarTextColour.withAlpha(0.75f));
-                g.strokePath(hint, PathStrokeType(1.0f, PathStrokeType::curved, PathStrokeType::rounded));
-            }
-        }
-
-        Fonts::drawText(g, getLabelText(), getSectionBounds(Target).reduced(8, 0), colours.toolbarTextColour, 14, Justification::centred);
-
-        Fonts::drawIcon(g, Icons::ChrevronDownFilled, getSectionBounds(Settings).toNearestInt(), colours.toolbarTextColour, 12);
-
-        if (hasExportResult()) {
-            bool const succeeded = lastExportSucceeded();
-            auto const badgeColour = (succeeded ? successColour : failureColour).brighter(hoveredSection == Status ? 0.2f : 0.0f);
-
-            Fonts::drawIcon(g, succeeded ? Icons::CheckmarkCircle : Icons::DismissCircle, getSectionBounds(Status).toNearestInt(), badgeColour, 16);
+            paintExportSections(g);
+            paintStatusBadge(g);
         }
     }
 
@@ -220,6 +181,12 @@ public:
             return;
 
         switch (getSectionAt(e.getPosition())) {
+        case Install:
+            ToolchainInstall::getInstance()->install(editor);
+            break;
+        case Cancel:
+            cancelExport();
+            break;
         case Run:
             if (isExporting())
                 showConsoleCallout(Run);
@@ -273,7 +240,7 @@ public:
     void timerCallback(int const timerID) override
     {
         if (timerID == SpinnerTimer) {
-            repaint(getSectionBounds(Run).getSmallestIntegerContainer());
+            repaint(getSectionBounds(isExporting() ? Run : Install).getSmallestIntegerContainer());
         } else {
             stopTimer(HoldTimer);
             showExportTypeMenu();
@@ -283,6 +250,14 @@ public:
     String getTooltip() override
     {
         switch (hoveredSection) {
+        case Install: {
+            auto const& install = *ToolchainInstall::getInstance();
+            if (install.installing)
+                return "";
+            if (install.error.isNotEmpty())
+                return install.error;
+            return install.updateAvailable ? "Download the latest Heavy toolchain" : "Download the Heavy toolchain, which compiles and exports patches";
+        }
         case Run:
             return isExporting() ? "Show export output" : "Run Heavy export";
         case Target:
@@ -296,19 +271,197 @@ public:
         }
     }
 
+    void visibilityChanged() override
+    {
+        if (!isVisible())
+            return;
+
+        updateToolchainState();
+
+        // Only asked once the toolbar is in use, and only once per session
+        if (ExporterBase::toolchainDir.exists())
+            ToolchainInstall::getInstance()->checkForUpdate();
+    }
+
+    void toolchainInstallChanged() override
+    {
+        updateToolchainState();
+        updateSpinner();
+        updateHover();
+        repaint();
+    }
+
+    void toolchainInstalled() override
+    {
+        editor->pd->logMessage("Heavy toolchain installed");
+    }
+
+    void toolchainInstallFailed(String const& error) override
+    {
+        editor->pd->logError(error);
+    }
+
 private:
     enum Section {
         None,
         Run,
         Target,
         Settings,
-        Status
+        Status,
+        Install,
+        Cancel
     };
 
     enum TimerID {
         SpinnerTimer,
         HoldTimer
     };
+
+    void paintExportSections(Graphics& g)
+    {
+        auto const& colours = getThemeColours(*this);
+        auto const bounds = getLocalBounds().toFloat().reduced(0, 3.5f);
+        constexpr float cornerRadius = Corners::defaultCornerRadius;
+
+        for (auto const section : { Run, Target, Settings }) {
+            auto const sectionBounds = getSectionBounds(section);
+            bool const isFirst = section == Run;
+            bool const isLast = section == Settings;
+
+            Path p;
+            p.addRoundedRectangle(sectionBounds.getX(), sectionBounds.getY(), sectionBounds.getWidth(), sectionBounds.getHeight(),
+                cornerRadius, cornerRadius, isFirst, isLast, isFirst, isLast);
+
+            g.setColour(colours.toolbarHoverColour.contrasting(hoveredSection == section ? 0.05f : 0.0f));
+            g.fillPath(p);
+        }
+
+        g.setColour(colours.toolbarOutlineColour.withAlpha(0.5f));
+        g.drawVerticalLine(roundToInt(getSectionBounds(Target).getX()), bounds.getY() + 3.0f, bounds.getBottom() - 3.0f);
+        g.drawVerticalLine(roundToInt(getSectionBounds(Settings).getX()), bounds.getY() + 3.0f, bounds.getBottom() - 3.0f);
+
+        auto const runBounds = getSectionBounds(Run);
+        auto const triangle = Rectangle<float>(11.0f, 12.0f).withCentre(runBounds.getCentre());
+
+        Path arrow;
+        arrow.addTriangle(triangle.getX(), triangle.getY(), triangle.getX(), triangle.getBottom(), triangle.getRight(), triangle.getCentreY());
+
+        g.setColour(colours.toolbarTextColour);
+        g.fillPath(arrow.createPathWithRoundedCorners(2.0f));
+
+        // Hints that holding the button opens the export type menu
+        if (hoveredSection == Run) {
+            auto const chevron = Rectangle<float>(5.0f, 2.5f).withCentre(runBounds.getBottomRight().translated(-5.0f, -4.5f));
+
+            Path hint;
+            hint.startNewSubPath(chevron.getX(), chevron.getY());
+            hint.lineTo(chevron.getCentreX(), chevron.getBottom());
+            hint.lineTo(chevron.getRight(), chevron.getY());
+
+            g.setColour(colours.toolbarTextColour.withAlpha(0.75f));
+            g.strokePath(hint, PathStrokeType(1.0f, PathStrokeType::curved, PathStrokeType::rounded));
+        }
+
+        Fonts::drawText(g, ExporterSettingsPanel::targets[target], getSectionBounds(Target).reduced(8, 0), colours.toolbarTextColour, 14, Justification::centred);
+
+        Fonts::drawIcon(g, Icons::ChrevronDownFilled, getSectionBounds(Settings).toNearestInt(), colours.toolbarTextColour, 12);
+    }
+
+    // [ spinner | the step the export is on ], where the step turns into a cancel button on hover
+    void paintExportingSections(Graphics& g)
+    {
+        auto const& colours = getThemeColours(*this);
+        auto const bounds = getLocalBounds().toFloat().reduced(0, 3.5f);
+        constexpr float cornerRadius = Corners::defaultCornerRadius;
+
+        for (auto const section : { Run, Cancel }) {
+            auto const sectionBounds = getSectionBounds(section);
+            bool const isFirst = section == Run;
+            bool const highlighted = hoveredSection == section && !(section == Cancel && cancelling);
+
+            Path p;
+            p.addRoundedRectangle(sectionBounds.getX(), sectionBounds.getY(), sectionBounds.getWidth(), sectionBounds.getHeight(),
+                cornerRadius, cornerRadius, isFirst, !isFirst, isFirst, !isFirst);
+
+            g.setColour(colours.toolbarHoverColour.contrasting(highlighted ? 0.05f : 0.0f));
+            g.fillPath(p);
+        }
+
+        g.setColour(colours.toolbarOutlineColour.withAlpha(0.5f));
+        g.drawVerticalLine(roundToInt(getSectionBounds(Cancel).getX()), bounds.getY() + 3.0f, bounds.getBottom() - 3.0f);
+
+        auto const runBounds = getSectionBounds(Run);
+        getLookAndFeel().drawSpinningWaitAnimation(g, colours.toolbarTextColour, roundToInt(runBounds.getCentreX()) - 7, roundToInt(runBounds.getCentreY()) - 7, 14, 14);
+
+        Fonts::drawText(g, getCancelText(), getSectionBounds(Cancel).reduced(8, 0), colours.toolbarTextColour, 14, Justification::centred);
+    }
+
+    // One button over the whole pill, with the download progress as a line along its bottom
+    void paintInstallButton(Graphics& g)
+    {
+        auto const& colours = getThemeColours(*this);
+        auto const& install = *ToolchainInstall::getInstance();
+        auto const buttonBounds = getSectionBounds(Install);
+        constexpr float cornerRadius = Corners::defaultCornerRadius;
+
+        g.setColour(colours.toolbarHoverColour.contrasting(hoveredSection == Install && !install.installing ? 0.05f : 0.0f));
+        g.fillRoundedRectangle(buttonBounds, cornerRadius);
+
+        String text;
+        if (install.unpacking)
+            text = "Installing toolchain...";
+        else if (install.installing)
+            text = "Downloading toolchain...";
+        else if (install.error.isNotEmpty())
+            text = install.updateAvailable ? "Update failed, try again" : "Install failed, try again";
+        else
+            text = install.updateAvailable ? "Update Heavy toolchain" : "Install Heavy toolchain";
+
+        constexpr int iconWidth = 22;
+        auto const textWidth = Fonts::getStringWidth(text, Fonts::getDefaultFont().withHeight(14));
+        auto content = buttonBounds.withSizeKeepingCentre(std::min(iconWidth + textWidth, buttonBounds.getWidth() - 16.0f), buttonBounds.getHeight());
+        auto const iconBounds = content.removeFromLeft(iconWidth);
+
+        if (install.installing)
+            getLookAndFeel().drawSpinningWaitAnimation(g, colours.toolbarTextColour, roundToInt(iconBounds.getX()), roundToInt(iconBounds.getCentreY()) - 7, 14, 14);
+        else
+            Fonts::drawIcon(g, Icons::Download, iconBounds.toNearestInt().withWidth(14), colours.toolbarTextColour, 14);
+
+        Fonts::drawText(g, text, content, colours.toolbarTextColour, 14, Justification::centredLeft);
+
+        if (install.installing) {
+            // Kept clear of the rounded corners, so it only runs along the flat part of the bottom edge
+            auto const track = buttonBounds.reduced(cornerRadius, 0.0f).removeFromBottom(2.0f);
+            auto const progress = install.unpacking ? 1.0f : jlimit(0.0f, 1.0f, install.progress);
+
+            g.setColour(colours.toolbarOutlineColour.withAlpha(0.5f));
+            g.fillRoundedRectangle(track, 1.0f);
+
+            g.setColour(colours.toolbarActiveColour);
+            g.fillRoundedRectangle(track.withWidth(track.getWidth() * progress), 1.0f);
+        }
+    }
+
+    void paintStatusBadge(Graphics& g)
+    {
+        using namespace HeavyToolbarConstants;
+
+        if (!hasExportResult())
+            return;
+
+        bool const succeeded = lastExportSucceeded();
+        auto const badgeColour = (succeeded ? successColour : failureColour).brighter(hoveredSection == Status ? 0.2f : 0.0f);
+
+        Fonts::drawIcon(g, succeeded ? Icons::CheckmarkCircle : Icons::DismissCircle, getSectionBounds(Status).toNearestInt(), badgeColour, 16);
+    }
+
+    void updateSpinner()
+    {
+        if (!isExporting() && !ToolchainInstall::getInstance()->installing)
+            stopTimer(SpinnerTimer);
+        else if (!isTimerRunning(SpinnerTimer))
+            startTimer(SpinnerTimer, 20);
+    }
 
     void updateHover()
     {
@@ -318,11 +471,17 @@ private:
         }
     }
 
-    // The export step takes over the middle section while it runs
-    String getLabelText() const
+    // The step the export is on, which turns into the cancel action on hover
+    String getCancelText() const
     {
+        if (cancelling)
+            return "Cancelling...";
+
+        if (hoveredSection == Cancel)
+            return verifyOutputDir != File() ? "Cancel verification" : "Cancel export";
+
         auto const& status = exportingView->currentStatus;
-        return isExporting() && status.isNotEmpty() ? status : ExporterSettingsPanel::targets[target];
+        return status.isNotEmpty() ? status : ExporterSettingsPanel::targets[target];
     }
 
     // Dragging the widget shouldn't drag the whole window along with it
@@ -355,6 +514,8 @@ private:
             return bounds.removeFromRight(settingsWidth);
         case Target:
             return bounds.withTrimmedLeft(runWidth).withTrimmedRight(settingsWidth);
+        case Cancel:
+            return bounds.withTrimmedLeft(runWidth);
         case Status:
             return statusBounds;
         default:
@@ -364,28 +525,63 @@ private:
 
     Section getSectionAt(Point<int> const position) const
     {
-        for (auto const section : { Run, Target, Settings, Status }) {
-            // The badge only exists once there's a result, and only the output is reachable mid-export
-            if (section == Status && !hasExportResult())
-                continue;
-            if (section != Run && isExporting())
-                continue;
-
-            if (getSectionBounds(section).withTop(0.0f).withBottom(getHeight()).contains(position.toFloat()))
+        for (auto const section : { Install, Run, Target, Settings, Cancel, Status }) {
+            if (isSectionShown(section) && getSectionBounds(section).withTop(0.0f).withBottom(getHeight()).contains(position.toFloat()))
                 return section;
         }
 
         return None;
     }
 
-    // Nothing can be exported or configured before the toolchain is there, so send the user to the installer
+    bool isSectionShown(Section const section) const
+    {
+        // Mid-export, all that's left is the output and cancelling
+        if (isExporting())
+            return section == Run || section == Cancel;
+
+        if (needsToolchain)
+            return section == Install;
+
+        switch (section) {
+        case Run:
+        case Target:
+        case Settings:
+            return true;
+        // The badge only exists once there's a result
+        case Status:
+            return hasExportResult();
+        default:
+            return false;
+        }
+    }
+
+    // Nothing can be exported or configured before the toolchain is there, or while it's out of date
+    void updateToolchainState()
+    {
+        auto const& install = *ToolchainInstall::getInstance();
+        needsToolchain = install.installing || install.updateAvailable || !ExporterBase::toolchainDir.exists();
+    }
+
+    // Checked again before anything runs, in case the toolchain went missing since the toolbar last looked
     bool hasToolchain()
     {
-        if (ExporterBase::toolchainDir.exists())
-            return true;
+        updateToolchainState();
+        repaint();
 
-        Dialogs::showHeavyExportDialog(&editor->openedDialog, editor);
-        return false;
+        return !needsToolchain;
+    }
+
+    void cancelExport()
+    {
+        if (cancelling || !isExporting())
+            return;
+
+        cancelling = true;
+
+        if (auto* running = verifyOutputDir != File() ? verifyExporter.get() : exporter.get())
+            running->cancelExport();
+
+        repaint();
     }
 
     ExporterBase* getExporter()
@@ -541,6 +737,9 @@ private:
 
     int target;
     Section hoveredSection = None;
+
+    bool needsToolchain = false;
+    bool cancelling = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(HeavyToolbar)
 };

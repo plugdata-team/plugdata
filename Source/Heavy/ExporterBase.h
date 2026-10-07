@@ -56,7 +56,12 @@ struct ExporterBase : public Component
 
     ExportingProgressView* exportingView;
 
-    bool shouldQuit = false;
+    // Stops the export where it is: set when the exporter goes away, or when the user cancels
+    AtomicValue<bool> shouldQuit = false;
+    AtomicValue<bool> cancelled = false;
+
+    // Keeps a cancel from killing the process while the export thread swaps in the next one
+    CriticalSection processLock;
 
     Label unsavedLabel = Label("", "Warning: patch has unsaved changes");
     PluginEditor* editor;
@@ -139,10 +144,24 @@ struct ExporterBase : public Component
             openedPatchFile.deleteFile();
         }
 
+        {
+            ScopedLock lock(processLock);
+            shouldQuit = true;
+            if (process.isRunning())
+                process.kill();
+        }
+
+        removeAllJobs(true, -1);
+    }
+
+    // The export finishes as soon as the step it's on is killed, and doesn't start another
+    void cancelExport()
+    {
+        ScopedLock lock(processLock);
+        cancelled = true;
         shouldQuit = true;
         if (process.isRunning())
             process.kill();
-        removeAllJobs(true, -1);
     }
 
     void startProcess(String const& command)
@@ -253,6 +272,9 @@ struct ExporterBase : public Component
 
     String startShellScriptWithOutput(String const& scriptText)
     {
+        if (shouldQuit)
+            return { };
+
         exportingView->logToConsole("\n\x1b[1;34m> " + scriptText + " \x1b[0m \n\n");
 
         File scriptFile = File::createTempFile(".sh");
@@ -289,10 +311,15 @@ struct ExporterBase : public Component
         auto const bash = String("#!/bin/bash\n");
         scriptFile.replaceWithText(bash + gccColourFlags + scriptText, false, false, "\n");
 
+        ScopedLock lock(processLock);
+        if (shouldQuit)
+            return;
+
 #if JUCE_WINDOWS
         auto sh = toolchainDir.getChildFile("bin").getChildFile("sh.exe");
         process.start(StringArray { sh.getFullPathName(), "--login", scriptFile.getFullPathName().replaceCharacter('\\', '/') });
 #else
+        // The pty makes the script a session leader, so killing it hangs up on whatever it started too
         scriptFile.setExecutePermission(true);
         process.start(scriptFile.getFullPathName(), ChildProcess::wantStdOut | ChildProcess::wantStdErr | ChildProcess::wantTtyOut);
 #endif
@@ -335,6 +362,10 @@ struct ExporterBase : public Component
         // Make sure we don't add the file location twice
         searchPaths.removeDuplicates(false);
         auto const action = getExportAction();
+
+        shouldQuit = false;
+        cancelled = false;
+
         addJob([this, action, patchPath, outPath, projectTitle, projectCopyright, searchPaths]() mutable {
             exportingView->monitorProcessOutput(getProcess());
             exportingView->showState(action == Export ? ExportingProgressView::Exporting : ExportingProgressView::Flashing);
@@ -344,10 +375,13 @@ struct ExporterBase : public Component
 
             auto const result = performExport(patchPath, outPath, projectTitle, projectCopyright, searchPaths);
 
-            if (shouldQuit)
+            // The exporter is going away, so there's no one left to tell
+            if (shouldQuit && !cancelled)
                 return;
 
-            if (action == FlashBootloader)
+            if (cancelled)
+                exportingView->showState(ExportingProgressView::NotExporting);
+            else if (action == FlashBootloader)
                 exportingView->showState(result ? ExportingProgressView::BootloaderFlashFailure : ExportingProgressView::BootloaderFlashSuccess);
             else
                 exportingView->showState(result ? ExportingProgressView::Failure : ExportingProgressView::Success);

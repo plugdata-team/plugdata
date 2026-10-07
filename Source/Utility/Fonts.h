@@ -125,8 +125,8 @@ struct Fonts {
                     MemoryBlock fontData;
                     fileStream->readIntoMemoryBlock(fontData);
                     auto typeface = Typeface::createSystemTypefaceFor(fontData.getData(), fontData.getSize());
-                    fontTable[font.getFullPathName()] = Font(FontOptions(typeface));
-                    return typeface;
+                    auto cachedFont = fontTable.try_emplace(font.getFullPathName(), FontOptions(typeface));
+                    return cachedFont.first->second;
                 }
             }
         }

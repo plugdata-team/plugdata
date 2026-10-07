@@ -27,39 +27,10 @@ std::unique_ptr<Component> HeavyExportDialog::createHeavyToolbar(PluginEditor* e
 
 HeavyExportDialog::HeavyExportDialog(Dialog* dialog)
     : exportingView(new ExportingProgressView())
-    , installer(new ToolchainInstaller(dynamic_cast<PluginEditor*>(dialog->parentComponent), dialog))
+    , installer(new ToolchainInstaller(dynamic_cast<PluginEditor*>(dialog->parentComponent)))
     , exporterPanel(new ExporterSettingsPanel(dynamic_cast<PluginEditor*>(dialog->parentComponent), exportingView.get()))
     , infoButton(new MainToolbarButton(Icons::Help))
 {
-    hasToolchain = ExporterBase::toolchainDir.exists();
-
-    // Don't do this relative to toolchain variable, that won't work on Windows
-    auto const versionFile = ProjectInfo::appDataDir.getChildFile("Toolchain").getChildFile("VERSION");
-    auto const installedVersion = versionFile.loadFileAsString().trim().removeCharacters(".").getIntValue();
-
-    // Create integer versions by removing the dots
-    // Compare latest version on github to the currently installed version
-    int latestVersion;
-    try {
-        auto const compatTable = JSON::parse(URL("https://raw.githubusercontent.com/plugdata-team/plugdata-heavy-toolchain/main/COMPATIBILITY").readEntireTextStream());
-        // Get latest version
-        if (compatTable.isObject()) {
-            latestVersion = compatTable.getDynamicObject()->getProperty(String(ProjectInfo::versionString).upToFirstOccurrenceOf("-", false, false)).toString().removeCharacters(".").getIntValue();
-        } else {
-            latestVersion = installedVersion;
-        }
-    }
-    // Network error, JSON error or empty version string somehow
-    catch (...) {
-        latestVersion = installedVersion;
-        return;
-    }
-
-    if (hasToolchain && latestVersion > installedVersion) {
-        installer->needsUpdate = true;
-        hasToolchain = false;
-    }
-
     addChildComponent(*installer);
     addChildComponent(*exporterPanel);
     addChildComponent(*exportingView);
@@ -78,17 +49,12 @@ HeavyExportDialog::HeavyExportDialog(Dialog* dialog)
     };
     addAndMakeVisible(*infoButton);
 
-    installer->toolchainInstalledCallback = [this] {
-        hasToolchain = true;
-        exporterPanel->setVisible(true);
-        installer->setVisible(false);
-    };
+    installer->onInstallChanged = [this] { updateToolchainView(); };
+    updateToolchainView();
 
-    if (hasToolchain) {
-        exporterPanel->setVisible(true);
-    } else {
-        installer->setVisible(true);
-    }
+    // The installer takes over if the toolchain turns out to be outdated
+    if (ExporterBase::toolchainDir.exists())
+        ToolchainInstall::getInstance()->checkForUpdate();
 }
 
 HeavyExportDialog::~HeavyExportDialog()
@@ -97,6 +63,18 @@ HeavyExportDialog::~HeavyExportDialog()
 
     // Clean up temp files
     ExporterBase::deleteTempFiles();
+}
+
+// Installing, or an install that's turned out to be needed, takes over from the exporter
+void HeavyExportDialog::updateToolchainView()
+{
+    auto const& install = *ToolchainInstall::getInstance();
+
+    hasToolchain = ExporterBase::toolchainDir.exists() && !install.updateAvailable && !install.installing;
+    installer->needsUpdate = install.updateAvailable;
+
+    exporterPanel->setVisible(hasToolchain);
+    installer->setVisible(!hasToolchain);
 }
 
 void HeavyExportDialog::paint(Graphics& g)
