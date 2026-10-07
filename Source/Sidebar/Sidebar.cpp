@@ -545,6 +545,12 @@ bool Sidebar::isShowingInspector() const
     return inspectorPtr && inspectorPtr->getParentComponent() == this && inspectorPtr->isVisible();
 }
 
+bool Sidebar::canAutoShowInspector() const
+{
+    // Search and reference panels use object selection for their own purpose, so don't cover them with the inspector
+    return inspectorAutoShow && !(hasCurrentPanel && (currentPanel == PatchSearchPanel || currentPanel == ObjectReferencePanel));
+}
+
 bool Sidebar::refreshInspectorVisibility(bool const allowManualShow)
 {
     if (!inspectorPtr || !hasPanel(InspectorPanel)) {
@@ -556,7 +562,7 @@ bool Sidebar::refreshInspectorVisibility(bool const allowManualShow)
         clearInspector();
 
     inspectorHasParameters = lastParameters.not_empty() && inspectorPtr->loadParameters(lastParameters);
-    bool const shouldShow = !sidebarHidden && inspectorHasParameters && (inspectorAutoShow || currentPanel == InspectorPanel || (allowManualShow && inspectorManuallyShown));
+    bool const shouldShow = !sidebarHidden && inspectorHasParameters && (canAutoShowInspector() || currentPanel == InspectorPanel || (allowManualShow && inspectorManuallyShown));
 
     inspectorPtr->setVisible(shouldShow);
     if (!shouldShow)
@@ -819,6 +825,9 @@ bool Sidebar::isHidden() const
 
 void Sidebar::forceShowParameters(SmallArray<Component*>& objects, SmallArray<ObjectParameters, 6>& params)
 {
+    if (inspectorAutoShow && !sidebarHidden && !canAutoShowInspector())
+        inspectorManuallyShown = true;
+
     showParameters(objects, params, true);
 }
 
@@ -842,7 +851,7 @@ void Sidebar::showParameters(SmallArray<Component*>& objects, SmallArray<ObjectP
         inspectorPtr->setTitle(name);
 
     inspectorHasParameters = params.not_empty() && activeParams;
-    bool const shouldShowInspector = !sidebarHidden && inspectorHasParameters && ((inspectorAutoShow && showOnSelect) || currentPanel == InspectorPanel || inspectorManuallyShown);
+    bool const shouldShowInspector = !sidebarHidden && inspectorHasParameters && ((showOnSelect && canAutoShowInspector()) || currentPanel == InspectorPanel || inspectorManuallyShown);
     if (!sidebarHidden && !inspectorHasParameters && hasCurrentPanel && currentPanel == ConsolePanel) {
         if (auto* btn = getSelectorButton(ConsolePanel)) {
             btn->numNotifications = 0;

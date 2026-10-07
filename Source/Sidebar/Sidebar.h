@@ -191,6 +191,7 @@ private:
     bool areParamObjectsAllValid();
     void updateSelectorButtonStates();
     bool refreshInspectorVisibility(bool allowManualShow);
+    bool canAutoShowInspector() const;
 
     // The inspector is shared between both sidebars, so check who it's parented to before touching it
     bool isShowingInspector() const;
