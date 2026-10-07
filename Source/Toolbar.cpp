@@ -1575,6 +1575,7 @@ public:
     void showDSPState(bool const dspState)
     {
         toggle.setToggleState(dspState, dontSendNotification);
+        repaint();
     }
 
     void audioProcessedChanged(bool const audioProcessed) override
