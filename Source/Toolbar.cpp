@@ -1789,7 +1789,7 @@ void AudioToolbar::resized()
 {
     auto b = getLocalBounds().reduced(4, 0);
 
-    b.removeFromRight(4);
+    b.removeFromRight(2);
 
     auto powerBounds = b.removeFromRight(40);
     powerButton->setBounds(powerBounds);
