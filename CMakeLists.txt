@@ -36,7 +36,6 @@ option(ENABLE_GEM "Enable Gem support" ON)
 option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
 option(ENABLE_TSAN "Enable ThreadSanitizer" OFF)
 option(ENABLE_PERFETTO "Enable Perfetto profiling (advanced)" OFF)
-option(ENABLE_WAYLAND "Enable native wayland support (experimental)" OFF)
 option(MACOS_LEGACY "Enable support for old macOS versions (lowers OSX_DEPLOYMENT TARGET and disables Metal" OFF)
 option(VERBOSE "" OFF)
 
@@ -56,12 +55,6 @@ endif()
 
 if(CMAKE_GENERATOR STREQUAL "Ninja" AND MSVC)
     target_compile_options(pd PRIVATE /EHsc)
-endif()
-
-if(LINUX AND ENABLE_WAYLAND)
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(WAYLAND REQUIRED wayland-client wayland-cursor xkbcommon libdecor-0 egl)
-    include_directories(${WAYLAND_INCLUDE_DIRS})
 endif()
 
 if(APPLE)
@@ -333,9 +326,6 @@ endif()
 
 if(LINUX)
  list(APPEND JUCE_COMPILE_DEFINITIONS JUCE_ALSA=1)
- if(ENABLE_WAYLAND)
-    list(APPEND JUCE_COMPILE_DEFINITIONS JUCE_WAYLAND=1)
- endif()
 elseif(UNIX AND NOT APPLE) # BSD
   list(APPEND JUCE_COMPILE_DEFINITIONS)
 elseif(MSVC)
