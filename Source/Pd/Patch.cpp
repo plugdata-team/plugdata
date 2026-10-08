@@ -93,8 +93,19 @@ bool Patch::canRedo() const
 void Patch::savePatch(URL const& locationURL)
 {
     auto location = locationURL.getLocalFile();
+    auto url = locationURL;
+
+#if !JUCE_IOS
+    // The save dialog doesn't always add the extension for us (on Linux, or with JUCE's own file browser)
+    // Remember the file that actually gets written, otherwise the next save can't find it and asks for a location again
+    if (!location.hasFileExtension("pd")) {
+        location = location.getSiblingFile(location.getFileName() + ".pd");
+        url = URL(location);
+    }
+#endif
+
     String const fullPathname = location.getParentDirectory().getFullPathName();
-    String const filename = location.withFileExtension("pd").getFileName();
+    String const filename = location.getFileName();
 
     auto* dir = instance->generateSymbol(fullPathname.replace("\\", "/"));
     auto* file = instance->generateSymbol(filename);
@@ -120,7 +131,7 @@ void Patch::savePatch(URL const& locationURL)
 #endif
 
         currentFile = location;
-        currentURL = locationURL;
+        currentURL = url;
         instance->reloadAbstractions(location, patch.get());
     }
 }

@@ -965,20 +965,26 @@ void Canvas::tabChanged()
     editor->repaint(); // Make sure everything it up to date
 }
 
-void Canvas::save(std::function<void()> const& nestedCallback)
+pd::Patch::Ptr Canvas::getPatchToSave() const
 {
-    auto const* canvasToSave = this;
+    // Subpatches get saved as part of the patch that contains them, which may be open in another window
     if (patch.isSubpatch()) {
-        for (auto const& parentCanvas : editor->getCanvases()) {
-            if (patch.getRoot() == parentCanvas->patch.getRawPointer()) {
-                canvasToSave = parentCanvas;
-            }
+        auto const* root = patch.getRoot();
+        for (auto const& openedPatch : pd->patches) {
+            if (openedPatch->getRawPointer() == root)
+                return openedPatch;
         }
     }
 
-    if (canvasToSave->patch.getCurrentFile().existsAsFile()) {
-        canvasToSave->patch.savePatch();
-        SettingsFile::getInstance()->addToRecentlyOpened(canvasToSave->patch.getCurrentURL());
+    return refCountedPatch;
+}
+
+void Canvas::save(std::function<void()> const& nestedCallback)
+{
+    auto const patchToSave = getPatchToSave();
+    if (patchToSave->getCurrentFile().existsAsFile()) {
+        patchToSave->savePatch();
+        SettingsFile::getInstance()->addToRecentlyOpened(patchToSave->getCurrentURL());
         pd->titleChanged();
         nestedCallback();
     } else {
@@ -988,20 +994,23 @@ void Canvas::save(std::function<void()> const& nestedCallback)
 
 void Canvas::saveAs(std::function<void()> const& nestedCallback)
 {
-    Dialogs::showSaveDialog([this, nestedCallback](URL const& resultURL) mutable {
+    // The dialog stays attached to this canvas, even when saving a parent patch:
+    // on iOS, the file picker is shown inside it, and the parent patch's tab might not be visible
+    auto const patchToSave = getPatchToSave();
+    Dialogs::showSaveDialog([this, patchToSave, nestedCallback](URL const& resultURL) mutable {
         auto result = resultURL.getLocalFile();
         if (result.getFullPathName().isNotEmpty()) {
             if (result.exists())
                 result.deleteFile();
 
-            patch.savePatch(resultURL);
-            SettingsFile::getInstance()->addToRecentlyOpened(resultURL);
+            patchToSave->savePatch(resultURL);
+            SettingsFile::getInstance()->addToRecentlyOpened(patchToSave->getCurrentURL());
             pd->titleChanged();
         }
 
         nestedCallback();
     },
-        "*.pd", "Patch", this, false, patch.getPatchFile().getFileNameWithoutExtension());
+        "*.pd", "Patch", this, false, patchToSave->getPatchFile().getFileNameWithoutExtension());
 }
 
 void Canvas::handleAsyncUpdate()

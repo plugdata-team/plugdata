@@ -273,6 +273,8 @@ public:
 private:
     void updateCanvasDots(NVGcontext* nvg);
 
+    pd::Patch::Ptr getPatchToSave() const;
+
     void changeListenerCallback(ChangeBroadcaster* c) override;
 
     SelectedItemSet<WeakReference<Component>> previousSelectedComponents;
