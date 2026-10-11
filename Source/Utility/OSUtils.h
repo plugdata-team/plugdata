@@ -36,6 +36,7 @@ struct OSUtils {
     static bool runAsAdmin(std::string file, std::string lpParameters, juce::ComponentPeer* peer);
     static void useWindowsNativeDecorations(juce::ComponentPeer* peer, bool rounded);
 #elif defined(__unix__) && !defined(__APPLE__)
+    static bool isWaylandWindow(juce::ComponentPeer* peer);
     static void maximiseLinuxWindow(juce::ComponentPeer* peer, bool shouldBeMaximised);
     static bool isLinuxWindowMaximised(juce::ComponentPeer* peer);
     static void updateLinuxWindowConstraints(juce::ComponentPeer* peer);

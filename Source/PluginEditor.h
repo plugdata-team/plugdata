@@ -42,12 +42,12 @@ class Console;
 class DocumentationBrowser;
 class AutomationPanel;
 class SearchPanel;
+class ReferencePanel;
 class Palettes;
 class Inspector;
 class CommandInput;
 
 class PluginEditor final : public AudioProcessorEditor
-    , public Value::Listener
     , public ApplicationCommandTarget
     , public FileDragAndDropTarget
     , public ModifierKeyBroadcaster
@@ -101,7 +101,6 @@ public:
 
     void modifierKeysChanged(ModifierKeys const& modifiers) override;
 
-    void valueChanged(Value& v) override;
     void settingsChanged(String const& name, var const& value) override;
 
     void updateCommandStatus();
@@ -164,6 +163,7 @@ public:
     std::unique_ptr<AutomationPanel> automationPanel;
     std::unique_ptr<SearchPanel> searchPanel;
     std::unique_ptr<Palettes> palettePanel;
+    std::unique_ptr<ReferencePanel> referencePanel;
     std::unique_ptr<Inspector> inspectorPanel;
     std::unique_ptr<CommandInput> commandInput;
 
@@ -173,7 +173,6 @@ public:
     std::unique_ptr<Statusbar> statusbar;
     std::unique_ptr<AudioToolbar> audioToolbar;
 
-    Value theme;
     Value autoconnect;
 
     NVGSurface nvgSurface;

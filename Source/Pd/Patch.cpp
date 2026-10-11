@@ -93,8 +93,19 @@ bool Patch::canRedo() const
 void Patch::savePatch(URL const& locationURL)
 {
     auto location = locationURL.getLocalFile();
+    auto url = locationURL;
+
+#if !JUCE_IOS
+    // The save dialog doesn't always add the extension for us (on Linux, or with JUCE's own file browser)
+    // Remember the file that actually gets written, otherwise the next save can't find it and asks for a location again
+    if (!location.hasFileExtension("pd")) {
+        location = location.getSiblingFile(location.getFileName() + ".pd");
+        url = URL(location);
+    }
+#endif
+
     String const fullPathname = location.getParentDirectory().getFullPathName();
-    String const filename = location.withFileExtension("pd").getFileName();
+    String const filename = location.getFileName();
 
     auto* dir = instance->generateSymbol(fullPathname.replace("\\", "/"));
     auto* file = instance->generateSymbol(filename);
@@ -120,7 +131,7 @@ void Patch::savePatch(URL const& locationURL)
 #endif
 
         currentFile = location;
-        currentURL = locationURL;
+        currentURL = url;
         instance->reloadAbstractions(location, patch.get());
     }
 }
@@ -232,6 +243,13 @@ t_gobj* Patch::createObject(int const x, int const y, String const& name)
     tokens.addTokens(name.replace("\\ ", "__%SPACE%__"), true); // Prevent "/ " from being tokenised
 
     ObjectThemeManager::get()->formatObject(tokens);
+
+    // Make sure empty arguments don't get removed, causing argument order to shift
+    if (tokens.contains("\\")) {
+        auto const protectedText = tokens.joinIntoString(" ").replace("\\ ", "__%SPACE%__");
+        tokens.clear();
+        tokens.addTokens(protectedText, true);
+    }
 
     if (tokens[0] == "garray") {
         if (auto patch = ptr.get<t_glist>()) {

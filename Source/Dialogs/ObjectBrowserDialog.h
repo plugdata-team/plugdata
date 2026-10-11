@@ -1080,7 +1080,7 @@ private:
     ObjectViewer objectViewer;
     ObjectSearchComponent objectSearch;
 
-    MainToolbarButton searchButton = MainToolbarButton(Icons::Search);
+    MainToolbarButton searchButton = MainToolbarButton(Icons::SearchFilled);
 
     VBlankAnimatorUpdater updater { this };
     Animator fadeAnimator = ValueAnimatorBuilder { }

@@ -82,12 +82,6 @@ jobs:
           aws s3 cp ./${{ matrix.artifact }} s3://plugdata-nightly/
           aws s3 cp ./${{ matrix.artifact }}.txt s3://plugdata-nightly/
 
-          aws cloudfront create-invalidation \
-            --distribution-id E3OV68BQRGDGE2 \
-            --paths \
-              "/${{ matrix.artifact }}" \
-              "/${{ matrix.artifact }}.txt"
-
       - name: Archive Artifacts
         uses: actions/upload-artifact@v6
         with:
@@ -161,12 +155,6 @@ jobs:
 
           aws s3 cp ./${{ matrix.artifact }} s3://plugdata-nightly/
           aws s3 cp ./${{ matrix.artifact }}.txt s3://plugdata-nightly/
-
-          aws cloudfront create-invalidation \
-            --distribution-id E3OV68BQRGDGE2 \
-            --paths \
-              "/${{ matrix.artifact }}" \
-              "/${{ matrix.artifact }}.txt"
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v6
@@ -377,11 +365,6 @@ jobs:
           aws s3 cp ./plugdata-${{ matrix.name }}.tar.xz s3://plugdata-nightly/
           aws s3 cp ./plugdata-${{ matrix.name }}.tar.xz.txt s3://plugdata-nightly/
 
-          aws cloudfront create-invalidation \
-            --distribution-id E3OV68BQRGDGE2 \
-            --paths \
-              "/plugdata-${{ matrix.name }}.tar.xz" \
-              "/plugdata-${{ matrix.name }}.tar.xz.txt"
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v6

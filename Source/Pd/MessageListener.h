@@ -136,7 +136,7 @@ public:
     MessageDispatcher()
     {
         usedHashes.reserve(128);
-        nullListeners.reserve(128);
+        listenerScratch.reserve(16);
     }
 
     static void enqueueMessage(void* instance, int type, void* target, t_symbol* symbol, int const argc, t_atom* argv) noexcept
@@ -171,19 +171,33 @@ public:
 
     void addMessageListener(void* object, pd::MessageListener* messageListener)
     {
-        messageListeners[object].insert(juce::WeakReference(messageListener));
         messageListener->object = object;
+
+        auto& listeners = messageListeners[object];
+        for (auto const& listener : listeners) {
+            if (listener.get() == messageListener)
+                return;
+        }
+
+        listeners.add(juce::WeakReference(messageListener));
     }
 
     void removeMessageListener(void* object, MessageListener* messageListener)
     {
-        auto const objectListenerIterator = messageListeners.find(object);
-        if (objectListenerIterator == messageListeners.end())
+        auto const entry = messageListeners.find(object);
+        if (entry == messageListeners.end())
             return;
 
-        auto& listeners = objectListenerIterator->second;
+        auto& listeners = entry->second;
 
-        listeners.erase(messageListener);
+        listeners.erase(
+            std::ranges::remove_if(listeners,
+                [messageListener](auto const& listener) {
+                    auto const* referent = listener.get();
+                    return referent == nullptr || referent == messageListener;
+                })
+                .begin(),
+            listeners.end());
 
         if (listeners.empty())
             messageListeners.erase(object);
@@ -201,10 +215,14 @@ public:
 
     void dequeueMessages() // Note: make sure correct pd instance is active when calling this
     {
+        if (isDequeueing)
+            return;
+
+        ScopedValueSetter<bool> const dequeueGuard(isDequeueing, true);
+
         auto& frontBuffer = getFrontBuffer();
 
         usedHashes.clear();
-        nullListeners.clear();
 
         SmallArray<Message> allMessages;
         SmallArray<pd::Atom> allAtoms;
@@ -246,27 +264,45 @@ public:
                 std::make_reverse_iterator(allAtoms.begin() + atomPosition - size)
             };
 
-            for (auto it = target->second.begin(); it < target->second.end(); ++it) {
-                if (auto* listener = it->get())
-                    listener->receiveMessage(symbol, atoms);
+            // Dispatch from a copy, since we're entering into arbitrary plugdata code here that can possible deallocate things we need
+            listenerScratch.clear();
+            for (auto const& listener : target->second)
+                listenerScratch.add(listener);
+
+            bool sawDeadListener = false;
+            for (auto const& listener : listenerScratch) {
+                if (auto* referent = listener.get())
+                    referent->receiveMessage(symbol, atoms);
                 else
-                    nullListeners.add({ targetPtr, it });
+                    sawDeadListener = true;
             }
+
+            if (EXPECT_UNLIKELY(sawDeadListener))
+                removeDeadListeners(targetPtr);
+
             atomPosition -= size;
         }
-
-        nullListeners.erase(
-            std::ranges::remove_if(nullListeners,
-                [&](auto const& entry) {
-                    auto& [target, iterator] = entry;
-                    return messageListeners[target].erase(iterator) != messageListeners[target].end();
-                })
-                .begin(),
-            nullListeners.end());
 
         frontBuffer.clear();
 
         currentBuffer.store((currentBuffer.load() + 1) % 3);
+    }
+
+    void removeDeadListeners(void* targetPtr)
+    {
+        auto const entry = messageListeners.find(targetPtr);
+        if (entry == messageListeners.end())
+            return;
+
+        auto& listeners = entry->second;
+        listeners.erase(
+            std::ranges::remove_if(listeners,
+                [](auto const& listener) { return listener.get() == nullptr; })
+                .begin(),
+            listeners.end());
+
+        if (listeners.empty())
+            messageListeners.erase(targetPtr);
     }
 
     void handleAsyncUpdate() override
@@ -289,9 +325,13 @@ private:
     StackArray<MessageBuffer, 3> buffers;
     AtomicValue<int, Sequential> currentBuffer;
 
-    SmallArray<std::pair<void*, UnorderedSet<juce::WeakReference<pd::MessageListener>>::iterator>, 16> nullListeners;
+    bool isDequeueing = false;
+
+    // Reused across messages; safe because dequeueMessages() is non-reentrant
+    SmallArray<juce::WeakReference<MessageListener>> listenerScratch;
+
     UnorderedSet<intptr_t> usedHashes;
-    UnorderedMap<void*, UnorderedSet<juce::WeakReference<MessageListener>>> messageListeners;
+    UnorderedMap<void*, SmallArray<juce::WeakReference<MessageListener>>> messageListeners;
 };
 
 }

@@ -72,6 +72,10 @@ public:
 
     void saveSettings();
 
+#if ENABLE_TESTING
+    File getSettingsFileForTesting() const { return settingsFile; }
+#endif
+
     void setProperty(String const& name, var const& value);
 
     template<typename T>
@@ -111,7 +115,7 @@ private:
     bool acquireFileLock();
     void releaseFileLock();
 
-    void loadThemeFromDiff(Array<var>& savedThemes);
+    static void loadThemeFromDiff(Array<var>& currentThemes, Array<var> const& savedThemes);
 
     void backupCorruptSettings();
     String backupSettingsLocation;
@@ -134,7 +138,9 @@ private:
     static constexpr int64 saveTimeoutMs = 100;
     static constexpr int64 lockTimeoutMs = 5000;
 
-    UnorderedMap<String, Value> settings;
+
+    UnorderedSegmentedMap<String, Value> settings;
+    UnorderedMap<String, var> reloadedValues;
 
     UnorderedMap<String, var> const defaultSettings {
         { "browser_path", var(ProjectInfo::appDataDir.getFullPathName()) },
@@ -192,6 +198,7 @@ private:
         { "sidebar_panel_param", var("right") },
         { "sidebar_panel_search", var("right") },
         { "sidebar_panel_palette", var("right") },
+        { "sidebar_panel_reference", var("right") },
         { "sidebar_panel_inspector", var("right") },
         { "left_sidebar_width", var(250) },
         { "right_sidebar_width", var(250) },

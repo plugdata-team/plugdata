@@ -2974,7 +2974,7 @@ struct TextEditorDialog final : public Component
     MainToolbarButton saveButton = MainToolbarButton(Icons::Save);
     MainToolbarButton undoButton = MainToolbarButton(Icons::Undo);
     MainToolbarButton redoButton = MainToolbarButton(Icons::Redo);
-    MainToolbarButton searchButton = MainToolbarButton(Icons::Search);
+    MainToolbarButton searchButton = MainToolbarButton(Icons::SearchFilled);
     MainToolbarButton openExternallyButton = MainToolbarButton(Icons::OpenLink);
 
     SmallIconButton zoomComboButton;
@@ -3028,7 +3028,7 @@ struct TextEditorDialog final : public Component
         // Position in centre of screen
         setBounds((Desktop::getInstance().getDisplays().getPrimaryDisplay()->userBounds / desktopScale).withSizeKeepingCentre(700, 500).getSmallestIntegerContainer());
 
-        zoomComboButton.setButtonText(Icons::ThinDown);
+        zoomComboButton.setButtonText(Icons::ChrevronDown);
 
         zoomComboButton.onClick = [this] {
             PopupMenu zoomMenu;

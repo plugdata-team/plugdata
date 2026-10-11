@@ -314,21 +314,16 @@ std::pair<SmallString, bool> ObjectBase::getTypeFromClass(pd::WeakReference clas
             return { };
         atom_string(av, namebuf, MAXPDSTRING);
 
-        auto name = SmallString(namebuf);
-        if(name.containsChar('/'))
-        {
-            int i = 0;
-            while(name[i] != '/') ++i;
-            name = name.substring(++i);
-        }
-        return name;
+        return SmallString(namebuf).fromLastOccurrenceOf("/");
     };
 
     if (auto obj = classPtr.get<t_pd>()) {
         // Check if it's an abstraction or subpatch
         auto* pdclass = pd_class(obj.get());
-        if ((pdclass == canvas_class) && canvas_isabstraction(obj.cast<t_glist>())) {
-            return {getObjectText(obj.cast<t_object>()), true};
+        if (pdclass == canvas_class) {
+            if (canvas_isabstraction(obj.cast<t_glist>()))
+                return {getObjectText(obj.cast<t_object>()), true};
+            return {"canvas", true};
         }
 
         auto const& className = pd::Interface::getObjectClassName(obj.get());
@@ -344,6 +339,7 @@ std::pair<SmallString, bool> ObjectBase::getTypeFromClass(pd::WeakReference clas
                 return {"comment", false};
             if (obj.cast<t_text>()->te_type == T_MESSAGE)
                 return {"msg", false};
+            break;
         // Deal with atoms
         case hash("gatom"):
             if (obj.cast<t_fake_gatom>()->a_flavor == A_FLOAT)
@@ -927,17 +923,14 @@ bool ObjectBase::recurseHvccCompatibility(SmallString const& objectText, pd::Pat
         auto [type, isSubpatchOrAbstraction] = getTypeFromClass(object);
         if(isSubpatchOrAbstraction)
         {
+            SmallString objName = type;
             pd::Patch::Ptr const subpatch = new pd::Patch(object, instance, false);
             if (subpatch->isSubpatch()) {
-                SmallString objName;
                 if(auto ptr = object.get<t_canvas>()) {
                     objName = pd::Interface::getObjectText(&ptr.cast<t_canvas>()->gl_obj);
                 }
-                compatible = recurseHvccCompatibility(objName, subpatch, prefix + objName.toString() + " -> ") && compatible;
-            } else if (!HeavyCompatibleObjects::isCompatible(type)) {
-                compatible = false;
-                instance->logWarning(String("Warning: object \"" + prefix + type.toString() + "\" is not supported in Compiled Mode"));
             }
+            compatible = recurseHvccCompatibility(objName, subpatch, prefix + objName.toString() + " -> ") && compatible;
         }
         else if (!HeavyCompatibleObjects::isCompatible(type)) {
             compatible = false;

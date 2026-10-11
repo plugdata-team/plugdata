@@ -101,11 +101,54 @@ void PlugDataLook::fillResizableWindowBackground(Graphics& g, int w, int h, Bord
     }
 }
 
+void PlugDataLook::drawKeymapChangeButton (Graphics& g, int width, int height, Button& button, const String& keyDescription)
+{
+    auto const textColour = findColour(PlugDataColour::panelTextColourId);
+
+    if (keyDescription.isNotEmpty())
+    {
+        if (button.isEnabled())
+        {
+            g.setColour(textColour.withAlpha (button.isDown() ? 0.4f : (button.isOver() ? 0.2f : 0.1f)));
+            g.fillRoundedRectangle(button.getLocalBounds().toFloat(), 4.0f);
+            g.drawRoundedRectangle(button.getLocalBounds().toFloat(), 4.0f, 1.0f);
+        }
+
+        g.setColour(textColour);
+        g.setFont(static_cast<float>(height * 0.6f));
+        g.drawFittedText(keyDescription, 4, 0, width - 8, height, Justification::centred, 1);
+    }
+    else
+    {
+        const float thickness = static_cast<float>(height) * 0.08f;
+        const float indent = static_cast<float>(height) * 0.44f;
+
+        auto bounds = Rectangle<float>(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height)).reduced(2.0f);
+        auto xbar = bounds.withSizeKeepingCentre(thickness, bounds.getHeight() - indent);
+        auto ybar = bounds.withSizeKeepingCentre(bounds.getWidth() - indent, thickness);
+
+        g.setColour(textColour.darker(0.1f).withAlpha(button.isDown() ? 0.7f : (button.isOver() ? 0.5f : 0.3f)));
+        g.fillEllipse(bounds);
+
+        g.setColour(findColour(PlugDataColour::panelForegroundColourId));
+        g.fillRect(xbar);
+        g.fillRect(ybar);
+    }
+
+    if (button.hasKeyboardFocus (false))
+    {
+        g.setColour (textColour.withAlpha (0.4f));
+        g.drawRect (0, 0, width, height);
+    }
+}
+
 void PlugDataLook::drawCallOutBoxBackground(CallOutBox& box, Graphics& g, Path const& path, Image& cachedImage)
 {
+    auto const backgroundColour = box.getProperties()["PanelBackground"].isVoid() ? colours.popupMenuBackgroundColour : colours.panelBackgroundColour;
+
     if (!ProjectInfo::canUseSemiTransparentWindows()) {
         auto const bounds = path.getBounds();
-        g.setColour(colours.popupMenuBackgroundColour);
+        g.setColour(backgroundColour);
         g.fillRect(bounds);
 
         g.setColour(colours.outlineColour);
@@ -121,7 +164,7 @@ void PlugDataLook::drawCallOutBoxBackground(CallOutBox& box, Graphics& g, Path c
     g.setColour(Colours::black);
     g.drawImageAt(cachedImage, 0, 0);
 
-    g.setColour(colours.popupMenuBackgroundColour);
+    g.setColour(backgroundColour);
     g.fillPath(path);
 
     g.setColour(colours.outlineColour);
@@ -271,7 +314,7 @@ void PlugDataLook::getIdealPopupMenuItemSize(String const& text, bool const isSe
         if (standardMenuItemHeight > 0 && font.getHeight() > static_cast<float>(standardMenuItemHeight) / 1.3f)
             font.setHeight(static_cast<float>(standardMenuItemHeight) / 1.3f);
 
-        idealHeight = standardMenuItemHeight > 0 ? standardMenuItemHeight : roundToInt(font.getHeight() * 1.3f);
+        idealHeight = standardMenuItemHeight > 0 ? standardMenuItemHeight : roundToInt(font.getHeight() * 1.4f);
         idealWidth = Fonts::getStringWidth(text, font) + idealHeight;
 
 #if !JUCE_MAC
@@ -397,11 +440,10 @@ void PlugDataLook::drawPopupMenuItem(Graphics& g, Rectangle<int> const& area,
             auto width = std::max(Fonts::getStringWidthInt(text, font) + 4, 16);
             auto b = shortcutBounds.removeFromRight(width).toFloat().reduced(1.0f, 5.0f).translated(1.5f, 0.5f);
 
-            g.setColour(colours.popupMenuTextColour.withAlpha(isActive ? 0.9f : 0.35f));
+            g.setColour(colours.popupMenuBackgroundColour.contrasting(0.08f));
             g.fillRoundedRectangle(b.toFloat(), 3.0f);
 
-            g.setColour(colours.popupMenuBackgroundColour);
-
+            g.setColour(colours.popupMenuTextColour.withAlpha(isActive ? 0.8f : 0.3f));
             g.setFont(Fonts::getSemiBoldFont().withHeight(11));
             g.drawText(text, b, Justification::centred);
         }
@@ -476,7 +518,7 @@ void PlugDataLook::drawComboBox(Graphics& g, int const width, int const height, 
 
 PopupMenu::Options PlugDataLook::getOptionsForComboBoxPopupMenu(ComboBox& box, Label& label)
 {
-    auto options = PopupMenu::Options().withTargetComponent(&box).withItemThatMustBeVisible(box.getSelectedId()).withInitiallySelectedItem(box.getSelectedId()).withMinimumWidth(box.getWidth()).withMaximumNumColumns(1).withStandardItemHeight(22);
+    auto options = PopupMenu::Options().withTargetComponent(&box).withItemThatMustBeVisible(box.getSelectedId()).withInitiallySelectedItem(box.getSelectedId()).withMinimumWidth(box.getWidth()).withMaximumNumColumns(1).withStandardItemHeight(24);
 
 #if JUCE_IOS
     if (mainComponent)
@@ -791,8 +833,6 @@ void PlugDataLook::setColours(UnorderedMap<PlugDataColour, Colour>& colours)
     setColour(PropertyComponent::labelTextColourId,
         colours.at(PlugDataColour::panelTextColourId));
     setColour(PopupMenu::textColourId,
-        colours.at(PlugDataColour::panelTextColourId));
-    setColour(KeyMappingEditorComponent::textColourId,
         colours.at(PlugDataColour::panelTextColourId));
     setColour(DirectoryContentsDisplayComponent::textColourId,
         colours.at(PlugDataColour::panelTextColourId));

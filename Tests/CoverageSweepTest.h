@@ -1392,23 +1392,28 @@ private:
         meter.timerCallback();
         meter.createComponentSnapshot(meter.getLocalBounds());
 
-        std::unique_ptr<Dialog> dialog;
-        dialog = std::make_unique<Dialog>(&dialog, editor, 520, 380, true);
-        ToolchainInstaller installer(editor, dialog.get());
+        ToolchainInstaller installer(editor);
         installer.setBounds(0, 0, 520, 380);
         installer.resized();
         installer.needsUpdate = false;
         installer.createComponentSnapshot(installer.getLocalBounds());
+
+        // The installer only shows the shared install's state, so fake one mid-way and put it back after
+        auto& install = *ToolchainInstall::getInstance();
         installer.needsUpdate = true;
-        installer.installProgress = 0.5f;
-        installer.errorMessage = "Coverage error";
-        installer.startTimer(1000);
+        install.progress = 0.5f;
+        install.unpacking = true;
+        install.error = "Coverage error";
+        installer.toolchainInstallChanged();
         installer.createComponentSnapshot(installer.getLocalBounds());
-        installer.stopTimer();
+        install.progress = 0.0f;
+        install.unpacking = false;
+        install.error.clear();
+        installer.toolchainInstallChanged();
+
         installer.installButton.mouseEnter(mouseEvent(&installer.installButton, { 10.0f, 10.0f }));
         installer.installButton.mouseExit(mouseEvent(&installer.installButton, { 10.0f, 10.0f }));
         installer.installButton.mouseUp(mouseEvent(&installer.installButton, { 10.0f, 10.0f }, ModifierKeys::rightButtonModifier));
-        installer.run();
     }
 
     void exerciseMidiDeviceManager()

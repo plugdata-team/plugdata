@@ -148,7 +148,8 @@ private:
 
 class VolumeSlider;
 class AudioToolbar final : public Component
-    , public ToolbarSource::Listener {
+    , public ToolbarSource::Listener
+    , public SettingsFileListener {
 public:
     AudioToolbar(PluginProcessor* processor, PluginEditor* editor);
 
@@ -164,6 +165,8 @@ public:
     void lookAndFeelChanged() override;
     void resized() override;
 
+    void settingsChanged(String const& name, var const& value) override;
+
 private:
     PluginProcessor* pd;
 
@@ -175,6 +178,7 @@ private:
 
     std::unique_ptr<SliderParameterAttachment> volumeAttachment;
     std::unique_ptr<StatusBadge> oversamplingBadge, dawLatencyBadge, recordingBadge;
+    std::unique_ptr<Component> heavyToolbar;
 
 #if JUCE_MAC
     struct ToolbarDragListener : public MouseListener {

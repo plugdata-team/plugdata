@@ -13,12 +13,23 @@ struct ExporterBase : public Component
     , public Value::Listener
     , public ThreadPool {
 
+    // What the export button does: write to a folder the user picks, or run straight onto the device
+    enum ExportAction {
+        Export,
+        Flash,
+        FlashBootloader
+    };
+
     ChildProcess process;
     TextButton exportButton = TextButton("Export");
 
     Value inputPatchValue = SynchronousValue();
     Value projectNameValue;
     Value projectCopyrightValue;
+    Value exportTypeValue = SynchronousValue(var(1));
+
+    // Set for a single run from the quick export menu, leaving the stored setting alone
+    int exportTypeOverride = 0;
 
     bool blockDialog = false;
 
@@ -45,7 +56,12 @@ struct ExporterBase : public Component
 
     ExportingProgressView* exportingView;
 
-    bool shouldQuit = false;
+    // Stops the export where it is: set when the exporter goes away, or when the user cancels
+    AtomicValue<bool> shouldQuit = false;
+    AtomicValue<bool> cancelled = false;
+
+    // Keeps a cancel from killing the process while the export thread swaps in the next one
+    CriticalSection processLock;
 
     Label unsavedLabel = Label("", "Warning: patch has unsaved changes");
     PluginEditor* editor;
@@ -116,15 +132,7 @@ struct ExporterBase : public Component
             canvasDirty = false;
         }
 
-        exportButton.onClick = [this] {
-            Dialogs::showSaveDialog([this](URL const& url) {
-                auto const result = url.getLocalFile();
-                if (result.getParentDirectory().exists()) {
-                    startExport(result);
-                }
-            },
-                "", "HeavyExport", nullptr, true);
-        };
+        exportButton.onClick = [this] { triggerExport(); };
 
         unsavedLabel.setColour(Label::textColourId, Colours::orange);
         addChildComponent(unsavedLabel);
@@ -136,10 +144,24 @@ struct ExporterBase : public Component
             openedPatchFile.deleteFile();
         }
 
+        {
+            ScopedLock lock(processLock);
+            shouldQuit = true;
+            if (process.isRunning())
+                process.kill();
+        }
+
+        removeAllJobs(true, -1);
+    }
+
+    // The export finishes as soon as the step it's on is killed, and doesn't start another
+    void cancelExport()
+    {
+        ScopedLock lock(processLock);
+        cancelled = true;
         shouldQuit = true;
         if (process.isRunning())
             process.kill();
-        removeAllJobs(true, -1);
     }
 
     void startProcess(String const& command)
@@ -164,6 +186,65 @@ struct ExporterBase : public Component
 
     virtual void getState(DynamicObject::Ptr state) = 0;
     virtual void setState(DynamicObject::Ptr state) = 0;
+
+    // Options of the "Export type" property, empty if the exporter has only one
+    virtual StringArray getExportTypes() const { return { }; }
+
+    // What this run exports as, which isn't always what the settings say
+    int getExportType() const { return exportTypeOverride ? exportTypeOverride : getValue<int>(exportTypeValue); }
+
+    virtual ExportAction getExportAction() const { return Export; }
+
+    // Everything the exporter needs before it can run
+    virtual bool canPerformExport() const { return validPatchSelected; }
+
+    // Hands the chosen patch over to another exporter
+    void copyPatchSelectionTo(ExporterBase& other) const
+    {
+        other.patchFile = patchFile;
+        other.realPatchFile = realPatchFile;
+        other.projectNameValue = projectNameValue.getValue();
+        other.projectCopyrightValue = projectCopyrightValue.getValue();
+
+        other.blockDialog = true;
+        other.inputPatchValue = inputPatchValue.getValue();
+        other.blockDialog = false;
+    }
+
+    String getExportActionName() const
+    {
+        switch (getExportAction()) {
+        case Flash:
+            return "Flash";
+        case FlashBootloader:
+            return "Bootloader";
+        default:
+            return "Export";
+        }
+    }
+
+    // Runs the export: flashing goes into a temp folder, everything else into a folder the user picks.
+    // An exportType other than 0 applies to this run only.
+    void triggerExport(int const exportType = 0)
+    {
+        exportTypeOverride = exportType;
+
+        if (getExportAction() == Export) {
+            Dialogs::showSaveDialog([this](URL const& url) {
+                auto const result = url.getLocalFile();
+                if (result.getParentDirectory().exists()) {
+                    startExport(result);
+                } else {
+                    exportTypeOverride = 0;
+                }
+            },
+                "", "HeavyExport", nullptr, true);
+        } else {
+            auto const tempFolder = File::getSpecialLocation(File::tempDirectory).getChildFile("Heavy-" + Uuid().toString().substring(10));
+            deleteTempFileLater(tempFolder);
+            startExport(tempFolder);
+        }
+    }
 
     String pathToString(File const& file)
     {
@@ -191,6 +272,9 @@ struct ExporterBase : public Component
 
     String startShellScriptWithOutput(String const& scriptText)
     {
+        if (shouldQuit)
+            return { };
+
         exportingView->logToConsole("\n\x1b[1;34m> " + scriptText + " \x1b[0m \n\n");
 
         File scriptFile = File::createTempFile(".sh");
@@ -227,10 +311,15 @@ struct ExporterBase : public Component
         auto const bash = String("#!/bin/bash\n");
         scriptFile.replaceWithText(bash + gccColourFlags + scriptText, false, false, "\n");
 
+        ScopedLock lock(processLock);
+        if (shouldQuit)
+            return;
+
 #if JUCE_WINDOWS
         auto sh = toolchainDir.getChildFile("bin").getChildFile("sh.exe");
         process.start(StringArray { sh.getFullPathName(), "--login", scriptFile.getFullPathName().replaceCharacter('\\', '/') });
 #else
+        // The pty makes the script a session leader, so killing it hangs up on whatever it started too
         scriptFile.setExecutePermission(true);
         process.start(scriptFile.getFullPathName(), ChildProcess::wantStdOut | ChildProcess::wantStdErr | ChildProcess::wantTtyOut);
 #endif
@@ -272,24 +361,39 @@ struct ExporterBase : public Component
 
         // Make sure we don't add the file location twice
         searchPaths.removeDuplicates(false);
-        addJob([this, patchPath, outPath, projectTitle, projectCopyright, searchPaths]() mutable {
+        auto const action = getExportAction();
+
+        shouldQuit = false;
+        cancelled = false;
+
+        addJob([this, action, patchPath, outPath, projectTitle, projectCopyright, searchPaths]() mutable {
             exportingView->monitorProcessOutput(getProcess());
-            exportingView->showState(ExportingProgressView::Exporting);
+            exportingView->showState(action == Export ? ExportingProgressView::Exporting : ExportingProgressView::Flashing);
+            exportingView->reportStatus("Generating code");
 
             FileSystemWatcher::addGlobalIgnorePath(outPath);
 
             auto const result = performExport(patchPath, outPath, projectTitle, projectCopyright, searchPaths);
 
-            if (shouldQuit)
+            // The exporter is going away, so there's no one left to tell
+            if (shouldQuit && !cancelled)
                 return;
 
-            exportingView->showState(result ? ExportingProgressView::Failure : ExportingProgressView::Success);
+            if (cancelled)
+                exportingView->showState(ExportingProgressView::NotExporting);
+            else if (action == FlashBootloader)
+                exportingView->showState(result ? ExportingProgressView::BootloaderFlashFailure : ExportingProgressView::BootloaderFlashSuccess);
+            else
+                exportingView->showState(result ? ExportingProgressView::Failure : ExportingProgressView::Success);
 
             exportingView->stopMonitoring();
 
             MessageManager::callAsync([_this = SafePointer(this)] {
-                if (_this)
-                    _this->repaint();
+                if (!_this)
+                    return;
+
+                _this->exportTypeOverride = 0;
+                _this->repaint();
             });
 
             FileSystemWatcher::removeGlobalIgnorePath(outPath);
@@ -322,13 +426,22 @@ struct ExporterBase : public Component
             }
         }
 
-        exportButton.setEnabled(validPatchSelected);
+        updateExportButton();
+    }
+
+    // Not safe to call from the constructor: the export action is decided by the derived exporter
+    void updateExportButton()
+    {
+        exportButton.setEnabled(canPerformExport());
+        exportButton.setButtonText(getExportActionName());
     }
 
     void resized() override
     {
+        auto const bottomStrip = exportButton.isVisible() || unsavedLabel.isVisible() ? 50 : 0;
+
         unsavedLabel.setBounds(10, getHeight() - 42, getWidth(), 42);
-        panel.setBounds(0, 0, getWidth(), getHeight() - 50);
+        panel.setBounds(0, 0, getWidth(), getHeight() - bottomStrip);
         exportButton.setBounds(getLocalBounds().removeFromBottom(23).removeFromRight(80).translated(-10, -10));
     }
 

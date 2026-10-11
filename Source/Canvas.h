@@ -91,9 +91,8 @@ public:
     void focusGained(FocusChangeType cause) override;
     void focusLost(FocusChangeType cause) override;
 
-    void updateFramebuffers(NVGcontext* nvg) override;
     void performRender(NVGcontext* nvg, Rectangle<int> invalidRegion);
-    void renderResizeHandle(NVGcontext* nvg, NVGcolor colour);
+    void renderResizeHandles(NVGcontext* nvg, NVGcolor colour, Rectangle<float> bounds);
 
     void resized() override;
 
@@ -234,8 +233,6 @@ public:
     bool altDown : 1 = false;
     bool shiftDown : 1 = false;
 
-    Rectangle<int> currentRenderArea;
-
     Value isGraphChild = SynchronousValue(var(false));
     Value hideNameAndArgs = SynchronousValue(var(false));
     Value xRange = SynchronousValue();
@@ -269,11 +266,15 @@ public:
     Component objectLayer;
     Component connectionLayer;
 
-    NVGCachedPath resizeHandlePath;
     NVGImage presentationShadowImage;
+    NVGImage resizeHandleImage;
     NVGFramebuffer dotsLargeImage;
 
 private:
+    void updateCanvasDots(NVGcontext* nvg);
+
+    pd::Patch::Ptr getPatchToSave() const;
+
     void changeListenerCallback(ChangeBroadcaster* c) override;
 
     SelectedItemSet<WeakReference<Component>> previousSelectedComponents;

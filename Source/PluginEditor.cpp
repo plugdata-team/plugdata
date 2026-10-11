@@ -44,6 +44,7 @@
 #include "Sidebar/AutomationPanel.h"
 #include "Sidebar/SearchPanel.h"
 #include "Sidebar/Palettes.h"
+#include "Sidebar/ReferencePanel.h"
 
 #if ENABLE_TESTING
 void runTests(PluginEditor* editor);
@@ -137,7 +138,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     mainMenuButton.setButtonText(Icons::Menu);
     undoButton.setButtonText(Icons::Undo);
     redoButton.setButtonText(Icons::Redo);
-    welcomePanelSearchButton.setButtonText(Icons::Search);
+    welcomePanelSearchButton.setButtonText(Icons::SearchFilled);
 
     addKeyListener(commandManager.getKeyMappings());
 
@@ -191,8 +192,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     }
 
     autoconnect.referTo(settingsFile->getPropertyAsValue("autoconnect"));
-    theme.referTo(settingsFile->getPropertyAsValue("theme"));
-    theme.addListener(this);
 
     addAndMakeVisible(tabComponent);
 
@@ -263,14 +262,15 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     automationPanel = std::make_unique<AutomationPanel>(&p);
     searchPanel = std::make_unique<SearchPanel>(this);
     palettePanel = std::make_unique<Palettes>(this);
+    referencePanel = std::make_unique<ReferencePanel>(this);
     inspectorPanel = std::make_unique<Inspector>();
     commandInput = std::make_unique<CommandInput>(this);
 
     auto makeSidebar = [&](Sidebar::Side s) {
         return std::make_unique<Sidebar>(s, &p, this,
             consolePanel.get(), browserPanel.get(), automationPanel.get(),
-            searchPanel.get(), palettePanel.get(), inspectorPanel.get(),
-            commandInput.get());
+            searchPanel.get(), palettePanel.get(), referencePanel.get(),
+            inspectorPanel.get(), commandInput.get());
     };
     leftSidebar = makeSidebar(Sidebar::Side::Left);
     rightSidebar = makeSidebar(Sidebar::Side::Right);
@@ -293,6 +293,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     loadAssignment(Sidebar::ParamPanel, Sidebar::Side::Right);
     loadAssignment(Sidebar::PatchSearchPanel, Sidebar::Side::Right);
     loadAssignment(Sidebar::PalettePanel, Sidebar::Side::Right);
+    loadAssignment(Sidebar::ObjectReferencePanel, Sidebar::Side::Right);
     loadAssignment(Sidebar::InspectorPanel, Sidebar::Side::Right);
 
     int const leftW = settings->getProperty<int> ("left_sidebar_width");
@@ -381,8 +382,9 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
 #if ENABLE_TESTING
     // Call after window is ready
-    ::Timer::callAfterDelay(200, [this]() {
-        runTests(this);
+    ::Timer::callAfterDelay(200, [_this = SafePointer(this)]() {
+        if (_this)
+            runTests(_this.getComponent());
     });
 #endif
 
@@ -439,7 +441,6 @@ PluginEditor::~PluginEditor()
     removeModifierKeyListener(&pd->keyHandler);
 
     nvgSurface.detachContext();
-    theme.removeListener(this);
     if (auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent())) {
         SettingsFile::getInstance()->setProperty("window_size", Array<var> { window->getWidth(), window->getHeight() });
         SettingsFile::getInstance()->saveSettings();
@@ -734,7 +735,7 @@ void PluginEditor::resized()
     auto windowControlsOffset = useNonNativeTitlebar && !useLeftButtons ? 90.f : 0.f;
 #endif
 
-    auto audioToolbarWidth = welcomePanelSearchButton.isVisible() ? 220 : getWidth() - addObjectMenuButton.getRight();
+    auto audioToolbarWidth = welcomePanelSearchButton.isVisible() ? 210 : getWidth() - addObjectMenuButton.getRight();
     if (audioToolbar)
         audioToolbar->setBounds(toolbarBounds.removeFromRight(audioToolbarWidth).translated(-windowControlsOffset, 0));
 
@@ -1084,15 +1085,6 @@ Canvas* PluginEditor::getCurrentCanvas()
 float PluginEditor::getRenderScale() const
 {
     return nvgSurface.getRenderScale();
-}
-
-void PluginEditor::valueChanged(Value& v)
-{
-    // Update theme
-    if (v.refersToSameSourceAs(theme)) {
-        pd->setTheme(theme.toString());
-        getTopLevelComponent()->repaint();
-    }
 }
 
 void PluginEditor::settingsChanged(String const& name, var const& value)

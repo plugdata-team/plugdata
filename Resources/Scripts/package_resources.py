@@ -124,9 +124,9 @@ globCopy(project_root + "/Libraries/pure-data/extra/**/*-help.pd", "./Abstractio
 globCopy(project_root + "/Libraries/pd-else/Abstractions/Control/*.pd", "./Abstractions/else")
 globCopy(project_root + "/Libraries/pd-else/Abstractions/Audio/*.pd", "./Abstractions/else")
 globCopy(project_root + "/Libraries/pd-else/Abstractions/Extra/*.pd", "./Abstractions/else")
-globCopy(project_root + "/Libraries/pd-else/Abstractions/Control/*.pd_luajit", "./Abstractions/else")
-globCopy(project_root + "/Libraries/pd-else/Abstractions/Audio/*.pd_luajit", "./Abstractions/else")
-globCopy(project_root + "/Libraries/pd-else/Abstractions/Extra/*.lua", "./Abstractions/else")
+globCopy(project_root + "/Libraries/pd-else/Source/Extra/*.lua", "./Abstractions/else")
+globCopy(project_root + "/Libraries/pd-else/Source/Control/*.pd_luajit", "./Abstractions/else")
+globCopy(project_root + "/Libraries/pd-else/Source/Audio/*.pd_luajit", "./Abstractions/else")
 copyFile(project_root + "/Resources/Patches/lua.pd_luajit", "./Abstractions/else")
 copyFile(project_root + "/Resources/Patches/playhead.pd", "./Abstractions")
 copyFile(project_root + "/Resources/Patches/param.pd", "./Abstractions")
@@ -273,10 +273,11 @@ inline juce::File getResourceFile() {{
     }}
     return destFile;
 #elif JUCE_MAC
+    // Inside a .lproj folder, because codesign seals files in there as optional (see package-macOS.sh)
     if (juce::PluginHostType::getPluginLoadedAs() != juce::AudioProcessor::wrapperType_LV2)
         return juce::File::getSpecialLocation(juce::File::currentExecutableFile)
             .getParentDirectory().getParentDirectory()
-            .getChildFile("Resources/plugdata-resources.bin");
+            .getChildFile("Resources/plugdata.lproj/plugdata-resources.bin");
 #endif
     return juce::File::getSpecialLocation(juce::File::currentExecutableFile)
         .getParentDirectory()

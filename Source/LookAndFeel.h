@@ -121,6 +121,8 @@ struct PlugDataLook final : public LookAndFeel_V4
 
     void drawResizableWindowBorder(Graphics&, int w, int h, BorderSize<int> const& border, ResizableWindow&) override { }
 
+    void drawKeymapChangeButton (Graphics&, int width, int height, Button&, const String& keyDescription) override;
+
     void drawCallOutBoxBackground(CallOutBox& box, Graphics& g, Path const& path, Image& cachedImage) override;
 
     int getCallOutBoxBorderSize(CallOutBox const& c) override;

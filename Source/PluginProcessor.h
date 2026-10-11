@@ -168,15 +168,18 @@ public:
 
     bool toggleRecording(PluginEditor* editor);
 
-    int lastUIWidth = 1000, lastUIHeight = 660;
+    // Written from PluginEditor::resized() on the message thread, but read from
+    // getStateInformation(), which the host can call from any thread
+    AtomicValue<int> lastUIWidth = 1000, lastUIHeight = 660;
 
     AtomicValue<float>* volume;
     DynamicObject::Ptr pluginModeTheme;
     float pluginModeScale = 1.0f;
 
     String currentThemeName;
+    bool appliedIoletSpacingEdge = false;
 
-    SettingsFile* settingsFile;
+    SettingsFile* settingsFile = nullptr;
 
     std::unique_ptr<pd::Library> objectLibrary;
 

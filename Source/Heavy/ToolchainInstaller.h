@@ -1,4 +1,3 @@
-
 /*
  // Copyright (c) 2022 Timothy Schoen and Wasted Audio
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
@@ -12,144 +11,162 @@
 #include "Utility/Decompress.h"
 #include "Constants.h"
 
-class ToolchainInstaller final : public Component
-    , public Thread
-    , public Timer {
+// Downloads and unpacks the toolchain in the background, and finds out whether it needs an update.
+// There's only one, so the export dialog and the quick export toolbar follow the same install instead
+// of unpacking over each other, and it carries on when the dialog closes
+class ToolchainInstall final : public DeletedAtShutdown {
+public:
+    struct Listener {
+        virtual ~Listener() = default;
 
-    void timerCallback() override
+        // All on the message thread: any change to the state below, and how an install ended
+        virtual void toolchainInstallChanged() { }
+        virtual void toolchainInstalled() { }
+        virtual void toolchainInstallFailed(String const& error) { ignoreUnused(error); }
+    };
+
+    ~ToolchainInstall() override
     {
-        repaint(Rectangle<int>(getWidth() / 2 - 16, getHeight() / 2 + 118, 32, 32));
+        shuttingDown = true;
+        pool.removeAllJobs(true, -1);
+        clearSingletonInstance();
     }
 
-public:
-    explicit ToolchainInstaller(PluginEditor* pluginEditor, Dialog* parentDialog)
-        : Thread("Toolchain Install Thread")
-        , editor(pluginEditor)
-        , dialog(parentDialog)
+    void addListener(Listener* listener) { listeners.add(listener); }
+    void removeListener(Listener* listener) { listeners.remove(listener); }
+
+    // Asks GitHub whether there's a newer toolchain for this version of plugdata, once per session
+    void checkForUpdate()
     {
-        addAndMakeVisible(&installButton);
+        if (updateCheckStarted)
+            return;
 
-        installButton.onClick = [this] {
-            installButton.setEnabled(false);
-            errorMessage = "";
-            repaint();
+        updateCheckStarted = true;
 
-            dialog->setBlockFromClosing(true);
+        pool.addJob([] {
+            String fetchError;
+            auto const outdated = isOutdated(fetchCompatibleVersion(fetchError));
 
-            String latestVersion;
-            try {
-                auto const compatTable = JSON::parse(URL("https://raw.githubusercontent.com/plugdata-team/plugdata-heavy-toolchain/main/COMPATIBILITY").readEntireTextStream());
-                if (compatTable.toString().isEmpty())
-                    throw 204;
-                // Get latest version
-                latestVersion = compatTable.getDynamicObject()->getProperty(String(ProjectInfo::versionString).upToFirstOccurrenceOf("-", false, false)).toString();
-                if (latestVersion.isEmpty()) {
-                    auto const& properties = compatTable.getDynamicObject()->getProperties();
-                    latestVersion = properties.getValueAt(properties.size() - 1).toString().upToFirstOccurrenceOf("-", false, false);
+            onMessageThread([outdated](ToolchainInstall& install) {
+                install.updateAvailable = outdated;
+            });
+        });
+    }
 
-                    if (latestVersion.isEmpty()) {
-                        throw 418;
-                    }
-                }
-            }
-            // Network error, JSON error or empty version string somehow
-            catch (int error) {
-                if (error == 418) {
-                    errorMessage = "Error: Heavy compatibility issue, contact support";
-                } else {
-                    errorMessage = "Error: Could not download files (possibly no network connection)";
-                    installButton.topText = "Try Again";
-                }
-                installButton.setEnabled(true);
-                repaint();
-                return;
-            }
+    // Starts downloading, unless that's already happening. On Windows, the window is what the USB driver
+    // installer asks for admin rights over
+    void install(Component* window)
+    {
+        if (installing)
+            return;
 
-            catch (...) {
-                errorMessage = "Error: Unknown error, contact support";
-                installButton.topText = "Try Again";
-                installButton.setEnabled(true);
-                repaint();
-                return;
-            }
+        installing = true;
+        unpacking = false;
+        progress = 0.0f;
+        error.clear();
+        driverInstallWindow = window;
 
-            String downloadLocation = "https://github.com/plugdata-team/plugdata-heavy-toolchain/releases/download/v" + latestVersion + "/";
+        listeners.call(&Listener::toolchainInstallChanged);
+
+        pool.addJob([this] { runInstall(); });
+    }
+
+    // Message thread only
+    bool installing = false;
+    bool unpacking = false;
+    float progress = 0.0f;
+    String error;
+    bool updateAvailable = false;
+
+    JUCE_DECLARE_SINGLETON_INLINE(ToolchainInstall, false)
+
+private:
+    // Which toolchain goes with this version of plugdata, or an empty string with the reason in error
+    static String fetchCompatibleVersion(String& error)
+    {
+        auto const compatibilityUrl = URL("https://raw.githubusercontent.com/plugdata-team/plugdata-heavy-toolchain/main/COMPATIBILITY");
+
+        int statusCode = 0;
+        auto const stream = compatibilityUrl.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress).withStatusCode(&statusCode));
+        if (!stream) {
+            error = "Error: Could not reach GitHub to look up the toolchain version (possibly no network connection)";
+            return { };
+        }
+        if (statusCode >= 400) {
+            error = "Error: Could not look up the toolchain version (HTTP " + String(statusCode) + ")";
+            return { };
+        }
+
+        var compatTable;
+        try {
+            compatTable = JSON::parse(stream->readEntireStreamAsString());
+        } catch (...) {
+        }
+
+        auto const* versions = compatTable.getDynamicObject();
+        if (!versions) {
+            error = "Error: Could not read the toolchain version list from GitHub";
+            return { };
+        }
+
+        auto const& properties = versions->getProperties();
+        auto version = properties[String(ProjectInfo::versionString).upToFirstOccurrenceOf("-", false, false)].toString();
+
+        // Versions the table doesn't know about get the newest toolchain
+        if (version.isEmpty() && !properties.isEmpty())
+            version = properties.getValueAt(properties.size() - 1).toString().upToFirstOccurrenceOf("-", false, false);
+
+        if (version.isEmpty())
+            error = "Error: Heavy compatibility issue, contact support";
+
+        return version;
+    }
+
+    // Versions compare as integers with the dots taken out
+    static bool isOutdated(String const& compatibleVersion)
+    {
+        // Don't do this relative to the toolchain dir in ExporterBase, that won't work on Windows
+        auto const versionFile = ProjectInfo::appDataDir.getChildFile("Toolchain").getChildFile("VERSION");
+        auto const installedVersion = versionFile.loadFileAsString().trim().removeCharacters(".").getIntValue();
+
+        return compatibleVersion.removeCharacters(".").getIntValue() > installedVersion;
+    }
+
+    void runInstall()
+    {
+        String fetchError;
+        auto const version = fetchCompatibleVersion(fetchError);
+        if (version.isEmpty()) {
+            finishInstall(fetchError);
+            return;
+        }
+
+        String downloadLocation = "https://github.com/plugdata-team/plugdata-heavy-toolchain/releases/download/v" + version + "/";
 
 #if JUCE_MAC
-            downloadLocation += "Heavy-MacOS-Universal.tar.xz";
+        downloadLocation += "Heavy-MacOS-Universal.tar.xz";
 #elif JUCE_WINDOWS
-            downloadLocation += "Heavy-Win64.tar.xz";
+        downloadLocation += "Heavy-Win64.tar.xz";
 #elif JUCE_LINUX && !__aarch64__
-            downloadLocation += "Heavy-Linux-x64.tar.xz";
+        downloadLocation += "Heavy-Linux-x64.tar.xz";
 #endif
-            instream = URL(downloadLocation).createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress).withConnectionTimeoutMs(10000).withStatusCode(&statusCode));
-            startThread();
-        };
-    }
 
-    ~ToolchainInstaller() override
-    {
-        stopThread(-1);
-    }
+        int statusCode = 0;
+        auto const instream = URL(downloadLocation).createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress).withConnectionTimeoutMs(10000).withStatusCode(&statusCode));
 
-    void paint(Graphics& g) override
-    {
-        auto const& colours = getThemeColours(*this);
-
-        auto const colour = colours.panelTextColour;
-        if (needsUpdate) {
-            Fonts::drawStyledText(g, "Toolchain needs to be updated", 0, getHeight() / 2 - 150, getWidth(), 40, colour, Bold, 32, Justification::horizontallyCentred);
-        } else {
-            Fonts::drawStyledText(g, "Toolchain not found", 0, getHeight() / 2 - 150, getWidth(), 40, colour, Bold, 32, Justification::horizontallyCentred);
+        if (!instream) {
+            finishInstall("Error: Could not connect to download the toolchain (possibly no network connection)");
+            return;
         }
-
-        if (needsUpdate) {
-            Fonts::drawStyledText(g, "Update the toolchain to get started", 0, getHeight() / 2 - 120, getWidth(), 40, colour, Regular, 20, Justification::horizontallyCentred);
-        } else {
-            Fonts::drawStyledText(g, "Install the toolchain to get started", 0, getHeight() / 2 - 120, getWidth(), 40, colour, Regular, 20, Justification::horizontallyCentred);
+        if (statusCode >= 400) {
+            finishInstall("Error: Toolchain download failed (HTTP " + String(statusCode) + ")");
+            return;
         }
-
-        if (installProgress != 0.0f) {
-            float const width = getWidth() - 180.0f;
-            float const progress = jmap(installProgress, 0.0f, width - 3.0f);
-
-            float constexpr downloadBarBgHeight = 11.0f;
-            float constexpr downloadBarHeight = downloadBarBgHeight - 3.0f;
-
-            auto const downloadBarBg = Rectangle<float>(90.0f, 250.0f - downloadBarBgHeight * 0.5, width, downloadBarBgHeight);
-            auto const downloadBar = Rectangle<float>(91.5f, 250.0f - downloadBarHeight * 0.5, progress, downloadBarHeight);
-
-            g.setColour(colours.panelTextColour);
-            g.fillRoundedRectangle(downloadBarBg, Corners::defaultCornerRadius);
-
-            g.setColour(colours.panelActiveBackgroundColour);
-            g.fillRoundedRectangle(downloadBar, Corners::defaultCornerRadius);
-        }
-
-        if (errorMessage.isNotEmpty()) {
-            Fonts::drawText(g, errorMessage, Rectangle<int>(30, 300, getWidth() - 60, 20), Colours::red, 15, Justification::centred);
-        }
-
-        if (isTimerRunning()) {
-            getLookAndFeel().drawSpinningWaitAnimation(g, colours.panelTextColour, getWidth() / 2 - 16, getHeight() / 2 + 118, 32, 32);
-        }
-    }
-
-    void resized() override
-    {
-        installButton.setBounds(getLocalBounds().withSizeKeepingCentre(450, 50).translated(0, -30));
-    }
-
-    void run() override
-    {
-        MemoryBlock toolchainData;
-
-        if (!instream)
-            return; // error!
 
         int64 const totalBytes = instream->getTotalLength();
         int64 bytesDownloaded = 0;
 
+        MemoryBlock toolchainData;
         MemoryOutputStream mo(toolchainData, false);
 
         // pre-allocate memory to improve download speed
@@ -160,9 +177,8 @@ public:
 #endif
 
         while (true) {
-
-            // If app or windows gets closed
-            if (threadShouldExit())
+            // If the app gets closed
+            if (shuttingDown)
                 return;
 
             // Download blocks of 1mb at a time
@@ -173,20 +189,22 @@ public:
 
             bytesDownloaded += written;
 
-            float const progress = static_cast<long double>(bytesDownloaded) / static_cast<long double>(totalBytes);
+            float const downloaded = static_cast<long double>(bytesDownloaded) / static_cast<long double>(totalBytes);
 
-            if (threadShouldExit())
-                return;
-
-            MessageManager::callAsync([_this = SafePointer(this), progress]() mutable {
-                if (!_this)
-                    return;
-                _this->installProgress = progress;
-                _this->repaint();
+            onMessageThread([downloaded](ToolchainInstall& install) {
+                install.progress = downloaded;
             });
         }
 
-        startTimer(25);
+        // A dropped connection ends the stream early. Bail out before the installed toolchain gets deleted
+        if (totalBytes > 0 && bytesDownloaded < totalBytes) {
+            finishInstall("Error: Toolchain download was interrupted (" + File::descriptionOfSizeInBytes(bytesDownloaded) + " of " + File::descriptionOfSizeInBytes(totalBytes) + ")");
+            return;
+        }
+
+        onMessageThread([](ToolchainInstall& install) {
+            install.unpacking = true;
+        });
 
         auto const toolchainDir = ProjectInfo::appDataDir.getChildFile("Toolchain");
 
@@ -198,18 +216,8 @@ public:
 #else
         int expectedSize = 500 * 1024 * 1024;
 #endif
-        auto success = Decompress::extractTarXz((uint8_t const*)toolchainData.getData(), toolchainData.getSize(), toolchainDir.getParentDirectory(), expectedSize);
-
-        if (!success || statusCode >= 400) {
-            MessageManager::callAsync([_this = SafePointer(this)] {
-                if (!_this)
-                    return;
-                _this->installButton.topText = "Try Again";
-                _this->errorMessage = "Error: Could not extract downloaded package";
-                _this->installButton.setEnabled(true);
-                _this->repaint();
-                _this->stopTimer();
-            });
+        if (!Decompress::extractTarXz(static_cast<uint8_t const*>(mo.getData()), mo.getDataSize(), toolchainDir.getParentDirectory(), expectedSize)) {
+            finishInstall("Error: Could not extract downloaded package");
             return;
         }
 
@@ -218,9 +226,17 @@ public:
         File driverSpec = toolchainDir.getChildFile("usr").getChildFile("etc").getChildFile("usb_driver").getChildFile("DFU_in_FS_Mode.inf");
 
         // Since we interact with ComponentPeer, better call it from the message thread
-        MessageManager::callAsync([_this = SafePointer(this), usbDriverInstaller, driverSpec]() mutable {
-            if (_this)
-                OSUtils::runAsAdmin(usbDriverInstaller.getFullPathName().toStdString(), ("install --inf=" + driverSpec.getFullPathName()).toStdString(), _this->editor->getPeer());
+        MessageManager::callAsync([usbDriverInstaller, driverSpec] {
+            auto const* install = getInstanceWithoutCreating();
+            auto const* window = install ? install->driverInstallWindow.getComponent() : nullptr;
+
+            // The window that started the install may be gone by now, any other one will do
+            auto* peer = window ? window->getPeer() : nullptr;
+            if (!peer && ComponentPeer::getNumPeers() > 0)
+                peer = ComponentPeer::getPeer(0);
+
+            if (peer)
+                OSUtils::runAsAdmin(usbDriverInstaller.getFullPathName().toStdString(), ("install --inf=" + driverSpec.getFullPathName()).toStdString(), peer);
         });
 #endif
 
@@ -245,22 +261,148 @@ public:
         process.waitForProcessToFinish(-1);
 #endif
 
-        installProgress = 0.0f;
-        stopTimer();
+        finishInstall({ });
+    }
 
-        MessageManager::callAsync([_this = SafePointer(this)] {
-            if (!_this)
-                return;
-            _this->dialog->setBlockFromClosing(false);
-            _this->installButton.setEnabled(true);
-            _this->toolchainInstalledCallback();
+    void finishInstall(String const& installError)
+    {
+        onMessageThread([installError](ToolchainInstall& install) {
+            install.installing = false;
+            install.unpacking = false;
+            install.progress = 0.0f;
+            install.error = installError;
+
+            if (installError.isEmpty()) {
+                install.updateAvailable = false;
+                install.listeners.call(&Listener::toolchainInstalled);
+            } else {
+                install.listeners.call(&Listener::toolchainInstallFailed, installError);
+            }
         });
     }
 
-    float installProgress = 0.0f;
+    // Hands a change from the install thread to the message thread, where the listeners hear about it
+    template<typename Callback>
+    static void onMessageThread(Callback&& callback)
+    {
+        MessageManager::callAsync([callback = std::forward<Callback>(callback)] {
+            if (auto* install = getInstanceWithoutCreating()) {
+                callback(*install);
+                install->listeners.call(&Listener::toolchainInstallChanged);
+            }
+        });
+    }
+
+    ListenerList<Listener> listeners;
+    Component::SafePointer<Component> driverInstallWindow;
+    bool updateCheckStarted = false;
+
+    AtomicValue<bool> shuttingDown = false;
+    ThreadPool pool = ThreadPool(1);
+};
+
+class ToolchainInstaller final : public Component
+    , public ToolchainInstall::Listener
+    , public Timer {
+
+    void timerCallback() override
+    {
+        repaint(Rectangle<int>(getWidth() / 2 - 16, getHeight() / 2 + 118, 32, 32));
+    }
+
+public:
+    explicit ToolchainInstaller(PluginEditor* pluginEditor)
+        : editor(pluginEditor)
+    {
+        addAndMakeVisible(&installButton);
+
+        installButton.onClick = [this] {
+            ToolchainInstall::getInstance()->install(editor);
+        };
+
+        ToolchainInstall::getInstance()->addListener(this);
+        toolchainInstallChanged();
+    }
+
+    ~ToolchainInstaller() override
+    {
+        if (auto* install = ToolchainInstall::getInstanceWithoutCreating())
+            install->removeListener(this);
+    }
+
+    void toolchainInstallChanged() override
+    {
+        auto const& install = *ToolchainInstall::getInstance();
+
+        installButton.setEnabled(!install.installing);
+        if (install.error.isNotEmpty())
+            installButton.topText = "Try Again";
+
+        if (install.unpacking)
+            startTimer(25);
+        else
+            stopTimer();
+
+        repaint();
+
+        NullCheckedInvocation::invoke(onInstallChanged);
+    }
+
+    void toolchainInstalled() override
+    {
+        NullCheckedInvocation::invoke(toolchainInstalledCallback);
+    }
+
+    void paint(Graphics& g) override
+    {
+        auto const& colours = getThemeColours(*this);
+        auto const& install = *ToolchainInstall::getInstance();
+
+        auto const colour = colours.panelTextColour;
+        if (needsUpdate) {
+            Fonts::drawStyledText(g, "Toolchain needs to be updated", 0, getHeight() / 2 - 150, getWidth(), 40, colour, Bold, 32, Justification::horizontallyCentred);
+        } else {
+            Fonts::drawStyledText(g, "Toolchain not found", 0, getHeight() / 2 - 150, getWidth(), 40, colour, Bold, 32, Justification::horizontallyCentred);
+        }
+
+        if (needsUpdate) {
+            Fonts::drawStyledText(g, "Update the toolchain to get started", 0, getHeight() / 2 - 120, getWidth(), 40, colour, Regular, 20, Justification::horizontallyCentred);
+        } else {
+            Fonts::drawStyledText(g, "Install the toolchain to get started", 0, getHeight() / 2 - 120, getWidth(), 40, colour, Regular, 20, Justification::horizontallyCentred);
+        }
+
+        if (install.progress != 0.0f) {
+            float const width = getWidth() - 180.0f;
+            float const progress = jmap(install.progress, 0.0f, width - 3.0f);
+
+            float constexpr downloadBarBgHeight = 11.0f;
+            float constexpr downloadBarHeight = downloadBarBgHeight - 3.0f;
+
+            auto const downloadBarBg = Rectangle<float>(90.0f, 250.0f - downloadBarBgHeight * 0.5, width, downloadBarBgHeight);
+            auto const downloadBar = Rectangle<float>(91.5f, 250.0f - downloadBarHeight * 0.5, progress, downloadBarHeight);
+
+            g.setColour(colours.panelTextColour);
+            g.fillRoundedRectangle(downloadBarBg, Corners::defaultCornerRadius);
+
+            g.setColour(colours.panelActiveBackgroundColour);
+            g.fillRoundedRectangle(downloadBar, Corners::defaultCornerRadius);
+        }
+
+        if (install.error.isNotEmpty()) {
+            Fonts::drawText(g, install.error, Rectangle<int>(30, 300, getWidth() - 60, 20), Colours::red, 15, Justification::centred);
+        }
+
+        if (isTimerRunning()) {
+            getLookAndFeel().drawSpinningWaitAnimation(g, colours.panelTextColour, getWidth() / 2 - 16, getHeight() / 2 + 118, 32, 32);
+        }
+    }
+
+    void resized() override
+    {
+        installButton.setBounds(getLocalBounds().withSizeKeepingCentre(450, 50).translated(0, -30));
+    }
 
     bool needsUpdate = false;
-    int statusCode = 0;
 
 #if JUCE_WINDOWS
     String downloadSize = "1.2 GB";
@@ -325,13 +467,9 @@ public:
     ToolchainInstallerButton installButton = ToolchainInstallerButton(Icons::SaveAs, "Download Toolchain", "Download compilation utilities (" + downloadSize + ")");
 
     std::function<void()> toolchainInstalledCallback;
-
-    String errorMessage;
-
-    std::unique_ptr<InputStream> instream;
+    std::function<void()> onInstallChanged;
 
     PluginEditor* editor;
-    Dialog* dialog;
 };
 
 #pragma clang diagnostic pop

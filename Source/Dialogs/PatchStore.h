@@ -1069,7 +1069,7 @@ struct PatchStore final : public Component
 
     MainToolbarButton backButton = MainToolbarButton(Icons::Back);
     MainToolbarButton refreshButton = MainToolbarButton(Icons::Refresh);
-    MainToolbarButton searchButton = MainToolbarButton(Icons::Search);
+    MainToolbarButton searchButton = MainToolbarButton(Icons::SearchFilled);
 
     SearchEditor input;
     Spinner spinner;

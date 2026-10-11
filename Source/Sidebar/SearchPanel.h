@@ -397,7 +397,8 @@ public:
                             StringArray arrays;
                             auto arrayIt = patchPtr->gl_list;
                             while (arrayIt) {
-                                if (auto* array = reinterpret_cast<t_fake_garray*>(arrayIt))
+                                if (auto* array = reinterpret_cast<t_fake_garray*>(arrayIt);
+                                    String::fromUTF8(arrayIt->g_pd->c_name->s_name) == "array")
                                     arrays.add(String::fromUTF8(array->x_name->s_name));
                                 arrayIt = arrayIt->g_next;
                             }

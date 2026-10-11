@@ -5,7 +5,8 @@
  */
 #pragma once
 
-class ExporterConsole : public Component {
+class ExporterConsole : public Component
+    , public AsyncUpdater {
 public:
     ExporterConsole()
     {
@@ -18,6 +19,9 @@ public:
 
     void clear()
     {
+        cancelPendingUpdate();
+        pendingText.clear();
+
         string.clear();
         plainText.clear();
         glyphPositions.clear();
@@ -32,11 +36,20 @@ public:
         repaint();
     }
 
+    // Laying the text out is O(everything logged so far), so a burst of output is coalesced into one pass
     void append(String const& text)
+    {
+        pendingText += text;
+        triggerAsyncUpdate();
+    }
+
+    void handleAsyncUpdate() override
     {
         auto shouldAutoScroll = viewport.getViewPositionY() + viewport.getViewHeight() > getHeight() - 10;
 
-        parseAnsiText(text);
+        parseAnsiText(pendingText);
+        pendingText.clear();
+
         layout.createLayout(string, viewport.getWidth() - 8);
         setSize(viewport.getWidth(), layout.getHeight() + 4);
 
@@ -468,6 +481,7 @@ private:
     }
 
     Viewport viewport;
+    String pendingText;
     AttributedString string;
     TextLayout layout;
     String plainText;
@@ -487,6 +501,7 @@ class ExportingProgressView final : public Component
 
     ExporterConsole console;
     ChildProcess* processToMonitor;
+    bool showsConsole;
 
 public:
     enum ExportState {
@@ -503,16 +518,30 @@ public:
 
     AtomicValue<ExportState> state = NotExporting;
 
+    // Lets the quick export toolbar follow the export without showing this view
+    std::function<void()> onStateChange;
+    std::function<void()> onStatusChange;
+    std::function<void(String const&)> onConsoleOutput;
+
+    // The step the export is on, message thread only
+    String currentStatus;
+
     String userInteractionMessage;
 
+    // Written from the export threads and read back by performExport, so it needs the lock
     String allConsoleOutput;
     CriticalSection allConsoleOutputLock;
+
+    // What the console has actually been shown, message thread only: where a new console view starts from
+    String deliveredOutput;
 
     static constexpr int maxLength = 8192;
     char processOutput[maxLength];
 
-    ExportingProgressView()
+    // The quick export toolbar drives this headlessly and shows the output in a console of its own
+    explicit ExportingProgressView(bool const showsConsole = true)
         : Thread("Console thread")
+        , showsConsole(showsConsole)
     {
         setVisible(false);
         addChildComponent(continueButton);
@@ -545,13 +574,7 @@ public:
     {
         while (processToMonitor && !threadShouldExit()) {
             if (int const len = processToMonitor->readProcessOutput(processOutput, maxLength)) {
-                auto newOutput = String::fromUTF8(processOutput, len);
-
-                allConsoleOutputLock.enter();
-                allConsoleOutput += newOutput;
-                allConsoleOutputLock.exit();
-
-                logToConsole(newOutput);
+                logToConsole(String::fromUTF8(processOutput, len));
             }
 
             Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 100);
@@ -587,32 +610,68 @@ public:
     {
         state = newState;
 
+        if (newState == Exporting || newState == Flashing) {
+            ScopedLock lock(allConsoleOutputLock);
+            allConsoleOutput.clear();
+        }
+
         MessageManager::callAsync([_this = SafePointer(this)] {
             if (!_this)
                 return;
             _this->setVisible(_this->state < NotExporting);
             _this->continueButton.setVisible(_this->state >= Success);
-            if (_this->state == Exporting || _this->state == Flashing)
-                _this->console.clear();
+            if (_this->state == Exporting || _this->state == Flashing) {
+                _this->currentStatus.clear();
+                _this->deliveredOutput.clear();
+
+                if (_this->showsConsole)
+                    _this->console.clear();
+            }
             if (_this->console.isShowing()) {
                 _this->console.grabKeyboardFocus();
             }
 
             _this->resized();
             _this->repaint();
+
+            NullCheckedInvocation::invoke(_this->onStateChange);
+        });
+    }
+
+    // Called from the export threads to name the step in progress
+    void reportStatus(String const& status)
+    {
+        MessageManager::callAsync([_this = SafePointer(this), status] {
+            if (!_this)
+                return;
+
+            _this->currentStatus = status;
+            NullCheckedInvocation::invoke(_this->onStatusChange);
         });
     }
 
     void logToConsole(String const& text)
     {
-        if (text.isNotEmpty()) {
-            MessageManager::callAsync([_this = SafePointer(this), text] {
-                if (!_this)
-                    return;
+        if (text.isEmpty())
+            return;
 
-                _this->console.append(text);
-            });
+        // Kept up to date synchronously: performExport reads it back as soon as it flushes
+        {
+            ScopedLock lock(allConsoleOutputLock);
+            allConsoleOutput += text;
         }
+
+        MessageManager::callAsync([_this = SafePointer(this), text] {
+            if (!_this)
+                return;
+
+            _this->deliveredOutput += text;
+
+            if (_this->showsConsole)
+                _this->console.append(text);
+
+            NullCheckedInvocation::invoke(_this->onConsoleOutput, text);
+        });
     }
 
     void paint(Graphics& g) override

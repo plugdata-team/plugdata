@@ -85,8 +85,15 @@ public:
 
         addSeparator();
 
-        addCustomItem(getMenuItemID(MenuItem::CompiledMode), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::CompiledMode)]), nullptr, "Compiled mode");
-        addCustomItem(getMenuItemID(MenuItem::Compile), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::Compile)]), nullptr, "Compile...");
+        bool const hvccModeEnabled = SettingsFile::getInstance()->getProperty<bool>("hvcc_mode");
+        auto const compileMenu = new PopupMenu();
+        compileMenu->addItem("Compiled mode", true, hvccModeEnabled, [](){
+            auto currentlyEnabled = SettingsFile::getInstance()->getProperty<bool>("hvcc_mode");
+            SettingsFile::getInstance()->setProperty("hvcc_mode", !currentlyEnabled);
+        });
+        compileMenu->addCommandItem(&editor->commandManager, CommandIDs::Compile);
+
+        addCustomItem(getMenuItemID(MenuItem::Compile), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::Compile)]), std::unique_ptr<PopupMenu const>(compileMenu), "Compiler");
 
         addSeparator();
 
@@ -98,13 +105,10 @@ public:
         addCustomItem(getMenuItemID(MenuItem::About), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::About)]), nullptr, "About...");
 
         // Toggles hvcc compatibility mode
-        bool const hvccModeEnabled = SettingsFile::getInstance()->getProperty<bool>("hvcc_mode");
         bool const hasCanvas = editor->getCurrentCanvas() != nullptr;
 
         menuItems[getMenuItemIndex(MenuItem::Save)]->isActive = hasCanvas;
         menuItems[getMenuItemIndex(MenuItem::SaveAs)]->isActive = hasCanvas;
-
-        menuItems[getMenuItemIndex(MenuItem::CompiledMode)]->isTicked = hvccModeEnabled;
     }
 
     class IconMenuItem final : public PopupMenu::CustomComponent {
@@ -140,8 +144,7 @@ public:
             auto const colour = findColour(PopupMenu::textColourId).withMultipliedAlpha(isActive ? 1.0f : 0.5f);
             if (isItemHighlighted() && isActive) {
                 g.setColour(getThemeColours(*this).popupMenuActiveBackgroundColour);
-
-                g.fillRoundedRectangle(r.toFloat().reduced(0, 1), Corners::defaultCornerRadius);
+                g.fillRoundedRectangle(r.toFloat(), Corners::defaultCornerRadius);
             }
 
             g.setColour(colour);
@@ -269,7 +272,6 @@ public:
         Save,
         SaveAs,
         State,
-        CompiledMode,
         Compile,
         FindExternals,
         Discover,
@@ -290,18 +292,17 @@ public:
         return item - 1;
     }
 
-    StackArray<IconMenuItem*, 12> menuItems = {
+    StackArray<IconMenuItem*, 11> menuItems = {
         new IconMenuItem(Icons::New, "New patch", false, false),
         new IconMenuItem(Icons::Open, "Open patch...", false, false),
         new IconMenuItem(Icons::History, "Recently opened", true, false),
 
-        new IconMenuItem(Icons::SavePatch, "Save patch", false, false),
+        new IconMenuItem(Icons::Save, "Save patch", false, false),
         new IconMenuItem(Icons::SaveAs, "Save patch as...", false, false),
 
         new IconMenuItem(Icons::ExportState, "Workspace", true, false),
 
-        new IconMenuItem("", "Compiled mode", false, true),
-        new IconMenuItem(Icons::DevTools, "Compile...", false, false),
+        new IconMenuItem(Icons::DevTools, "Compiler", true, false),
 
         new IconMenuItem(Icons::Externals, "Find externals...", false, false),
         new IconMenuItem(Icons::Sparkle, "Discover...", false, false),

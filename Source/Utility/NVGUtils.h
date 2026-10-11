@@ -18,8 +18,6 @@ public:
 
     static void setJUCEPath(NVGcontext* nvg, Path const& p);
 
-    virtual void updateFramebuffers(NVGcontext*);
-
     virtual void render(NVGcontext*);
 
 private:

@@ -20,6 +20,7 @@
 #include "Components/BouncingViewport.h"
 #include "Components/DraggableNumber.h"
 #include "Dialogs/Dialogs.h"
+#include "Heavy/HeavyExportDialog.h"
 #include "Utility/MidiDeviceManager.h"
 
 class IconTextButton final : public TextButton {
@@ -548,14 +549,16 @@ public:
 
         auto const idleColour = colours.toolbarTextColour.withAlpha(0.33f);
 
+        b.removeFromLeft(1);
+        
         auto top = b.removeFromTop(b.proportionOfHeight(0.5f)).toFloat();
         auto bottom = b.toFloat();
 
         g.setColour(blinkMidiIn ? colours.toolbarActiveColour : idleColour);
-        g.fillEllipse(top.withSizeKeepingCentre(5.0f, 5.0f));
+        g.fillEllipse(top.withSizeKeepingCentre(4.5f, 4.5f));
 
         g.setColour(blinkMidiOut ? colours.toolbarActiveColour : idleColour);
-        g.fillEllipse(bottom.withSizeKeepingCentre(5.0f, 5.0f));
+        g.fillEllipse(bottom.withSizeKeepingCentre(4.5f, 4.5f));
     }
 
     void midiReceivedChanged(bool const midiReceived) override
@@ -1194,19 +1197,19 @@ public:
         auto const& colours = getThemeColours(*this);
 
         auto const inactiveColour = colours.toolbarHoverColour;
-        auto const activeColour = colours.toolbarActiveColour.interpolatedWith(colours.toolbarBackgroundColour, 0.8f);
+        auto const activeColour = colours.toolbarActiveColour.interpolatedWith(colours.toolbarBackgroundColour, 0.86f);
 
         constexpr float cornerRadius = Corners::defaultCornerRadius;
 
         auto const textSegment = getLocalBounds().withWidth(getWidth());
         auto const iconSegment = getLocalBounds().withLeft(getWidth());
 
-        auto textColour = getToggleState() ? activeColour : inactiveColour;
+        auto buttonColour = getToggleState() ? activeColour : inactiveColour;
         if (isMouseOver() && !iconSegment.contains(getMouseXYRelative())) {
-            textColour = textColour.contrasting(0.2f);
+            buttonColour = buttonColour.contrasting(0.05f);
         }
 
-        g.setColour(textColour);
+        g.setColour(buttonColour);
         Path textPath;
         textPath.addRoundedRectangle(0.0f, textSegment.getY() + 0.5f, textSegment.getWidth(), textSegment.getHeight() - 1.0f, cornerRadius, cornerRadius, false, true, false, true);
         g.fillPath(textPath);
@@ -1218,10 +1221,11 @@ public:
 
         auto iconColour = inactiveColour;
         if (isMouseOver() && iconSegment.contains(getMouseXYRelative())) {
-            iconColour = iconColour.contrasting(0.2f);
+            iconColour = iconColour.contrasting(0.05f);
         }
 
-        g.setColour(colours.toolbarTextColour.withAlpha(0.8f));
+        auto textColour = getToggleState() ? colours.toolbarActiveColour : colours.toolbarTextColour.withAlpha(0.8f);
+        g.setColour(textColour);
         g.setFont(Fonts::getSemiBoldFont().withHeight(13.5f));
         g.drawText(getButtonText(), 0, 0, getWidth(), getHeight(), Justification::centred);
     }
@@ -1532,12 +1536,16 @@ public:
         toggle.setTooltip("Enable/disable DSP");
         toggle.setClickingTogglesState(true);
         toggle.setToggleState(pd_getdspstate(), dontSendNotification);
-        toggle.onClick = [this] { toggle.getToggleState() ? pd->startDSP() : pd->releaseDSP(); };
+        toggle.onClick = [this] {
+            toggle.getToggleState() ? pd->startDSP() : pd->releaseDSP();
+            repaint();
+        };
 
         chevron.setTooltip("DSP options");
-        chevron.setButtonText(Icons::ThinDown);
+        chevron.setButtonText(Icons::ChrevronDownFilled);
         chevron.onClick = [this] {
             showCallout();
+            repaint();
         };
 
         toggle.addMouseListener(this, false);
@@ -1559,7 +1567,7 @@ public:
     void resized() override
     {
         auto b = getLocalBounds();
-        chevron.setBounds(b.removeFromRight(14));
+        chevron.setBounds(b.removeFromRight(15));
         toggle.setBounds(b);
 
     }
@@ -1567,6 +1575,7 @@ public:
     void showDSPState(bool const dspState)
     {
         toggle.setToggleState(dspState, dontSendNotification);
+        repaint();
     }
 
     void audioProcessedChanged(bool const audioProcessed) override
@@ -1591,31 +1600,28 @@ public:
         constexpr float cornerRadius = Corners::defaultCornerRadius;
         auto const chevronWidth = 14.0f;
 
+        auto const buttonColour = toggle.getToggleState() ? colours.toolbarActiveColour.interpolatedWith(colours.toolbarBackgroundColour, 0.86f) : colours.toolbarBackgroundColour;
+
         auto const togglePart = bounds.withWidth(bounds.getWidth() - chevronWidth);
         auto const chevronPart = bounds.withLeft(bounds.getRight() - chevronWidth);
 
-        // Draw toggle
-        if(toggleHovered || chevronHovered) {
-            {
-                Path p;
-                p.addRoundedRectangle(togglePart.getX(), togglePart.getY(),
-                                      togglePart.getWidth(), togglePart.getHeight(),
-                                      cornerRadius, cornerRadius,
-                                      true, false, true, false);
-                g.setColour(colours.toolbarHoverColour.withAlpha(toggleHovered ? 1.0f : 0.5f));
-                g.fillPath(p);
-            }
-
-
-            {
-                Path p;
-                p.addRoundedRectangle(chevronPart.getX(), chevronPart.getY(),
-                                      chevronPart.getWidth(), chevronPart.getHeight(),
-                                      cornerRadius, cornerRadius,
-                                      false, true, false, true);
-                g.setColour(colours.toolbarHoverColour.withAlpha(chevronHovered ? 1.0f : 0.5f));
-                g.fillPath(p);
-            }
+        {
+            Path p;
+            p.addRoundedRectangle(togglePart.getX(), togglePart.getY(),
+                                  togglePart.getWidth(), togglePart.getHeight(),
+                                  cornerRadius, cornerRadius,
+                                  true, false, true, false);
+            g.setColour(buttonColour.contrasting(toggleHovered ? 0.05f : 0.0f));
+            g.fillPath(p);
+        }
+        {
+            Path p;
+            p.addRoundedRectangle(chevronPart.getX(), chevronPart.getY(),
+                                  chevronPart.getWidth(), chevronPart.getHeight(),
+                                  cornerRadius, cornerRadius,
+                                  false, true, false, true);
+            g.setColour(buttonColour.contrasting(chevronHovered ? 0.05f : 0.0f));
+            g.fillPath(p);
         }
     }
 
@@ -1723,6 +1729,9 @@ AudioToolbar::AudioToolbar(PluginProcessor* processor, PluginEditor* editor)
 
     setLatencyDisplay(pd->getLatencySamples() - pd::Instance::getBlockSize());
 
+    heavyToolbar = HeavyExportDialog::createHeavyToolbar(editor);
+    addChildComponent(heavyToolbar.get());
+
     addAndMakeVisible(*limiterButton);
 
     addAndMakeVisible(*cpuMeter);
@@ -1781,22 +1790,22 @@ void AudioToolbar::resized()
 {
     auto b = getLocalBounds().reduced(4, 0);
 
-    b.removeFromRight(7);
+    b.removeFromRight(2);
 
-    auto powerBounds = b.removeFromRight(42);
+    auto powerBounds = b.removeFromRight(40);
     powerButton->setBounds(powerBounds);
 
-    b.removeFromRight(7);
+    b.removeFromRight(6);
     auto limiterBounds = b.removeFromRight(46).reduced(0, 3);
     limiterButton->setBounds(limiterBounds);
 
     volumeComponent->setBounds(b.removeFromRight(110).reduced(0, 1));
 
-    b.removeFromRight(3);
+    b.removeFromRight(1);
 
     midiBlinker->setBounds(b.removeFromRight(44));
 
-    b.removeFromRight(3);
+    b.removeFromRight(1);
 
     cpuMeter->setBounds(b.removeFromRight(48));
 
@@ -1813,7 +1822,27 @@ void AudioToolbar::resized()
     if (recordingBadge->isVisible()) {
         recordingBadge->setBounds(b.removeFromRight(recordingBadge->getDesiredWidth()));
     }
+
+    if (!heavyToolbar)
+        return;
+
+    // Whatever the badges leave over is where the quick export toolbar goes
+    auto const width = heavyToolbar->getWidth();
+    heavyToolbar->setVisible(SettingsFile::getInstance()->getProperty<bool>("hvcc_mode") && b.getWidth() >= width);
+
+    if (heavyToolbar->isVisible()) {
+        // Centred in the window, until the badges or the window edge push it aside
+        auto const centre = getParentWidth() / 2 - getX();
+        heavyToolbar->setBounds(std::clamp(centre - width / 2, b.getX(), b.getRight() - width), b.getY(), width, b.getHeight());
+    }
 }
+
+void AudioToolbar::settingsChanged(String const& name, var const& value)
+{
+    if (name == "hvcc_mode")
+        resized();
+}
+
 
 void AudioToolbar::showLimiterState(bool enabled)
 {

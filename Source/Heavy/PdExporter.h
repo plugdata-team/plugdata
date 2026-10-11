@@ -7,7 +7,6 @@
 
 class PdExporter final : public ExporterBase {
 public:
-    Value exportTypeValue = Value(var(2));
     Value copyToPath = Value(var(0));
 
     PropertiesPanel::BoolComponent* copyToPathProperty;
@@ -15,8 +14,10 @@ public:
     PdExporter(PluginEditor* editor, ExportingProgressView* exportingView)
         : ExporterBase(editor, exportingView)
     {
+        exportTypeValue = var(2);
+
         PropertiesArray properties;
-        properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary" }));
+        properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, getExportTypes()));
 
         copyToPathProperty = new PropertiesPanel::BoolComponent("Copy to externals path", copyToPath, { "No", "Yes" });
         properties.add(copyToPathProperty);
@@ -24,6 +25,11 @@ public:
         panel.addSection("Pd", properties);
 
         exportTypeValue.addListener(this);
+    }
+
+    StringArray getExportTypes() const override
+    {
+        return { "Source code", "Binary" };
     }
 
     void getState(DynamicObject::Ptr globalState) override
@@ -51,20 +57,18 @@ public:
 
     void valueChanged(Value& v) override
     {
+        ExporterBase::valueChanged(v);
+
         if (v.refersToSameSourceAs(exportTypeValue)) {
             copyToPathProperty->setEnabled(exportTypeValue == 2);
             if (exportTypeValue == 1) {
                 copyToPath = 0;
             }
-        } else {
-            ExporterBase::valueChanged(v);
         }
     }
 
     bool performExport(String const& pdPatch, String const& outdir, String const& name, String const& copyright, StringArray const& searchPaths) override
     {
-        exportingView->showState(ExportingProgressView::Exporting);
-
         auto const heavyPath = pathToString(heavyExecutable);
         StringArray args = { heavyPath.quoted(), pdPatch.quoted(), "-o", outdir.quoted() };
 
@@ -104,7 +108,9 @@ public:
 
         bool const generationExitCode = getExitCode();
         // Check if we need to compile
-        if (!generationExitCode && getValue<int>(exportTypeValue) == 2) {
+        if (!generationExitCode && getExportType() == 2) {
+            exportingView->reportStatus("Compiling");
+
             auto const workingDir = File::getCurrentWorkingDirectory();
 
             outputFile.setAsCurrentWorkingDirectory();
@@ -144,10 +150,14 @@ public:
             waitForProcessToFinish(-1);
             exportingView->flushConsole();
 
+            workingDir.setAsCurrentWorkingDirectory();
+
+            // A cancelled build doesn't get copied to the externals folder
+            if (shouldQuit)
+                return true;
+
             // Delay to get correct exit code
             Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
-
-            workingDir.setAsCurrentWorkingDirectory();
 
 #if JUCE_MAC
             auto external = outputFile.getChildFile(name + "~.pd_darwin");
@@ -158,6 +168,7 @@ public:
 #endif
 
             if (getValue<bool>(copyToPath)) {
+                exportingView->reportStatus("Copying");
                 exportingView->logToConsole("Copying to Externals folder...\n");
                 auto const copy_location = ProjectInfo::appDataDir.getChildFile("Externals").getChildFile(external.getFileName());
                 external.copyFileTo(copy_location.getFullPathName());

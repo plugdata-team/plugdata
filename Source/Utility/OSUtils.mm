@@ -146,6 +146,9 @@ void OSUtils::enableInsetTitlebarButtons(juce::ComponentPeer* peer, bool enable)
     
     // Non-opaque window with a dropshadow has a negative impact on rendering performance
     window.opaque = TRUE;
+
+    // Fixes shadow rendering bug by ensuring there is always something visible to draw a shadow behind
+    window.backgroundColor = [NSColor windowBackgroundColor];
     
     NSView* frameView = window.contentView.superview;
     if ([frameView respondsToSelector:@selector(_tileTitlebarAndRedisplay:)]) {

@@ -790,6 +790,28 @@ bool PluginProcessor::isBusesLayoutSupported(BusesLayout const& layouts) const
 
 void PluginProcessor::settingsChanged(String const& name, var const& value)
 {
+    if (settingsFile) {
+        if (name == "theme") {
+            setTheme(value.toString());
+            return;
+        }
+        if (name == "themes") {
+            // The selection's Value notification may still be pending when a theme is edited.
+            setTheme(settingsFile->getProperty<String>("theme"), true);
+            return;
+        }
+        if (name == "default_font") {
+            PlugDataLook::setDefaultFont(value.toString());
+            CachedStringWidth<14>::clearCache();
+            CachedStringWidth<15>::clearCache();
+            for (auto* editor : getEditors())
+                editor->updateDefaultFont();
+            updateAllEditorsLNF();
+            return;
+        }
+    }
+
+    if (!instance) return;
     if (name == "paths" || name == "libraries" || name == "enable_gem") {
         updateSearchPaths();
     }
@@ -797,10 +819,7 @@ void PluginProcessor::settingsChanged(String const& name, var const& value)
 
 void PluginProcessor::settingsFileReloaded()
 {
-    auto const newTheme = settingsFile->getProperty<String>("theme");
-    if (currentThemeName != newTheme) {
-        setTheme(newTheme);
-    }
+    setTheme(settingsFile->getProperty<String>("theme"), true);
 
     updateSearchPaths();
     if (objectLibrary)
@@ -1282,13 +1301,10 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     xml.setAttribute("TailLength", getValue<float>(tailLength));
     xml.setAttribute("Legacy", false);
 
-    if (auto const* editor = getActiveEditor()) {
-        xml.setAttribute("Width", editor->getWidth());
-        xml.setAttribute("Height", editor->getHeight());
-    } else {
-        xml.setAttribute("Width", lastUIWidth);
-        xml.setAttribute("Height", lastUIHeight);
-    }
+    // Don't query the editor here: the host can call this from any thread, and
+    // PluginEditor::resized() already keeps these up to date for us
+    xml.setAttribute("Width", lastUIWidth.load());
+    xml.setAttribute("Height", lastUIHeight.load());
 
     xml.addChildElement(patchesTree);
 
@@ -1597,35 +1613,46 @@ pd::Patch::Ptr PluginProcessor::loadPatch(String patchText)
 
 void PluginProcessor::setTheme(String themeToUse, bool const force)
 {
-    auto const oldThemeTree = settingsFile->getTheme(currentThemeName);
+    // Hosts may construct processors off the message thread. Apply the shared look-and-feel
+    // and the editors together; a queued editor-only update can replay an obsolete theme.
+    MessageManagerLock const messageLock;
+    if (!messageLock.lockWasGained())
+        return;
+
     auto themeTree = settingsFile->getTheme(themeToUse);
     // Check if theme name is valid
     if (!themeTree) {
         themeToUse = "light";
         themeTree = settingsFile->getTheme(themeToUse);
         SettingsFile::getInstance()->setProperty("theme", themeToUse);
+
+        // Nothing we can do if even the default theme is missing
+        if (!themeTree)
+            return;
     }
 
+    // Only update iolet geometry if we need to. Themes get edited in place, so the old and new tree
+    // can be the same object: compare against the value we last applied instead. Use the same
+    // conversion PlugDataLook does, so we stay in sync with what actually gets drawn
+    bool const ioletSpacingEdge = themeTree->getProperty("iolet_spacing_edge").toString().getIntValue();
+    bool const ioletGeometryChanged = ioletSpacingEdge != appliedIoletSpacingEdge;
+
+    // Unless we're forced, there's nothing to do if this theme is already applied
+    if (!force && themeToUse == currentThemeName && !ioletGeometryChanged)
+        return;
+
     lnf->setTheme(themeTree);
+
+    currentThemeName = themeToUse;
+    appliedIoletSpacingEdge = ioletSpacingEdge;
 
     for (auto* editor : getEditors())
         editor->setTheme(themeTree);
 
     updateAllEditorsLNF();
 
-    // Only update iolet geometry if we need to
-    // This is based on if the previous or current differ
-    auto const previousIoletGeom = oldThemeTree ? oldThemeTree->getProperty("iolet_spacing_edge") : var();
-    auto const currentIoletGeom = themeTree->getProperty("iolet_spacing_edge");
-    // if both previous and current have iolet property, propertyState = 0;
-    // if one does, propertyState =  1;
-    // if previous and current both don't have iolet spacing property, propertyState = 2
-    int const propertyState = previousIoletGeom.isVoid() + currentIoletGeom.isVoid();
-    if (propertyState == 1 || (propertyState == 0 ? static_cast<int>(previousIoletGeom) != static_cast<int>(currentIoletGeom) : 0)) {
+    if (ioletGeometryChanged)
         PluginEditor::updateIoletGeometryForAllObjects(this);
-    }
-
-    currentThemeName = themeToUse;
 }
 
 void PluginProcessor::runBackupLoop()
@@ -1681,8 +1708,11 @@ bool PluginProcessor::toggleRecording(PluginEditor* editor)
 
 void PluginProcessor::updateAllEditorsLNF()
 {
-    for (auto const& editor : getEditors())
-        editor->sendLookAndFeelChange();
+    for (auto* editor : getEditors()) {
+        // Standalone window decorations are above the editor in the component tree.
+        auto* root = ProjectInfo::isStandalone ? editor->getTopLevelComponent() : editor;
+        root->sendLookAndFeelChange();
+    }
 }
 
 void PluginProcessor::receiveNoteOn(int const channel, int const pitch, int const velocity)
@@ -2278,7 +2308,7 @@ SmallArray<PluginEditor*> PluginProcessor::getEditors() const
 {
     SmallArray<PluginEditor*> editors;
     if (ProjectInfo::isStandalone) {
-        editors.reserve(editors.size());
+        editors.reserve(openedEditors.size());
         for (auto* editor : openedEditors) {
             editors.add(editor);
         }

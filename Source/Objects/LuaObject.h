@@ -132,8 +132,8 @@ struct LuaPropertiesPanel {
                     break;
                 }
                 case PropertyItem::Type::Colour: {
-                    auto colour = "ff" + item.initString.fromFirstOccurrenceOf("#", false, false);
-                    auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(colour))));
+                    auto colour = Colour::fromString("ff" + item.initString.fromFirstOccurrenceOf("#", false, false));
+                    auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(std::bit_cast<int32_t>(colour)))));
                     auto* prop = new PropertiesPanel::InspectorColourComponent(item.label, value);
                     value.addListener(this);
                     methods.emplace_back(&value, item.type, item.method);
@@ -175,7 +175,7 @@ struct LuaPropertiesPanel {
                 if (value->refersToSameSourceAs(v)) {
                     auto methodSym = object->pd->generateSymbol(method);
                     if (type == LuaPropertiesPanel::PropertyItem::Type::Colour) {
-                        auto* hex = object->pd->generateSymbol("#" + value->toString().substring(2));
+                        auto* hex = object->pd->generateSymbol("#" + std::bit_cast<Colour>(static_cast<int32_t>(value->getValue())).toString().substring(2));
                         object->sendMessage("dialog", { object->pd->generateSymbol("colorpicker"), methodSym, hex });
                     } else if (type == LuaPropertiesPanel::PropertyItem::Type::Text) {
                         object->sendMessage("dialog", { object->pd->generateSymbol("text"), methodSym, object->pd->generateSymbol(value->toString()) });

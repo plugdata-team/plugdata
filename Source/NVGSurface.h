@@ -190,9 +190,6 @@ public:
 
     void resized() override;
 
-    void addBufferedObject(NVGComponent* component);
-    void removeBufferedObject(NVGComponent* component);
-
     // Reads back a region of the rendered framebuffer into a JUCE image.
     // 'logicalArea' is in this component's (i.e. the editor's) logical coordinates.
     // The returned image is in logical resolution, opaque, top-left origin.
@@ -254,8 +251,6 @@ private:
 
     static inline UnorderedMap<NVGcontext*, NVGSurface*> surfaces;
 
-    UnorderedSegmentedSet<WeakReference<NVGComponent>> bufferedObjects;
-
     float lastRenderScale = 0.0f;
 
     AtomicValue<float> cachedRenderScale { 0.0f };
@@ -266,6 +261,12 @@ private:
     // reading them off the render thread is a data race (see snapshotEditorSize).
     AtomicValue<int> editorWidth { 1 };
     AtomicValue<int> editorHeight { 1 };
+
+#if JUCE_LINUX || JUCE_BSD
+    // Whether the window's transparent bottom corners are cut out when presenting.
+    // Set on the message thread, read on the render thread.
+    AtomicValue<bool> roundedBottomCorners { false };
+#endif
 
     // Framebuffer readback (eyedropper). The request is filled on the message
     // thread and serviced on the render thread, which owns the framebuffer.

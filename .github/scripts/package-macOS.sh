@@ -16,7 +16,10 @@ CLAP="./Plugins/CLAP/."
 AAX="./Plugins/AAX/."
 APP="./Plugins/Standalone/."
 
-BINARY_DATA_FILE="./Plugins/Standalone/plugdata.app/Contents/Resources/plugdata-resources.bin"
+# AAX plugins are temporarily left out of the installer, set to 1 to package them again
+PACKAGE_AAX=0
+
+BINARY_DATA_FILE="./Plugins/Standalone/plugdata.app/Contents/Resources/plugdata.lproj/plugdata-resources.bin"
 
 OUTPUT_BASE_FILENAME="${PRODUCT_NAME}.pkg"
 
@@ -45,9 +48,6 @@ build_flavor()
   mkdir -p $TMPDIR
   cp -a $flavorprod $TMPDIR
 
-  rm -f $TMPDIR/*/Contents/Resources/plugdata-resources.bin
-  rm -f $TMPDIR/*/plugdata-resources.bin
-
   if [ -n "$AC_USERNAME" ]; then
     find $TMPDIR -type f \( -name "*.so" -o -name "*.dylib" \) -exec \
         /usr/bin/codesign --verbose --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" \
@@ -59,6 +59,12 @@ build_flavor()
         --options runtime \
         --entitlements ./Resources/Installer/Entitlements.plist {} \;
   fi
+
+  # Remove the resource file only after signing: the shared package's postinstall restores it into each installed bundle.
+  # Inside a .lproj folder, codesign seals it as optional, so the signatures stay valid both without it (which is what
+  # gets notarized), and after the identical file is restored
+  rm -f $TMPDIR/*/Contents/Resources/plugdata.lproj/plugdata-resources.bin
+  rm -f $TMPDIR/*/plugdata-resources.bin
 
   pkgbuild --analyze --root $TMPDIR ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.plist
   plutil -replace BundleIsRelocatable -bool NO ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.plist
@@ -73,32 +79,42 @@ build_shared_data()
   mkdir -p "$TMPDIR"
   cp "$BINARY_DATA_FILE" "$TMPDIR/"
 
-  # Create postinstall script that copies dylib into whichever plugin bundles were installed
+  # Create postinstall script that copies the resource file into whichever plugin bundles were installed
   SCRIPTS_DIR=${TARGET_DIR}/tmp_scripts
   mkdir -p "$SCRIPTS_DIR"
   cat > "$SCRIPTS_DIR/postinstall" << 'EOF'
 #!/bin/bash
 
-DYLIB="/tmp/plugdata_shared/plugdata-resources.bin"
+RESOURCES_FILE="/tmp/plugdata_shared/plugdata-resources.bin"
+RESOURCES_HASH=$(/usr/bin/openssl dgst -sha256 -binary "$RESOURCES_FILE" | /usr/bin/base64)
 
-LOCATIONS=(
-    "/Library/Audio/Plug-Ins/VST3/plugdata.vst3/Contents/Resources/"
-    "/Library/Audio/Plug-Ins/VST3/plugdata-fx.vst3/Contents/Resources/"
-    "/Library/Audio/Plug-Ins/AAX/plugdata.aaxplugin/Contents/Resources/"
-    "/Library/Audio/Plug-Ins/AAX/plugdata-fx.aaxplugin/Contents/Resources/"
-    "/Library/Audio/Plug-Ins/Components/plugdata.component/Contents/Resources/"
-    "/Library/Audio/Plug-Ins/Components/plugdata-fx.component/Contents/Resources/"
-    "/Library/Audio/Plug-Ins/Components/plugdata-midi.component/Contents/Resources/"
-    "/Library/Audio/Plug-Ins/CLAP/plugdata.clap/Contents/Resources/"
-    "/Library/Audio/Plug-Ins/CLAP/plugdata-fx.clap/Contents/Resources/"
-    "/Library/Audio/Plug-Ins/LV2/plugdata.lv2/"
-    "/Library/Audio/Plug-Ins/LV2/plugdata-fx.lv2/"
-    "/Applications/plugdata.app/Contents/Resources/"
+BUNDLES=(
+    "/Library/Audio/Plug-Ins/VST3/plugdata.vst3"
+    "/Library/Audio/Plug-Ins/VST3/plugdata-fx.vst3"
+    "/Library/Application Support/Avid/Audio/Plug-Ins/plugdata.aaxplugin"
+    "/Library/Application Support/Avid/Audio/Plug-Ins/plugdata-fx.aaxplugin"
+    "/Library/Audio/Plug-Ins/Components/plugdata.component"
+    "/Library/Audio/Plug-Ins/Components/plugdata-fx.component"
+    "/Library/Audio/Plug-Ins/Components/plugdata-midi.component"
+    "/Library/Audio/Plug-Ins/CLAP/plugdata.clap"
+    "/Library/Audio/Plug-Ins/CLAP/plugdata-fx.clap"
+    "/Applications/plugdata.app"
 )
 
-for loc in "${LOCATIONS[@]}"; do
-    if [[ -d "$loc" ]]; then
-        cp "$DYLIB" "$loc"
+for bundle in "${BUNDLES[@]}"; do
+    # Only restore the file into bundles whose signature seals this exact file, anything else would break the signature
+    # (for example a bundle left over from an older version, because that format was deselected in the installer)
+    SEAL="$bundle/Contents/_CodeSignature/CodeResources"
+    if [[ -d "$bundle" ]] && { [[ ! -f "$SEAL" ]] || grep -qF "$RESOURCES_HASH" "$SEAL"; }; then
+        mkdir -p "$bundle/Contents/Resources/plugdata.lproj"
+        cp "$RESOURCES_FILE" "$bundle/Contents/Resources/plugdata.lproj/"
+    fi
+done
+
+# LV2 bundles aren't signed as a whole, only their binaries are
+for bundle in "/Library/Audio/Plug-Ins/LV2/plugdata.lv2" "/Library/Audio/Plug-Ins/LV2/plugdata-fx.lv2"; do
+    if [[ -d "$bundle" ]]; then
+        cp "$RESOURCES_FILE" "$bundle/"
     fi
 done
 
@@ -152,7 +168,7 @@ if [[ -d $CLAP ]]; then
 fi
 
 # try to build AAX package
-if [[ -d $AAX ]]; then
+if [[ -d $AAX && $PACKAGE_AAX == 1 ]]; then
   build_flavor "AAX" $AAX "com.plugdata.aax.pkg.${PRODUCT_NAME}" "/Library/Application Support/Avid/Audio/Plug-Ins" "$MIN_OS_VERSION"
 fi
 
@@ -185,7 +201,7 @@ if [[ -d $CLAP ]]; then
 	CLAP_CHOICE="<line choice=\"com.plugdata.clap.pkg.${PRODUCT_NAME}\"/>"
 	CLAP_CHOICE_DEF="<choice id=\"com.plugdata.clap.pkg.${PRODUCT_NAME}\" visible=\"true\" start_selected=\"true\" title=\"CLAP Plug-in\"><pkg-ref id=\"com.plugdata.clap.pkg.${PRODUCT_NAME}\"/></choice><pkg-ref id=\"com.plugdata.clap.pkg.${PRODUCT_NAME}\" version=\"${VERSION}\" onConclusion=\"none\">${PRODUCT_NAME}_CLAP.pkg</pkg-ref>"
 fi
-if [[ -d $AAX ]]; then
+if [[ -d $AAX && $PACKAGE_AAX == 1 ]]; then
 	AAX_PKG_REF="<pkg-ref id=\"com.plugdata.aax.pkg.${PRODUCT_NAME}\"/>"
 	AAX_CHOICE="<line choice=\"com.plugdata.aax.pkg.${PRODUCT_NAME}\"/>"
 	AAX_CHOICE_DEF="<choice id=\"com.plugdata.aax.pkg.${PRODUCT_NAME}\" visible=\"true\" start_selected=\"false\" title=\"AAX Plug-in\"><pkg-ref id=\"com.plugdata.aax.pkg.${PRODUCT_NAME}\"/></choice><pkg-ref id=\"com.plugdata.aax.pkg.${PRODUCT_NAME}\" version=\"${VERSION}\" onConclusion=\"none\">${PRODUCT_NAME}_AAX.pkg</pkg-ref>"
@@ -247,9 +263,26 @@ fi
 # Sign installer
 productsign -s "Developer ID Installer: Timothy Schoen (7SV7JPRR2L)" ${PRODUCT_NAME}.pkg $1
 
-# Notarize installer
+# Notarize installer, and fail the build if that doesn't work, so we never upload an installer that Gatekeeper blocks
 xcrun notarytool store-credentials "notary_login" --apple-id ${AC_USERNAME} --password ${AC_PASSWORD} --team-id "7SV7JPRR2L"
-xcrun notarytool submit $1 --keychain-profile "notary_login" --wait
-xcrun stapler staple $1
+NOTARY_RESULT=$(xcrun notarytool submit $1 --keychain-profile "notary_login" --wait --output-format plist)
+NOTARY_STATUS=$(echo "$NOTARY_RESULT" | plutil -extract status raw -o - - 2>/dev/null) || NOTARY_STATUS="no result"
+NOTARY_ID=$(echo "$NOTARY_RESULT" | plutil -extract id raw -o - - 2>/dev/null) || NOTARY_ID=""
+echo "Notarization status: $NOTARY_STATUS"
+if [[ "$NOTARY_STATUS" != "Accepted" ]]; then
+    # The notary log lists the issues that were found
+    [[ -n "$NOTARY_ID" ]] && xcrun notarytool log "$NOTARY_ID" --keychain-profile "notary_login"
+    exit 1
+fi
+
+# The ticket can take a moment to become available after notarization, so retry stapling a few times
+for attempt in 1 2 3; do
+    xcrun stapler staple $1 && break
+    if [[ $attempt == 3 ]]; then
+        echo "Stapling failed"
+        exit 1
+    fi
+    sleep 30
+done
 
 .github/scripts/generate-upload-info.sh $1

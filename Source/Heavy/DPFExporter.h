@@ -80,6 +80,11 @@ public:
         panel.addSection("Advanced", pro_properties);
     }
 
+    StringArray getExportTypes() const override
+    {
+        return { "Binary", "Binary + GUI", "Source code", "Source + GUI code" };
+    }
+
     void getState(DynamicObject::Ptr globalState) override
     {
         auto* state = new DynamicObject();
@@ -147,8 +152,6 @@ public:
 
     bool performExport(String const& pdPatch, String const& outdir, String const& name, String const& copyright, StringArray const& searchPaths) override
     {
-        exportingView->showState(ExportingProgressView::Exporting);
-
         auto const heavyPath = pathToString(heavyExecutable);
         StringArray args = { heavyPath.quoted(), pdPatch.quoted(), "-o", outdir.quoted() };
 
