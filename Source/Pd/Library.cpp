@@ -468,7 +468,7 @@ File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile)
     }
 
     for (auto path : helpPaths) {
-        patchHelpPaths.add(helpDir.isNotEmpty() ? path.getChildFile(helpDir) : path);
+        patchHelpPaths.add(helpDir.isNotEmpty() && !File::isAbsolutePath(helpDir) ? path.getChildFile(helpDir) : path);
     }
 
     String firstName = helpName + "-help.pd";
