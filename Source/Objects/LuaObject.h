@@ -16,245 +16,140 @@ extern "C" {
 #undef PLUGDATA
 }
 
-struct LuaPropertiesPanel {
-    struct PropertyItem {
-        enum class Type { Check,
-            Text,
-            Colour,
-            Int,
-            Float,
-            Combo };
-        Type type;
-        String label;
+// Turns the properties a Lua object declares in its properties() method into regular object parameters,
+// and sends inspector changes back to the Lua method that belongs to each property
+class LuaProperties {
+    struct Property {
+        std::unique_ptr<Value> value;
+        ParameterType type;
         String method;
-        String initString;
-        StringArray options;
-        float initFloat = 0.f;
-        float min, max;
     };
 
-    struct PropertyFrame {
-        String title;
-        SmallArray<PropertyItem> items;
-    };
-
-    // The panel that is currently running its object's Lua properties method, only set during loadProperties()
-    static inline LuaPropertiesPanel* activePanel = nullptr;
-
-    static void propertiesCallback(void* target, t_symbol* sym, int argc, t_atom* argv)
-    {
-        auto symbol = hash(sym->s_name);
-        auto atoms = pd::Atom::fromAtoms(argc, argv);
-
-        if (auto* propertiesPanel = activePanel; propertiesPanel && propertiesPanel->pdlua == target) {
-            if (symbol == hash("add_frame_property") && atoms.size() >= 1 && propertiesPanel->object) {
-                auto frame = propertiesPanel->newFrame(atoms[0].toString());
-                propertiesPanel->object->objectParameters.addParamCustom([object = propertiesPanel->object, frame]() -> PropertiesPanelProperty* {
-                    return new LuaPropertiesPanel::LuaPropertiesFrame(frame.get(), object);
-                });
-            } else if (symbol == hash("add_check_property") && atoms.size() >= 3) {
-                propertiesPanel->addProperty({ .type = LuaPropertiesPanel::PropertyItem::Type::Check,
-                    .label = atoms[0].toString(),
-                    .method = atoms[1].toString(),
-                    .initFloat = atoms[2].getFloat() });
-            } else if (symbol == hash("add_text_property") && atoms.size() >= 3) {
-                propertiesPanel->addProperty({
-                    .type = LuaPropertiesPanel::PropertyItem::Type::Text,
-                    .label = atoms[0].toString(),
-                    .method = atoms[1].toString(),
-                    .initString = atoms[2].toString(),
-                });
-            } else if (symbol == hash("add_color_property") && atoms.size() >= 3) {
-                propertiesPanel->addProperty({ .type = LuaPropertiesPanel::PropertyItem::Type::Colour,
-                    .label = atoms[0].toString(),
-                    .method = atoms[1].toString(),
-                    .initString = atoms[2].toString() });
-            } else if (symbol == hash("add_int_property") && atoms.size() >= 5) {
-                propertiesPanel->addProperty({ .type = LuaPropertiesPanel::PropertyItem::Type::Int,
-                    .label = atoms[0].toString(),
-                    .method = atoms[1].toString(),
-                    .initFloat = atoms[2].getFloat(),
-                    .min = atoms[3].getFloat(),
-                    .max = atoms[4].getFloat()
-
-                });
-            } else if (symbol == hash("add_float_property") && atoms.size() >= 5) {
-                propertiesPanel->addProperty({ .type = LuaPropertiesPanel::PropertyItem::Type::Float,
-                    .label = atoms[0].toString(),
-                    .method = atoms[1].toString(),
-                    .initFloat = atoms[2].getFloat(),
-                    .min = atoms[3].getFloat(),
-                    .max = atoms[4].getFloat()
-
-                });
-            } else if (symbol == hash("add_combo_property") && atoms.size() >= 4) {
-                StringArray options;
-                for (int i = 3; i < atoms.size(); i++) {
-                    options.add(atoms[i].toString());
-                }
-                propertiesPanel->addProperty({ .type = LuaPropertiesPanel::PropertyItem::Type::Combo,
-                    .label = atoms[0].toString(),
-                    .method = atoms[1].toString(),
-                    .options = options,
-                    .initFloat = atoms[2].getFloat() });
-            }
-        }
-    }
-
-    struct LuaPropertiesFrame final : public PropertiesPanelProperty
-        , public Value::Listener {
-        OwnedArray<PropertiesPanelProperty> properties;
-        PropertyFrame frame;
-        ObjectBase* object;
-
-        LuaPropertiesFrame(PropertyFrame const* f, ObjectBase* object)
-            : PropertiesPanelProperty(f->title)
-            , frame(*f)
-            , object(object)
-        {
-            setHideLabel(true);
-
-            for (auto const& item : frame.items) {
-                switch (item.type) {
-                case PropertyItem::Type::Check: {
-                    auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(item.initFloat != 0.f))));
-                    auto* prop = new PropertiesPanel::BoolComponent(item.label, value, { "No", "Yes" });
-                    value.addListener(this);
-                    methods.emplace_back(&value, item.type, item.method);
-                    addAndMakeVisible(properties.add(prop));
-                    break;
-                }
-                case PropertyItem::Type::Text: {
-                    auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(item.initString))));
-                    auto* prop = new PropertiesPanel::EditableComponent<String>(item.label, value);
-                    value.addListener(this);
-                    methods.emplace_back(&value, item.type, item.method);
-                    addAndMakeVisible(properties.add(prop));
-                    break;
-                }
-                case PropertyItem::Type::Colour: {
-                    auto colour = Colour::fromString("ff" + item.initString.fromFirstOccurrenceOf("#", false, false));
-                    auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(std::bit_cast<int32_t>(colour)))));
-                    auto* prop = new PropertiesPanel::InspectorColourComponent(item.label, value);
-                    value.addListener(this);
-                    methods.emplace_back(&value, item.type, item.method);
-                    addAndMakeVisible(properties.add(prop));
-                    break;
-                }
-                case PropertyItem::Type::Int: {
-                    auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(item.initFloat))));
-                    auto* prop = new PropertiesPanel::EditableComponent<int>(item.label, value, true, item.min, item.max);
-                    value.addListener(this);
-                    methods.emplace_back(&value, item.type, item.method);
-                    addAndMakeVisible(properties.add(prop));
-                    break;
-                }
-                case PropertyItem::Type::Float: {
-                    auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(item.initFloat))));
-                    auto* prop = new PropertiesPanel::EditableComponent<float>(item.label, value, true, item.min, item.max);
-                    value.addListener(this);
-                    methods.emplace_back(&value, item.type, item.method);
-                    addAndMakeVisible(properties.add(prop));
-                    break;
-                }
-                case PropertyItem::Type::Combo: {
-                    auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(item.initFloat))));
-                    auto* prop = new PropertiesPanel::ComboComponent(item.label, value, item.options);
-                    value.addListener(this);
-                    methods.emplace_back(&value, item.type, item.method);
-                    addAndMakeVisible(properties.add(prop));
-                    break;
-                }
-                }
-            }
-            setPreferredHeight(24 + (properties.size() * 30));
-        }
-
-        void valueChanged(Value& v) override
-        {
-            for (auto& [value, type, method] : methods) {
-                if (value->refersToSameSourceAs(v)) {
-                    auto methodSym = object->pd->generateSymbol(method);
-                    if (type == LuaPropertiesPanel::PropertyItem::Type::Colour) {
-                        auto* hex = object->pd->generateSymbol("#" + std::bit_cast<Colour>(static_cast<int32_t>(value->getValue())).toString().substring(2));
-                        object->sendMessage("dialog", { object->pd->generateSymbol("colorpicker"), methodSym, hex });
-                    } else if (type == LuaPropertiesPanel::PropertyItem::Type::Text) {
-                        object->sendMessage("dialog", { object->pd->generateSymbol("text"), methodSym, object->pd->generateSymbol(value->toString()) });
-                    } else // combo/number/check are all just float
-                    {
-                        object->sendMessage("dialog", { object->pd->generateSymbol("number"), methodSym, static_cast<float>(value->getValue()) });
-                    }
-                    break;
-                }
-            }
-        }
-
-        void paint(Graphics& g) override
-        {
-            auto const& colours = getThemeColours(*this);
-
-            g.fillAll(colours.sidebarBackgroundColour);
-
-            // Frame background behind all properties
-            g.setColour(colours.sidebarActiveBackgroundColour);
-            g.fillRoundedRectangle(0.0f, 24.0f, getWidth(), getHeight() - 24, Corners::largeCornerRadius);
-
-            // Frame title
-            Fonts::drawStyledText(g, frame.title,
-                8, 0, getWidth() - 16, 28,
-                colours.sidebarTextColour, Semibold, 14.5f);
-
-            // Dividers between properties (skip after last)
-            g.setColour(colours.toolbarOutlineColour);
-            for (int i = 0; i < properties.size() - 1; i++) {
-                auto const y = properties[i]->getBottom();
-                g.drawHorizontalLine(y, properties[i]->getX() + 10, properties[i]->getRight() - 10);
-            }
-        }
-
-        void resized() override
-        {
-            auto b = getLocalBounds().withTrimmedTop(24); // leave room for title
-            for (auto* prop : properties)
-                prop->setBounds(b.removeFromTop(30));
-        }
-
-    private:
-        SmallArray<std::tuple<Value*, PropertyItem::Type, String>> methods;
-        OwnedArray<Value> ownedValues;
-    };
-
-    LuaPropertiesPanel(void* pdlua, ObjectBase* object)
-        : pdlua(pdlua)
-        , object(object)
-    {
-    }
-
-    // Runs the object's Lua properties method, routing the frames and properties it adds to this panel's object
-    void loadProperties(t_propertiesfn propertiesFn, t_gobj* target)
-    {
-        ScopedValueSetter<LuaPropertiesPanel*> const activePanelSetter(activePanel, this);
-        currentFrame = nullptr;
-        propertiesFn(target, nullptr);
-        currentFrame = nullptr;
-    }
-
-    // Frames are shared with the parameter lambdas that create their components, so they live exactly as long as those do
-    std::shared_ptr<PropertyFrame> newFrame(String const& title)
-    {
-        currentFrame = std::make_shared<PropertyFrame>(PropertyFrame { title, { } });
-        return currentFrame;
-    }
-
-    void addProperty(PropertyItem const& item)
-    {
-        if (currentFrame)
-            currentFrame->items.add(item);
-    }
-
-    void* pdlua;
     ObjectBase* object;
-    std::shared_ptr<PropertyFrame> currentFrame;
+    Value::Listener* listener;
+    void* target = nullptr;
+    ObjectParameters* parameters = nullptr;
+
+    // Values are reused across loads, so the inspector's pointers to them stay valid
+    HeapArray<Property> properties;
+    size_t numLoaded = 0;
+    ParameterCategory currentCategory;
+    int numFrames = 0;
+
+    // The properties that are currently running their object's Lua properties method, only set during load()
+    static inline LuaProperties* active = nullptr;
+
+public:
+    LuaProperties(ObjectBase* object, Value::Listener* listener)
+        : object(object)
+        , listener(listener)
+    {
+    }
+
+    // Runs the object's Lua properties method, which adds its properties to params through propertiesCallback
+    void load(t_pdlua* pdlua, ObjectParameters& params)
+    {
+        auto const propertiesFn = pdlua->pd.te_pd->c_propertiesfn;
+        if (!propertiesFn)
+            return;
+
+        ScopedValueSetter<LuaProperties*> const activeSetter(active, this);
+        pdlua->properties.plugdata_properties_callback = &propertiesCallback;
+        target = pdlua;
+        numLoaded = 0;
+        numFrames = 0;
+        parameters = &params;
+        currentCategory = cGeneral;
+        propertiesFn(&pdlua->pd.te_g, nullptr);
+        parameters = nullptr;
+    }
+
+    void propertyChanged(Value& v)
+    {
+        for (size_t i = 0; i < numLoaded; i++) {
+            auto const& [value, type, method] = properties[i];
+            if (!value->refersToSameSourceAs(v))
+                continue;
+
+            auto* instance = object->pd;
+            auto* methodSym = instance->generateSymbol(method);
+            if (type == tColour) {
+                auto* hex = instance->generateSymbol("#" + getValue<Colour>(v).toString().substring(2));
+                object->sendMessage("dialog", { instance->generateSymbol("colorpicker"), methodSym, hex });
+            } else if (type == tString) {
+                object->sendMessage("dialog", { instance->generateSymbol("text"), methodSym, instance->generateSymbol(v.toString()) });
+            } else // combo/number/check are all just float
+            {
+                object->sendMessage("dialog", { instance->generateSymbol("number"), methodSym, getValue<float>(v) });
+            }
+            return;
+        }
+    }
+
+private:
+    Value* nextValue(ParameterType const type, String const& method, var const& init)
+    {
+        if (numLoaded == properties.size()) {
+            properties.emplace_back(Property { std::make_unique<Value>(SynchronousValue()) });
+            properties[numLoaded].value->addListener(listener);
+        }
+
+        auto& [value, propertyType, propertyMethod] = properties[numLoaded++];
+        propertyType = type;
+        propertyMethod = method;
+        setValueExcludingListener(*value, init, listener);
+        return value.get();
+    }
+
+    static void propertiesCallback(void* pdlua, t_symbol* sym, int const argc, t_atom* argv)
+    {
+        auto* self = active;
+        if (!self || self->target != pdlua)
+            return;
+
+        auto const symbol = hash(sym->s_name);
+        auto const atoms = pd::Atom::fromAtoms(argc, argv);
+        auto& category = self->currentCategory;
+
+        if (symbol == hash("add_frame_property") && atoms.size() >= 1) {
+            auto const name = atoms[0].toString();
+            category = name == cDimensions.name ? cDimensions : ParameterCategory { .name = name, .order = cGeneral.order + ++self->numFrames };
+            return;
+        }
+        if (atoms.size() < 3)
+            return;
+
+        auto& parameters = *self->parameters;
+        auto const label = atoms[0].toString();
+        auto const method = atoms[1].toString();
+
+        if (symbol == hash("add_check_property")) {
+            auto const init = var(atoms[2].getFloat() != 0.0f);
+            parameters.addParamBool(label, category, self->nextValue(tBool, method, init), { "No", "Yes" }, init);
+        } else if (symbol == hash("add_text_property")) {
+            auto const init = var(atoms[2].toString());
+            parameters.addParamString(label, category, self->nextValue(tString, method, init), init);
+        } else if (symbol == hash("add_color_property")) {
+            // A string default is a literal colour, instead of a theme colour ID
+            auto const init = Colour::fromString("ff" + atoms[2].toString().fromFirstOccurrenceOf("#", false, false));
+            parameters.addParamColour(label, category, self->nextValue(tColour, method, colourToVar(init)), init.toString());
+        } else if (symbol == hash("add_int_property") && atoms.size() >= 5) {
+            // Lua's default range is +-1e36, which doesn't fit in an int
+            auto const toInt = [](float const f) { return static_cast<int>(jlimit<double>(std::numeric_limits<int>::min(), std::numeric_limits<int>::max(), f)); };
+            auto const init = var(static_cast<int>(atoms[2].getFloat()));
+            parameters.addParamInt(label, category, self->nextValue(tInt, method, init), init, true, toInt(atoms[3].getFloat()), toInt(atoms[4].getFloat()));
+        } else if (symbol == hash("add_float_property") && atoms.size() >= 5) {
+            auto const init = var(atoms[2].getFloat());
+            parameters.addParamFloat(label, category, self->nextValue(tFloat, method, init), init, true, atoms[3].getFloat(), atoms[4].getFloat());
+        } else if (symbol == hash("add_combo_property") && atoms.size() >= 4) {
+            StringArray options;
+            for (int i = 3; i < atoms.size(); i++) {
+                options.add(atoms[i].toString());
+            }
+            auto const init = var(static_cast<int>(atoms[2].getFloat()));
+            parameters.addParamCombo(label, category, self->nextValue(tCombo, method, init), options, init);
+        }
+    }
 };
 
 class LuaObject final : public ObjectBase
@@ -269,7 +164,7 @@ class LuaObject final : public ObjectBase
     std::unique_ptr<Component> textEditor;
     std::unique_ptr<Dialog> saveDialog;
 
-    LuaPropertiesPanel properties;
+    LuaProperties properties;
 
     int currentTouchIndex = -1;
 
@@ -318,11 +213,10 @@ class LuaObject final : public ObjectBase
 public:
     LuaObject(pd::WeakReference ptr, Object* parent)
         : ObjectBase(ptr, parent)
-        , properties(ptr.getRaw<void>(), this)
+        , properties(this, &propertyListener)
     {
         if (auto pdlua = ptr.get<t_pdlua>()) {
             pdlua->gfx.plugdata_draw_callback = &drawCallback;
-            pdlua->properties.plugdata_properties_callback = &LuaPropertiesPanel::propertiesCallback;
             allDrawTargets[pdlua.get()].add(this);
 
             libpd_set_instance(&pd_maininstance);
@@ -970,19 +864,6 @@ public:
         }
     }
 
-    ObjectParameters getParameters() override
-    {
-        objectParameters.clear();
-
-        if (auto pdlua = ptr.get<t_pdlua>()) {
-            if (pdlua->pdlua_class_gfx && pdlua->pdlua_class_gfx->c_propertiesfn) {
-                properties.loadProperties(pdlua->pdlua_class_gfx->c_propertiesfn, pdlua.cast<t_gobj>());
-            }
-        }
-
-        return objectParameters;
-    }
-
     static void drawCallback(void* target, int const layer, t_symbol* sym, int argc, t_atom* argv)
     {
         for (auto* object : allDrawTargets[static_cast<t_pdlua*>(target)]) {
@@ -1009,6 +890,14 @@ public:
                 object->triggerAsyncUpdate();
             }
         }
+    }
+
+    ObjectParameters getParameters() override
+    {
+        auto parameters = ObjectBase::getParameters();
+        if (auto pdlua = ptr.get<t_pdlua>())
+            properties.load(pdlua.get(), parameters); // callback adds to this instead of object->objectParameters
+        return parameters;
     }
 
     void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
@@ -1090,6 +979,11 @@ public:
         if (textEditor)
             cnv->editor->openTextEditors.add_unique(ptr);
     }
+
+    void propertyChanged(Value& v) override
+    {
+        properties.propertyChanged(v);
+    }
 };
 
 // A non-GUI Lua object, that we would still like to have clickable for opening the editor
@@ -1099,15 +993,13 @@ public:
     std::unique_ptr<Dialog> saveDialog;
     t_symbol* pdluaxSymbol;
     t_symbol* pdluaxjitSymbol;
-    LuaPropertiesPanel properties;
+    LuaProperties properties;
 
     LuaTextObject(pd::WeakReference ptr, Object* object)
         : TextObjectBase(ptr, object)
-        , properties(ptr.getRaw<void>(), this)
+        , properties(this, &propertyListener)
     {
         if (auto pdlua = ptr.get<t_pdlua>()) {
-            pdlua->properties.plugdata_properties_callback = &LuaPropertiesPanel::propertiesCallback;
-
             libpd_set_instance(&pd_maininstance);
             pdluaxSymbol = gensym("pdluax");
             pdluaxjitSymbol = gensym("pdluaxjit");
@@ -1117,15 +1009,16 @@ public:
 
     ObjectParameters getParameters() override
     {
-        objectParameters.clear();
+        auto parameters = ObjectBase::getParameters();
+        if (auto pdlua = ptr.get<t_pdlua>())
+            properties.load(pdlua.get(), parameters); // callback adds to this instead of object->objectParameters
+        return parameters;
+    }
 
-        if (auto pdlua = ptr.get<t_pdlua>()) {
-            if (pdlua->pdlua_class && pdlua->pdlua_class->c_propertiesfn) {
-                properties.loadProperties(pdlua->pdlua_class->c_propertiesfn, pdlua.cast<t_gobj>());
-            }
-        }
-
-        return objectParameters;
+    void propertyChanged(Value& v) override
+    {
+        TextObjectBase::propertyChanged(v);
+        properties.propertyChanged(v);
     }
 
     void mouseDown(MouseEvent const& e) override

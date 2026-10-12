@@ -181,8 +181,6 @@ public:
     {
         properties = objectParameters;
 
-        StringArray const names = { "Dimensions", "General", "Appearance", "Label", "Extra" };
-
         panel.clear();
         redirector.clearProperties();
 
@@ -202,7 +200,7 @@ public:
             for (auto& parameters : objectParameters) {
                 bool hasParameter = false;
                 for (auto& [name2, type2, category2, value2, options2, defaultVal2, customComponent2, onInteractionFn2, clip2, min2, max2] : parameters.getParameters()) {
-                    if (name1 == name2 && type1 == type2 && category1 == category2) {
+                    if (name1 == name2 && type1 == type2 && category1.name == category2.name) {
                         values.add(value2);
                         hasParameter = true;
                         break;
@@ -215,12 +213,21 @@ public:
             return isInAllObjects;
         };
 
-        for (int i = 0; i < 4; i++) {
-            PropertiesArray panels;
-            for (auto& parameter : objectParameters[0].getParameters()) {
-                auto& [name, type, category, value, options, defaultVal, customComponentFn, onInteractionFn, clip, min, max] = parameter;
+        auto params = objectParameters[0].getParameters();
 
-                if (customComponentFn && objectParameters.size() == 1 && static_cast<int>(category) == i) {
+        std::set<int> categories;
+        for (auto const& param : params)
+            categories.emplace(param.category.order);
+
+        for (auto& c : categories) {
+            PropertiesArray panels;
+            String categoryName;
+            for (auto& parameter : params) {
+                auto& [name, type, category, value, options, defaultVal, customComponentFn, onInteractionFn, clip, min, max] = parameter;
+                if (category.order != c)
+                    continue;
+
+                if (customComponentFn && objectParameters.size() == 1) {
                     if (auto* customComponent = customComponentFn()) {
                         panel.addSection("", { customComponent });
                     } else {
@@ -228,8 +235,7 @@ public:
                     }
                 } else if (customComponentFn) {
                     continue;
-                } else if (static_cast<int>(category) == i) {
-
+                } else {
                     SmallArray<Value*> otherValues;
                     if (!parameterIsInAllObjects(parameter, otherValues))
                         continue;
@@ -244,10 +250,10 @@ public:
                         panels.add(newPanel);
                     }
                 }
+                categoryName = category.name;
             }
-            if (!panels.isEmpty()) {
-                panel.addSection(names[i], panels);
-            }
+            if (!panels.isEmpty())
+                panel.addSection(categoryName, panels);
         }
         updateEmptyState();
 

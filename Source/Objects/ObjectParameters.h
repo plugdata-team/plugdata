@@ -17,12 +17,15 @@ enum ParameterType {
     tCustom
 };
 
-enum ParameterCategory {
-    cDimensions,
-    cGeneral,
-    cAppearance,
-    cLabel
+struct ParameterCategory {
+    String name;
+    int order;
 };
+
+inline ParameterCategory const cDimensions = {.name = "Dimensions", .order = 0};
+inline ParameterCategory const cGeneral = {.name = "General", .order = 1};
+inline ParameterCategory const cAppearance = {.name = "Appearance", .order = 2};
+inline ParameterCategory const cLabel = {.name = "Label", .order = 3};
 
 class PropertiesPanelProperty;
 using CustomPanelCreateFn = std::function<PropertiesPanelProperty*()>;
@@ -76,7 +79,9 @@ public:
         for (auto param : objectParameters) {
             if (!param.defaultValue.isVoid()) {
                 if (param.type == tColour || param.type == tColourAlpha) {
-                    param.valuePtr->setValue(colourToVar(lnf.findColour(param.defaultValue)));
+                    // Colour defaults are a theme colour ID, or a literal colour as a hex string
+                    auto const colour = param.defaultValue.isString() ? Colour::fromString(param.defaultValue.toString()) : lnf.findColour(param.defaultValue);
+                    param.valuePtr->setValue(colourToVar(colour));
                 } else if (param.defaultValue.isArray() && param.defaultValue.getArray()->isEmpty()) {
                     return;
                 } else {
