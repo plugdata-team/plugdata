@@ -38,18 +38,19 @@ struct LuaPropertiesPanel {
         SmallArray<PropertyItem> items;
     };
 
-    static inline auto allPropertiesTargets = UnorderedMap<void*, SmallArray<LuaPropertiesPanel*>>();
+    // The panel that is currently running its object's Lua properties method, only set during loadProperties()
+    static inline LuaPropertiesPanel* activePanel = nullptr;
 
     static void propertiesCallback(void* target, t_symbol* sym, int argc, t_atom* argv)
     {
         auto symbol = hash(sym->s_name);
         auto atoms = pd::Atom::fromAtoms(argc, argv);
 
-        for (auto* propertiesPanel : allPropertiesTargets[static_cast<t_pdlua*>(target)]) {
+        if (auto* propertiesPanel = activePanel; propertiesPanel && propertiesPanel->pdlua == target) {
             if (symbol == hash("add_frame_property") && atoms.size() >= 1 && propertiesPanel->object) {
-                auto* frame = propertiesPanel->newFrame(atoms[0].toString());
+                auto frame = propertiesPanel->newFrame(atoms[0].toString());
                 propertiesPanel->object->objectParameters.addParamCustom([object = propertiesPanel->object, frame]() -> PropertiesPanelProperty* {
-                    return new LuaPropertiesPanel::LuaPropertiesFrame(frame, object);
+                    return new LuaPropertiesPanel::LuaPropertiesFrame(frame.get(), object);
                 });
             } else if (symbol == hash("add_check_property") && atoms.size() >= 3) {
                 propertiesPanel->addProperty({ .type = LuaPropertiesPanel::PropertyItem::Type::Check,
@@ -224,14 +225,24 @@ struct LuaPropertiesPanel {
     };
 
     LuaPropertiesPanel(void* pdlua, ObjectBase* object)
-        : object(object)
+        : pdlua(pdlua)
+        , object(object)
     {
-        allPropertiesTargets[pdlua].add(this);
     }
 
-    PropertyFrame* newFrame(String const& title)
+    // Runs the object's Lua properties method, routing the frames and properties it adds to this panel's object
+    void loadProperties(t_propertiesfn propertiesFn, t_gobj* target)
     {
-        currentFrame = pendingFrames.add(std::unique_ptr<PropertyFrame> { new PropertyFrame { title, { } } });
+        ScopedValueSetter<LuaPropertiesPanel*> const activePanelSetter(activePanel, this);
+        currentFrame = nullptr;
+        propertiesFn(target, nullptr);
+        currentFrame = nullptr;
+    }
+
+    // Frames are shared with the parameter lambdas that create their components, so they live exactly as long as those do
+    std::shared_ptr<PropertyFrame> newFrame(String const& title)
+    {
+        currentFrame = std::make_shared<PropertyFrame>(PropertyFrame { title, { } });
         return currentFrame;
     }
 
@@ -241,9 +252,9 @@ struct LuaPropertiesPanel {
             currentFrame->items.add(item);
     }
 
+    void* pdlua;
     ObjectBase* object;
-    OwnedArray<PropertyFrame> pendingFrames;
-    PropertyFrame* currentFrame = nullptr;
+    std::shared_ptr<PropertyFrame> currentFrame;
 };
 
 class LuaObject final : public ObjectBase
@@ -965,7 +976,7 @@ public:
 
         if (auto pdlua = ptr.get<t_pdlua>()) {
             if (pdlua->pdlua_class_gfx && pdlua->pdlua_class_gfx->c_propertiesfn) {
-                pdlua->pdlua_class_gfx->c_propertiesfn(pdlua.cast<t_gobj>(), nullptr);
+                properties.loadProperties(pdlua->pdlua_class_gfx->c_propertiesfn, pdlua.cast<t_gobj>());
             }
         }
 
@@ -1110,7 +1121,7 @@ public:
 
         if (auto pdlua = ptr.get<t_pdlua>()) {
             if (pdlua->pdlua_class && pdlua->pdlua_class->c_propertiesfn) {
-                pdlua->pdlua_class->c_propertiesfn(pdlua.cast<t_gobj>(), nullptr);
+                properties.loadProperties(pdlua->pdlua_class->c_propertiesfn, pdlua.cast<t_gobj>());
             }
         }
 
