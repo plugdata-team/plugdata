@@ -160,6 +160,8 @@ struct PlugDataLook final : public LookAndFeel_V4
 
     int getMenuWindowFlags() override;
 
+    Component* getParentComponentForMenuOptions(PopupMenu::Options const& options) override;
+
     int getPopupMenuBorderSize() override;
 
     void drawTreeviewPlusMinusBox(Graphics& g, Rectangle<float> const& area, Colour, bool isOpen, bool isMouseOver) override;

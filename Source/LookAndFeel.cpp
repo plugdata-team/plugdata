@@ -471,6 +471,22 @@ int PlugDataLook::getMenuWindowFlags()
     return ComponentPeer::windowIsTemporary;
 }
 
+Component* PlugDataLook::getParentComponentForMenuOptions(PopupMenu::Options const& options)
+{
+    // A callout hosted in the callout area window shares the menu's window level. A menu in its own window would
+    // bring the modal callout to the front when it opens and end up behind it, so show it inside that window instead
+    if (!options.getParentComponent()) {
+        if (auto const* target = options.getTargetComponent()) {
+            if (auto const* callout = target->findParentComponentOfClass<CallOutBox>()) {
+                if (auto* calloutHost = callout->getParentComponent())
+                    return calloutHost;
+            }
+        }
+    }
+
+    return LookAndFeel_V4::getParentComponentForMenuOptions(options);
+}
+
 int PlugDataLook::getPopupMenuBorderSize()
 {
     if (Desktop::canUseSemiTransparentWindows()) {
