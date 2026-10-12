@@ -242,6 +242,8 @@ public:
             int const targetW = (int)(targetH * logo.getWidth() / (float)logo.getHeight());
             auto logoBounds = Rectangle<int>(0, 0, targetW, targetH)
                                   .withCentre(area.getCentre().translated(0, -32));
+
+            g.setOpacity(1.0f);
             g.drawImage(logo, logoBounds.toFloat(), RectanglePlacement::centred);
         }
 
