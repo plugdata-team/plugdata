@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include "Utility/OSUtils.h"
+
 struct Spinner final : public Component
     , public Timer {
 
@@ -160,6 +162,11 @@ public:
                 finish(result);
                 return;
             }
+
+            // juce::ZipFile::uncompressTo() does not restore the file permissions stored
+            // in the archive, which leaves helper executables inside a package (for
+            // example vstplugin~'s "host" plugin scanner) without their executable bit
+            OSUtils::restoreExecutablePermissionsFromZip(zip, filesystem);
 
             // Tell deken about the newly installed package
             manager.addPackageToRegister(packageInfo, extractedPath);

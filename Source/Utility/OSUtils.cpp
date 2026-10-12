@@ -677,3 +677,23 @@ void OSUtils::removeFromQuarantine(juce::File const& file)
     juce::ignoreUnused(file);
 #endif
 }
+
+void OSUtils::restoreExecutablePermissionsFromZip(juce::ZipFile const& zip, juce::File const& extractedTo)
+{
+    for (int i = 0; i < zip.getNumEntries(); i++) {
+        auto const* entry = zip.getEntry(i);
+        if (entry == nullptr || entry->isSymbolicLink)
+            continue;
+
+        // On Unix the file mode lives in the high 16 bits of the external attributes.
+        // Archives created on other systems leave those bits empty, so there is
+        // simply nothing to restore for them.
+        auto const unixMode = static_cast<unsigned int>(entry->externalFileAttributes) >> 16;
+        if ((unixMode & 0111) == 0) // no user/group/other execute bit set
+            continue;
+
+        auto const extractedFile = extractedTo.getChildFile(entry->filename.replaceCharacter('\\', '/'));
+        if (extractedFile.isAChildOf(extractedTo) && extractedFile.existsAsFile())
+            extractedFile.setExecutePermission(true);
+    }
+}

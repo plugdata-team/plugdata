@@ -58,6 +58,18 @@ struct OSUtils {
     static bool isFileQuarantined(juce::File const& file);
     static void removeFromQuarantine(juce::File const& file);
 
+    // Zip archives created on Unix store the file mode in the high 16 bits of each
+    // entry's "external file attributes". juce::ZipFile::uncompressTo() restores the
+    // file contents and timestamps, but not those permissions, so executables shipped
+    // inside a package (such as vstplugin~'s "host" helper) end up without their
+    // executable bit and silently fail to launch. Call this right after extracting
+    // an archive to put the executable bit back.
+    //
+    // Only the executable permission is restored: everything else is already set
+    // correctly by the extraction, and adding permission bits can never make a file
+    // less accessible.
+    static void restoreExecutablePermissionsFromZip(juce::ZipFile const& zip, juce::File const& extractedTo);
+
 #if JUCE_MAC || JUCE_IOS
     static float MTLGetPixelScale(void* view);
     static void* MTLCreateView(void* parent, int x, int y, int width, int height);
