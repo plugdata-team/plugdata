@@ -272,3 +272,8 @@ inline PlugDataColours const& getThemeColours(Component const& component) noexce
 {
     return getPlugDataLook(component).getColours();
 }
+
+inline float getObjectCornerRadius(Component const& component) noexcept
+{
+    return getPlugDataLook(component).getObjectCornerRadius();
+}
