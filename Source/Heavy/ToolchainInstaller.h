@@ -245,8 +245,8 @@ private:
         // This makes sure we can use dfu-util without admin privileges
         // Kinda sucks that we need to sudo this, but there's no other way AFAIK
 
-        auto askpassScript = toolchainDir.getChildFile("scripts").getChildFile("askpass.sh");
-        auto udevInstallScript = toolchainDir.getChildFile("scripts").getChildFile("install_udev_rule.sh");
+        auto askpassScript = toolchainDir.getChildFile("run").getChildFile("askpass.sh");
+        auto udevInstallScript = toolchainDir.getChildFile("run").getChildFile("install_udev_rule.sh");
 
         askpassScript.setExecutePermission(true);
         udevInstallScript.setExecutePermission(true);

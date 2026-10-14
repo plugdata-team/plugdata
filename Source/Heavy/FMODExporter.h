@@ -33,44 +33,6 @@ public:
 
     bool performExport(String const& pdPatch, String const& outdir, String const& name, String const& copyright, StringArray const& searchPaths) override
     {
-        auto const heavyPath = pathToString(heavyExecutable);
-
-        StringArray args = { heavyPath.quoted(), pdPatch.quoted(), "-o", outdir.quoted() };
-
-        args.add("-n" + name);
-
-        if (copyright.isNotEmpty()) {
-            args.add("--copyright");
-            args.add(copyright.quoted());
-        }
-
-        args.add("-v");
-        args.add("-gfmod");
-
-        args.add("-p");
-        for (auto& path : searchPaths) {
-            args.add(path);
-        }
-
-        if (shouldQuit)
-            return true;
-
-        auto const command = args.joinIntoString(" ");
-        startShellScript(command);
-
-        waitForProcessToFinish(-1);
-        exportingView->flushConsole();
-
-        if (shouldQuit)
-            return true;
-
-        auto const outputFile = File(outdir);
-        outputFile.getChildFile("ir").deleteRecursively();
-        outputFile.getChildFile("hv").deleteRecursively();
-
-        // Delay to get correct exit code
-        Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
-
-        return getExitCode();
+        return runExportScript("fmod", pdPatch, outdir, name, copyright, searchPaths);
     }
 };

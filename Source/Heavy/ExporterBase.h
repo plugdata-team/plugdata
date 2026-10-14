@@ -33,11 +33,11 @@ struct ExporterBase : public Component
 
     bool blockDialog = false;
 
+    static inline File const toolchainDir = ProjectInfo::appDataDir.getChildFile("Toolchain");
+
 #if JUCE_WINDOWS
-    static inline File const toolchainDir = ProjectInfo::appDataDir.getChildFile("Toolchain").getChildFile("usr");
     static inline String const exeSuffix = ".exe";
 #else
-    static inline File const toolchainDir = ProjectInfo::appDataDir.getChildFile("Toolchain");
     static inline String const exeSuffix = "";
 #endif
 
@@ -270,59 +270,77 @@ struct ExporterBase : public Component
         }
     }
 
-    String startShellScriptWithOutput(String const& scriptText)
+    // Arguments stay separate from shell syntax, including empty copyright and paths with spaces.
+    bool runExportScript(String const& generator, String const& pdPatch, String const& outdir,
+        String const& name, String const& copyright, StringArray const& searchPaths,
+        StringArray const& options = { })
     {
-        if (shouldQuit)
-            return { };
-
-        exportingView->logToConsole("\n\x1b[1;34m> " + scriptText + " \x1b[0m \n\n");
-
-        File scriptFile = File::createTempFile(".sh");
-        deleteTempFileLater(scriptFile);
-
-        auto const bash = String("#!/bin/bash\n");
-        scriptFile.replaceWithText(bash + scriptText, false, false, "\n");
-
-        ChildProcess process;
-
-#if JUCE_WINDOWS
-        auto sh = toolchainDir.getChildFile("bin").getChildFile("sh.exe");
-        auto arguments = StringArray { sh.getFullPathName(), "--login", scriptFile.getFullPathName().replaceCharacter('\\', '/') };
-#else
-        scriptFile.setExecutePermission(true);
-        auto arguments = scriptFile.getFullPathName();
-#endif
-        process.start(arguments, ChildProcess::wantStdOut | ChildProcess::wantStdErr);
-        return process.readAllProcessOutput();
+        StringArray arguments { pdPatch, name, copyright, "--output", outdir };
+        arguments.addArray(options);
+        arguments.add("--");
+        arguments.addArray(searchPaths);
+        return runToolchainScript("build-" + generator + ".sh", arguments);
     }
 
-    void startShellScript(String const& scriptText)
+    bool runToolchainScript(String const& scriptName, StringArray const& scriptArguments)
     {
-        exportingView->logToConsole("\n\x1b[1;92m> " + scriptText + " \x1b[0m \n\n");
-
-        File scriptFile = File::createTempFile(".sh");
-        deleteTempFileLater(scriptFile);
-
+        auto const script = toolchainDir.getChildFile("run").getChildFile(scriptName);
 #if JUCE_WINDOWS
-        auto const gccColourFlags = String("export CFLAGS=\"-fdiagnostics-color=always\"\nexport CXXFLAGS=\"-fdiagnostics-color=always\"\n ");
+        auto const shell = toolchainDir.getChildFile("bin").getChildFile("sh.exe");
 #else
-        auto const gccColourFlags = String("export TERM=xterm-256color\nexport GCC_URLS=no\n");
+        auto const shell = File("/bin/sh");
 #endif
-        auto const bash = String("#!/bin/bash\n");
-        scriptFile.replaceWithText(bash + gccColourFlags + scriptText, false, false, "\n");
+        StringArray arguments { pathToString(shell), pathToString(script) };
+        arguments.addArray(scriptArguments);
 
-        ScopedLock lock(processLock);
-        if (shouldQuit)
-            return;
+        bool started = false;
+        {
+            ScopedLock lock(processLock);
+            if (shouldQuit)
+                return true;
 
+            if (!script.existsAsFile() || !shell.existsAsFile()) {
+                exportingView->logToConsole("Missing toolchain script or shell. Please reinstall the Heavy toolchain.\n");
+                return true;
+            }
 #if JUCE_WINDOWS
-        auto sh = toolchainDir.getChildFile("bin").getChildFile("sh.exe");
-        process.start(StringArray { sh.getFullPathName(), "--login", scriptFile.getFullPathName().replaceCharacter('\\', '/') });
+            // JUCE's StringArray overload drops empty arguments on Windows. Encode the
+            // native command line explicitly so the mandatory empty copyright survives.
+            StringArray quotedArguments;
+            for (auto const& argument : arguments) {
+                String quoted = "\"";
+                int backslashes = 0;
+                for (auto const character : argument) {
+                    if (character == '\\') {
+                        ++backslashes;
+                        continue;
+                    }
+                    quoted += String::repeatedString("\\", character == '"' ? backslashes * 2 + 1 : backslashes);
+                    quoted += String::charToString(character);
+                    backslashes = 0;
+                }
+                quoted += String::repeatedString("\\", backslashes * 2) + "\"";
+                quotedArguments.add(quoted);
+            }
+            started = process.start(quotedArguments.joinIntoString(" "), ChildProcess::wantStdOut | ChildProcess::wantStdErr);
 #else
-        // The pty makes the script a session leader, so killing it hangs up on whatever it started too
-        scriptFile.setExecutePermission(true);
-        process.start(scriptFile.getFullPathName(), ChildProcess::wantStdOut | ChildProcess::wantStdErr | ChildProcess::wantTtyOut);
+            // This JUCE version also skips empty argv entries on POSIX. Prefix each
+            // argument, then strip that prefix in a fixed shell wrapper (no eval).
+            StringArray shellArguments { pathToString(shell), "-c",
+                "for arg do set -- \"$@\" \"${arg#?}\"; shift; done; exec /bin/sh \"$@\"", "toolchain-run" };
+            for (int i = 1; i < arguments.size(); ++i)
+                shellArguments.add("x" + arguments[i]);
+            // Preserve the PTY session so cancellation also hangs up child compilers.
+            started = process.start(shellArguments, ChildProcess::wantStdOut | ChildProcess::wantStdErr | ChildProcess::wantTtyOut);
 #endif
+        }
+        if (!started) {
+            exportingView->logToConsole("Failed to start " + scriptName + "\n");
+            return true;
+        }
+        waitForProcessToFinish(-1);
+        exportingView->flushConsole();
+        return shouldQuit || getExitCode() != 0;
     }
 
     void startExport(File const& outDir)
@@ -346,7 +364,7 @@ struct ExporterBase : public Component
         auto searchPaths = StringArray { };
         if (realPatchFile.existsAsFile() && !realPatchFile.isRoot()) // Make sure file actually exists
         {
-            searchPaths.add(pathToString(realPatchFile.getParentDirectory()).quoted());
+            searchPaths.add(pathToString(realPatchFile.getParentDirectory()));
         }
         editor->pd->setThis();
 
@@ -356,7 +374,7 @@ struct ExporterBase : public Component
         pd::Interface::getSearchPaths(paths, &numItems);
 
         for (int i = 0; i < numItems; i++) {
-            searchPaths.add(String(paths[i]).quoted());
+            searchPaths.add(String(paths[i]).replaceCharacter('\\', '/'));
         }
 
         // Make sure we don't add the file location twice

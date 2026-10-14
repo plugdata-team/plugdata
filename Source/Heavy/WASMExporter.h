@@ -52,54 +52,7 @@ public:
 
     bool performExport(String const& pdPatch, String const& outdir, String const& name, String const& copyright, StringArray const& searchPaths) override
     {
-        auto const heavyPath = pathToString(heavyExecutable);
-        StringArray args = { heavyPath.quoted(), pdPatch.quoted(), "-o", outdir.quoted() };
-        args.add("-n" + name);
-
-        if (copyright.isNotEmpty()) {
-            args.add("--copyright");
-            args.add(copyright.quoted());
-        }
-
-        auto emsdkPath = getValue<String>(emsdkPathValue);
-
-        args.add("-v");
-        args.add("-gjs");
-
-        args.add("-p");
-        for (auto& path : searchPaths) {
-            args.add(path);
-        }
-
-        if (shouldQuit)
-            return true;
-
-        auto compileString = args.joinIntoString(" ");
-
-#if JUCE_WINDOWS
-        auto buildScript = "source " + emsdkPath.replaceCharacter('\\', '/') + "/emsdk_env.sh; " + compileString;
-#else
-        auto buildScript = "source " + emsdkPath + "/emsdk_env.sh; " + compileString;
-#endif
-
-        exportingView->reportStatus("Compiling");
-        startShellScript(buildScript);
-
-        waitForProcessToFinish(-1);
-        exportingView->flushConsole();
-
-        if (shouldQuit)
-            return true;
-
-        auto const outputFile = File(outdir);
-        outputFile.getChildFile("c").deleteRecursively();
-        outputFile.getChildFile("ir").deleteRecursively();
-        outputFile.getChildFile("hv").deleteRecursively();
-
-        // Delay to get correct exit code
-        Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
-
-        bool const generationExitCode = getExitCode();
-        return generationExitCode;
+        return runExportScript("wasm", pdPatch, outdir, name, copyright, searchPaths,
+            { "--emsdk", getValue<String>(emsdkPathValue).replaceCharacter('\\', '/') });
     }
 };

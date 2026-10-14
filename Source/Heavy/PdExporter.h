@@ -69,123 +69,40 @@ public:
 
     bool performExport(String const& pdPatch, String const& outdir, String const& name, String const& copyright, StringArray const& searchPaths) override
     {
-        auto const heavyPath = pathToString(heavyExecutable);
-        StringArray args = { heavyPath.quoted(), pdPatch.quoted(), "-o", outdir.quoted() };
-
-        args.add("-n" + name);
-
-        if (copyright.isNotEmpty()) {
-            args.add("--copyright");
-            args.add(copyright.quoted());
+        auto const build = getExportType() == 2;
+        StringArray options { "--mode", build ? "build" : "source" };
+#if JUCE_WINDOWS
+        if (build) {
+            auto const pdBin = ProjectInfo::isStandalone
+                ? File::getSpecialLocation(File::currentApplicationFile).getParentDirectory()
+                : File::getSpecialLocation(File::globalApplicationsDirectory).getChildFile("plugdata");
+            options.addArray({ "--pd-bin", pathToString(pdBin) });
         }
-
-        args.add("-v");
-        args.add("-gpdext");
-
-        args.add("-p");
-        for (auto& path : searchPaths) {
-            args.add(path);
-        }
-
-        if (shouldQuit)
-            return true;
-
-        auto const command = args.joinIntoString(" ");
-        startShellScript(command);
-
-        waitForProcessToFinish(-1);
-        exportingView->flushConsole();
-
-        if (shouldQuit)
-            return true;
-
-        auto outputFile = File(outdir);
-        outputFile.getChildFile("ir").deleteRecursively();
-        outputFile.getChildFile("hv").deleteRecursively();
-
-        // Delay to get correct exit code
-        Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
-
-        bool const generationExitCode = getExitCode();
-        // Check if we need to compile
-        if (!generationExitCode && getExportType() == 2) {
-            exportingView->reportStatus("Compiling");
-
-            auto const workingDir = File::getCurrentWorkingDirectory();
-
-            outputFile.setAsCurrentWorkingDirectory();
-
-            auto const bin = toolchainDir.getChildFile("bin");
-            auto make = bin.getChildFile("make" + exeSuffix);
-            auto makefile = outputFile.getChildFile("Makefile");
-
-#if JUCE_MAC
-            startShellScript("make -j4 suppress-wunused=1");
-#elif JUCE_WINDOWS
-            File pdDll;
-            if (ProjectInfo::isStandalone) {
-                pdDll = File::getSpecialLocation(File::currentApplicationFile).getParentDirectory();
-            } else {
-                pdDll = File::getSpecialLocation(File::globalApplicationsDirectory).getChildFile("plugdata");
-            }
-
-            auto path = "export PATH=\"$PATH:" + pathToString(toolchainDir.getChildFile("bin")) + "\"\n";
-            auto cc = "CC=" + pathToString(toolchainDir.getChildFile("bin").getChildFile("gcc.exe")) + " ";
-            auto cxx = "CXX=" + pathToString(toolchainDir.getChildFile("bin").getChildFile("g++.exe")) + " ";
-            auto pdbindir = "PDBINDIR=\"" + pathToString(pdDll) + "\" ";
-            auto shell = " SHELL=" + pathToString(toolchainDir.getChildFile("bin").getChildFile("bash.exe")).quoted();
-
-            startShellScript(path + cc + cxx + pdbindir + pathToString(make) + " -j4 suppress-wunused=1" + shell);
-
-#else // Linux or BSD
-            auto prepareEnvironmentScript = toolchainDir.getChildFile("scripts").getChildFile("anywhere-setup.sh").getFullPathName() + "\n";
-
-            auto buildScript = prepareEnvironmentScript
-                + make.getFullPathName()
-                + " -j4 suppress-wunused=1";
-
-            startShellScript(buildScript);
 #endif
+        if (runExportScript("pd", pdPatch, outdir, name, copyright, searchPaths, options))
+            return true;
 
-            waitForProcessToFinish(-1);
-            exportingView->flushConsole();
-
-            workingDir.setAsCurrentWorkingDirectory();
-
-            // A cancelled build doesn't get copied to the externals folder
+        if (build && getValue<bool>(copyToPath)) {
             if (shouldQuit)
                 return true;
 
-            // Delay to get correct exit code
-            Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
-
 #if JUCE_MAC
-            auto external = outputFile.getChildFile(name + "~.pd_darwin");
+            auto const extension = "~.pd_darwin";
 #elif JUCE_WINDOWS
-            auto external = outputFile.getChildFile(name + "~.dll");
+            auto const extension = "~.dll";
 #else
-            auto external = outputFile.getChildFile(name + "~.pd_linux");
+            auto const extension = "~.pd_linux";
 #endif
-
-            if (getValue<bool>(copyToPath)) {
-                exportingView->reportStatus("Copying");
-                exportingView->logToConsole("Copying to Externals folder...\n");
-                auto const copy_location = ProjectInfo::appDataDir.getChildFile("Externals").getChildFile(external.getFileName());
-                external.copyFileTo(copy_location.getFullPathName());
-                copy_location.setExecutePermission(1);
+            auto const external = File(outdir).getChildFile(name + extension);
+            auto const destination = ProjectInfo::appDataDir.getChildFile("Externals").getChildFile(external.getFileName());
+            exportingView->reportStatus("Copying");
+            exportingView->logToConsole("Copying to Externals folder...\n");
+            if (!destination.getParentDirectory().createDirectory() || !external.copyFileTo(destination)) {
+                exportingView->logToConsole("Failed to copy external to " + destination.getFullPathName() + "\n");
+                return true;
             }
-
-            // Clean up
-            outputFile.getChildFile("c").deleteRecursively();
-            outputFile.getChildFile("pdext").deleteRecursively();
-            outputFile.getChildFile("Makefile").deleteFile();
-            outputFile.getChildFile("Makefile.pdlibbuilder").deleteFile();
-
-            bool const compilationExitCode = getExitCode();
-
-            return compilationExitCode;
+            destination.setExecutePermission(true);
         }
-
-        return generationExitCode;
+        return false;
     }
 };

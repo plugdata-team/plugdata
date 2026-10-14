@@ -60,7 +60,7 @@ private:
 
     void ensureToolchainThenExport()
     {
-        if (ExporterBase::heavyExecutable.existsAsFile()) {
+        if (ExporterBase::toolchainDir.getChildFile("run/build-cpp.sh").existsAsFile()) {
             logMessage("Heavy toolchain already installed at " + ExporterBase::heavyExecutable.getFullPathName() + " - skipping download");
             runExport();
             return;
@@ -72,7 +72,7 @@ private:
         // archive and unpacks it via Decompress::extractTarXz.
         installer = std::make_unique<ToolchainInstaller>(editor);
         installer->toolchainInstalledCallback = [this] {
-            expect(ExporterBase::heavyExecutable.existsAsFile(), "installer must produce the Heavy executable");
+            expect(ExporterBase::toolchainDir.getChildFile("run/build-cpp.sh").existsAsFile(), "installer must produce the run/build-cpp.sh entry point");
             runExport();
         };
 
@@ -88,7 +88,7 @@ private:
         // ~5 minutes max (3s * 100); the callback short-circuits on success
         constexpr int maxAttempts = 100;
 
-        if (ExporterBase::heavyExecutable.existsAsFile())
+        if (ExporterBase::toolchainDir.getChildFile("run/build-cpp.sh").existsAsFile())
             return; // the installed callback handles the rest
 
         if (auto const& error = ToolchainInstall::getInstance()->error; error.isNotEmpty()) {
