@@ -144,12 +144,18 @@ private:
         String downloadLocation = "https://github.com/plugdata-team/plugdata-heavy-toolchain/releases/download/v" + version + "/";
 
 #if JUCE_MAC
-        downloadLocation += "Heavy-MacOS-Universal.tar.xz";
+        String const platform = "macos";
 #elif JUCE_WINDOWS
-        downloadLocation += "Heavy-Win64.tar.xz";
-#elif JUCE_LINUX && !__aarch64__
-        downloadLocation += "Heavy-Linux-x64.tar.xz";
+        String const platform = "windows";
+#else
+        String const platform = "linux";
 #endif
+#if JUCE_ARM
+        String const architecture = "arm64";
+#else
+        String const architecture = "x64";
+#endif
+        downloadLocation += "heavy-toolchain-" + platform + "-" + architecture + ".tar.xz";
 
         int statusCode = 0;
         auto const instream = URL(downloadLocation).createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress).withConnectionTimeoutMs(10000).withStatusCode(&statusCode));
@@ -171,7 +177,7 @@ private:
 
         // pre-allocate memory to improve download speed
 #if JUCE_MAC
-        mo.preallocate(1024 * 1024 * 128);
+        mo.preallocate(1024 * 1024 * 160);
 #else
         mo.preallocate(1024 * 1024 * 256);
 #endif
@@ -212,9 +218,9 @@ private:
             toolchainDir.deleteRecursively();
 
 #if JUCE_LINUX || JUCE_WINDOWS
-        int expectedSize = 800 * 1024 * 1024;
+        int expectedSize = 1024 * 1024 * 1024;
 #else
-        int expectedSize = 500 * 1024 * 1024;
+        int expectedSize = 750 * 1024 * 1024;
 #endif
         if (!Decompress::extractTarXz(static_cast<uint8_t const*>(mo.getData()), mo.getDataSize(), toolchainDir.getParentDirectory(), expectedSize)) {
             finishInstall("Error: Could not extract downloaded package");
@@ -222,8 +228,8 @@ private:
         }
 
 #if JUCE_WINDOWS
-        File usbDriverInstaller = toolchainDir.getChildFile("usr").getChildFile("etc").getChildFile("usb_driver").getChildFile("install-filter.exe");
-        File driverSpec = toolchainDir.getChildFile("usr").getChildFile("etc").getChildFile("usb_driver").getChildFile("DFU_in_FS_Mode.inf");
+        File usbDriverInstaller = toolchainDir.getChildFile("etc").getChildFile("usb_driver").getChildFile("install-filter.exe");
+        File driverSpec = toolchainDir.getChildFile("etc").getChildFile("usb_driver").getChildFile("DFU_in_FS_Mode.inf");
 
         // Since we interact with ComponentPeer, better call it from the message thread
         MessageManager::callAsync([usbDriverInstaller, driverSpec] {
@@ -405,11 +411,15 @@ public:
     bool needsUpdate = false;
 
 #if JUCE_WINDOWS
-    String downloadSize = "1.2 GB";
+    String downloadSize = "231 MB";
+#elif JUCE_MAC && JUCE_ARM
+    String downloadSize = "139 MB";
 #elif JUCE_MAC
-    String downloadSize = "426 MB";
+    String downloadSize = "151 MB";
+#elif JUCE_ARM
+    String downloadSize = "221 MB";
 #else
-    String downloadSize = "764 MB";
+    String downloadSize = "249 MB";
 #endif
 
     class ToolchainInstallerButton final : public Component {
