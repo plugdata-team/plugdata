@@ -27,7 +27,7 @@ auto const failureColour = Colour(245, 62, 62);
 // Shows the exporter's own settings panel, which stays owned by the toolbar
 class ExporterCallout final : public Component {
 public:
-    ExporterCallout(ExporterBase* exporterToShow, std::function<void()> onCloseCallback)
+    ExporterCallout(HeavyExporter* exporterToShow, std::function<void()> onCloseCallback)
         : exporter(exporterToShow)
         , onClose(std::move(onCloseCallback))
     {
@@ -50,7 +50,7 @@ public:
     }
 
 private:
-    SafePointer<ExporterBase> exporter;
+    SafePointer<HeavyExporter> exporter;
     std::function<void()> onClose;
 };
 
@@ -102,7 +102,7 @@ public:
     explicit HeavyToolbar(PluginEditor* parentEditor)
         : editor(parentEditor)
         , exportingView(new ExportingProgressView(false))
-        , target(ExporterSettingsPanel::getSelectedTarget())
+        , targetId(HeavyExporter::getSelectedDefinitionId())
     {
         exportingView->onStateChange = [this] {
             bool const verifying = verifyOutputDir != File();
@@ -279,7 +279,7 @@ public:
         updateToolchainState();
 
         // Only asked once the toolbar is in use, and only once per session
-        if (ExporterBase::toolchainDir.exists())
+        if (HeavyExporter::toolchainDir.exists())
             ToolchainInstall::getInstance()->checkForUpdate();
     }
 
@@ -362,7 +362,7 @@ private:
             g.strokePath(hint, PathStrokeType(1.0f, PathStrokeType::curved, PathStrokeType::rounded));
         }
 
-        Fonts::drawText(g, ExporterSettingsPanel::targets[target], getSectionBounds(Target).reduced(8, 0), colours.toolbarTextColour, 14, Justification::centred);
+        Fonts::drawText(g, getTargetName(), getSectionBounds(Target).reduced(8, 0), colours.toolbarTextColour, 14, Justification::centred);
 
         Fonts::drawIcon(g, Icons::ChrevronDownFilled, getSectionBounds(Settings).toNearestInt(), colours.toolbarTextColour, 12);
     }
@@ -481,7 +481,7 @@ private:
             return verifyOutputDir != File() ? "Cancel verification" : "Cancel export";
 
         auto const& status = exportingView->currentStatus;
-        return status.isNotEmpty() ? status : ExporterSettingsPanel::targets[target];
+        return status.isNotEmpty() ? status : getTargetName();
     }
 
     // Dragging the widget shouldn't drag the whole window along with it
@@ -559,7 +559,7 @@ private:
     void updateToolchainState()
     {
         auto const& install = *ToolchainInstall::getInstance();
-        needsToolchain = install.installing || install.updateAvailable || !ExporterBase::toolchainDir.exists();
+        needsToolchain = install.installing || install.updateAvailable || !HeavyExporter::toolchainDir.exists();
     }
 
     // Checked again before anything runs, in case the toolchain went missing since the toolbar last looked
@@ -584,11 +584,13 @@ private:
         repaint();
     }
 
-    ExporterBase* getExporter()
+    HeavyExporter* getExporter()
     {
         if (!exporter) {
-            exporter.reset(ExporterSettingsPanel::createExporter(target, editor, exportingView.get()));
-            ExporterSettingsPanel::restoreState(exporter.get());
+            exporter = std::make_unique<HeavyExporter>(editor, exportingView.get());
+            exporter->restoreGeneralState();
+            if (auto const definition = getTargetDefinition())
+                exporter->setDefinition(*definition);
 
             // Quick export targets the opened patch, unless the saved settings already picked one
             if (!exporter->validPatchSelected && editor->getCurrentCanvas())
@@ -618,26 +620,45 @@ private:
 
     void saveState() const
     {
-        ExporterSettingsPanel::saveState(exporter.get(), target);
+        if (exporter)
+            exporter->saveState();
+    }
+
+    // The chosen exporter, or the first one until one is chosen
+    std::optional<HeavyExporter::Definition> getTargetDefinition() const
+    {
+        if (auto definition = HeavyExporter::findDefinition(targetId))
+            return definition;
+
+        auto const& definitions = HeavyExporter::getDefinitions();
+        return definitions.isEmpty() ? std::nullopt : std::optional(definitions.getFirst());
+    }
+
+    String getTargetName() const
+    {
+        auto const definition = getTargetDefinition();
+        return definition ? definition->name : "Heavy";
     }
 
     void showTargetMenu()
     {
+        auto const& definitions = HeavyExporter::getDefinitions();
+        auto const current = getTargetDefinition();
+
         PopupMenu menu;
-        for (int i = 0; i < ExporterSettingsPanel::targets.size(); i++) {
-            menu.addItem(i + 1, ExporterSettingsPanel::targets[i], true, i == target);
+        for (int i = 0; i < definitions.size(); i++) {
+            menu.addItem(i + 1, definitions[i].name, true, current && current->id == definitions[i].id);
         }
 
         menu.showMenuAsync(PopupMenu::Options().withTargetScreenArea(localAreaToGlobal(getSectionBounds(Target).getSmallestIntegerContainer())),
             [_this = SafePointer(this)](int const result) {
-                if (!_this || !result || result - 1 == _this->target)
+                auto const& definitions = HeavyExporter::getDefinitions();
+                if (!_this || result < 1 || result > definitions.size())
                     return;
 
-                _this->saveState();
-                _this->target = result - 1;
-                _this->exporter.reset();
-                _this->saveState();
-
+                auto const definition = definitions[result - 1];
+                _this->getExporter()->switchTo(definition);
+                _this->targetId = definition.id;
                 _this->repaint();
             });
     }
@@ -650,7 +671,7 @@ private:
         constexpr int verifyMenuId = 1000;
 
         auto* currentExporter = getExporter();
-        auto const exportTypes = currentExporter->getExportTypes();
+        auto const exportTypes = currentExporter->getQuickExportOptions();
 
         PopupMenu menu;
         // These run once and don't change the stored setting, so nothing is ticked
@@ -675,15 +696,15 @@ private:
             });
     }
 
-    // An exportType other than 0 comes from the menu, and applies to this run only
-    void runExport(int const exportType = 0)
+    // A quick option other than 0 comes from the menu, and applies to this run only
+    void runExport(int const quickOption = 0)
     {
         if (!hasToolchain())
             return;
 
         // Nothing to export yet, so let the user choose a patch first
         if (auto* currentExporter = getExporter(); currentExporter->canPerformExport())
-            currentExporter->triggerExport(exportType);
+            currentExporter->triggerExport(quickOption);
         else
             showSettingsCallout();
     }
@@ -695,7 +716,14 @@ private:
         if (!currentExporter->canPerformExport())
             return;
 
-        verifyExporter = std::make_unique<CppExporter>(editor, exportingView.get());
+        auto const definition = HeavyExporter::findDefinition("cpp");
+        if (!definition) {
+            editor->pd->logError("Can't verify: the Heavy toolchain has no C++ exporter");
+            return;
+        }
+
+        verifyExporter = std::make_unique<HeavyExporter>(editor, exportingView.get());
+        verifyExporter->setDefinition(*definition);
         currentExporter->copyPatchSelectionTo(*verifyExporter);
 
         verifyOutputDir = File::getSpecialLocation(File::tempDirectory).getChildFile("HeavyVerify-" + Uuid().toString().substring(10));
@@ -730,12 +758,12 @@ private:
 
     PluginEditor* editor;
     std::unique_ptr<ExportingProgressView> exportingView;
-    std::unique_ptr<ExporterBase> exporter;
+    std::unique_ptr<HeavyExporter> exporter;
 
-    std::unique_ptr<ExporterBase> verifyExporter;
+    std::unique_ptr<HeavyExporter> verifyExporter;
     File verifyOutputDir;
 
-    int target;
+    String targetId;
     Section hoveredSection = None;
 
     bool needsToolchain = false;

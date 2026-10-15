@@ -272,14 +272,17 @@ public:
         void resized() override;
     };
 
-    class DirectoryPathComponent final : public PropertiesPanelProperty
+    // A folder, or a file matching the pattern, chosen with a browse button
+    class PathComponent final : public PropertiesPanelProperty
         , public Value::Listener {
         String label;
-        SmallIconButton browseButton = SmallIconButton(Icons::Folder);
+        bool selectFiles;
+        String filePattern;
+        SmallIconButton browseButton;
         Value property;
 
     public:
-        DirectoryPathComponent(String const& propertyName, Value const& value);
+        PathComponent(String const& propertyName, Value const& value, bool files = false, String pattern = "");
 
         void valueChanged(Value& v) override;
 

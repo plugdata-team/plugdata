@@ -12,14 +12,8 @@
 #include "Dialogs/KeyMappingSettingsPanel.h"
 #include "Dialogs/ObjectBrowserDialog.h"
 #include "Heavy/ExportingProgressView.h"
-#include "Heavy/ExporterBase.h"
-#include "Heavy/CppExporter.h"
-#include "Heavy/DaisyExporter.h"
-#include "Heavy/DPFExporter.h"
-#include "Heavy/OWLExporter.h"
-#include "Heavy/PdExporter.h"
+#include "Heavy/HeavyExporter.h"
 #include "Heavy/ToolchainInstaller.h"
-#include "Heavy/WASMExporter.h"
 #include "PluginMode.h"
 #include "Objects/TextObject.h"
 extern "C" {
@@ -1781,12 +1775,10 @@ private:
         outputDirectory.deleteRecursively();
         outputDirectory.createDirectory();
         auto const customBoard = outputDirectory.getChildFile("custom-board.json");
-        auto const customLinker = outputDirectory.getChildFile("custom-linker.lds");
         customBoard.replaceWithText("{}");
-        customLinker.replaceWithText("MEMORY {}");
         StringArray const searchPaths { outputDirectory.getFullPathName().quoted() };
 
-        auto exerciseCommon = [this](ExporterBase& exporter) {
+        auto exerciseCommon = [this](HeavyExporter& exporter) {
             exporter.setBounds(0, 0, 560, 480);
             exporter.blockDialog = true;
             exporter.inputPatchValue = 1;
@@ -1795,162 +1787,116 @@ private:
             exporter.projectNameValue = "coverage-project";
             exporter.projectCopyrightValue = "coverage copyright";
             exerciseControlTree(&exporter, false);
-
-            DynamicObject::Ptr emptyState(new DynamicObject());
-            exporter.setState(emptyState);
-            DynamicObject::Ptr state(new DynamicObject());
-            exporter.getState(state);
-            exporter.setState(state);
             exporter.createComponentSnapshot(exporter.getLocalBounds());
         };
 
-        auto const originalHeavyExecutable = ExporterBase::heavyExecutable;
-        ExporterBase::heavyExecutable = File("/usr/bin/true");
-
-        {
-            beginTest("C++ exporter");
-            CppExporter exporter(editor, exporterView.get());
-            exerciseCommon(exporter);
-            exporter.shouldQuit = true;
-            expect(exporter.performExport("coverage.pd", outputDirectory.getFullPathName(),
-                       "coverage", "copyright", searchPaths),
-                "cancelled C++ export must stop before generation");
-        }
-
-        {
-            beginTest("Daisy exporter");
-            DaisyExporter exporter(editor, exporterView.get());
-            exerciseCommon(exporter);
-            exporter.customBoardDefinition = customBoard;
-            exporter.customLinker = customLinker;
-
-            for (int exportType = 1; exportType <= 4; ++exportType)
-                exporter.exportTypeValue = exportType;
-            for (int board = 1; board <= 10; ++board)
-                exporter.targetBoardValue = board;
-            for (int size = 1; size <= 6; ++size)
-                exporter.patchSizeValue = size;
-            for (int appType = 1; appType <= 3; ++appType)
-                exporter.appTypeValue = appType;
-            for (int rate = 1; rate <= 5; ++rate)
-                exporter.samplerateValue = rate;
-            exporter.usbMidiValue = 1;
-            exporter.debugPrintValue = 1;
-            exporter.blocksizeValue = 64;
-            exporter.resized();
-
-            struct DaisyCase {
-                int board;
-                int size;
-                int appType;
-                int usbMidi;
-                int debugPrint;
-                int blockSize;
-                int sampleRate;
-            };
-            for (auto const& test : {
-                     DaisyCase { 1, 1, 1, 0, 0, 48, 4 },
-                     DaisyCase { 7, 2, 1, 1, 0, 64, 1 },
-                     DaisyCase { 8, 3, 1, 0, 1, 48, 2 },
-                     DaisyCase { 9, 4, 1, 0, 0, 48, 3 },
-                     DaisyCase { 1, 5, 1, 0, 0, 48, 5 },
-                     DaisyCase { 10, 6, 2, 0, 1, 64, 4 },
-                     DaisyCase { 10, 6, 3, 1, 0, 64, 4 } }) {
-                exporter.targetBoardValue = test.board;
-                exporter.patchSizeValue = test.size;
-                exporter.appTypeValue = test.appType;
-                exporter.usbMidiValue = test.usbMidi;
-                exporter.debugPrintValue = test.debugPrint;
-                exporter.blocksizeValue = test.blockSize;
-                exporter.samplerateValue = test.sampleRate;
-                exporter.resized();
-                exporter.exportTypeValue = 1;
-                exporter.shouldQuit = true;
-                expect(exporter.performExport("coverage.pd", outputDirectory.getFullPathName(),
-                           "coverage", "copyright", searchPaths),
-                    "cancelled Daisy export must stop before copying the toolchain");
-            }
-        }
-
-        {
-            beginTest("DPF exporter");
-            DPFExporter exporter(editor, exporterView.get());
-            exerciseCommon(exporter);
-            exporter.shouldQuit = true;
-
-            exporter.makerNameValue = "";
-            exporter.projectLicenseValue = "";
-            exporter.pluginTypeValue = 1;
-            exporter.exportTypeValue = 1;
-            expect(exporter.performExport("coverage.pd", outputDirectory.getFullPathName(),
-                       "coverage", "", searchPaths),
-                "cancelled DPF export must stop before generation");
-
-            exporter.makerNameValue = "Coverage Maker";
-            exporter.projectLicenseValue = "MIT";
-            exporter.pluginTypeValue = 2;
-            exporter.pluginTypeValue = 3;
-            exporter.midiinEnableValue = 1;
-            exporter.midioutEnableValue = 1;
-            exporter.lv2EnableValue = 0;
-            exporter.vst2EnableValue = 1;
-            exporter.vst3EnableValue = 0;
-            exporter.clapEnableValue = 1;
-            exporter.jackEnableValue = 1;
-            exporter.disableSIMD = 1;
-            for (int exportType = 2; exportType <= 4; ++exportType) {
-                exporter.exportTypeValue = exportType;
-                expect(exporter.performExport("coverage.pd", outputDirectory.getFullPathName(),
-                           "coverage", "copyright", searchPaths),
-                    "cancelled DPF export must stop before generation");
-            }
-        }
-
-        {
-            beginTest("OWL exporter");
-            OWLExporter exporter(editor, exporterView.get());
-            exerciseCommon(exporter);
-            exporter.shouldQuit = true;
-            for (int target = 1; target <= 3; ++target)
-                exporter.targetBoardValue = target;
-            for (int exportType = 1; exportType <= 4; ++exportType) {
-                exporter.exportTypeValue = exportType;
-                exporter.storeSlotValue = exportType;
+        // Every option of every setting, which also runs the enabled_if rules
+        auto exerciseSettings = [](HeavyExporter& exporter, File const& file) {
+            for (auto* setting : exporter.settings) {
+                if (setting->type == "combo") {
+                    for (int option = 1; option <= setting->json["options"].size(); ++option)
+                        setting->value = option;
+                } else if (setting->type == "bool") {
+                    setting->value = true;
+                    setting->value = false;
+                } else if (setting->type == "int") {
+                    setting->value = 64;
+                } else {
+                    setting->value = file.getFullPathName();
+                }
             }
             exporter.resized();
-            expect(exporter.performExport("coverage.pd", outputDirectory.getFullPathName(),
-                       "coverage", "copyright", searchPaths),
-                "cancelled OWL export must stop after generation");
+        };
+
+        // saveState writes to the real settings file, so put the user's export settings back afterwards
+        auto const savedHeavyState = JSON::parse(JSON::toString(SettingsFile::getInstance()->getPropertyAsValue("heavy_state").getValue()));
+
+        for (auto const& definition : HeavyExporter::getDefinitions()) {
+            beginTest(definition.name + " exporter definition");
+            HeavyExporter exporter(editor, exporterView.get());
+            exporter.setDefinition(definition);
+            exerciseCommon(exporter);
+            exerciseSettings(exporter, customBoard);
+            exporter.saveState();
+            exporter.setDefinition(definition);
+            exporter.shouldQuit = true;
+            expect(exporter.runToolchainScript(definition.json["script"].toString(), {}),
+                "cancelled " + definition.name + " export must not start its script");
         }
 
         {
-            beginTest("Pd exporter");
-            PdExporter exporter(editor, exporterView.get());
+            beginTest("Exporter definition features");
+            HeavyExporter::Definition const definition { "coverage", "Coverage", JSON::parse(R"({
+                "name": "Coverage", "script": "build-cpp.sh", "quick_menu": "mode",
+                "arguments": [ "--theme", "{theme}" ],
+                "sections": [ { "name": "Coverage", "settings": [
+                    { "id": "mode", "label": "Mode", "type": "combo", "argument": "--mode", "default": "build", "options": [
+                        { "label": "Source", "value": "source" },
+                        { "label": "Build", "value": "build" },
+                        { "label": "Flash", "value": "flash", "action": "flash" },
+                        { "label": "Bootloader", "value": "boot", "action": "flash_bootloader", "script": "flash-daisy-bootloader.sh" } ] },
+                    { "id": "rate", "label": "Rate", "type": "combo", "argument": "--rate", "default": "48000", "options": [ "8000", "48000" ] },
+                    { "id": "size", "label": "Size", "type": "int", "argument": "--size", "default": 48, "min": 1, "max": 256 },
+                    { "id": "flag", "label": "Flag", "type": "bool", "argument": "--flag", "enabled_if": { "mode": [ "build", "flash" ] } },
+                    { "id": "copy", "label": "Copy", "type": "bool", "argument": "--copy-to", "value": "{externals_dir}", "default": true },
+                    { "id": "maker", "label": "Maker", "type": "string", "argument": "--maker" },
+                    { "id": "file", "label": "File", "type": "string", "argument": "--file", "browse": "file", "pattern": "*.json",
+                      "required": true, "enabled_if": { "mode": "source" } },
+                    { "id": "folder", "label": "Folder", "type": "string", "argument": "--folder", "browse": "folder" } ] } ] })") };
+
+            HeavyExporter exporter(editor, exporterView.get());
+            exporter.setDefinition(definition);
             exerciseCommon(exporter);
-            exporter.exportTypeValue = 1;
-            exporter.copyToPath = 1;
-            exporter.exportTypeValue = 2;
-            exporter.copyToPath = 1;
+
+            auto arguments = [&exporter] { return exporter.getScriptArguments("patch.pd", "out", "name", "", { "search" }); };
+            auto* mode = exporter.findSetting("mode");
+            auto const* flag = exporter.findSetting("flag");
+
+            auto const defaults = arguments();
+            expect(defaults.joinIntoString(" ").startsWith("patch.pd name  --output out --mode build --rate 48000 --size 48 --copy-to "),
+                "settings must become arguments in order: " + defaults.joinIntoString(" "));
+            expect(!defaults.contains("--flag") && !defaults.contains("--maker") && !defaults.contains("--file"),
+                "off, empty and disabled settings must not be passed");
+            expect(defaults[defaults.indexOf("--copy-to") + 1] == HeavyExporter::pathToString(ProjectInfo::appDataDir.getChildFile("Externals")),
+                "{externals_dir} must be filled in");
+            expect(defaults[defaults.indexOf("--theme") + 1].contains("cnv_color=#"), "{theme} must be filled in");
+            expect(defaults.indexOf("--") == defaults.size() - 2 && defaults[defaults.size() - 1] == "search", "search paths must come last");
+
+            exporter.findSetting("flag")->value = true;
+            expect(arguments().contains("--flag"), "an enabled flag must be passed");
+            mode->value = 1;
+            expect(!flag->property->isEnabled() && !arguments().contains("--flag"), "enabled_if must disable the flag for source");
+            expect(!exporter.canPerformExport(), "a required, empty, enabled string must block exporting");
+            exporter.findSetting("file")->value = customBoard.getFullPathName();
+            expect(exporter.canPerformExport() && arguments().contains("--file"), "a filled-in required string must be passed");
+
+            mode->value = 3;
+            expect(exporter.getExportAction() == HeavyExporter::Flash && flag->property->isEnabled(), "a flash option must flash");
+            mode->value = 4;
+            expect(exporter.getExportAction() == HeavyExporter::FlashBootloader, "a bootloader option must flash the bootloader");
+
+            mode->value = 2;
+            expect(exporter.getQuickExportOptions() == StringArray { "Source", "Build", "Flash", "Bootloader" }, "the quick menu must list the mode options");
+            exporter.quickOptionOverride = 3;
+            expect(exporter.getExportAction() == HeavyExporter::Flash && arguments().contains("flash"), "a quick menu choice must apply to one run");
+            exporter.quickOptionOverride = 0;
+
+            exporter.findSetting("rate")->value = 1;
+            exporter.findSetting("size")->value = 64;
+            exporter.saveState();
+
+            HeavyExporter restored(editor, exporterView.get());
+            restored.setDefinition(definition);
+            expect(restored.getScriptArguments("patch.pd", "out", "name", "", { }).joinIntoString(" ").contains("--mode build --rate 8000 --size 64 --flag"),
+                "settings must be restored by value");
+            expect(HeavyExporter::getSelectedDefinitionId() == "coverage", "the chosen exporter must be remembered");
+
             exporter.shouldQuit = true;
-            expect(exporter.performExport("coverage.pd", outputDirectory.getFullPathName(),
-                       "coverage", "copyright", searchPaths),
-                "cancelled Pd export must stop before generation");
+            expect(exporter.runToolchainScript("build-cpp.sh", {}), "cancelled export must not start the script");
         }
 
-        {
-            beginTest("WASM exporter");
-            WASMExporter exporter(editor, exporterView.get());
-            exerciseCommon(exporter);
-            exporter.emsdkPathValue = "";
-            exporter.emsdkPathValue = outputDirectory.getFullPathName();
-            exporter.shouldQuit = true;
-            expect(exporter.performExport("coverage.pd", outputDirectory.getFullPathName(),
-                       "coverage", "copyright", searchPaths),
-                "cancelled WASM export must stop before generation");
-        }
-
-        ExporterBase::heavyExecutable = originalHeavyExecutable;
-        ExporterBase::deleteTempFiles();
+        SettingsFile::getInstance()->setProperty("heavy_state", savedHeavyState);
+        HeavyExporter::deleteTempFiles();
         outputDirectory.deleteRecursively();
         exporterView->showState(ExportingProgressView::NotExporting);
         editor->removeChildComponent(exporterView.get());

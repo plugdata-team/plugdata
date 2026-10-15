@@ -53,7 +53,7 @@ HeavyExportDialog::HeavyExportDialog(Dialog* dialog)
     updateToolchainView();
 
     // The installer takes over if the toolchain turns out to be outdated
-    if (ExporterBase::toolchainDir.exists())
+    if (HeavyExporter::toolchainDir.exists())
         ToolchainInstall::getInstance()->checkForUpdate();
 }
 
@@ -62,7 +62,7 @@ HeavyExportDialog::~HeavyExportDialog()
     Dialogs::dismissFileDialog();
 
     // Clean up temp files
-    ExporterBase::deleteTempFiles();
+    HeavyExporter::deleteTempFiles();
 }
 
 // Installing, or an install that's turned out to be needed, takes over from the exporter
@@ -70,7 +70,7 @@ void HeavyExportDialog::updateToolchainView()
 {
     auto const& install = *ToolchainInstall::getInstance();
 
-    hasToolchain = ExporterBase::toolchainDir.exists() && !install.updateAvailable && !install.installing;
+    hasToolchain = HeavyExporter::toolchainDir.exists() && !install.updateAvailable && !install.installing;
     installer->needsUpdate = install.updateAvailable;
 
     exporterPanel->setVisible(hasToolchain);

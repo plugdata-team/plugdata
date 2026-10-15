@@ -807,8 +807,11 @@ void PropertiesPanel::FilePathComponent::resized()
     label.setBounds(labelBounds);
 }
 
-PropertiesPanel::DirectoryPathComponent::DirectoryPathComponent(String const& propertyName, Value const& value)
+PropertiesPanel::PathComponent::PathComponent(String const& propertyName, Value const& value, bool const files, String pattern)
     : PropertiesPanelProperty(propertyName)
+    , selectFiles(files)
+    , filePattern(std::move(pattern))
+    , browseButton(files ? Icons::File : Icons::Folder)
     , property(value)
 {
     setPath(value.toString());
@@ -816,23 +819,23 @@ PropertiesPanel::DirectoryPathComponent::DirectoryPathComponent(String const& pr
     property.addListener(this);
 
     browseButton.onClick = [this] {
-        Dialogs::showOpenDialog([this](URL const& url) {
+        Dialogs::showOpenDialog([_this = SafePointer(this)](URL const& url) {
             auto const result = url.getLocalFile();
-            if (result.exists()) {
-                setPath(result.getFullPathName());
+            if (_this && result.exists()) {
+                _this->setPath(result.getFullPathName());
             }
         },
-            false, true, "", "", getTopLevelComponent());
+            selectFiles, !selectFiles, filePattern, "", getTopLevelComponent());
     };
 }
 
-void PropertiesPanel::DirectoryPathComponent::valueChanged(Value& v)
+void PropertiesPanel::PathComponent::valueChanged(Value& v)
 {
     label = v.toString();
     repaint();
 }
 
-void PropertiesPanel::DirectoryPathComponent::setPath(String path)
+void PropertiesPanel::PathComponent::setPath(String path)
 {
     property = path;
     if (path.length() > 46) {
@@ -842,12 +845,12 @@ void PropertiesPanel::DirectoryPathComponent::setPath(String path)
     repaint();
 }
 
-PropertiesPanelProperty* PropertiesPanel::DirectoryPathComponent::createCopy()
+PropertiesPanelProperty* PropertiesPanel::PathComponent::createCopy()
 {
-    return new DirectoryPathComponent(getName(), property);
+    return new PathComponent(getName(), property, selectFiles, filePattern);
 }
 
-void PropertiesPanel::DirectoryPathComponent::paint(Graphics& g)
+void PropertiesPanel::PathComponent::paint(Graphics& g)
 {
     PropertiesPanelProperty::paint(g);
 
@@ -856,7 +859,7 @@ void PropertiesPanel::DirectoryPathComponent::paint(Graphics& g)
     g.drawText(label, 90, 2, getWidth() - 120, getHeight() - 4, Justification::centredLeft);
 }
 
-void PropertiesPanel::DirectoryPathComponent::resized()
+void PropertiesPanel::PathComponent::resized()
 {
     browseButton.setBounds(getLocalBounds().removeFromRight(getHeight()));
 }

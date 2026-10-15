@@ -3,8 +3,7 @@
 #include "Dialogs/Dialogs.h"
 #include "Heavy/ExportingProgressView.h"
 #include "Heavy/ToolchainInstaller.h"
-#include "Heavy/ExporterBase.h"
-#include "Heavy/CppExporter.h"
+#include "Heavy/HeavyExporter.h"
 
 // End-to-end test of the Heavy (hvcc) C/C++ source export.
 //
@@ -20,7 +19,7 @@
 //         and unpack it (this is the ~hundreds-of-MB download, so it only
 //         happens on a machine/CI without a cached toolchain; a network
 //         failure soft-passes rather than failing the suite).
-//       - run CppExporter on a minimal Heavy-compatible patch
+//       - run the toolchain's C++ exporter on a minimal Heavy-compatible patch
 //         ([osc~]->[*~]->[dac~]) into a temp directory
 //       - wait for the export thread to reach Success/Failure
 //       - verify the toolchain actually produced C/C++ source in the temp dir
@@ -60,8 +59,8 @@ private:
 
     void ensureToolchainThenExport()
     {
-        if (ExporterBase::toolchainDir.getChildFile("run/build-cpp.sh").existsAsFile()) {
-            logMessage("Heavy toolchain already installed at " + ExporterBase::heavyExecutable.getFullPathName() + " - skipping download");
+        if (HeavyExporter::toolchainDir.getChildFile("run/build-cpp.sh").existsAsFile()) {
+            logMessage("Heavy toolchain already installed at " + HeavyExporter::toolchainDir.getFullPathName() + " - skipping download");
             runExport();
             return;
         }
@@ -72,7 +71,7 @@ private:
         // archive and unpacks it via Decompress::extractTarXz.
         installer = std::make_unique<ToolchainInstaller>(editor);
         installer->toolchainInstalledCallback = [this] {
-            expect(ExporterBase::toolchainDir.getChildFile("run/build-cpp.sh").existsAsFile(), "installer must produce the run/build-cpp.sh entry point");
+            expect(HeavyExporter::toolchainDir.getChildFile("run/build-cpp.sh").existsAsFile(), "installer must produce the run/build-cpp.sh entry point");
             runExport();
         };
 
@@ -88,7 +87,7 @@ private:
         // ~5 minutes max (3s * 100); the callback short-circuits on success
         constexpr int maxAttempts = 100;
 
-        if (ExporterBase::toolchainDir.getChildFile("run/build-cpp.sh").existsAsFile())
+        if (HeavyExporter::toolchainDir.getChildFile("run/build-cpp.sh").existsAsFile())
             return; // the installed callback handles the rest
 
         if (auto const& error = ToolchainInstall::getInstance()->error; error.isNotEmpty()) {
@@ -125,7 +124,15 @@ private:
             "#X connect 1 0 2 0;\n"
             "#X connect 1 0 2 1;\n");
 
-        exporter = std::make_unique<CppExporter>(editor, view.get());
+        auto const definition = HeavyExporter::findDefinition("cpp");
+        expect(definition.has_value(), "the toolchain must define the C++ exporter in exporters/cpp.json");
+        if (!definition) {
+            finishHard(false);
+            return;
+        }
+
+        exporter = std::make_unique<HeavyExporter>(editor, view.get());
+        exporter->setDefinition(*definition);
         exporter->patchFile = patchFile;
         exporter->realPatchFile = patchFile;
         exporter->projectNameValue = "heavytest";
@@ -193,7 +200,7 @@ private:
     void finishSoft() { teardown([this] { signalDone(true); }); }
 
     std::unique_ptr<ExportingProgressView> view;
-    std::unique_ptr<CppExporter> exporter;
+    std::unique_ptr<HeavyExporter> exporter;
     std::unique_ptr<ToolchainInstaller> installer;
     File patchFile, outputDir;
 };
