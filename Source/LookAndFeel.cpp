@@ -558,10 +558,10 @@ void PlugDataLook::drawTextEditorOutline(Graphics& g, int const width, int const
         if (textEditor.isEnabled()) {
             if (textEditor.hasKeyboardFocus(true) && !textEditor.isReadOnly()) {
                 g.setColour(textEditor.findColour(TextEditor::focusedOutlineColourId));
-                g.drawRoundedRectangle(2, 3, width - 4, height - 6, Corners::defaultCornerRadius, 2.0f);
+                g.drawRoundedRectangle(3, 6, width - 6, height - 12, Corners::defaultCornerRadius, 2.0f);
             } else {
                 g.setColour(textEditor.findColour(TextEditor::outlineColourId));
-                g.drawRoundedRectangle(2, 3, width - 4, height - 6, Corners::defaultCornerRadius, 2.0f);
+                g.drawRoundedRectangle(3, 6, width - 6, height - 12, Corners::defaultCornerRadius, 2.0f);
             }
         }
     }

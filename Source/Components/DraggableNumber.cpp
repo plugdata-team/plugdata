@@ -13,6 +13,12 @@
 #include "LookAndFeel.h"
 #include "DraggableNumber.h"
 
+// Tint of the number's own text colour, so the dragged digit stands out on any background, including custom IEM colours
+static Colour getDigitHighlightColour(Colour const textColour, bool const isDragging)
+{
+    return textColour.withAlpha(isDragging ? 0.24f : 0.14f);
+}
+
 DraggableNumber::DraggableNumber(bool const integerDrag)
     : dragMode(integerDrag ? Integer : Regular)
 {
@@ -34,7 +40,6 @@ void DraggableNumber::colourChanged()
 
 void DraggableNumber::lookAndFeelChanged()
 {
-    outlineColour = findColour(ComboBox::outlineColourId);
     textColour = findColour(Label::textColourId);
 }
 
@@ -459,8 +464,7 @@ void DraggableNumber::render(NVGcontext* nvg, NVGGraphicsContext* llgc)
     }
 
     if (hoveredDecimal >= 0) {
-        auto const highlightColour = outlineColour.withAlpha(isMouseButtonDown() ? 0.5f : 0.3f);
-        nanovg::nvgFillColor(nvg, nvgColour(highlightColour));
+        nanovg::nvgFillColor(nvg, nvgColour(getDigitHighlightColour(textColour, isMouseButtonDown())));
         nanovg::nvgFillRoundedRect(nvg, hoveredDecimalPosition.getX(), hoveredDecimalPosition.getY(), hoveredDecimalPosition.getWidth(), hoveredDecimalPosition.getHeight(), 2.5f);
     }
 
@@ -514,7 +518,7 @@ void DraggableNumber::render(NVGcontext* nvg, NVGGraphicsContext* llgc)
     if (dragMode == Regular) {
         textArea = textArea.withTrimmedLeft(numberTextLength);
 
-        llgc->setFill(textColour.withAlpha(0.4f));
+        llgc->setFill(textColour.withAlpha(0.55f));
         llgc->drawText(extraNumberText, textArea.toFloat());
     }
 }
@@ -522,7 +526,7 @@ void DraggableNumber::render(NVGcontext* nvg, NVGGraphicsContext* llgc)
 void DraggableNumber::paint(Graphics& g)
 {
     if (hoveredDecimal >= 0) {
-        g.setColour(outlineColour.withAlpha(isMouseButtonDown() ? 0.5f : 0.3f));
+        g.setColour(getDigitHighlightColour(textColour, isMouseButtonDown()));
         g.fillRoundedRectangle(hoveredDecimalPosition, 2.5f);
     }
 
@@ -553,7 +557,7 @@ void DraggableNumber::paint(Graphics& g)
         g.drawText(numberText, textArea, Justification::centredLeft, showEllipses);
 
         if (dragMode == Regular) {
-            g.setColour(textColour.withAlpha(0.4f));
+            g.setColour(textColour.withAlpha(0.55f));
             g.drawText(extraNumberText, textArea.withTrimmedLeft(numberTextLength), Justification::centredLeft, false);
         }
     }
@@ -817,7 +821,7 @@ void DraggableListNumber::mouseUp(MouseEvent const& e)
 void DraggableListNumber::paint(Graphics& g)
 {
     if (hoveredDecimal >= 0) {
-        g.setColour(outlineColour.withAlpha(isMouseButtonDown() ? 0.5f : 0.3f));
+        g.setColour(getDigitHighlightColour(textColour, isMouseButtonDown()));
         g.fillRoundedRectangle(hoveredDecimalPosition, 2.5f);
     }
 
@@ -841,8 +845,7 @@ void DraggableListNumber::render(NVGcontext* nvg, NVGGraphicsContext* llgc)
     }
 
     if (hoveredDecimal >= 0) {
-        auto const highlightColour = outlineColour.withAlpha(isMouseButtonDown() ? 0.5f : 0.3f);
-        nanovg::nvgFillColor(nvg, nvgColour(highlightColour));
+        nanovg::nvgFillColor(nvg, nvgColour(getDigitHighlightColour(textColour, isMouseButtonDown())));
         nanovg::nvgFillRoundedRect(nvg, hoveredDecimalPosition.getX(), hoveredDecimalPosition.getY() - 1, hoveredDecimalPosition.getWidth(), hoveredDecimalPosition.getHeight(), 2.5f);
     }
 

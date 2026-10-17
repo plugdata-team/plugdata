@@ -91,7 +91,7 @@ public:
     Inspector()
         : redirector(this)
     {
-        panel.setTitleHeight(20);
+        panel.setTitleHeight(18);
         panel.setTitleAlignment(PropertiesPanel::AlignWithPropertyName);
         panel.setDrawShadowAndOutline(false);
         addAndMakeVisible(panel);
@@ -136,9 +136,9 @@ public:
             return new PropertiesPanel::EditableComponent<int>(name, *value, clip, min, max, onInteractionFn);
         }
         case tColour:
-            return new PropertiesPanel::InspectorColourComponent(name, *value, false);
+            return new PropertiesPanel::ColourComponent(name, *value, false);
         case tColourAlpha:
-            return new PropertiesPanel::InspectorColourComponent(name, *value, true);
+            return new PropertiesPanel::ColourComponent(name, *value, true);
         case tBool:
             return new PropertiesPanel::BoolComponent(name, *value, options);
         case tCombo:
@@ -241,12 +241,12 @@ public:
                         continue;
                     if (objectParameters.size() == 1) {
                         auto newPanel = createPanel(type, name, value, options, clip, min, max, onInteractionFn);
-                        newPanel->setPreferredHeight(30);
+                        newPanel->setPreferredHeight(32);
                         panels.add(newPanel);
                     } else {
                         auto const* redirectedProperty = redirector.addProperty(value, otherValues);
                         auto newPanel = createPanel(type, name, redirectedProperty, options, clip, min, max);
-                        newPanel->setPreferredHeight(30);
+                        newPanel->setPreferredHeight(32);
                         panels.add(newPanel);
                     }
                 }
