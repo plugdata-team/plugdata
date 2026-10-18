@@ -156,6 +156,16 @@ public:
         PropertiesPanelProperty::paint(g);
     }
 
+    // Drawn as a single button instead of two segments, so a click anywhere flips it
+    void mouseUp(MouseEvent const& e) override
+    {
+        if (!isRealClickEvent(e))
+            return;
+
+        toggleStateValue.setValue(!getValue<bool>(toggleStateValue));
+        repaint();
+    }
+
     std::function<void(bool)> callback;
 };
 
