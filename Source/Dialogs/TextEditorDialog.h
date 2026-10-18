@@ -2904,7 +2904,7 @@ inline CodeEditorComponent::ColourScheme PlugDataTextEditor::getSyntaxColourSche
 {
     auto const& colours = getThemeColours(*this);
 
-    auto const textColour = colours.canvasTextColour;
+    auto const textColour = colours.canvasBackgroundColour.contrasting(0.95f);
     if (colours.canvasBackgroundColour.getPerceivedBrightness() > 0.5f) {
         static CodeEditorComponent::ColourScheme::TokenType const types[] = {
             { "Error", Colour(0xffcc0000) },
