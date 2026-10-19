@@ -584,7 +584,7 @@ public:
     void paint(Graphics& g) override
     {
         if (drawWindowShadow && !useNativeTitlebar() && !isMaximised()) {
-            StackShadow::drawShadowForRect(g, getLocalBounds().reduced(20, 20), 18, Corners::windowCornerRadius, isActiveWindow() ? 0.42f : 0.2f);
+            StackShadow::drawShadowForRect(g, getLocalBounds().reduced(18), Corners::windowCornerRadius, StackShadow::Window, isActiveWindow() ? 1.0f : 0.5f);
         }
     }
 #endif

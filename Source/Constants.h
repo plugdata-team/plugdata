@@ -41,8 +41,6 @@ enum PlugDataColour {
     signalColourId,
     gemColourId,
 
-    dialogBackgroundColourId,
-
     sidebarBackgroundColourId,
     sidebarTextColourId,
     sidebarActiveBackgroundColourId,

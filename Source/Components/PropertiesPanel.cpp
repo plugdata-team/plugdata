@@ -65,7 +65,7 @@ void PropertiesPanel::SectionComponent::paint(Graphics& g)
     auto const propertyBounds = Rectangle<int>(x, titleHeight + 8.0f, width, getHeight() - (titleHeight + 16.0f));
 
     if (parent.drawShadowAndOutline) {
-        StackShadow::drawShadowForRect(g, propertyBounds.reduced(3), 8);
+        StackShadow::drawShadowForRect(g, propertyBounds, Corners::largeCornerRadius, StackShadow::Card);
     }
 
     g.setColour(findColour(parent.panelColour));

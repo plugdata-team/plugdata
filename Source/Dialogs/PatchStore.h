@@ -507,9 +507,15 @@ public:
     }
 
 private:
+    // Sits 2px high in the tile, so the card shadow has 8px below it
+    Rectangle<int> getCardBounds() const
+    {
+        return getLocalBounds().reduced(6).translated(0, -2);
+    }
+
     void paintOverChildren(Graphics& g) override
     {
-        auto const b = getLocalBounds().reduced(6);
+        auto const b = getCardBounds();
         g.setColour(getThemeColours(*this).toolbarOutlineColour);
         g.drawRoundedRectangle(b.toFloat(), Corners::largeCornerRadius, 1.0f);
     }
@@ -518,9 +524,9 @@ private:
     {
         auto const& colours = getThemeColours(*this);
 
-        auto b = getLocalBounds().reduced(6);
+        auto b = getCardBounds();
 
-        StackShadow::drawShadowForRect(g, b.reduced(3.0f), 8, Corners::largeCornerRadius, 0.4f, 1);
+        StackShadow::drawShadowForRect(g, b, Corners::largeCornerRadius, StackShadow::Card);
 
         if (isMouseOver()) {
             g.setColour(colours.panelActiveBackgroundColour);
@@ -569,7 +575,7 @@ private:
 
     void resized() override
     {
-        auto b = getLocalBounds().reduced(6);
+        auto b = getCardBounds();
         image.setBounds(b.removeFromTop(171).withWidth(248));
     }
 
@@ -991,7 +997,7 @@ public:
 
         Path p;
         p.addRoundedRectangle(extraInfoBounds, Corners::largeCornerRadius);
-        StackShadow::drawShadowForRect(g, extraInfoBounds, 8, Corners::largeCornerRadius, 0.1f, 1);
+        StackShadow::drawShadowForRect(g, extraInfoBounds, Corners::largeCornerRadius, StackShadow::Card);
 
         g.setColour(colours.panelForegroundColour);
         g.fillPath(p); // Adjust the thickness as needed

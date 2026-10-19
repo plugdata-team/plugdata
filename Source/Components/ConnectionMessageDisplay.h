@@ -22,13 +22,16 @@ class ConnectionMessageDisplay final
 
     PluginEditor* editor;
 
+    // Transparent room around the visible box for its Popup shadow
+    static constexpr int shadowMargin = 20;
+
 public:
     explicit ConnectionMessageDisplay(PluginEditor* parentEditor)
         : editor(parentEditor)
         , pd(parentEditor->pd)
         , connectionPtr(nullptr)
     {
-        setSize(36, 36);
+        setSize(20 + shadowMargin * 2, 20 + shadowMargin * 2);
         setVisible(false);
         setAlwaysOnTop(true);
     }
@@ -178,7 +181,7 @@ private:
         auto fontStyle = haveMessage ? FontStyle::Semibold : FontStyle::Regular;
         auto textFont = Font(haveMessage ? Fonts::getSemiBoldFont() : Fonts::getDefaultFont());
 
-        int totalStringWidth = 8 * 2 + 4;
+        int totalStringWidth = shadowMargin * 2 + 4;
         for (int i = 0; i < textString.size(); i++) {
             auto const firstOrLast = i == 0 || i == textString.size() - 1;
             String stringItem = textString[i];
@@ -212,7 +215,7 @@ private:
 
         // only make the size wider, to fit changing size of values
         if (totalStringWidth > getWidth() || isHoverEntered) {
-            updateBoundsFromProposed(Rectangle<int>().withSize(totalStringWidth, 36));
+            updateBoundsFromProposed(Rectangle<int>().withSize(totalStringWidth, 20 + shadowMargin * 2));
         }
 
         // Check if changed
@@ -224,8 +227,8 @@ private:
 
     void updateBoundsFromProposed(Rectangle<int> proposedPosition)
     {
-        // make sure the proposed position is inside the editor area
-        proposedPosition.setPosition(mousePosition.translated(0, -getHeight()));
+        // make sure the proposed position is inside the editor area, with the visible box 8px up and right of the mouse
+        proposedPosition.setPosition(mousePosition.translated(8 - shadowMargin, shadowMargin - 8 - getHeight()));
         constrainedBounds = proposedPosition.constrainedWithin(editor->getScreenBounds());
         if (getBounds() != constrainedBounds) {
 #if JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD
@@ -251,7 +254,7 @@ private:
                 }
             }
 
-            auto const newBounds = Rectangle<int>(130, jmap<int>(lastNumChannels, 1, 8, 50, 150));
+            auto const newBounds = Rectangle<int>(114 + shadowMargin * 2, jmap<int>(lastNumChannels, 1, 8, 34, 134) + shadowMargin * 2);
             updateBoundsFromProposed(newBounds);
             repaint();
         }
@@ -297,12 +300,12 @@ private:
     {
         auto const& colours = getThemeColours(*this);
 
-        auto internalBounds = getLocalBounds().reduced(8);
-        StackShadow::drawShadowForRect(g, internalBounds, 8, Corners::defaultCornerRadius, 0.3f);
+        auto internalBounds = getLocalBounds().reduced(shadowMargin);
+        StackShadow::drawShadowForRect(g, internalBounds.expanded(1), Corners::defaultCornerRadius, StackShadow::Popup);
 
         g.setColour(colours.outlineColour);
         g.fillRoundedRectangle(internalBounds.expanded(1).toFloat(), Corners::defaultCornerRadius);
-        g.setColour(colours.dialogBackgroundColour);
+        g.setColour(colours.popupMenuBackgroundColour);
         g.fillRoundedRectangle(internalBounds.toFloat(), Corners::defaultCornerRadius);
 
         if (isSignalDisplay) {
@@ -324,7 +327,7 @@ private:
                     g.drawHorizontalLine(channelBounds.getCentreY(), channelBounds.getX(), channelBounds.getRight());
 
                     // Draw text background
-                    g.setColour(colours.dialogBackgroundColour);
+                    g.setColour(colours.popupMenuBackgroundColour);
                     g.fillRoundedRectangle(textBounds, Corners::defaultCornerRadius);
 
                     // Draw text
@@ -396,7 +399,7 @@ private:
                 auto textBounds = channelBounds.expanded(5).removeFromBottom(18).removeFromRight(textWidth + 8);
 
                 // Draw text background
-                g.setColour(colours.dialogBackgroundColour);
+                g.setColour(colours.popupMenuBackgroundColour);
                 g.fillRoundedRectangle(textBounds, Corners::defaultCornerRadius);
 
                 // Draw text
@@ -405,7 +408,7 @@ private:
                 g.drawText(text, textBounds.toNearestInt(), Justification::centred);
             }
         } else {
-            int startPositionX = 8 + 4;
+            int startPositionX = shadowMargin + 4;
             for (auto const& item : messageItemsWithFormat) {
                 Fonts::drawStyledText(g, item.text, startPositionX, 0, item.width, getHeight(), colours.panelTextColour, item.fontStyle, 14, Justification::centredLeft);
                 startPositionX += item.width + 4;

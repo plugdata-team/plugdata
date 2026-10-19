@@ -26,7 +26,7 @@ class OpenInspector final : public Component {
 public:
     OpenInspector()
     {
-        auto const backgroundColour = getThemeColours(*this).dialogBackgroundColour;
+        auto const backgroundColour = getThemeColours(*this).panelBackgroundColour;
         buttonOpenInspector.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
         buttonOpenInspector.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
         buttonOpenInspector.setColour(ComboBox::outlineColourId, Colours::transparentBlack);

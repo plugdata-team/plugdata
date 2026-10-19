@@ -262,10 +262,7 @@ void PaletteItem::paint(Graphics& g)
     auto const backgroundColour = getBackgroundColour();
 
     if (isItemDragged) {
-        Path dropShadowPath;
-        dropShadowPath.addRoundedRectangle(bounds.reduced(4.0f), 5.0f);
-        auto dropShadowColour = colours.objectSelectedOutlineColour;
-        StackShadow::drawShadowForPath(g, hash("palette_item"), dropShadowPath, 8, dropShadowColour.withAlpha(0.5f));
+        StackShadow::drawShadowForRect(g, bounds.reduced(2.5f).toNearestInt(), 5.0f, StackShadow::Card);
     }
     auto outlineColour = isItemDragged ? colours.objectSelectedOutlineColour : colours.objectOutlineColour;
 

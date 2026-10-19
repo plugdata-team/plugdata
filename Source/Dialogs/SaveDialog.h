@@ -19,7 +19,7 @@ private:
 
         auto const bounds = getLocalBounds().toFloat().reduced(1.0f);
 
-        auto backgroundColour = colours.dialogBackgroundColour;
+        auto backgroundColour = colours.panelBackgroundColour;
         auto const activeColour = colours.toolbarActiveColour;
 
         if (isMouseOver() || isMouseButtonDown()) {

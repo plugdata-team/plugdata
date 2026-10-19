@@ -19,8 +19,10 @@ protected:
     bool roundBottomCorner : 1 = false;
 
 public:
+    static constexpr int defaultHeight = 34;
+
     explicit PropertiesPanelProperty(String const& propertyName)
-        : PropertyComponent(propertyName, 32)
+        : PropertyComponent(propertyName, defaultHeight)
     {
     }
 
@@ -48,9 +50,11 @@ public:
     }
 
     // Value area, inset for controls that fill it (segmented toggles, colour swatches)
+    // Controls stop growing at 22px, so taller rows get more whitespace instead of bigger controls
     Rectangle<float> getControlBounds() const
     {
-        return getLocalBounds().toFloat().removeFromRight(getWidth() / (2.0f - hideLabel)).reduced(4.0f, 5.0f);
+        auto const area = getLocalBounds().toFloat().removeFromRight(getWidth() / (2.0f - hideLabel));
+        return area.withSizeKeepingCentre(area.getWidth() - 8.0f, std::min(area.getHeight() - 10.0f, 22.0f));
     }
 
     virtual void setRoundedCorners(bool const roundTop, bool const roundBottom)

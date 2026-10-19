@@ -65,7 +65,7 @@ public:
         }
 
         if (viewedComponent) {
-            g.setColour(colours.dialogBackgroundColour);
+            g.setColour(colours.panelBackgroundColour);
             g.fillRoundedRectangle(viewedComponent->getBounds().toFloat(), isIphone() ? 0 : Corners::windowCornerRadius);
 
             g.setColour(colours.outlineColour);

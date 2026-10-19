@@ -177,7 +177,7 @@ public:
         // auto sidebarBounds = b.removeFromLeft(200);
 
         if (ProjectInfo::canUseSemiTransparentWindows()) {
-            StackShadow::drawShadowForRect(g, getLocalBounds().reduced(20), 14, Corners::windowCornerRadius, 0.6f);
+            StackShadow::drawShadowForRect(g, totalBounds, Corners::windowCornerRadius, StackShadow::Window);
         }
 
         float const cornerRadius = ProjectInfo::canUseSemiTransparentWindows() ? Corners::windowCornerRadius : 0.0f;

@@ -72,6 +72,9 @@ class SearchPathPanel final : public Component
     , public FileDragAndDropTarget
     , private ListBoxModel {
 public:
+    static constexpr int rowHeight = PropertiesPanelProperty::defaultHeight;
+    static constexpr int listY = 94;
+
     std::unique_ptr<Dialog> confirmationDialog;
 
     std::function<void()> onChange = [] { };
@@ -80,7 +83,7 @@ public:
     SearchPathPanel()
     {
         listBox.setOutlineThickness(0);
-        listBox.setRowHeight(32);
+        listBox.setRowHeight(rowHeight);
 
         listBox.setModel(this);
         addAndMakeVisible(listBox);
@@ -159,12 +162,12 @@ public:
         auto const& colours = getThemeColours(*this);
 
         auto [x, width] = getContentXAndWidth();
-        int const height = (getNumRows() + 1) * 32;
+        int const height = (getNumRows() + 1) * rowHeight;
 
         // Draw area behind reset button
         auto const resetButtonBounds = resetButton.getBounds();
 
-        StackShadow::drawShadowForRect(g, resetButtonBounds.reduced(3.0f), 8, Corners::largeCornerRadius, 0.4f);
+        StackShadow::drawShadowForRect(g, resetButtonBounds, Corners::largeCornerRadius, StackShadow::Card);
 
         g.setColour(colours.panelForegroundColour);
         g.fillRoundedRectangle(resetButtonBounds.toFloat(), Corners::largeCornerRadius);
@@ -173,9 +176,9 @@ public:
         g.drawRoundedRectangle(resetButtonBounds.toFloat(), Corners::largeCornerRadius, 1.0f);
 
         // Draw area behind properties
-        auto const propertyBounds = Rectangle<int>(x, 90.0f, width, height);
+        auto const propertyBounds = Rectangle<int>(x, listY, width, height);
 
-        StackShadow::drawShadowForRect(g, propertyBounds.reduced(3.0f), 8, Corners::largeCornerRadius, 0.4f);
+        StackShadow::drawShadowForRect(g, propertyBounds, Corners::largeCornerRadius, StackShadow::Card);
 
         g.setColour(colours.panelForegroundColour);
         g.fillRoundedRectangle(propertyBounds.toFloat(), Corners::largeCornerRadius);
@@ -244,10 +247,10 @@ public:
 
     void resized() override
     {
-        listBox.setBounds(0, 90, getWidth(), getHeight() - 90);
+        listBox.setBounds(0, listY, getWidth(), getHeight() - listY);
 
         auto [x, width] = getContentXAndWidth();
-        resetButton.setBounds(x, 39, width, 32.0f);
+        resetButton.setBounds(x, 39, width, rowHeight);
 
         if (editor.isVisible()) {
             auto const selectionBounds = listBox.getRowPosition(listBox.getSelectedRow(), true) + listBox.getPosition();
@@ -337,7 +340,7 @@ private:
 
         auto [x, width] = getContentXAndWidth();
 
-        auto const addButtonBounds = Rectangle<int>(x, 90.0f + getNumRows() * 32, width, 32);
+        auto const addButtonBounds = Rectangle<int>(x, listY + getNumRows() * rowHeight, width, rowHeight);
         addButton.setBounds(addButtonBounds);
     }
 
@@ -440,13 +443,15 @@ class LibraryLoadPanel final : public Component
     , private ListBoxModel {
 
 public:
+    static constexpr int rowHeight = PropertiesPanelProperty::defaultHeight;
+
     std::unique_ptr<Dialog> confirmationDialog;
     std::function<void()> onChange = [] { };
 
     LibraryLoadPanel()
     {
         listBox.setOutlineThickness(0);
-        listBox.setRowHeight(32);
+        listBox.setRowHeight(rowHeight);
 
         listBox.setModel(this);
         addAndMakeVisible(listBox);
@@ -491,11 +496,11 @@ public:
         auto const& colours = getThemeColours(*this);
 
         auto [x, width] = getContentXAndWidth();
-        int const height = (getNumRows() + 1) * 32;
+        int const height = (getNumRows() + 1) * rowHeight;
 
         auto const propertyBounds = Rectangle<int>(x, 40.0f, width, height);
 
-        StackShadow::drawShadowForRect(g, propertyBounds.reduced(3.0f), 8, Corners::largeCornerRadius, 0.4f);
+        StackShadow::drawShadowForRect(g, propertyBounds, Corners::largeCornerRadius, StackShadow::Card);
 
         g.setColour(colours.panelForegroundColour);
         g.fillRoundedRectangle(propertyBounds.toFloat(), Corners::largeCornerRadius);
@@ -632,7 +637,7 @@ public:
 
         auto [x, width] = getContentXAndWidth();
 
-        auto const addButtonBounds = Rectangle<int>(x, 40 + getNumRows() * 32, width, 32);
+        auto const addButtonBounds = Rectangle<int>(x, 40 + getNumRows() * rowHeight, width, rowHeight);
 
         addButton.setBounds(addButtonBounds);
     }
@@ -709,8 +714,8 @@ private:
 
         Fonts::drawStyledText(g, "GEM", 4, 0, getWidth() - 4, 26, colours.panelTextColour, Semibold, 14.5f);
 
-        auto b = getLocalBounds().withTrimmedTop(26).reduced(4);
-        StackShadow::drawShadowForRect(g, b.reduced(3), 8, Corners::largeCornerRadius, 0.4f);
+        auto b = getCardBounds();
+        StackShadow::drawShadowForRect(g, b, Corners::largeCornerRadius, StackShadow::Card);
 
         g.setColour(colours.panelForegroundColour);
         g.fillRoundedRectangle(b.toFloat(), Corners::largeCornerRadius);
@@ -721,7 +726,13 @@ private:
 
     void resized() override
     {
-        boolComponent.setBounds(getLocalBounds().withTrimmedTop(26).reduced(4));
+        boolComponent.setBounds(getCardBounds());
+    }
+
+    // Leaves room below the card for its shadow
+    Rectangle<int> getCardBounds() const
+    {
+        return getLocalBounds().withTrimmedTop(30).withTrimmedBottom(8).reduced(4, 0);
     }
 
     PropertiesPanel::BoolComponent boolComponent;
@@ -758,9 +769,9 @@ public:
 private:
     void updateBounds()
     {
-        enableGemToggle.setBounds(getLocalBounds().withTrimmedTop(4).removeFromTop(78).reduced(41, 6));
-        searchPathsPanel.setBounds(0, 74, getWidth(), 96.0f + (searchPathsPanel.getNumRows() + 1) * 32.0f);
-        libraryLoadPanel.setBounds(libraryLoadPanel.getX(), searchPathsPanel.getBottom() + 4.0f, getWidth(), 52.0f + (libraryLoadPanel.getNumRows() + 1) * 32.0f);
+        enableGemToggle.setBounds(getLocalBounds().withTrimmedTop(4).removeFromTop(86).reduced(41, 6));
+        searchPathsPanel.setBounds(0, 78, getWidth(), SearchPathPanel::listY + 10 + (searchPathsPanel.getNumRows() + 1) * SearchPathPanel::rowHeight);
+        libraryLoadPanel.setBounds(libraryLoadPanel.getX(), searchPathsPanel.getBottom(), getWidth(), 52 + (libraryLoadPanel.getNumRows() + 1) * LibraryLoadPanel::rowHeight);
 
         container.setBounds(getLocalBounds().getUnion(searchPathsPanel.getBounds()).getUnion(libraryLoadPanel.getBounds()));
     }

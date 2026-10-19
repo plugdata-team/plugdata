@@ -600,7 +600,6 @@ public:
             auto* row = new Row(this);
             rows.add(row);
             buttonHolder->addAndMakeVisible(row);
-            row->setColour(TextButton::buttonColourId, getThemeColours(*this).dialogBackgroundColour);
         }
 
         // Viewport
@@ -614,7 +613,8 @@ public:
 
         addAndMakeVisible(resizer);
 
-        constrainer.setSizeLimits(150, 130, 800, 500);
+        auto const margins = getMargins();
+        constrainer.setSizeLimits(134 + margins.getLeftAndRight(), 114 + margins.getTopAndBottom(), 784 + margins.getLeftAndRight(), 484 + margins.getTopAndBottom());
 
         loadSavedSize();
         setSize(savedListSize.x, savedListSize.y);
@@ -897,7 +897,7 @@ public:
         auto const scale = std::sqrt(std::abs(getTransform().getDeterminant()));
         auto const objectPos = currentObject->getScreenBounds().reduced(Object::margin).getBottomLeft() / scale;
 
-        setTopLeftPosition(objectPos.translated(-getMargin(), 5 - getMargin()));
+        setTopLeftPosition(objectPos.translated(-getMargins().getLeft(), 5 - getMargins().getTop()));
 
         updatePopupVisibility();
     }
@@ -1189,9 +1189,8 @@ private:
         if (usingTouchMode || !currentResultShouldShrinkHeightToFitEntries || layoutMode == LayoutMode::DetailOnly || numOptions <= 0)
             return;
 
-        auto const margins = getMargin() * 2;
         int const numVisibleRows = std::min(numOptions, numRowsAllocated);
-        int const targetHeight = numVisibleRows * getRowHeight() + 12 + margins;
+        int const targetHeight = numVisibleRows * getRowHeight() + 12 + getMargins().getTopAndBottom();
         if (targetHeight < getHeight())
             setSize(getWidth(), targetHeight);
     }
@@ -1223,11 +1222,11 @@ private:
     void applyLayoutMode(LayoutMode requestedMode)
     {
         bool const wasSmallPanel = (layoutMode != LayoutMode::ListWithDetail);
-        auto const margins = getMargin() * 2;
+        auto const margins = getMargins();
 
         if (requestedMode == LayoutMode::DetailOnly || requestedMode == LayoutMode::ListOnly) {
             layoutMode = requestedMode;
-            if(!usingTouchMode) setSize(340 + margins, 160 + margins);
+            if(!usingTouchMode) setSize(340 + margins.getLeftAndRight(), 160 + margins.getTopAndBottom());
         } else {
             int const targetWidth = wasSmallPanel ? savedListSize.x : getWidth();
             int const targetHeight = wasSmallPanel ? savedListSize.y : getHeight();
@@ -1250,7 +1249,7 @@ private:
     {
         if (!currentResultSupportsDetail)
             return LayoutMode::ListOnly;
-        if (width < detailPanelMinWidth + getMargin() * 2)
+        if (width < detailPanelMinWidth + getMargins().getLeftAndRight())
             return LayoutMode::ListOnly;
         return LayoutMode::ListWithDetail;
     }
@@ -1507,14 +1506,18 @@ private:
         return usingTouchMode ? 16 : 14;
     }
 
-    int getMargin() const
+    // Transparent room around the popup for its shadow. The top margin is smaller, since it overlaps the object being edited
+    BorderSize<int> getMargins() const
     {
-        return canBeTransparent() && !usingTouchMode ? 8 : 0;
+        if (!canBeTransparent() || usingTouchMode)
+            return { };
+
+        return { 12, 20, 20, 20 };
     }
 
     Rectangle<int> getWindowBounds() const
     {
-        return getLocalBounds().reduced(getMargin());
+        return getMargins().subtractedFrom(getLocalBounds());
     }
 
     static bool canBeTransparent()
@@ -1604,7 +1607,7 @@ private:
         if (!canBeTransparent()) {
             g.fillAll(colours.canvasBackgroundColour);
         } else {
-            StackShadow::drawShadowForRect(g, getLocalBounds().reduced(12), 12, Corners::defaultCornerRadius, 0.44f);
+            StackShadow::drawShadowForRect(g, getWindowBounds(), Corners::defaultCornerRadius, StackShadow::Popup);
         }
 
         // Single rounded rectangle that covers list + header + detail panel.
@@ -1627,7 +1630,7 @@ private:
             return;
         }
 
-        g.setColour(colours.outlineColour.darker(0.1f));
+        g.setColour(colours.outlineColour);
         g.drawRoundedRectangle(winBounds, Corners::defaultCornerRadius, 1.0f);
 
         // Subtle separator between list and detail panel when both are visible.
@@ -1657,24 +1660,18 @@ private:
     void loadSavedSize()
     {
         auto const sizeProperty = SettingsFile::getInstance()->getProperty<VarArray>("suggestions_size");
-        if (sizeProperty.size() == 2) {
-            savedListSize = {
-                static_cast<int>(sizeProperty[0]),
-                static_cast<int>(sizeProperty[1])
-            };
-        } else {
-            savedListSize = {
-                560 + getMargin() * 2,
-                240 + getMargin() * 2
-            };
-        }
+        // The saved size is the visible popup, without the shadow margins
+        auto const margins = getMargins();
+        auto const visibleSize = sizeProperty.size() == 2 ? Point<int>(sizeProperty[0], sizeProperty[1]) : Point<int>(560, 240);
+        savedListSize = visibleSize + Point<int>(margins.getLeftAndRight(), margins.getTopAndBottom());
     }
 
     void saveCurrentSize()
     {
+        auto const margins = getMargins();
         savedListSize = { getWidth(), getHeight() };
         SettingsFile::getInstance()->setProperty("suggestions_size",
-            VarArray { var(getWidth()), var(getHeight()) });
+            VarArray { var(getWidth() - margins.getLeftAndRight()), var(getHeight() - margins.getTopAndBottom()) });
     }
 
     void componentBeingDeleted(Component&) override

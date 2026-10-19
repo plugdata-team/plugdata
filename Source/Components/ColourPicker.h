@@ -15,6 +15,9 @@ class Eyedropper final : public Timer
         Colour colour;
         Image pixelImage;
 
+        // Transparent room around the loupe for its Popup shadow
+        static constexpr int shadowMargin = 20;
+
     public:
         std::function<void(bool setColour)> onDismiss = [](bool) { };
 
@@ -24,7 +27,7 @@ class Eyedropper final : public Timer
             setAlwaysOnTop(true);
             setInterceptsMouseClicks(true, true);
             setWantsKeyboardFocus(true);
-            setSize(130, 130);
+            setSize(114 + shadowMargin * 2, 114 + shadowMargin * 2);
             setMouseCursor(MouseCursor::NoCursor);
         }
 
@@ -55,18 +58,19 @@ class Eyedropper final : public Timer
 
         void setROI(Image const& image, Point<int> const position)
         {
-            pixelImage = image.getClippedImage(Rectangle<int>(0, 0, 11, 11).withCentre(position)).rescaled(getWidth() - 8 * 2, getHeight() - 8 * 2, Graphics::ResamplingQuality::lowResamplingQuality);
+            pixelImage = image.getClippedImage(Rectangle<int>(0, 0, 11, 11).withCentre(position)).rescaled(getWidth() - shadowMargin * 2, getHeight() - shadowMargin * 2, Graphics::ResamplingQuality::lowResamplingQuality);
             colour = image.getPixelAt(position.x, position.y);
             repaint();
         }
 
         void paint(Graphics& g) override
         {
-            auto const bounds = getLocalBounds().toFloat().reduced(8);
+            auto const bounds = getLocalBounds().toFloat().reduced(shadowMargin);
 
             Path shadowPath;
             shadowPath.addEllipse(bounds);
-            StackShadow::drawShadowForPath(g, hash("eyedropper"), shadowPath, 8, Colours::black.withAlpha(0.85f), 1);
+            // The loupe floats over arbitrary screen content, so it needs far more separation than a menu
+            StackShadow::drawShadowForPath(g, hash("eyedropper"), shadowPath, StackShadow::Popup, 3.0f);
 
             auto const circleBounds = bounds;
 
@@ -644,7 +648,8 @@ private:
                 Path shadowPath;
                 shadowPath.addEllipse(bounds);
 
-                StackShadow::drawShadowForPath(g, hash("colour_space_marker"), shadowPath, 6, Colours::black.withAlpha(0.75f));
+                // Knobs sit on bright colour fields, so they need a much darker shadow than a tab
+                StackShadow::drawShadowForPath(g, hash("colour_space_marker"), shadowPath, StackShadow::Control, 6.0f);
 
                 auto [hue, sat] = owner.getHS();
                 auto const colour = Colour::fromHSV(hue, sat, 1.0f, 1.0f);
@@ -749,8 +754,8 @@ private:
                 auto const bounds = getLocalBounds().reduced(4).toFloat();
 
                 Path shadowPath;
-                shadowPath.addEllipse(bounds.reduced(2));
-                StackShadow::drawShadowForPath(g, hash("colour_picker"), shadowPath, 6, Colours::black.withAlpha(0.75f), 1);
+                shadowPath.addEllipse(bounds);
+                StackShadow::drawShadowForPath(g, hash("colour_picker"), shadowPath, StackShadow::Control, 6.0f);
 
                 g.setColour(owner.getCurrentColour());
                 g.fillEllipse(bounds);

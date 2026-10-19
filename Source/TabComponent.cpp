@@ -96,7 +96,7 @@ public:
         auto const pill = getLocalBounds().toFloat().reduced(3.0f);
         if (active) {
             // Subtle shadow to lift the active pill off the bar
-            StackShadow::drawShadowForRect(g, pill.toNearestInt(), 5, Corners::defaultCornerRadius, 0.1f, 2);
+            StackShadow::drawShadowForRect(g, pill.toNearestInt(), Corners::defaultCornerRadius, StackShadow::Control);
             g.setColour(colours.activeTabBackgroundColour);
             g.fillRoundedRectangle(pill, Corners::defaultCornerRadius);
         } else if (mouseOver) {
@@ -127,6 +127,9 @@ public:
         closeButton.setBounds(getLocalBounds().reduced(4, 1).removeFromRight(22).withSizeKeepingCentre(20, 20).translated(-1, 1));
     }
 
+    // Transparent room around the drag image for its Popup shadow
+    static constexpr int dragImageMargin = 22;
+
     ScaledImage generateTabBarButtonImage() const
     {
         auto const& colours = getThemeColours(*this);
@@ -139,7 +142,7 @@ public:
         auto const text = cnv->patch.getTitle();
         Font const font(Fonts::getDefaultFont());
         auto const length = Fonts::getStringWidth(text, font) + 32;
-        constexpr auto boundsOffset = 10;
+        constexpr auto boundsOffset = dragImageMargin;
 
         // we need to expand the bounds, but reset the position to top left
         // then we offset the mouse drag by the same amount
@@ -150,11 +153,11 @@ public:
         auto g = Graphics(image);
         g.addTransform(AffineTransform::scale(scale));
 
-        StackShadow::drawShadowForRect(g, bounds.reduced(12), 7, Corners::defaultCornerRadius, 0.2f, 1);
-        g.setOpacity(1.0f);
+        auto const pill = textBounds.withPosition(boundsOffset, boundsOffset).reduced(2);
+        StackShadow::drawShadowForRect(g, pill, Corners::defaultCornerRadius, StackShadow::Popup);
 
         g.setColour(colours.activeTabBackgroundColour);
-        g.fillRoundedRectangle(textBounds.withPosition(10, 10).reduced(2).toFloat(), Corners::defaultCornerRadius);
+        g.fillRoundedRectangle(pill.toFloat(), Corners::defaultCornerRadius);
 
         g.setColour(colours.toolbarTextColour);
 
@@ -239,7 +242,10 @@ public:
             tabImage = generateTabBarButtonImage();
             var description = var(new DynamicObject());
             description.getDynamicObject()->setProperty("dropped", false);
-            dragContainer->startDragging(description, this, tabImage, true);
+
+            // Line the image's pill (inset by the margin + 2) up with the tab's own pill (inset by 3)
+            auto const imageOffset = -e.getMouseDownPosition() - Point<int>(dragImageMargin - 1, dragImageMargin - 1);
+            dragContainer->startDragging(description, this, tabImage, true, &imageOffset);
         } else if (parent->draggingOverTabbar) {
             dragger.dragComponent(this, e, &tabDragConstrainer);
         }

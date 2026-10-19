@@ -158,7 +158,7 @@ void PlugDataLook::drawCallOutBoxBackground(CallOutBox& box, Graphics& g, Path c
     if (cachedImage.isNull()) {
         cachedImage = { Image::ARGB, box.getWidth(), box.getHeight(), true };
         Graphics g2(cachedImage);
-        StackShadow::drawShadowForPath(g2, 0, path, 8, Colours::black.withAlpha(0.18f), 2);
+        StackShadow::drawShadowForPath(g2, 0, path, StackShadow::Popup);
     }
 
     g.setColour(Colours::black);
@@ -327,15 +327,21 @@ void PlugDataLook::getIdealPopupMenuItemSize(String const& text, bool const isSe
     }
 }
 
+// Transparent room around popup menus for their Popup shadow. JUCE places and hit-tests menus as if it weren't there
+static int getPopupMenuShadowMargin()
+{
+    return Desktop::canUseSemiTransparentWindows() ? 16 : 0;
+}
+
 void PlugDataLook::drawPopupMenuBackgroundWithOptions(Graphics& g, int const width, int const height, PopupMenu::Options const& options)
 {
     auto const background = colours.popupMenuBackgroundColour;
     if (Desktop::canUseSemiTransparentWindows()) {
-        StackShadow::drawShadowForRect(g, Rectangle<int>(width, height).reduced(10), 12, Corners::defaultCornerRadius, 0.6f, 1);
+        auto const bounds = Rectangle<float>(5, 6, width - 10, height - 12).reduced(getPopupMenuShadowMargin());
+
+        StackShadow::drawShadowForRect(g, bounds.toNearestInt(), Corners::largeCornerRadius, StackShadow::Popup);
 
         g.setColour(background);
-
-        auto const bounds = Rectangle<float>(5, 6, width - 10, height - 12);
         g.fillRoundedRectangle(bounds, Corners::largeCornerRadius);
 
         g.setColour(colours.outlineColour);
@@ -371,7 +377,8 @@ void PlugDataLook::drawPopupMenuItem(Graphics& g, Rectangle<int> const& area,
     String const& shortcutKeyText,
     Drawable const* icon, Colour const* const textColourToUse)
 {
-    int margin = Desktop::canUseSemiTransparentWindows() ? 7 : 2;
+    // Items span the whole menu window, including the transparent shadow margin
+    int margin = Desktop::canUseSemiTransparentWindows() ? 7 + getPopupMenuShadowMargin() : 2;
 
     if (isSeparator) {
         auto r = area.reduced(margin + 8, 0);
@@ -490,9 +497,14 @@ Component* PlugDataLook::getParentComponentForMenuOptions(PopupMenu::Options con
 int PlugDataLook::getPopupMenuBorderSize()
 {
     if (Desktop::canUseSemiTransparentWindows()) {
-        return 12;
+        return 12 + getPopupMenuShadowMargin();
     }
     return 6;
+}
+
+int PlugDataLook::getPopupMenuShadowMarginWithOptions(PopupMenu::Options const&)
+{
+    return getPopupMenuShadowMargin();
 }
 
 void PlugDataLook::drawTreeviewPlusMinusBox(Graphics& g, Rectangle<float> const& area, Colour, bool const isOpen, bool const isMouseOver)
@@ -605,14 +617,18 @@ void PlugDataLook::drawCornerResizer(Graphics& g, int const w, int const h, bool
     g.restoreState();
 }
 
+// Transparent room around tooltips for their Popup shadow
+static int getTooltipShadowMargin()
+{
+    return ProjectInfo::canUseSemiTransparentWindows() ? 20 : 0;
+}
+
 void PlugDataLook::drawTooltip(Graphics& g, String const& text, int const width, int const height)
 {
-    auto const expandTooltip = ProjectInfo::canUseSemiTransparentWindows();
-    auto const bounds = Rectangle<int>(0, 0, width, height).reduced(expandTooltip ? 6 : 0);
-    auto const shadowBounds = bounds.reduced(2);
+    auto const bounds = Rectangle<int>(0, 0, width, height).reduced(getTooltipShadowMargin());
     auto const cornerSize = ProjectInfo::canUseSemiTransparentWindows() ? Corners::defaultCornerRadius : 0;
 
-    StackShadow::drawShadowForRect(g, shadowBounds, 9, cornerSize, 0.44f);
+    StackShadow::drawShadowForRect(g, bounds, cornerSize, StackShadow::Popup);
 
     g.setColour(colours.popupMenuBackgroundColour);
     g.fillRoundedRectangle(bounds.toFloat(), cornerSize);
@@ -639,7 +655,9 @@ void PlugDataLook::drawTooltip(Graphics& g, String const& text, int const width,
     }
 
     constexpr int maxToolTipWidth = 1000;
-    auto const textOffset = expandTooltip ? 10 : 0;
+    // Inset the text 9px from the visible tooltip's sides
+    auto const shadowMargin = getTooltipShadowMargin();
+    auto const textOffset = shadowMargin > 0 ? shadowMargin * 2 - 2 : 0;
     TextLayout tl;
     tl.createLayoutWithBalancedLineLengths(s, static_cast<float>(maxToolTipWidth));
     tl.draw(g, bounds.toFloat().withSizeKeepingCentre(width - (20 + textOffset), height - (2 + textOffset)));
@@ -719,8 +737,6 @@ void PlugDataLook::drawPropertyPanelSectionHeader(Graphics& g, String const& nam
 
 Rectangle<int> PlugDataLook::getTooltipBounds(String const& tipText, Point<int> const screenPos, Rectangle<int> parentArea)
 {
-    auto const expandTooltip = ProjectInfo::canUseSemiTransparentWindows();
-
     constexpr float tooltipFontSize = 14.0f;
     constexpr int maxToolTipWidth = 1000;
 
@@ -765,7 +781,7 @@ Rectangle<int> PlugDataLook::getTooltipBounds(String const& tipText, Point<int> 
     return Rectangle<int>(screenPos.x > parentArea.getCentreX() ? screenPos.x - (w + 12) : screenPos.x + 24,
         screenPos.y > parentArea.getCentreY() ? screenPos.y - (h + 6) : screenPos.y + 6,
         w, h)
-        .expanded(expandTooltip ? 6 : 0)
+        .expanded(getTooltipShadowMargin())
         .constrainedWithin(parentArea);
 }
 
@@ -913,7 +929,7 @@ void PlugDataLook::drawAlertBox(Graphics& g, AlertWindow& alert,
 
     g.reduceClipRegion(bounds);
 
-    g.setColour(colours.dialogBackgroundColour);
+    g.setColour(colours.panelBackgroundColour);
     g.fillRoundedRectangle(bounds.toFloat(), cornerSize);
 
     auto iconSpaceUsed = 0;
@@ -1445,7 +1461,6 @@ void PlugDataLook::setTheme(DynamicObject::Ptr themeTree)
     colours.connectionColour = parsedColours[PlugDataColour::connectionColourId];
     colours.signalColour = parsedColours[PlugDataColour::signalColourId];
     colours.gemColour = parsedColours[PlugDataColour::gemColourId];
-    colours.dialogBackgroundColour = parsedColours[PlugDataColour::dialogBackgroundColourId];
     colours.sidebarBackgroundColour = parsedColours[PlugDataColour::sidebarBackgroundColourId];
     colours.sidebarTextColour = parsedColours[PlugDataColour::sidebarTextColourId];
     colours.sidebarActiveBackgroundColour = parsedColours[PlugDataColour::sidebarActiveBackgroundColourId];

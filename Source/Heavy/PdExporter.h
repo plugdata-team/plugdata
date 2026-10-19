@@ -22,6 +22,10 @@ public:
         copyToPathProperty = new PropertiesPanel::BoolComponent("Copy to externals path", copyToPath, { "No", "Yes" });
         properties.add(copyToPathProperty);
 
+        for (auto* property : properties) {
+            property->setPreferredHeight(28);
+        }
+
         panel.addSection("Pd", properties);
 
         exportTypeValue.addListener(this);

@@ -141,7 +141,7 @@ public:
         auto const bounds = getLocalBounds().toFloat().reduced(3.0f);
 
         if (hovered || selected) {
-            StackShadow::drawShadowForRect(g, bounds.toNearestInt().reduced(3), 9, Corners::largeCornerRadius, 0.32f);
+            StackShadow::drawShadowForRect(g, bounds.toNearestInt(), Corners::largeCornerRadius, StackShadow::Control);
         }
 
         g.setColour(findColour(PlugDataColour::panelForegroundColourId));

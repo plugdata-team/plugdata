@@ -646,9 +646,10 @@ public:
 
     void paint(Graphics& g) override
     {
+        // The item's card, which AutomationItem insets by (6, 3)
         auto const rect = getLocalBounds().reduced(14, 7);
 
-        StackShadow::drawShadowForRect(g, rect, 8, Corners::defaultCornerRadius, 0.3f);
+        StackShadow::drawShadowForRect(g, rect, Corners::defaultCornerRadius, StackShadow::Card);
     }
 
 private:

@@ -105,13 +105,9 @@ class WelcomePanel final : public Component
             auto const& colours = getThemeColours(*this);
 
             auto const bounds = getLocalBounds().reduced(12);
-
             auto const width = getWidth();
-            auto const height = getHeight();
 
-            auto shadowBounds = Rectangle<int>(12, 12, width - 24, height - 24);
-
-            StackShadow::drawShadowForRect(g, shadowBounds, 7, Corners::largeCornerRadius, 0.12f, 1);
+            StackShadow::drawShadowForRect(g, bounds, Corners::largeCornerRadius, StackShadow::Card);
 
             auto const lB = bounds.toFloat().expanded(0.5f);
             {
@@ -217,7 +213,7 @@ class WelcomePanel final : public Component
     {
         auto const bounds = tileBounds.reduced(12);
 
-        StackShadow::drawShadowForRect(g, bounds, 7, Corners::largeCornerRadius, 0.12f, 1);
+        StackShadow::drawShadowForRect(g, bounds, Corners::largeCornerRadius, StackShadow::Card);
 
         auto const backgroundBounds = bounds.toFloat().expanded(0.5f);
         g.setColour(colours.panelForegroundColour);
