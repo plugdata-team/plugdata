@@ -41,14 +41,16 @@ public:
         setAlwaysOnTop(true);
         setVisible(true);
 
-        auto const menuMargin = getLookAndFeel().getPopupMenuBorderSize();
+        // The menu's border includes a transparent margin for its shadow, which doesn't count towards its placement
+        auto const shadowMargin = getLookAndFeel().getPopupMenuShadowMarginWithOptions(PopupMenu::Options());
+        auto const menuMargin = getLookAndFeel().getPopupMenuBorderSize() - shadowMargin;
 
         // Apply a slight offset to the menu, so we have enough space for the arrow
         // change offset if arrow should be top/bottom or left/right
         if (direction == ArrowDirection::TopBottom) {
             auto bounds = menuToAttachTo->getBounds().translated(-15, menuMargin - 3);
             if (menuParent)
-                bounds.setX(jmax(menuMargin, bounds.getX()));
+                bounds.setX(jmax(menuMargin - shadowMargin, bounds.getX()));
             menuToAttachTo->setBounds(bounds);
         } else {
             menuToAttachTo->setBounds(menuToAttachTo->getBounds().translated(30, -40));
@@ -68,7 +70,9 @@ public:
         Rectangle<float> arrowBounds;
         Rectangle<float> extensionBounds;
         bool isBottom = true;
-        int const verticalMargin = Desktop::canUseSemiTransparentWindows() ? 6 : 1;
+        // Distance from the menu window's edge to the visible menu
+        auto const shadowMargin = getLookAndFeel().getPopupMenuShadowMarginWithOptions(PopupMenu::Options());
+        int const verticalMargin = Desktop::canUseSemiTransparentWindows() ? 6 + shadowMargin : 1;
         // Check if we need to draw an arrow top-bottom, or left-right
         if (direction == ArrowDirection::TopBottom) {
             if (targetArea.getY() <= menuBounds.getY()) {
@@ -98,7 +102,7 @@ public:
             }
         } else {
             // draw arrow to the left (hardcode for left only for now)
-            arrowBounds = Rectangle<float>(menuBounds.getX() - verticalMargin, targetArea.getCentreY() - arrowWidth * 0.5f, arrowHeight, arrowWidth);
+            arrowBounds = Rectangle<float>(menuBounds.getX() + shadowMargin - 6, targetArea.getCentreY() - arrowWidth * 0.5f, arrowHeight, arrowWidth);
 
             extensionBounds = arrowBounds;
             extensionBounds = extensionBounds.removeFromRight(1).withTrimmedLeft(-2).reduced(0, 1);
@@ -122,11 +126,10 @@ public:
             } else
                 g.reduceClipRegion(getLocalBounds().withTrimmedRight(getWidth() - arrow.getBounds().getRight()));
 
-            auto shadowOffset = Point<int>(0, targetArea.getY() <= menuBounds.getY() ? 1 : -1);
-            if (direction == ArrowDirection::LeftRight)
-                shadowOffset = Point<int>(1, 0);
+            // Keep the shadow off the button the arrow points at
+            g.excludeClipRegion(targetArea);
 
-            StackShadow::drawShadowForPath(g, hash("arrow_popup_menu"), arrow, 8, Colours::black.withAlpha(0.3f), shadowOffset.y, shadowOffset.x);
+            StackShadow::drawShadowForPath(g, hash("arrow_popup_menu"), arrow, StackShadow::Popup);
 
             g.restoreState();
         }

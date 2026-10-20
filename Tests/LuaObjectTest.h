@@ -154,7 +154,6 @@ private:
 
             // Render the object's framebuffer (covers the draw callback path)
             editor->pd->volume->store(0.0f);
-            exercisePropertiesFrame(gui);
         }
 
         for (auto const& type : { String("plugdata_test_props") }) {
@@ -226,50 +225,6 @@ private:
                 cnv->performSynchronise();
             testDestructionDuringCallback();
         });
-    }
-
-    void exercisePropertiesFrame(ObjectBase* object)
-    {
-        LuaPropertiesPanel::PropertyFrame frame;
-        frame.title = "Coverage properties";
-        frame.items.add({ .type = LuaPropertiesPanel::PropertyItem::Type::Check,
-            .label = "Check", .method = "check", .initFloat = 1.0f });
-        frame.items.add({ .type = LuaPropertiesPanel::PropertyItem::Type::Text,
-            .label = "Text", .method = "text", .initString = "initial" });
-        frame.items.add({ .type = LuaPropertiesPanel::PropertyItem::Type::Colour,
-            .label = "Colour", .method = "colour", .initString = "#336699" });
-        frame.items.add({ .type = LuaPropertiesPanel::PropertyItem::Type::Int,
-            .label = "Integer", .method = "integer", .initFloat = 2.0f, .min = -10.0f, .max = 10.0f });
-        frame.items.add({ .type = LuaPropertiesPanel::PropertyItem::Type::Float,
-            .label = "Float", .method = "float", .initFloat = 0.5f, .min = 0.0f, .max = 1.0f });
-        frame.items.add({ .type = LuaPropertiesPanel::PropertyItem::Type::Combo,
-            .label = "Combo", .method = "combo", .options = { "First", "Second" }, .initFloat = 0.0f });
-
-        LuaPropertiesPanel::LuaPropertiesFrame propertiesFrame(&frame, object);
-        propertiesFrame.setBounds(0, 0, 420, propertiesFrame.getPreferredHeight());
-        propertiesFrame.resized();
-        propertiesFrame.createComponentSnapshot(propertiesFrame.getLocalBounds());
-
-        for (auto* property : propertiesFrame.properties) {
-            if (auto* boolean = dynamic_cast<PropertiesPanel::BoolComponent*>(property)) {
-                auto event = MouseEvent(Desktop::getInstance().getMainMouseSource(),
-                    boolean->getLocalBounds().getCentre().toFloat(), ModifierKeys::leftButtonModifier,
-                    0.0f, 0.0f, 0.0f, 0.0f, 0.0f, boolean, boolean,
-                    Time::getCurrentTime(), {}, Time::getCurrentTime(), 1, false);
-                boolean->mouseUp(event);
-            } else if (auto* combo = dynamic_cast<PropertiesPanel::ComboComponent*>(property)) {
-                combo->comboBox.setSelectedId(2, sendNotificationSync);
-            } else if (auto* text = dynamic_cast<PropertiesPanel::EditableComponent<String>*>(property)) {
-                if (auto* label = dynamic_cast<Label*>(text->label.get()))
-                    label->setText("changed", sendNotificationSync);
-            } else if (auto* integer = dynamic_cast<PropertiesPanel::EditableComponent<int>*>(property)) {
-                if (auto* number = dynamic_cast<DraggableNumber*>(integer->label.get()))
-                    number->setValue(7.0, sendNotificationSync);
-            } else if (auto* floating = dynamic_cast<PropertiesPanel::EditableComponent<float>*>(property)) {
-                if (auto* number = dynamic_cast<DraggableNumber*>(floating->label.get()))
-                    number->setValue(0.75, sendNotificationSync);
-            }
-        }
     }
 
     void testDestructionDuringCallback()

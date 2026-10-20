@@ -141,7 +141,7 @@ public:
         auto const bounds = getLocalBounds().toFloat().reduced(3.0f);
 
         if (hovered || selected) {
-            StackShadow::drawShadowForRect(g, bounds.toNearestInt().reduced(3), 9, Corners::largeCornerRadius, 0.32f);
+            StackShadow::drawShadowForRect(g, bounds.toNearestInt(), Corners::largeCornerRadius, StackShadow::Control);
         }
 
         g.setColour(findColour(PlugDataColour::panelForegroundColourId));
@@ -242,6 +242,8 @@ public:
             int const targetW = (int)(targetH * logo.getWidth() / (float)logo.getHeight());
             auto logoBounds = Rectangle<int>(0, 0, targetW, targetH)
                                   .withCentre(area.getCentre().translated(0, -32));
+
+            g.setOpacity(1.0f);
             g.drawImage(logo, logoBounds.toFloat(), RectanglePlacement::centred);
         }
 

@@ -232,8 +232,7 @@ public:
 
         // Either show single selection or multi-selection
         if (getOwnerView()->selectedNode ? isSelected() : valueTreeNode.getProperty("Selected") == var(true)) {
-            auto const highlightCol = colours.sidebarActiveBackgroundColour;
-            g.setColour(isSelected() ? highlightCol.brighter(0.2f) : highlightCol);
+            g.setColour(colours.sidebarActiveBackgroundColour);
             g.fillRoundedRectangle(getLocalBounds().withHeight(25).reduced(2).toFloat(), Corners::defaultCornerRadius);
         }
 

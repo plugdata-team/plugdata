@@ -2904,7 +2904,7 @@ inline CodeEditorComponent::ColourScheme PlugDataTextEditor::getSyntaxColourSche
 {
     auto const& colours = getThemeColours(*this);
 
-    auto const textColour = colours.canvasTextColour;
+    auto const textColour = colours.canvasBackgroundColour.contrasting(0.95f);
     if (colours.canvasBackgroundColour.getPerceivedBrightness() > 0.5f) {
         static CodeEditorComponent::ColourScheme::TokenType const types[] = {
             { "Error", Colour(0xffcc0000) },
@@ -2992,7 +2992,7 @@ struct TextEditorDialog final : public Component
         , onClose(closeCallback)
         , onSave(saveCallback)
         , title(std::move(name))
-        , margin(ProjectInfo::canUseSemiTransparentWindows() ? 15 : 0)
+        , margin(ProjectInfo::canUseSemiTransparentWindows() ? 20 : 0)
         , associatedFile(std::move(fileToOpen))
         , desktopScale(scale)
     {
@@ -3026,7 +3026,7 @@ struct TextEditorDialog final : public Component
         openExternallyButton.setTooltip("Open in default text editor");
 
         // Position in centre of screen
-        setBounds((Desktop::getInstance().getDisplays().getPrimaryDisplay()->userBounds / desktopScale).withSizeKeepingCentre(700, 500).getSmallestIntegerContainer());
+        setBounds((Desktop::getInstance().getDisplays().getPrimaryDisplay()->userBounds / desktopScale).withSizeKeepingCentre(670 + margin * 2, 470 + margin * 2).getSmallestIntegerContainer());
 
         zoomComboButton.setButtonText(Icons::ChrevronDown);
 
@@ -3211,12 +3211,13 @@ struct TextEditorDialog final : public Component
         auto const& colours = getThemeColours(*this);
 
         if (ProjectInfo::canUseSemiTransparentWindows()) {
-            StackShadow::drawShadowForRect(g, getLocalBounds().reduced(20), 14, Corners::windowCornerRadius, 0.6f);
+            StackShadow::drawShadowForRect(g, getLocalBounds().reduced(margin), Corners::windowCornerRadius, StackShadow::Window);
         }
 
         auto const radius = ProjectInfo::canUseSemiTransparentWindows() ? Corners::windowCornerRadius : 0.0f;
 
         auto const b = getLocalBounds().reduced(margin);
+        auto const statusBarBounds = b.withTop(b.getBottom() - 28);
 
         g.setColour(colours.toolbarBackgroundColour);
         g.fillRoundedRectangle(b.toFloat(), radius);
@@ -3227,10 +3228,10 @@ struct TextEditorDialog final : public Component
 
         g.setFont(Fonts::getTabularNumbersFont().withHeight(14));
         g.setColour(colours.toolbarTextColour);
-        g.drawFittedText(String(static_cast<int>(editor.getScale() * 100.f)) + "%", zoomComboButton.getX() - 26, b.getHeight() - 14, 33, 28, Justification::centredRight, 1, 0.95f);
+        g.drawFittedText(String(static_cast<int>(editor.getScale() * 100.f)) + "%", zoomComboButton.getX() - 26, statusBarBounds.getY(), 33, statusBarBounds.getHeight(), Justification::centredRight, 1, 0.95f);
 
         auto caretPos = editor.getCaretPosition();
-        g.drawFittedText(String(caretPos.first) + ":" + String(caretPos.second), margin + 8, b.getHeight() - 14, 128, 28, Justification::centredLeft, 1, 0.95f);
+        g.drawFittedText(String(caretPos.first) + ":" + String(caretPos.second), statusBarBounds.getX() + 8, statusBarBounds.getY(), 128, statusBarBounds.getHeight(), Justification::centredLeft, 1, 0.95f);
 
         if (!title.isEmpty()) {
             Fonts::drawText(g, title, b.getX(), b.getY(), b.getWidth(), 40, colours.toolbarTextColour, 15, Justification::centred);

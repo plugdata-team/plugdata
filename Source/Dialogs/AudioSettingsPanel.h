@@ -105,7 +105,7 @@ struct CallbackComboPropertyWithTestButton final : public CallbackComboProperty 
     {
         auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
         auto const testButtonBounds = bounds.removeFromRight(70);
-        testButton.setBounds(testButtonBounds.reduced(8, 5));
+        testButton.setBounds(testButtonBounds.withSizeKeepingCentre(testButtonBounds.getWidth() - 16, 22));
 
         comboBox.setBounds(bounds);
     }
@@ -119,7 +119,7 @@ public:
         : PropertiesPanel::BoolComponent(channelName, isEnabled, { "Inactive", "Active" })
         , callback(std::move(onClick))
     {
-        setPreferredHeight(30);
+        setPreferredHeight(defaultHeight - 2);
         repaint();
     }
 
@@ -138,7 +138,7 @@ public:
         bool const isOver = isMouseOver();
 
         auto const bounds = getLocalBounds().toFloat().removeFromRight(getWidth() / (2.0f - hideLabel));
-        auto const buttonBounds = bounds.reduced(4);
+        auto const buttonBounds = bounds.withSizeKeepingCentre(bounds.getWidth() - 8.0f, 22.0f);
 
         if (isDown || isOver) {
             // Add some alpha to make it look good on any background...
@@ -154,6 +154,16 @@ public:
 
         // Paint label
         PropertiesPanelProperty::paint(g);
+    }
+
+    // Drawn as a single button instead of two segments, so a click anywhere flips it
+    void mouseUp(MouseEvent const& e) override
+    {
+        if (!isRealClickEvent(e))
+            return;
+
+        toggleStateValue.setValue(!getValue<bool>(toggleStateValue));
+        repaint();
     }
 
     std::function<void(bool)> callback;

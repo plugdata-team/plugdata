@@ -213,7 +213,7 @@ private:
 
                 for (int i = 0; i < getNumButtons(); i++) {
                     auto& button = *getButton(i);
-                    auto backgroundColour = getThemeColours(*this).dialogBackgroundColour;
+                    auto backgroundColour = getThemeColours(*this).panelBackgroundColour;
                     button.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
                     button.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
                     button.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
@@ -342,12 +342,13 @@ private:
         void resized() override
         {
             int x = getWidth() - 8;
+            auto const buttonHeight = std::min(getHeight() - 12, 20);
 
             for (int i = keyChangeButtons.size(); --i >= 0;) {
                 auto* b = keyChangeButtons.getUnchecked(i);
 
-                b->fitToContent(getHeight() - 12);
-                b->setTopLeftPosition(x - b->getWidth(), 6);
+                b->fitToContent(buttonHeight);
+                b->setTopLeftPosition(x - b->getWidth(), (getHeight() - buttonHeight) / 2);
                 x = b->getX() - 12;
             }
         }

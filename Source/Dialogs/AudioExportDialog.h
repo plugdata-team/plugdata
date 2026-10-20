@@ -58,7 +58,7 @@ public:
 
         formatValue.addListener(this);
 
-        setSize(520, 285);
+        setSize(520, 305);
     }
 
     ~AudioExportDialog() override

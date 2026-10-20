@@ -250,8 +250,56 @@ StackShadow::RectShadowImage StackShadow::generateShadowImages(int radius, float
     return imgs;
 }
 
-void StackShadow::drawShadowForRect(Graphics& g, Rectangle<int> bounds, int radius, float shadowCornerRadius, float opacity, int verticalOffset)
+std::array<StackShadow::Layer, 2> StackShadow::getLayers(Elevation const elevation)
 {
+    // { spread, offset, radius, opacity }: the contact shadow, then the ambient one.
+    switch (elevation) {
+    case Control:
+        return { { { 0, 1, 1, 0.12f }, { 0, 1, 3, 0.06f } } };
+    case Card:
+        return { { { 0, 1, 3, 0.08f }, { -1, 3, 8, 0.06f } } };
+    case Popup:
+        return { { { 1, 1, 6, 0.10f }, { 3, 2, 17, 0.055f } } };
+    case Window:
+        return { { { 1, 2, 7, 0.12f }, { 2, 4, 16, 0.10f } } };
+    }
+    return { };
+}
+
+void StackShadow::drawShadowForRect(Graphics& g, Rectangle<int> const bounds, float const cornerRadius, Elevation const elevation, float const intensity)
+{
+    for (auto const& layer : getLayers(elevation))
+        drawRectLayer(g, bounds, cornerRadius, layer, intensity);
+}
+
+void StackShadow::drawShadowForPath(Graphics& g, hash32 const id, Path const& path, Elevation const elevation, float const intensity)
+{
+    auto const layers = getLayers(elevation);
+    auto const bounds = path.getBounds().toNearestInt();
+
+    for (int i = 0; i < static_cast<int>(layers.size()); i++) {
+        // id 0 means the caller caches the result itself. Otherwise key on the path's bounds as well,
+        // so a path that moves or resizes under the same id doesn't reuse a stale shadow
+        hash32 key = 0;
+        if (id != 0) {
+            key = id;
+            for (auto const v : { static_cast<int>(elevation), i, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight() })
+                key ^= static_cast<hash32>(v) + 0x9e3779b9 + (key << 6) + (key >> 2);
+        }
+        drawPathLayer(g, key, path, layers[i], intensity);
+    }
+}
+
+void StackShadow::drawRectLayer(Graphics& g, Rectangle<int> const bounds, float const cornerRadius, Layer const& layer, float const intensity)
+{
+    auto const shape = bounds.expanded(layer.spread);
+    if (shape.isEmpty())
+        return;
+
+    // Keep the shadow's corners concentric with the element's, and no rounder than the shape allows
+    auto const shadowCornerRadius = std::clamp(cornerRadius + layer.spread, 0.0f, std::min(shape.getWidth(), shape.getHeight()) / 2.0f);
+    auto const radius = layer.radius;
+
     auto pixelScale = g.getInternalContext().getPhysicalPixelScaleFactor();
     auto shadowHash = std::hash<float> { }(pixelScale);
     shadowHash ^= std::hash<int> { }(radius) + 0x9e3779b9 + (shadowHash << 6) + (shadowHash >> 2);
@@ -264,14 +312,14 @@ void StackShadow::drawShadowForRect(Graphics& g, Rectangle<int> bounds, int radi
 
     auto const& imgs = inst.shadowMap.at(shadowHash);
 
-    float const bx = bounds.getX() * pixelScale;
-    float const by = bounds.getY() * pixelScale;
-    float const bw = bounds.getWidth() * pixelScale;
-    float const bh = bounds.getHeight() * pixelScale;
+    float const bx = shape.getX() * pixelScale;
+    float const by = shape.getY() * pixelScale;
+    float const bw = shape.getWidth() * pixelScale;
+    float const bh = shape.getHeight() * pixelScale;
 
     g.saveState();
-    g.setOpacity(opacity);
-    g.addTransform(AffineTransform::scale(1.0f / pixelScale).translated(0, verticalOffset));
+    g.setOpacity(std::min(1.0f, layer.opacity * intensity));
+    g.addTransform(AffineTransform::scale(1.0f / pixelScale).translated(0, layer.offset));
 
     float const r = radius * pixelScale;
     float const cr = shadowCornerRadius * pixelScale;
@@ -292,48 +340,50 @@ void StackShadow::drawShadowForRect(Graphics& g, Rectangle<int> bounds, int radi
     g.restoreState();
 }
 
-void StackShadow::drawShadowForPath(Graphics& g, hash32 id, Path const& path, int radius, Colour colour, int verticalOffset, int horizontalOffset)
+void StackShadow::drawPathLayer(Graphics& g, uint64_t const cacheKey, Path const& path, Layer const& layer, float const intensity)
 {
-    auto pixelScale = g.getInternalContext().getPhysicalPixelScaleFactor();
-    auto shadowHash = (static_cast<uint64_t>(id) << 32) | std::bit_cast<uint32_t>(pixelScale);
-    auto& inst = *getInstance();
+    auto const pixelScale = g.getInternalContext().getPhysicalPixelScaleFactor();
+    auto const radius = layer.radius;
 
-    if (id == 0) {
-        auto bounds = path.getBounds();
-        int logicalW = roundToInt(bounds.getWidth());
-        int logicalH = roundToInt(bounds.getHeight());
+    auto const makeShadow = [&] {
+        auto shape = path;
+        auto const pathBounds = path.getBounds();
 
-        Path offsetPath = path;
-        offsetPath.applyTransform(AffineTransform::translation(-radius, -radius));
+        // Spread grows or shrinks the path around its centre
+        if (layer.spread != 0 && pathBounds.getWidth() > 0 && pathBounds.getHeight() > 0) {
+            shape.applyTransform(AffineTransform::scale((pathBounds.getWidth() + 2.0f * layer.spread) / pathBounds.getWidth(),
+                (pathBounds.getHeight() + 2.0f * layer.spread) / pathBounds.getHeight(), pathBounds.getCentreX(), pathBounds.getCentreY()));
+        }
 
-        auto img = generateBaseShadowImage(offsetPath, radius, logicalW + radius, logicalH + radius, pixelScale);
+        auto const bounds = shape.getBounds();
+        int const logicalW = roundToInt(bounds.getWidth());
+        int const logicalH = roundToInt(bounds.getHeight());
+
+        shape.applyTransform(AffineTransform::translation(radius - bounds.getX(), radius - bounds.getY()));
+
+        PathShadowImage entry;
+        entry.image = generateBaseShadowImage(shape, radius, logicalW + radius, logicalH + radius, pixelScale);
+        entry.x = bounds.getX() - radius;
+        entry.y = bounds.getY() - radius;
+        return entry;
+    };
+
+    auto const draw = [&](PathShadowImage const& entry) {
         g.saveState();
-        g.setColour(colour);
-        g.drawImageTransformed(img, AffineTransform::translation((radius + horizontalOffset) * pixelScale, (radius + verticalOffset) * pixelScale).scaled(1.0f / pixelScale), true);
+        g.setColour(Colours::black.withAlpha(std::min(1.0f, layer.opacity * intensity)));
+        g.drawImageTransformed(entry.image, AffineTransform::translation(entry.x * pixelScale, (entry.y + layer.offset) * pixelScale).scaled(1.0f / pixelScale), true);
         g.restoreState();
+    };
+
+    if (cacheKey == 0) {
+        draw(makeShadow());
         return;
     }
 
-    if (!inst.pathShadowMap.count(shadowHash)) {
-        auto bounds = path.getBounds();
-        int logicalW = roundToInt(bounds.getWidth());
-        int logicalH = roundToInt(bounds.getHeight());
+    auto& inst = *getInstance();
+    auto const shadowHash = (cacheKey << 32) | std::bit_cast<uint32_t>(pixelScale);
+    if (!inst.pathShadowMap.count(shadowHash))
+        inst.pathShadowMap.emplace(shadowHash, makeShadow());
 
-        Path normalised = path;
-        normalised.applyTransform(AffineTransform::translation(radius - bounds.getX(), radius - bounds.getY()));
-
-        PathShadowImage entry;
-        entry.image = generateBaseShadowImage(normalised, radius, logicalW + radius, logicalH + radius, pixelScale);
-        entry.x = bounds.getX() - radius;
-        entry.y = bounds.getY() - radius;
-        inst.pathShadowMap.emplace(shadowHash, std::move(entry));
-    }
-
-    auto const& entry = inst.pathShadowMap.at(shadowHash);
-    auto const& img = entry.image;
-
-    g.saveState();
-    g.setColour(colour);
-    g.drawImageTransformed(img, AffineTransform::translation((entry.x + horizontalOffset) * pixelScale, (entry.y + verticalOffset) * pixelScale).scaled(1.0f / pixelScale), true);
-    g.restoreState();
+    draw(inst.pathShadowMap.at(shadowHash));
 }

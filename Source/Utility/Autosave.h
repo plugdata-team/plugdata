@@ -213,15 +213,16 @@ class AutosaveHistoryComponent final : public Component {
 
         void resized() override
         {
-            openPatch.setBounds(getLocalBounds().removeFromRight(140).reduced(24, 20).translated(0, 4));
+            openPatch.setBounds(getLocalBounds().removeFromRight(140).reduced(24, 20).translated(0, -1));
         }
 
         void paint(Graphics& g) override
         {
             auto const& colours = getThemeColours(*this);
 
-            auto bounds = getLocalBounds().reduced(16, 3).withTrimmedTop(8);
-            StackShadow::drawShadowForRect(g, bounds.reduced(3), 8, Corners::defaultCornerRadius, 0.4f, 1);
+            // Leaves 8px below the card for its shadow
+            auto bounds = getLocalBounds().reduced(16, 0).withTrimmedTop(6).withTrimmedBottom(8);
+            StackShadow::drawShadowForRect(g, bounds, Corners::defaultCornerRadius, StackShadow::Card);
 
             g.setColour(colours.panelForegroundColour);
             g.fillRoundedRectangle(bounds.toFloat(), Corners::defaultCornerRadius);

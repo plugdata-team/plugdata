@@ -65,7 +65,7 @@ void PropertiesPanel::SectionComponent::paint(Graphics& g)
     auto const propertyBounds = Rectangle<int>(x, titleHeight + 8.0f, width, getHeight() - (titleHeight + 16.0f));
 
     if (parent.drawShadowAndOutline) {
-        StackShadow::drawShadowForRect(g, propertyBounds.reduced(3), 8);
+        StackShadow::drawShadowForRect(g, propertyBounds, Corners::largeCornerRadius, StackShadow::Card);
     }
 
     g.setColour(findColour(parent.panelColour));
@@ -348,6 +348,12 @@ PropertiesPanel::BoolComponent::~BoolComponent()
 
 void PropertiesPanel::BoolComponent::init()
 {
+    if (textOptions.size() == 2) {
+        auto const off = textOptions[0].toLowerCase();
+        auto const on = textOptions[1].toLowerCase();
+        isOnOffPair = (off == "no" && on == "yes") || (off == "off" && on == "on");
+    }
+
     toggleStateValue.addListener(this);
     setLookAndFeel(nullptr);
     lookAndFeelChanged();
@@ -372,27 +378,71 @@ bool PropertiesPanel::BoolComponent::hitTest(int const x, int const y)
     return bounds.contains(x, y);
 }
 
+// Shared look of the segmented bool control, also used by the colour field
+static void drawControlTrack(Graphics& g, PlugDataColours const& colours, Rectangle<float> const bounds)
+{
+    g.setColour(colours.panelTextColour.withAlpha(0.07f));
+    g.fillRoundedRectangle(bounds, Corners::defaultCornerRadius);
+}
+
+static void drawControlThumb(Graphics& g, PlugDataColours const& colours, Rectangle<float> const bounds, Colour const fill, float const outlineAlpha = 0.12f)
+{
+    g.setColour(fill);
+    g.fillRoundedRectangle(bounds, Corners::defaultCornerRadius - 2.0f);
+    g.setColour(colours.panelTextColour.withAlpha(outlineAlpha));
+    g.drawRoundedRectangle(bounds, Corners::defaultCornerRadius - 2.0f, 0.5f);
+}
+
+static void drawControlHover(Graphics& g, PlugDataColours const& colours, Rectangle<float> const bounds)
+{
+    g.setColour(colours.panelTextColour.withAlpha(0.05f));
+    g.fillRoundedRectangle(bounds, Corners::defaultCornerRadius - 2.0f);
+}
+
+// Drawn as a two-segment control, with the selected option on a raised thumb
 void PropertiesPanel::BoolComponent::paint(Graphics& g)
 {
     auto const& colours = getThemeColours(*this);
-
-    bool const isDown = getValue<bool>(toggleStateValue);
+    auto const selectedIndex = static_cast<int>(getValue<bool>(toggleStateValue));
     bool const isOver = isMouseOver();
 
-    auto const bounds = getLocalBounds().toFloat().removeFromRight(getWidth() / (2.0f - hideLabel));
-    auto const buttonBounds = bounds.reduced(4);
+    if (!isEnabled())
+        g.beginTransparencyLayer(0.5f);
 
-    if (isDown || isOver) {
-        // Add some alpha to make it look good on any background...
-        g.setColour(colours.sidebarActiveBackgroundColour.contrasting(isOver ? 0.125f : 0.2f).withAlpha(0.25f));
-        g.fillRoundedRectangle(buttonBounds, Corners::defaultCornerRadius);
-    }
-    auto textColour = colours.panelTextColour;
+    auto const track = getControlBounds();
+    drawControlTrack(g, colours, track);
 
-    if (!isEnabled()) {
-        textColour = colours.panelTextColour.withAlpha(0.5f);
+    auto segments = track.reduced(2.0f);
+    std::array<Rectangle<float>, 2> const segmentBounds = { segments.removeFromLeft(segments.getWidth() / 2.0f), segments };
+    auto const hoveredIndex = isOver ? static_cast<int>(getMouseXYRelative().x >= track.getCentreX()) : -1;
+
+    for (int i = 0; i < 2; i++) {
+        auto const& segment = segmentBounds[i];
+        bool const isSelected = i == selectedIndex;
+
+        // An enabled on/off property is drawn in the selection colour, like active buttons in the toolbar
+        bool const isActive = isSelected && isOnOffPair && i == 1;
+        auto const accent = colours.objectSelectedOutlineColour;
+
+        bool const isLightTheme = colours.panelTextColour.getPerceivedBrightness() < 0.5f;
+        auto controlThumbColour = isLightTheme ? Colours::white : colours.panelTextColour.withAlpha(0.2f);
+
+        if (isActive)
+            drawControlThumb(g, colours, segment, accent);
+        else if (isSelected)
+            drawControlThumb(g, colours, segment, controlThumbColour);
+        else if (i == hoveredIndex)
+            drawControlHover(g, colours, segment);
+
+        auto textColour = colours.panelTextColour.withAlpha(isSelected ? 1.0f : 0.55f);
+        if (isActive)
+            textColour = accent.getPerceivedBrightness() > 0.7f ? Colours::black : Colours::white;
+
+        Fonts::drawFittedText(g, textOptions[i], segment.toNearestInt().reduced(2, 0), textColour, 1, 0.8f, 13.0f, Justification::centred);
     }
-    Fonts::drawText(g, textOptions[isDown], bounds, textColour, 14.5f, Justification::centred);
+
+    if (!isEnabled())
+        g.endTransparencyLayer();
 
     // Paint label
     PropertiesPanelProperty::paint(g);
@@ -408,12 +458,24 @@ void PropertiesPanel::BoolComponent::mouseExit(MouseEvent const& e)
     repaint();
 }
 
+void PropertiesPanel::BoolComponent::mouseMove(MouseEvent const& e)
+{
+    // The hovered segment follows the mouse
+    repaint();
+}
+
 void PropertiesPanel::BoolComponent::mouseUp(MouseEvent const& e)
 {
     if (!isRealClickEvent(e))
         return;
 
-    toggleStateValue.setValue(!getValue<bool>(toggleStateValue));
+    // Select the clicked segment
+    bool const currentState = getValue<bool>(toggleStateValue);
+    bool const newState = e.position.x >= getControlBounds().getCentreX();
+
+    if (newState != currentState)
+        toggleStateValue.setValue(newState);
+
     repaint();
 }
 
@@ -423,11 +485,10 @@ void PropertiesPanel::BoolComponent::valueChanged(Value& v)
         repaint();
 }
 
-PropertiesPanel::InspectorColourComponent::InspectorColourComponent(String const& propertyName, Value const& value, bool canHaveAlpha)
+PropertiesPanel::ColourComponent::ColourComponent(String const& propertyName, Value const& value, bool canHaveAlpha)
     : PropertiesPanelProperty(propertyName)
     , allowAlpha(canHaveAlpha)
 {
-
     currentColour.referTo(value);
     setWantsKeyboardFocus(true);
 
@@ -436,14 +497,14 @@ PropertiesPanel::InspectorColourComponent::InspectorColourComponent(String const
     addAndMakeVisible(hexValueEditor);
     hexValueEditor.setJustificationType(Justification::centred);
     hexValueEditor.setInterceptsMouseClicks(false, true);
-    hexValueEditor.setFont(Fonts::getDefaultFont().withHeight(13.5f));
+    hexValueEditor.setFont(Fonts::getTabularNumbersFont().withHeight(13.0f));
 
     hexValueEditor.onEditorShow = [this] {
         auto* editor = hexValueEditor.getCurrentTextEditor();
-        editor->setBorder(BorderSize<int>(0, 0, 4, 1));
+        // Centred text also gets shifted by the TextEditor's left indent, so move a pixel of border to the right
+        editor->setBorder({ 0, 0, 4, 2 });
         editor->setJustification(Justification::centred);
         editor->setInputRestrictions(allowAlpha ? 9 : 7, "#0123456789ABCDEFabcdef");
-        editor->applyColourToAllText(getValue<Colour>(currentColour).contrasting(0.95f));
     };
 
     hexValueEditor.onEditorHide = [this] {
@@ -466,60 +527,67 @@ PropertiesPanel::InspectorColourComponent::InspectorColourComponent(String const
     updateHexValue();
 
     setLookAndFeel(nullptr);
-
-    repaint();
 }
 
-PropertiesPanel::InspectorColourComponent::~InspectorColourComponent()
+PropertiesPanel::ColourComponent::~ColourComponent()
 {
     currentColour.removeListener(this);
 }
 
-PropertiesPanelProperty* PropertiesPanel::InspectorColourComponent::createCopy()
+PropertiesPanelProperty* PropertiesPanel::ColourComponent::createCopy()
 {
-    return new InspectorColourComponent(getName(), currentColour);
+    return new ColourComponent(getName(), currentColour, allowAlpha);
 }
 
-void PropertiesPanel::InspectorColourComponent::updateHexValue()
+void PropertiesPanel::ColourComponent::updateHexValue()
 {
-    hexValueEditor.setColour(Label::textColourId, getValue<Colour>(currentColour).contrasting(0.95f));
     hexValueEditor.setText(String("#") + getValue<Colour>(currentColour).toString().substring(2).toUpperCase(), dontSendNotification);
 }
 
-void PropertiesPanel::InspectorColourComponent::resized()
+// Square on the left of the field, inset like the thumb of the segmented control
+Rectangle<float> PropertiesPanel::ColourComponent::getSwatchBounds() const
 {
-    auto const bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
-    if (isMouseOver) {
-        hexValueEditor.setBounds(bounds.reduced(1).withTrimmedRight(24));
-    } else {
-        hexValueEditor.setBounds(bounds.reduced(1));
-    }
+    auto const field = getControlBounds().reduced(2.0f);
+    return field.withWidth(field.getHeight());
 }
 
-void PropertiesPanel::InspectorColourComponent::paint(Graphics& g)
+void PropertiesPanel::ColourComponent::resized()
 {
+    auto const field = getControlBounds();
+    auto const textX = getSwatchBounds().getRight() + 1.0f;
+    hexValueEditor.setBounds(field.withLeft(textX).withTrimmedRight(2.0f).toNearestInt().withY(0).withHeight(getHeight()));
+}
+
+void PropertiesPanel::ColourComponent::paint(Graphics& g)
+{
+    auto const& colours = getThemeColours(*this);
     auto const colour = getValue<Colour>(currentColour);
-    auto const hoverColour = isMouseOver ? colour.brighter(0.4f) : colour;
+    auto const swatchBounds = getSwatchBounds();
 
-    auto swatchBounds = getLocalBounds().removeFromRight(getWidth() / 2).toFloat().reduced(4.5f);
-    g.setColour(hoverColour);
-    g.fillRoundedRectangle(swatchBounds, Corners::defaultCornerRadius);
-    g.setColour(colour.darker(0.15f));
-    g.drawRoundedRectangle(swatchBounds, Corners::defaultCornerRadius, 0.8f);
+    if (!isEnabled())
+        g.beginTransparencyLayer(0.5f);
 
-    if (isMouseOver) {
-        g.setColour(hoverColour.contrasting(0.85f));
-        g.setFont(Fonts::getIconFont().withHeight(11.5f));
-        g.drawText(Icons::Eyedropper, swatchBounds.removeFromRight(24), Justification::centred);
+    drawControlTrack(g, colours, getControlBounds());
 
-        g.setColour(colour.darker(0.15f));
-        g.drawLine(getWidth() - 28, 4, getWidth() - 28, getHeight() - 4);
+    if (allowAlpha && !colour.isOpaque()) {
+        Path swatchShape;
+        swatchShape.addRoundedRectangle(swatchBounds, Corners::defaultCornerRadius - 2.0f);
+
+        Graphics::ScopedSaveState saveState(g);
+        g.reduceClipRegion(swatchShape);
+        g.fillCheckerBoard(swatchBounds, 4.5f, 4.5f, Colours::white, Colours::lightgrey);
     }
+
+    // Stronger outline than the segmented thumb, so light swatches stay visible on light themes and dark ones on dark themes
+    drawControlThumb(g, colours, swatchBounds, colour, isMouseOverSwatch ? 0.45f : 0.2f);
+
+    if (!isEnabled())
+        g.endTransparencyLayer();
 
     PropertiesPanelProperty::paint(g);
 }
 
-void PropertiesPanel::InspectorColourComponent::valueChanged(Value& v)
+void PropertiesPanel::ColourComponent::valueChanged(Value& v)
 {
     if (v.refersToSameSourceAs(currentColour)) {
         updateHexValue();
@@ -527,13 +595,18 @@ void PropertiesPanel::InspectorColourComponent::valueChanged(Value& v)
     }
 }
 
-void PropertiesPanel::InspectorColourComponent::mouseDown(MouseEvent const& e)
+void PropertiesPanel::ColourComponent::mouseDown(MouseEvent const& e)
 {
     if (hexValueEditor.isBeingEdited() && e.getNumberOfClicks() > 1)
         return;
 
-    if (e.x > getWidth() - 28) {
-        auto const pickerBounds = getScreenBounds().withTrimmedLeft(getWidth() / 2).expanded(5);
+    auto const field = getControlBounds();
+    if (!field.contains(e.position))
+        return;
+
+    // The swatch opens the picker, the hex code is edited in place
+    if (e.position.x < hexValueEditor.getX()) {
+        auto const pickerBounds = (field.toNearestInt() + getScreenPosition()).expanded(5);
 
         ColourPicker::getInstance()->show(findParentComponentOfClass<PluginEditor>(), getTopLevelComponent(), false, getValue<Colour>(currentColour), pickerBounds, [_this = SafePointer(this)](Colour const c) {
             if (!_this)
@@ -547,135 +620,19 @@ void PropertiesPanel::InspectorColourComponent::mouseDown(MouseEvent const& e)
     }
 }
 
-void PropertiesPanel::InspectorColourComponent::mouseEnter(MouseEvent const& e)
+void PropertiesPanel::ColourComponent::mouseMove(MouseEvent const& e)
 {
-    isMouseOver = true;
-    resized();
-    repaint();
-}
-
-void PropertiesPanel::InspectorColourComponent::mouseExit(MouseEvent const& e)
-{
-    isMouseOver = false;
-    resized();
-    repaint();
-}
-
-class SwatchComponent final : public Component {
-
-public:
-    explicit SwatchComponent(Value const& colour)
-    {
-        colourValue.referTo(colour);
-    }
-
-    void paint(Graphics& g) override
-    {
-        auto const colour = getValue<Colour>(colourValue);
-
-        g.setColour(isMouseOver() ? colour.brighter(0.4f) : colour);
-        g.fillEllipse(getLocalBounds().reduced(1).toFloat());
-        g.setColour(colour.darker(0.2f));
-        g.drawEllipse(getLocalBounds().reduced(1).toFloat(), 0.8f);
-    }
-
-    void mouseEnter(MouseEvent const& e) override
-    {
+    auto const overSwatch = getControlBounds().contains(e.position) && e.position.x < hexValueEditor.getX();
+    if (overSwatch != isMouseOverSwatch) {
+        isMouseOverSwatch = overSwatch;
         repaint();
     }
+}
 
-    void mouseExit(MouseEvent const& e) override
-    {
-        repaint();
-    }
-
-    void mouseDown(MouseEvent const& e) override
-    {
-        auto const pickerBounds = getScreenBounds().expanded(5);
-        ColourPicker::getInstance()->show(findParentComponentOfClass<PluginEditor>(), getTopLevelComponent(), false, getValue<Colour>(colourValue), pickerBounds, [_this = SafePointer(this)](Colour const c) {
-            if (!_this)
-                return;
-
-            _this->colourValue = colourToVar(c);
-            _this->repaint();
-        });
-    }
-
-    Value colourValue;
-};
-
-PropertiesPanel::ColourComponent::ColourComponent(String const& propertyName, Value& value)
-    : PropertiesPanelProperty(propertyName)
-    , swatchComponent(std::make_unique<SwatchComponent>(value))
+void PropertiesPanel::ColourComponent::mouseExit(MouseEvent const& e)
 {
-
-    currentColour.referTo(value);
-    currentColour.addListener(this);
-    setWantsKeyboardFocus(false);
-
-    addAndMakeVisible(hexValueEditor);
-    hexValueEditor.getProperties().set("NoOutline", true);
-    hexValueEditor.getProperties().set("NoBackground", true);
-    hexValueEditor.setInputRestrictions(7, "#0123456789ABCDEFabcdef");
-    hexValueEditor.setColour(outlineColourId, Colour());
-    hexValueEditor.setJustification(Justification::centred);
-
-    hexValueEditor.onReturnKey = [this] {
-        grabKeyboardFocus();
-    };
-
-    hexValueEditor.onTextChange = [this] {
-        colour = String("ff") + hexValueEditor.getText().substring(1).toLowerCase();
-    };
-
-    hexValueEditor.onFocusLost = [this] {
-        currentColour.setValue(colourToVar(Colour::fromString(colour.toString())));
-    };
-
-    addAndMakeVisible(*swatchComponent);
-    updateHexValue();
-
-    setLookAndFeel(nullptr);
-
+    isMouseOverSwatch = false;
     repaint();
-}
-
-PropertiesPanel::ColourComponent::~ColourComponent()
-{
-    currentColour.removeListener(this);
-}
-
-void PropertiesPanel::ColourComponent::lookAndFeelChanged()
-{
-    // TextEditor is special, setColour() will only change newly typed text colour
-    hexValueEditor.applyColourToAllText(getThemeColours(*this).panelTextColour);
-}
-
-PropertiesPanelProperty* PropertiesPanel::ColourComponent::createCopy()
-{
-    return new ColourComponent(getName(), currentColour);
-}
-
-void PropertiesPanel::ColourComponent::updateHexValue()
-{
-    hexValueEditor.setText(String("#") + getValue<Colour>(currentColour).toString().substring(2).toUpperCase());
-}
-
-void PropertiesPanel::ColourComponent::resized()
-{
-    auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
-    auto const colourSwatchBounds = bounds.removeFromLeft(getHeight()).reduced(4).translated(12, 0);
-
-    swatchComponent->setBounds(colourSwatchBounds);
-    hexValueEditor.setBounds(bounds.translated(0, -3));
-}
-
-void PropertiesPanel::ColourComponent::valueChanged(Value& v)
-{
-    if (v.refersToSameSourceAs(currentColour)) {
-        updateHexValue();
-        repaint();
-    }
 }
 
 PropertiesPanel::RangeComponent::RangeComponent(String const& propertyName, Value const& value, bool const integerMode)
@@ -719,6 +676,12 @@ PropertiesPanel::RangeComponent::RangeComponent(String const& propertyName, Valu
     minLabel.onReturnKey = setMinimum;
     maxLabel.onValueChange = setMaximum;
     maxLabel.onReturnKey = setMaximum;
+
+    for (auto* label : { &minLabel, &maxLabel }) {
+        label->onEditorShow = [label] {
+            label->getCurrentTextEditor()->setBorder(getInlineEditorBorder());
+        };
+    }
 }
 
 PropertiesPanel::RangeComponent::~RangeComponent()

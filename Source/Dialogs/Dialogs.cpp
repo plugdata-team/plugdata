@@ -345,7 +345,7 @@ void Dialogs::showMultiChoiceDialog(std::unique_ptr<Dialog>* target, Component* 
             for (int i = 0; i < options.size(); i++) {
                 auto* button = buttons.add(new TextButton(options[i]));
 
-                auto backgroundColour = colours.dialogBackgroundColour;
+                auto backgroundColour = colours.panelBackgroundColour;
                 button->setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
                 button->setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
                 button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);

@@ -19,7 +19,7 @@ public:
 
         nameEditor.setJustification(Justification::centredLeft);
 
-        auto const backgroundColour = getThemeColours(*this).dialogBackgroundColour;
+        auto const backgroundColour = getThemeColours(*this).panelBackgroundColour;
         ok.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
         ok.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
         ok.setColour(ComboBox::outlineColourId, Colours::transparentBlack);

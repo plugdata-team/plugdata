@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include "Utility/OSUtils.h"
+
 struct Spinner final : public Component
     , public Timer {
 
@@ -160,6 +162,11 @@ public:
                 finish(result);
                 return;
             }
+
+            // juce::ZipFile::uncompressTo() does not restore the file permissions stored
+            // in the archive, which leaves helper executables inside a package (for
+            // example vstplugin~'s "host" plugin scanner) without their executable bit
+            OSUtils::restoreExecutablePermissionsFromZip(zip, filesystem);
 
             // Tell deken about the newly installed package
             manager.addPackageToRegister(packageInfo, extractedPath);
@@ -745,7 +752,8 @@ private:
                     onClick();
                 };
 
-                warningButton.setSize(300, 30);
+                // 26px tall leaves room in the 40px header for the card shadow below it
+                warningButton.setSize(300, 26);
                 warningButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
 
                 addAndMakeVisible(warningButton);
@@ -755,8 +763,7 @@ private:
 
             void paint(Graphics& g) override
             {
-                auto const bounds = warningButton.getBounds().reduced(2);
-                StackShadow::drawShadowForRect(g, bounds, 8, Corners::largeCornerRadius, 0.4f, 1);
+                StackShadow::drawShadowForRect(g, warningButton.getBounds(), Corners::defaultCornerRadius, StackShadow::Card);
             }
 
             void resized() override
@@ -809,8 +816,8 @@ private:
             }
             listBox.setBounds(bounds.reduced(20, 18).withHeight(listHeight));
 
-            // Update the overall size
-            setSize(getWidth(), totalHeight + 32);
+            // Update the overall size, leaving 8px below the card for its shadow
+            setSize(getWidth(), totalHeight + 36);
         }
 
         void setModel(ListBoxModel* model)
@@ -824,15 +831,9 @@ private:
             if (!model || !model->getNumRows())
                 return;
 
-            auto const bounds = getLocalBounds();
-            auto constexpr margin = 30;
-
-            auto const shadowY = 30 + headerHeight;
-            auto const shadowX = bounds.getX() + margin;
-            auto const shadowWidth = bounds.getWidth() - margin * 2;
-            auto const shadowHeight = model->getNumRows() * listBox.getRowHeight() - 5;
-
-            StackShadow::drawShadowForRect(g, Rectangle<int>(shadowX, shadowY, shadowWidth, shadowHeight), 8, Corners::largeCornerRadius, 0.4f, 1);
+            // The rows draw the card, inset by 8px, with the last row ending 1px short
+            auto const card = listBox.getBounds().reduced(8, 0).withHeight(model->getNumRows() * listBox.getRowHeight() - 1);
+            StackShadow::drawShadowForRect(g, card, Corners::largeCornerRadius, StackShadow::Card);
         }
 
         ListBox listBox;

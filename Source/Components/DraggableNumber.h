@@ -42,7 +42,7 @@ protected:
     double valueToResetTo = 0.0;
     double valueToRevertTo = 0.0;
     int maxPrecision = 6;
-    Colour outlineColour, textColour;
+    Colour textColour;
     Font font = Font(FontOptions());
 
     std::unique_ptr<TextEditor> editor;

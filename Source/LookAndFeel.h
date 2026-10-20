@@ -37,7 +37,6 @@ struct PlugDataColours {
     Colour connectionColour;
     Colour signalColour;
     Colour gemColour;
-    Colour dialogBackgroundColour;
     Colour sidebarBackgroundColour;
     Colour sidebarTextColour;
     Colour sidebarActiveBackgroundColour;
@@ -92,7 +91,6 @@ inline UnorderedMap<PlugDataColour, std::tuple<String, String, String>> const Pl
     { popupMenuTextColourId, { "Popup menu text", "popup_text", "Popup Menu" } },
     { outlineColourId, { "Popup menu outline", "outline_colour", "Popup Menu" } },
 
-    { dialogBackgroundColourId, { "Dialog background", "dialog_background", "Other" } },
     { caretColourId, { "Text editor caret", "caret_colour", "Other" } },
     { toolbarOutlineColourId, { "Outline", "toolbar_outline_colour", "Other" } },
     { scrollbarThumbColourId, { "Scrollbar thumb", "scrollbar_thumb", "Other" } },
@@ -160,7 +158,11 @@ struct PlugDataLook final : public LookAndFeel_V4
 
     int getMenuWindowFlags() override;
 
+    Component* getParentComponentForMenuOptions(PopupMenu::Options const& options) override;
+
     int getPopupMenuBorderSize() override;
+
+    int getPopupMenuShadowMarginWithOptions(PopupMenu::Options const& options) override;
 
     void drawTreeviewPlusMinusBox(Graphics& g, Rectangle<float> const& area, Colour, bool isOpen, bool isMouseOver) override;
 

@@ -11,7 +11,6 @@
 #include "SearchEditor.h"
 #include "PluginEditor.h"
 
-class SwatchComponent;
 class PropertiesPanelProperty : public PropertyComponent {
 
 protected:
@@ -20,8 +19,10 @@ protected:
     bool roundBottomCorner : 1 = false;
 
 public:
+    static constexpr int defaultHeight = 34;
+
     explicit PropertiesPanelProperty(String const& propertyName)
-        : PropertyComponent(propertyName, 32)
+        : PropertyComponent(propertyName, defaultHeight)
     {
     }
 
@@ -39,6 +40,21 @@ public:
         if (!hideLabel) {
             getLookAndFeel().drawPropertyComponentLabel(g, getWidth(), getHeight() * 0.85f, *this);
         }
+    }
+
+    // Border for an inline TextEditor so its text stays exactly where the label drew it.
+    // Labels and DraggableNumbers inset their text by 1, 5, 1, 5, and the TextEditor adds a 4px indent at the left and top
+    static BorderSize<int> getInlineEditorBorder()
+    {
+        return { 0, 1, 4, 1 };
+    }
+
+    // Value area, inset for controls that fill it (segmented toggles, colour swatches)
+    // Controls stop growing at 22px, so taller rows get more whitespace instead of bigger controls
+    Rectangle<float> getControlBounds() const
+    {
+        auto const area = getLocalBounds().toFloat().removeFromRight(getWidth() / (2.0f - hideLabel));
+        return area.withSizeKeepingCentre(area.getWidth() - 8.0f, std::min(area.getHeight() - 10.0f, 22.0f));
     }
 
     virtual void setRoundedCorners(bool const roundTop, bool const roundBottom)
@@ -171,6 +187,7 @@ public:
 
         void mouseEnter(MouseEvent const& e) override;
         void mouseExit(MouseEvent const& e) override;
+        void mouseMove(MouseEvent const& e) override;
         void mouseUp(MouseEvent const& e) override;
 
         void valueChanged(Value& v) override;
@@ -178,14 +195,16 @@ public:
     protected:
         StringArray textOptions;
         Value toggleStateValue;
+        bool isOnOffPair = false; // "No"/"Yes" or "Off"/"On": the "on" segment takes the selection colour
     };
 
-    class InspectorColourComponent final : public PropertiesPanelProperty
+    // Square swatch that opens the colour picker, next to an editable hex code
+    class ColourComponent final : public PropertiesPanelProperty
         , public Value::Listener {
     public:
-        InspectorColourComponent(String const& propertyName, Value const& value, bool allowAlpha = false);
+        ColourComponent(String const& propertyName, Value const& value, bool allowAlpha = false);
 
-        ~InspectorColourComponent() override;
+        ~ColourComponent() override;
 
         PropertiesPanelProperty* createCopy() override;
 
@@ -198,39 +217,17 @@ public:
         void valueChanged(Value& v) override;
 
         void mouseDown(MouseEvent const& e) override;
-        void mouseEnter(MouseEvent const& e) override;
+        void mouseMove(MouseEvent const& e) override;
         void mouseExit(MouseEvent const& e) override;
 
     private:
+        Rectangle<float> getSwatchBounds() const;
+
         Value currentColour;
         Value colour;
         Label hexValueEditor;
-        bool isMouseOver = false;
+        bool isMouseOverSwatch = false;
         bool allowAlpha;
-    };
-
-    class ColourComponent final : public PropertiesPanelProperty
-        , public Value::Listener {
-    public:
-        ColourComponent(String const& propertyName, Value& value);
-
-        ~ColourComponent() override;
-
-        void lookAndFeelChanged() override;
-
-        PropertiesPanelProperty* createCopy() override;
-
-        void updateHexValue();
-
-        void resized() override;
-
-        void valueChanged(Value& v) override;
-
-    private:
-        std::unique_ptr<SwatchComponent> swatchComponent;
-        Value currentColour;
-        Value colour;
-        TextEditor hexValueEditor;
     };
 
     class RangeComponent final : public PropertiesPanelProperty
@@ -370,7 +367,7 @@ public:
                 property.addListener(this);
                 draggableNumber->onEditorShow = [draggableNumber] {
                     auto* editor = draggableNumber->getCurrentTextEditor();
-                    editor->setBorder(BorderSize<int>(2, 1, 4, 1));
+                    editor->setBorder(getInlineEditorBorder());
                     editor->setJustification(Justification::centredLeft);
                 };
             } else {
@@ -382,7 +379,7 @@ public:
 
                 labelComp->onEditorShow = [this, labelComp] {
                     auto* editor = labelComp->getCurrentTextEditor();
-                    editor->setBorder(BorderSize<int>(2, 1, 4, 1));
+                    editor->setBorder(getInlineEditorBorder());
                     editor->setJustification(Justification::centredLeft);
 
                     if (allowedCharacters.isNotEmpty()) {

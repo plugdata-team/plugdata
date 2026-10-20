@@ -692,7 +692,13 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             int const shadowSize = 24 / scale;
             auto borderArea = Rectangle<int>(0, 0, borderWidth, borderHeight).expanded(shadowSize);
             if (presentationShadowImage.needsUpdate(borderArea.getWidth(), borderArea.getHeight())) {
-                presentationShadowImage = NVGImage(nvg, borderArea.getWidth(), borderArea.getHeight(), [borderArea, shadowSize, windowCorner](Graphics& g) { StackShadow::drawShadowForRect(g, borderArea.reduced(shadowSize).withPosition(shadowSize, shadowSize), shadowSize, windowCorner, 0.3f, 2); }, NVGImage::AlphaImage);
+                // The image is in canvas units: draw the shadow in screen units, so it keeps its size at any zoom
+                presentationShadowImage = NVGImage(nvg, borderArea.getWidth(), borderArea.getHeight(), [borderArea, shadowSize, scale](Graphics& g) {
+                    g.addTransform(AffineTransform::scale(1.0f / scale));
+                    auto const window = (borderArea.reduced(shadowSize).withPosition(shadowSize, shadowSize).toFloat() * scale).toNearestInt();
+                    StackShadow::drawShadowForRect(g, window, Corners::windowCornerRadius, StackShadow::Window);
+                },
+                    NVGImage::AlphaImage);
             }
             auto const shadowImage = nanovg::nvgImageAlphaPattern(nvg, pos.getX() - shadowSize, pos.getY() - shadowSize, borderArea.getWidth(), borderArea.getHeight(), 0, presentationShadowImage.getImageId(), nvgColour(Colours::black));
 

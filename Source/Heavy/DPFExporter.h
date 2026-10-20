@@ -69,6 +69,9 @@ public:
         for (auto* property : pluginFormats) {
             property->setPreferredHeight(28);
         }
+        for (auto* property : pro_properties) {
+            property->setPreferredHeight(28);
+        }
 
         guiTypeValue.addListener(this);
         pluginTypeValue.addListener(this);
