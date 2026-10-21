@@ -481,11 +481,11 @@ public:
 
             // Build path
             nanovg::nvgBeginPath(nvg);
-            nanovg::nvgPathWinding(nvg, NVG_NONZERO);
 
             // Iterate path linked list
             for (NSVGpath* path = shape->paths; path; path = path->next) {
                 nanovg::nvgMoveTo(nvg, path->pts[0], path->pts[1]);
+                nanovg::nvgPathWinding(nvg, NVG_NONZERO);
                 for (int i = 1; i < path->npts; i += 3) {
                     float* p = &path->pts[2 * i];
                     nanovg::nvgBezierTo(nvg, p[0], p[1], p[2], p[3], p[4], p[5]);
