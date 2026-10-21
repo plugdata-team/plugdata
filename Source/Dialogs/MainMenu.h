@@ -51,6 +51,16 @@ public:
         addSeparator();
         addCustomItem(getMenuItemID(MenuItem::Save), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::Save)]), nullptr, "Save patch");
         addCustomItem(getMenuItemID(MenuItem::SaveAs), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::SaveAs)]), nullptr, "Save patch as");
+#if !JUCE_IOS
+        auto const exportMenu = new PopupMenu();
+        for (int scale : { 1, 2, 4 }) {
+            exportMenu->addItem(String(scale) + "x", [editor, scale] {
+                if (auto* cnv = editor->getCurrentCanvas())
+                    cnv->showExportPngDialog(scale);
+            });
+        }
+        addCustomItem(getMenuItemID(MenuItem::ExportPng), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::ExportPng)]), std::unique_ptr<PopupMenu const>(exportMenu), "Export canvas as PNG");
+#endif
 
         auto const plugdataState = new PopupMenu();
         plugdataState->addItem("Import workspace", [editor]() mutable {
@@ -109,6 +119,9 @@ public:
 
         menuItems[getMenuItemIndex(MenuItem::Save)]->isActive = hasCanvas;
         menuItems[getMenuItemIndex(MenuItem::SaveAs)]->isActive = hasCanvas;
+#if !JUCE_IOS
+        menuItems[getMenuItemIndex(MenuItem::ExportPng)]->isActive = hasCanvas;
+#endif
     }
 
     class IconMenuItem final : public PopupMenu::CustomComponent {
@@ -271,6 +284,7 @@ public:
         History,
         Save,
         SaveAs,
+        ExportPng,
         State,
         Compile,
         FindExternals,
@@ -292,13 +306,18 @@ public:
         return item - 1;
     }
 
-    StackArray<IconMenuItem*, 11> menuItems = {
+    StackArray<IconMenuItem*, 12> menuItems = {
         new IconMenuItem(Icons::New, "New patch", false, false),
         new IconMenuItem(Icons::Open, "Open patch...", false, false),
         new IconMenuItem(Icons::History, "Recently opened", true, false),
 
         new IconMenuItem(Icons::Save, "Save patch", false, false),
         new IconMenuItem(Icons::SaveAs, "Save patch as...", false, false),
+#if JUCE_IOS
+        nullptr,
+#else
+        new IconMenuItem(Icons::Download, "Export canvas as PNG", true, false),
+#endif
 
         new IconMenuItem(Icons::ExportState, "Workspace", true, false),
 

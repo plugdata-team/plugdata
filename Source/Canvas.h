@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <optional>
 #include <nanovg_async.h>
 #ifdef NANOVG_GL_IMPLEMENTATION
 #    include <juce_opengl/juce_opengl.h>
@@ -98,6 +99,29 @@ public:
 
     void renderAllObjects(NVGcontext* nvg, Rectangle<int> area);
     void renderAllConnections(NVGcontext* nvg, Rectangle<int> area);
+
+    std::optional<Rectangle<int>> getExportBounds(String* reason = nullptr) const;
+    bool isDrawingForExport() const { return exportDrawMode; }
+    // The caller owns the standalone frame; bounds are in unzoomed canvas units.
+    void renderForExport(NVGcontext* nvg, Rectangle<int> logicalBounds);
+
+    enum class ExportError { None, TooLarge, Failed };
+    struct ExportResult {
+        ExportError error = ExportError::None;
+        String message;
+        bool succeeded() const { return error == ExportError::None; }
+    };
+    ExportResult exportAsPng(File const& destination, int scale = 1);
+    void showExportPngDialog(int scale);
+#if ENABLE_TESTING
+    void failNextExportWriteForTesting(void (*hook)(void*) = nullptr, void* context = nullptr)
+    {
+        failNextExportWrite = true;
+        exportWriteFailureHook = hook;
+        exportWriteFailureContext = context;
+    }
+    void failNextExportRenameForTesting() { failNextExportRename = true; }
+#endif
 
     int getOverlays() const;
     void updateOverlays();
@@ -226,6 +250,7 @@ public:
     bool showConnectionDirection : 1 = false;
     bool showConnectionActivity : 1 = false;
 
+    bool exportDrawMode = false;
     bool isZooming : 1 = false;
     bool isGraph : 1 = false;
     bool isDraggingLasso : 1 = false;
@@ -286,6 +311,12 @@ private:
     GlobalMouseListener globalMouseListener;
 
     bool dimensionsAreBeingEdited = false;
+#if ENABLE_TESTING
+    bool failNextExportWrite = false;
+    bool failNextExportRename = false;
+    void (*exportWriteFailureHook)(void*) = nullptr;
+    void* exportWriteFailureContext = nullptr;
+#endif
 
     int lastMouseX, lastMouseY;
     LassoComponent<WeakReference<Component>> lasso;

@@ -166,6 +166,7 @@ void NVGSurface::createRenderContext()
 
     auto* asyncNvg = nanovg::create(baseNvg, false);
     nvg.store(asyncNvg);
+    cachedMaxTextureSize.store(nanovg::maxTextureSize(baseNvg), std::memory_order_relaxed);
 
     surfaces[asyncNvg] = this;
     MessageManager::callAsync([_this = SafePointer(this)] {
@@ -214,6 +215,7 @@ void NVGSurface::destroyRenderContext()
     recordedFramebufferWidth.store(0);
     recordedFramebufferHeight.store(0);
     recordedFrameIsFullRepaint.store(false);
+    cachedMaxTextureSize.store(0, std::memory_order_relaxed);
 }
 
 #if NANOVG_GL_IMPLEMENTATION
@@ -300,6 +302,7 @@ void NVGSurface::renderBackendFrame()
         return;
 
     serviceReadbackRequest();
+    serviceOffscreenRequest();
 
     if (!mainFramebuffer || mainFramebufferWidth != viewWidth || mainFramebufferHeight != viewHeight) {
         auto const hasMatchingFullFrame = frameReadyForReplay.load()
@@ -775,17 +778,138 @@ void NVGSurface::serviceReadbackRequest()
         auto const h = area.getHeight();
 
         readbackData.malloc(static_cast<size_t>(w) * h * 4);
-        nvgReadPixels(baseNvg, reinterpret_cast<NVGframebuffer*>(mainFramebuffer),
-            area.getX(), area.getY(), w, h, mainFramebufferHeight, readbackData.getData());
+        succeeded = nvgReadPixels(baseNvg, reinterpret_cast<NVGframebuffer*>(mainFramebuffer),
+            area.getX(), area.getY(), w, h, mainFramebufferHeight, readbackData.getData()) != 0;
 
-        readbackWidth = w;
-        readbackHeight = h;
-        succeeded = true;
+        if (succeeded) {
+            readbackWidth = w;
+            readbackHeight = h;
+        }
     }
 
     readbackSucceeded = succeeded;
     readbackPending.store(false);
     readbackReady.signal();
+}
+
+void NVGSurface::serviceOffscreenRequest()
+{
+    if (!offscreenPending.load())
+        return;
+
+    int width = 0;
+    int height = 0;
+    void* target = nullptr;
+    uint64_t requestId = 0;
+    {
+        ScopedLock const sl(offscreenLock);
+        width = offscreenWidth;
+        height = offscreenHeight;
+        target = offscreenTarget;
+        requestId = offscreenRequestId;
+    }
+
+    bool succeeded = false;
+    auto* asyncNvg = nvg.load();
+    if (baseNvg && asyncNvg && target && width > 0 && height > 0) {
+        nanovg::applyCommittedResources(asyncNvg);
+
+        if (auto* realTarget = reinterpret_cast<NVGframebuffer*>(nanovg::underlyingFramebuffer(asyncNvg, target))) {
+            offscreenData.malloc(static_cast<size_t>(width) * height * 4);
+            succeeded = nvgReadPixels(baseNvg, realTarget, 0, 0, width, height, height, offscreenData.getData()) != 0;
+        }
+
+        nanovg::deleteFramebuffer(asyncNvg, target);
+        nanovg::flushResources(asyncNvg);
+        nanovg::applyCommittedResources(asyncNvg);
+    }
+
+    {
+        ScopedLock const sl(offscreenLock);
+        if (offscreenRequestId == requestId) {
+            if (offscreenTarget == target)
+                offscreenTarget = nullptr;
+            offscreenSucceeded = succeeded;
+            offscreenPending.store(false);
+            offscreenReady.signal();
+        }
+    }
+}
+
+int NVGSurface::getMaxTextureSize() const
+{
+    return cachedMaxTextureSize.load(std::memory_order_relaxed);
+}
+
+Image NVGSurface::renderOffscreenImage(int width, int height, std::function<void(NVGcontext*)> draw, bool& tooLarge)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    tooLarge = false;
+    if (width <= 0 || height <= 0 || !draw)
+        return {};
+
+    if (!makeContextActive())
+        return {};
+
+    auto* asyncNvg = nvg.load();
+    if (asyncNvg == nullptr)
+        return {};
+
+    auto const maxTextureSize = getMaxTextureSize();
+    constexpr int64 maxPixels = 16 * 1024 * 1024;
+    if ((maxTextureSize > 0 && (width > maxTextureSize || height > maxTextureSize))
+        || static_cast<int64>(width) * height > maxPixels) {
+        tooLarge = true;
+        return {};
+    }
+
+    auto* target = nanovg::createFramebuffer(asyncNvg, width, height, 0);
+    if (target == nullptr)
+        return {};
+
+    nanovg::commitFramebufferPass(asyncNvg, target, [width, height, draw = std::move(draw)](NVGcontext* c) {
+        nanovg::viewport(c, 0, 0, width, height);
+        nanovg::clear(c);
+        draw(c);
+    });
+    nanovg::flushResources(asyncNvg);
+
+    {
+        ScopedLock const sl(offscreenLock);
+        ++offscreenRequestId;
+        offscreenTarget = target;
+        offscreenWidth = width;
+        offscreenHeight = height;
+        offscreenSucceeded = false;
+        offscreenReady.reset();
+        offscreenPending.store(true);
+    }
+
+    requestBackendRender();
+
+    if (!offscreenReady.wait(2000) || !offscreenSucceeded) {
+        // A late render-thread replay still owns cleanup; enqueue an ordered delete.
+        nanovg::deleteFramebuffer(asyncNvg, target);
+        nanovg::flushResources(asyncNvg);
+        return {};
+    }
+
+    Image image(Image::ARGB, width, height, false);
+    {
+        Image::BitmapData bitmap(image, Image::BitmapData::writeOnly);
+        auto const* src = offscreenData.getData();
+        for (int y = 0; y < height; ++y) {
+            auto const* s = src + static_cast<size_t>(y) * width * 4;
+            auto* d = reinterpret_cast<PixelARGB*>(bitmap.getLinePointer(y));
+            for (int x = 0; x < width; ++x) {
+                d[x].setARGB(255, s[2], s[1], s[0]);
+                s += 4;
+            }
+        }
+    }
+
+    return image;
 }
 
 Image NVGSurface::renderToImage(Rectangle<int> logicalArea)

@@ -147,8 +147,10 @@ NVGcolor Connection::getConnectionColour() const
 {
     auto const& colours = getThemeColours(*this);
 
+    bool const selectionChrome = (isSelected() || isHovering) && !cnv->isDrawingForExport();
+
     Colour c = colours.connectionColour;
-    if (isSelected() || isHovering) {
+    if (selectionChrome) {
         if (outlet->isSignal()) {
             c = colours.signalColour;
         } else if (outlet->isGemState()) {
@@ -157,7 +159,7 @@ NVGcolor Connection::getConnectionColour() const
             c = colours.dataColour;
         }
     }
-    return nvgColour(isHovering ? c.brighter() : c);
+    return nvgColour((isHovering && !cnv->isDrawingForExport()) ? c.brighter() : c);
 }
 
 void Connection::render(NVGcontext* nvg)
@@ -196,7 +198,7 @@ void Connection::render(NVGcontext* nvg)
     }
 
     float dashSize = isSignalCable ? numSignalChannels <= 1 ? 2.5f : 1.5f : 0.0f;
-    auto useGradientLook = getPlugDataLook(*this).getUseGradientConnectionLook() && !(isSelected() || isHovering);
+    auto useGradientLook = getPlugDataLook(*this).getUseGradientConnectionLook() && !((isSelected() || isHovering) && !cnv->isDrawingForExport());
     auto showActivity = cableType == DataCable && cnv->shouldShowConnectionActivity();
     nanovg::nvgStrokePaint(nvg, nanovg::nvgDoubleStroke(nvg, connectionColour, shadowColour, dashColor, dashSize, useGradientLook, showActivity, offset));
     nanovg::nvgStrokeWidth(nvg, cableThickness);
@@ -211,7 +213,7 @@ void Connection::render(NVGcontext* nvg)
         cachedPath.save(nvg);
     }
 
-    if (isSelected() && isHovering) {
+    if (isSelected() && isHovering && !cnv->isDrawingForExport()) {
         auto expandedStartHandle = isInStartReconnectHandle ? startReconnectHandle.expanded(3.0f) : startReconnectHandle;
         auto expandedEndHandle = isInEndReconnectHandle ? endReconnectHandle.expanded(3.0f) : endReconnectHandle;
 

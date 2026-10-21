@@ -4,6 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <filesystem>
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
 
@@ -785,6 +786,8 @@ void Canvas::renderAllConnections(NVGcontext* nvg, Rectangle<int> const area)
     if (!connectionLayer.isVisible())
         return;
 
+    bool const exportDraw = isDrawingForExport();
+
     SmallArray<Connection*> connectionsToDraw;
     SmallArray<Connection*> connectionsToDrawSelected;
     Connection* hovered = nullptr;
@@ -792,13 +795,13 @@ void Canvas::renderAllConnections(NVGcontext* nvg, Rectangle<int> const area)
     for (auto* connection : connections) {
         NVGScopedState scopedState(nvg);
         if (connection->intersectsRectangle(area) && connection->isVisible()) {
-            if (connection->isMouseHovering())
+            if (!exportDraw && connection->isMouseHovering())
                 hovered = connection;
-            else if (!connection->isSelected())
+            else if (exportDraw || !connection->isSelected())
                 connection->render(nvg);
             else
                 connectionsToDrawSelected.add(connection);
-            if (showConnectionOrder) {
+            if (showConnectionOrder && !exportDraw) {
                 connectionsToDraw.add(connection);
             }
         }
@@ -822,6 +825,221 @@ void Canvas::renderAllConnections(NVGcontext* nvg, Rectangle<int> const area)
             connection->renderConnectionOrder(nvg);
         }
     }
+}
+
+std::optional<Rectangle<int>> Canvas::getExportBounds(String* reason) const
+{
+    auto fail = [reason](String const& why) -> std::optional<Rectangle<int>> {
+        if (reason)
+            *reason = why;
+        return std::nullopt;
+    };
+
+    if (::getValue<bool>(presentationMode)) {
+        auto const width = getValue<int>(patchWidth);
+        auto const height = getValue<int>(patchHeight);
+        if (width <= 0 || height <= 0)
+            return fail("canvas has no visible content");
+        return Rectangle<int>(canvasOrigin.x, canvasOrigin.y, width, height);
+    }
+
+    Rectangle<int> bounds;
+    bool hasContent = false;
+    auto addBounds = [&bounds, &hasContent](Rectangle<int> const& b) {
+        if (b.isEmpty())
+            return;
+        bounds = hasContent ? bounds.getUnion(b) : b;
+        hasContent = true;
+    };
+
+    for (auto const* object : objects) {
+        if (!object->isVisible())
+            continue;
+
+        addBounds(object->getBounds());
+        if (object->gui) {
+            for (auto const* label : object->gui->labels) {
+                if (label && label->isVisible())
+                    addBounds(label->getBounds());
+            }
+        }
+    }
+
+    for (auto const* connection : connections) {
+        if (connection->isVisible())
+            addBounds(connection->getBounds());
+    }
+
+    for (auto const& drawable : drawables) {
+        if (!drawable)
+            continue;
+        if (auto const* component = dynamic_cast<Component const*>(drawable.get())) {
+            if (component->isVisible())
+                addBounds(component->getBounds());
+        } else {
+            return fail("canvas contains a drawable with no determinable extent");
+        }
+    }
+
+    if (!hasContent)
+        return fail("canvas has no visible content");
+
+    return bounds.expanded(24);
+}
+
+void Canvas::renderForExport(NVGcontext* nvg, Rectangle<int> logicalBounds)
+{
+    if (logicalBounds.isEmpty())
+        return;
+
+    ScopedValueSetter<bool> exportGuard(exportDrawMode, true);
+
+    auto const& colours = getThemeColours(*this);
+    bool const presentation = ::getValue<bool>(presentationMode);
+
+    nanovg::nvgSave(nvg);
+    nanovg::nvgTranslate(nvg, -logicalBounds.getX(), -logicalBounds.getY());
+    nanovg::nvgFillColor(nvg, nvgColour(presentation ? colours.presentationBackgroundColour : colours.canvasBackgroundColour));
+    nanovg::nvgFillRect(nvg, logicalBounds.getX(), logicalBounds.getY(), logicalBounds.getWidth(), logicalBounds.getHeight());
+
+    for (auto drawable : drawables) {
+        if (!drawable)
+            continue;
+        if (auto const* component = dynamic_cast<Component*>(drawable.get())) {
+            if (component->isVisible() && logicalBounds.intersects(component->getBounds()))
+                drawable->render(nvg);
+        }
+    }
+
+    if (presentation || isGraph) {
+        renderAllObjects(nvg, logicalBounds);
+    } else if (connectionsBehind) {
+        renderAllConnections(nvg, logicalBounds);
+        renderAllObjects(nvg, logicalBounds);
+    } else {
+        renderAllObjects(nvg, logicalBounds);
+        renderAllConnections(nvg, logicalBounds);
+    }
+
+    nanovg::nvgRestore(nvg);
+}
+
+Canvas::ExportResult Canvas::exportAsPng(File const& destination, int scale)
+{
+#if ENABLE_TESTING
+    bool const failWrite = failNextExportWrite;
+    bool const failRename = failNextExportRename;
+    auto const hook = exportWriteFailureHook;
+    auto* const hookContext = exportWriteFailureContext;
+    failNextExportWrite = false;
+    failNextExportRename = false;
+    exportWriteFailureHook = nullptr;
+    exportWriteFailureContext = nullptr;
+#endif
+    if (scale < 1 || scale > 4)
+        return { ExportError::Failed, "scale must be an integer from 1 through 4" };
+
+    String reason;
+    auto const bounds = getExportBounds(&reason);
+    if (!bounds || bounds->isEmpty())
+        return { ExportError::Failed, reason.isNotEmpty() ? reason : "canvas has no visible content" };
+
+    int64 const outputWidth = static_cast<int64>(bounds->getWidth()) * scale;
+    int64 const outputHeight = static_cast<int64>(bounds->getHeight()) * scale;
+    constexpr int64 maxAxis = 8192;
+    constexpr int64 maxPixels = 16777216;
+
+    if (outputWidth > maxAxis || outputHeight > maxAxis)
+        return { ExportError::TooLarge, "export exceeds the 8192 pixel per-axis limit" };
+    if (outputWidth * outputHeight > maxPixels)
+        return { ExportError::TooLarge, "export exceeds the 16777216 total pixel limit" };
+
+    auto* surface = &editor->nvgSurface;
+    int const backendMax = surface->getMaxTextureSize();
+    if (backendMax > 0 && (outputWidth > backendMax || outputHeight > backendMax))
+        return { ExportError::TooLarge, "export exceeds the backend texture limit of " + String(backendMax) + " pixels" };
+
+    int const width = static_cast<int>(outputWidth);
+    int const height = static_cast<int>(outputHeight);
+    bool tooLarge = false;
+    auto const image = surface->renderOffscreenImage(width, height,
+        [this, bounds = *bounds, width, height, scale](NVGcontext* nvg) {
+            nanovg::nvgBeginFrame(nvg, static_cast<float>(width), static_cast<float>(height), 1.0f);
+            if (scale > 1)
+                nanovg::nvgScale(nvg, static_cast<float>(scale), static_cast<float>(scale));
+            renderForExport(nvg, bounds);
+            nanovg::nvgGlobalScissor(nvg, 0, 0, width, height);
+            nanovg::nvgEndFrame(nvg);
+        }, tooLarge);
+
+    if (tooLarge)
+        return { ExportError::TooLarge, "export exceeds the backend texture limit" };
+    if (image.isNull())
+        return { ExportError::Failed, "framebuffer readback failed" };
+
+    MemoryOutputStream encoded;
+    if (!PNGImageFormat().writeImageToStream(image, encoded))
+        return { ExportError::Failed, "failed to write png file" };
+
+    TemporaryFile staging(destination);
+    {
+        FileOutputStream stream(staging.getFile());
+        if (!stream.openedOk() || !stream.write(encoded.getData(), encoded.getDataSize()))
+            return { ExportError::Failed, "failed to write png file" };
+        stream.flush();
+        if (stream.getStatus().failed())
+            return { ExportError::Failed, "failed to write png file" };
+    }
+#if ENABLE_TESTING
+    if (failWrite) {
+        if (hook)
+            hook(hookContext);
+        FileOutputStream shortWrite(staging.getFile());
+        if (!shortWrite.openedOk() || !shortWrite.setPosition(1) || shortWrite.truncate().failed())
+            return { ExportError::Failed, "failed to write png file" };
+    }
+#endif
+    if (staging.getFile().getSize() != static_cast<int64>(encoded.getDataSize()))
+        return { ExportError::Failed, "failed to write png file" };
+    auto const pathFromFile = [](File const& file) {
+        auto const utf8 = file.getFullPathName().toStdString();
+        return std::filesystem::path(std::u8string(utf8.begin(), utf8.end()));
+    };
+    std::error_code renameError;
+#if ENABLE_TESTING
+    if (failRename)
+        renameError = std::make_error_code(std::errc::permission_denied);
+    else
+#endif
+        std::filesystem::rename(pathFromFile(staging.getFile()), pathFromFile(destination), renameError);
+    if (renameError)
+        return { ExportError::Failed, "failed to write png file" };
+
+    return {};
+}
+
+void Canvas::showExportPngDialog(int scale)
+{
+    Dialogs::showSaveDialog([canvas = SafePointer(this), scale](URL const& resultURL) {
+        if (!canvas)
+            return;
+
+        auto const selected = resultURL.getLocalFile();
+        if (selected.getFullPathName().isEmpty())
+            return;
+
+        auto const destination = selected.withFileExtension(".png");
+        if (destination != selected && destination.existsAsFile()) {
+            AlertWindow::showMessageBoxAsync(MessageBoxIconType::WarningIcon, "PNG export not saved",
+                "A PNG named \"" + destination.getFileName() + "\" already exists. Choose that exact .png filename in the Save dialog to confirm replacement.",
+                "OK", canvas->editor);
+            return;
+        }
+
+        auto const result = canvas->exportAsPng(destination, scale);
+        if (!result.succeeded())
+            AlertWindow::showMessageBoxAsync(MessageBoxIconType::WarningIcon, "PNG export failed", result.message, "OK", canvas->editor);
+    }, "*.png", "CanvasPngExport", this, false, patch.getTitle());
 }
 
 void Canvas::settingsChanged(String const& name, var const& value)
