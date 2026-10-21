@@ -22,6 +22,23 @@
 #include "Dialogs/SnapSettings.h"
 #include "Components/TouchSelectionHelper.h"
 
+static String getKeyboardShortcutsForCommand(PluginEditor* editor, CommandID const commandID)
+{
+    String shortcutKey;
+    for (auto& keypress : editor->commandManager.getKeyMappings()->getKeyPressesAssignedToCommand(commandID)) {
+        auto key = keypress.getTextDescriptionWithIcons();
+
+        if (shortcutKey.isNotEmpty())
+            shortcutKey << ", ";
+
+        if (key.length() == 1 && key[0] < 128)
+            shortcutKey << "shortcut: '" << key << '\'';
+        else
+            shortcutKey << key;
+    }
+    return shortcutKey;
+}
+
 class StatusbarButtonGroup final : public Component {
 public:
     explicit StatusbarButtonGroup(String const& iconText)
@@ -198,21 +215,29 @@ public:
         menuButton.onClick = [this]() {
             auto* editor = findParentComponentOfClass<PluginEditor>();
 
+            auto addItem = [editor](PopupMenu& menu, String const& text, CommandID const commandID, std::function<void()> action) {
+                PopupMenu::Item item(text);
+                item.action = std::move(action);
+                if (commandID != 0)
+                    item.shortcutKeyDescription = getKeyboardShortcutsForCommand(editor, commandID);
+                menu.addItem(std::move(item));
+            };
+
             PopupMenu menu;
             for (auto const& opt : StringArray { "25%", "50%", "75%", "100%", "125%", "150%", "175%", "200%", "250%", "300%" }) {
                 auto scale = opt.upToFirstOccurrenceOf("%", false, false).getIntValue() / 100.0f;
-                menu.addItem(opt, [editor, scale] {
+                addItem(menu, opt, opt == "100%" ? CommandIDs::ZoomNormal : 0, [editor, scale] {
                     if (auto* cnv = editor->getCurrentCanvas())
                         cnv->viewport->magnifyCentred(scale, true);
                 });
             }
 
             menu.addSeparator();
-            menu.addItem("Zoom to fit content", [editor] {
+            addItem(menu, "Zoom to fit content", CommandIDs::ZoomToFitAll, [editor] {
                 if (auto* cnv = editor->getCurrentCanvas())
                     cnv->zoomToFitAll();
             });
-            menu.addItem("Jump to Origin", [editor] {
+            addItem(menu, "Jump to Origin", CommandIDs::GoToOrigin, [editor] {
                 if (auto* cnv = editor->getCurrentCanvas())
                     cnv->jumpToOrigin();
             });
@@ -284,20 +309,8 @@ class CanvasModePicker final : public Component {
 public:
     explicit CanvasModePicker(PluginEditor* editor)
     {
-        auto getKeyboardShortcutsForCommand = [editor](CommandID commandID) -> String {
-            String shortcutKey;
-            for (auto& keypress : editor->commandManager.getKeyMappings()->getKeyPressesAssignedToCommand(commandID)) {
-                auto key = keypress.getTextDescriptionWithIcons();
-
-                if (shortcutKey.isNotEmpty())
-                    shortcutKey << ", ";
-
-                if (key.length() == 1 && key[0] < 128)
-                    shortcutKey << "shortcut: '" << key << '\'';
-                else
-                    shortcutKey << key;
-            }
-            return shortcutKey;
+        auto getKeyboardShortcutsForCommand = [editor](CommandID const commandID) {
+            return ::getKeyboardShortcutsForCommand(editor, commandID);
         };
 
         bool locked = false;
