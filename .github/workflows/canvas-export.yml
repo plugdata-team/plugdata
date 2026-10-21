@@ -119,17 +119,21 @@ jobs:
           if (-not (Test-Path -LiteralPath $app)) { throw "Test executable missing: $app" }
           $stdout = Join-Path $env:RUNNER_TEMP 'canvas-export-stdout.log'
           $stderr = Join-Path $env:RUNNER_TEMP 'canvas-export-stderr.log'
+          $reportPath = Join-Path $env:RUNNER_TEMP 'canvas-export-result.txt'
+          $env:PLUGDATA_TEST_RESULT = $reportPath
           $process = Start-Process -FilePath $app -ArgumentList '-stderr' -WorkingDirectory $env:GITHUB_WORKSPACE -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
           $timedOut = -not $process.WaitForExit(180000)
           if ($timedOut) { $process.Kill() }
           $process.WaitForExit()
           $log = [string](Get-Content -LiteralPath $stdout -Raw -ErrorAction SilentlyContinue) + [string](Get-Content -LiteralPath $stderr -Raw -ErrorAction SilentlyContinue)
+          $report = [string](Get-Content -LiteralPath $reportPath -Raw -ErrorAction SilentlyContinue)
           Write-Host $log
+          Write-Host $report
           if ($timedOut) { throw 'Windows app exceeded 180 seconds; runtime unverified' }
-          if ($log -match 'renderer did not initialize within five seconds') { throw 'Renderer did not initialize on this Windows runner; runtime unverified' }
+          if ($report -match 'Canvas Export Test / Renderer initialization: FAIL') { throw 'Renderer did not initialize on this Windows runner; runtime unverified' }
           if ($process.ExitCode -ne 0) { throw "Focused canvas export exited with code $($process.ExitCode)" }
-          if ($log -notmatch 'Completed tests in Canvas Export Test / Full content and scale' -or
-              $log -notmatch 'Completed tests in Canvas Export Test / Failed publication preserves previous PNG') {
+          if ($report -notmatch 'Canvas Export Test / Full content and scale: PASS' -or
+              $report -notmatch 'Canvas Export Test / Failed publication preserves previous PNG: PASS') {
             throw 'Focused canvas export sections did not complete'
           }
 

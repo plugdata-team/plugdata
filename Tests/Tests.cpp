@@ -102,6 +102,19 @@ void runTests(PluginEditor* editor)
             if (auto const* result = runner.getResult(i))
                 passed &= result->failures == 0;
         }
+        auto const reportPath = SystemStats::getEnvironmentVariable("PLUGDATA_TEST_RESULT", {});
+        if (reportPath.isNotEmpty()) {
+            String report;
+            for (int i = 0; i < runner.getNumResults(); ++i) {
+                if (auto const* result = runner.getResult(i)) {
+                    report << result->unitTestName << " / " << result->subcategoryName
+                           << ": " << (result->failures == 0 ? "PASS" : "FAIL") << "\n";
+                    for (auto const& message : result->messages)
+                        report << message << "\n";
+                }
+            }
+            passed &= File(reportPath).replaceWithText(report);
+        }
         MessageManager::callAsync([passed] {
             if (auto* app = JUCEApplicationBase::getInstance()) {
                 app->setApplicationReturnValue(passed ? 0 : 1);
