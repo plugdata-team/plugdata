@@ -938,6 +938,8 @@ Canvas::ExportResult Canvas::exportAsPng(File const& destination, int scale)
 #endif
     if (scale < 1 || scale > 4)
         return { ExportError::Failed, "scale must be an integer from 1 through 4" };
+    if (!hasRenderedVisibleCanvas)
+        return { ExportError::Failed, "canvas has not been displayed" };
 
     String reason;
     auto const bounds = getExportBounds(&reason);

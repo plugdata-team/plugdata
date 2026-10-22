@@ -523,6 +523,8 @@ public:
             nanovg::nvgIntersectRoundedScissor(nvg, b.getX() + 0.75f, b.getY() + 0.75f, b.getWidth() - 1.5f, b.getHeight() - 1.5f, getPlugDataLook(*this).getObjectCornerRadius());
             nanovg::nvgTranslate(nvg, canvas->getX(), canvas->getY());
             canvas->performRender(nvg, getLocalBounds().withPosition(-canvas->getPosition()));
+            if (isShowing() && !cnv->isDrawingForExport())
+                canvas->hasRenderedVisibleCanvas = true;
         }
 
         if (isOpenedInSplitView) {

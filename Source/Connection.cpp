@@ -262,7 +262,7 @@ void Connection::render(NVGcontext* nvg)
         nanovg::nvgFill(nvg);
     };
 
-    if (cnv->shouldShowConnectionDirection()) {
+    if (cnv->shouldShowConnectionDirection() && !cnv->isDrawingForExport()) {
         if (isSegmented()) {
             for (int i = 1; i < currentPlan.size(); i++) {
                 auto const pathLine = Line<float>(currentPlan[i - 1], currentPlan[i]);

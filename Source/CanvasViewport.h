@@ -575,8 +575,11 @@ public:
     void render(NVGcontext* nvg) override
     {
         auto const renderArea = getLocalArea(editor, editor->nvgSurface.getInvalidArea()).expanded(2).getIntersection(getLocalBounds());
-        if (!renderArea.isEmpty())
+        if (!renderArea.isEmpty()) {
             cnv->performRender(nvg, renderArea);
+            if (isShowing() && !cnv->isDrawingForExport())
+                cnv->hasRenderedVisibleCanvas = true;
+        }
     }
 
     void render(NVGcontext* nvg, Rectangle<int> const area)

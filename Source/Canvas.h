@@ -296,6 +296,10 @@ public:
     NVGFramebuffer dotsLargeImage;
 
 private:
+    friend class CanvasViewport;
+    friend class GraphOnParent;
+    bool hasRenderedVisibleCanvas = false;
+
     void updateCanvasDots(NVGcontext* nvg);
 
     pd::Patch::Ptr getPatchToSave() const;

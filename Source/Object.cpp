@@ -1259,7 +1259,7 @@ void Object::performRender(NVGcontext* nvg)
         nanovg::nvgStrokeWidth(nvg, 1.0f);
         nanovg::nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), getPlugDataLook(*this).getObjectCornerRadius());
         nanovg::nvgStroke(nvg);
-    } else if (cnv->shouldShowIndex()) {
+    } else if (cnv->shouldShowIndex() && !cnv->isDrawingForExport()) {
         constexpr int halfHeight = 5;
 
         auto const text = std::to_string(cnv->objects.index_of(this));
@@ -1292,7 +1292,8 @@ void Object::renderIolets(NVGcontext* nvg)
     for (auto* iolet : iolets) {
         nanovg::nvgTranslate(nvg, iolet->getX() - lastPosition.x, iolet->getY() - lastPosition.y);
 
-        if (iolet->isTargeted()) {
+        bool const resetScissor = iolet->isTargeted() && !cnv->isDrawingForExport();
+        if (resetScissor) {
             nanovg::nvgSave(nvg);
             nanovg::nvgResetScissor(nvg);
         }
@@ -1300,7 +1301,7 @@ void Object::renderIolets(NVGcontext* nvg)
         iolet->render(nvg);
         lastPosition = iolet->getPosition();
 
-        if (iolet->isTargeted()) {
+        if (resetScissor) {
             nanovg::nvgRestore(nvg);
         }
     }
