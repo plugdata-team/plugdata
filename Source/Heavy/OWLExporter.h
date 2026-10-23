@@ -155,7 +155,8 @@ public:
                 + " BUILD=../"
                 + " PATCHNAME=" + name
                 + " PATCHCLASS=HeavyPatch"
-                + " PATCHFILE=HeavyOWL_" + name + ".hpp";
+                + " PATCHFILE=HeavyOWL_" + name + ".hpp"
+                + " HEAVY_BUILD=1";
 
             buildScript += " PLATFORM=OWL" + String(target);
 
