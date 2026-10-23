@@ -461,11 +461,10 @@ void PlugDataLook::drawPopupMenuItem(Graphics& g, Rectangle<int> const& area,
             auto width = std::max(Fonts::getStringWidthInt(keys[i].trim(), font) + 8, 15);
             auto b = shortcutBounds.removeFromRight(width).reduced(1, 5);
 
-            g.setColour(colours.popupMenuTextColour.withAlpha(isActive ? 0.9f : 0.35f));
+            g.setColour(colours.popupMenuBackgroundColour.contrasting(0.08f));
             g.fillRoundedRectangle(b.toFloat(), 3.0f);
 
-            g.setColour(colours.popupMenuBackgroundColour);
-
+            g.setColour(colours.popupMenuTextColour.withAlpha(isActive ? 0.8f : 0.3f));
             g.setFont(font);
             g.drawText(keys[i], b, Justification::centred);
         }
