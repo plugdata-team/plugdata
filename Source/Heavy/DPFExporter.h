@@ -85,7 +85,7 @@ public:
 
     StringArray getExportTypes() const override
     {
-        return { "Binary", "Binary + GUI", "Source code", "Source + GUI code" };
+        return { "Binary", "Source code" };
     }
 
     void getState(DynamicObject::Ptr globalState) override
@@ -237,7 +237,8 @@ public:
                 metaTheme.getDynamicObject()->setProperty("bg_color", "#" + getThemeColours(*this).guiObjectBackgroundColour.toDisplayString(false));
                 metaTheme.getDynamicObject()->setProperty("sel_color", "#" + getThemeColours(*this).objectSelectedOutlineColour.toDisplayString(false));
                 metaTheme.getDynamicObject()->setProperty("com_txt_color", "#" + getThemeColours(*this).commentTextColour.toDisplayString(false));
-                metaTheme.getDynamicObject()->setProperty("out_color", "#" + getThemeColours(*this).outlineColour.toDisplayString(false));;
+                metaTheme.getDynamicObject()->setProperty("out_color", "#" + getThemeColours(*this).outlineColour.toDisplayString(false));
+                ;
             }
 
             metaDPF.getDynamicObject()->setProperty("ui_theme", "default");
@@ -353,7 +354,7 @@ public:
                 OSUtils::moveFileTo(outputFile.getChildFile("bin").getChildFile(name + ".clap"), outputFile.getChildFile(name + ".clap"));
             if (jack) {
 #if JUCE_MAC
-                if (guiType == 2 || guiType == 3){
+                if (guiType == 2 || guiType == 3) {
                     OSUtils::moveFileTo(outputFile.getChildFile("bin").getChildFile(name + ".app"), outputFile.getChildFile(name + ".app"));
                 } else {
                     OSUtils::moveFileTo(outputFile.getChildFile("bin").getChildFile(name), outputFile.getChildFile(name));

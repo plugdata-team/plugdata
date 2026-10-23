@@ -90,11 +90,11 @@ private:
         auto const stream = compatibilityUrl.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress).withStatusCode(&statusCode));
         if (!stream) {
             error = "Error: Could not reach GitHub to look up the toolchain version (possibly no network connection)";
-            return { };
+            return {};
         }
         if (statusCode >= 400) {
             error = "Error: Could not look up the toolchain version (HTTP " + String(statusCode) + ")";
-            return { };
+            return {};
         }
 
         var compatTable;
@@ -106,7 +106,7 @@ private:
         auto const* versions = compatTable.getDynamicObject();
         if (!versions) {
             error = "Error: Could not read the toolchain version list from GitHub";
-            return { };
+            return {};
         }
 
         auto const& properties = versions->getProperties();
@@ -261,7 +261,7 @@ private:
         process.waitForProcessToFinish(-1);
 #endif
 
-        finishInstall({ });
+        finishInstall({});
     }
 
     void finishInstall(String const& installError)
