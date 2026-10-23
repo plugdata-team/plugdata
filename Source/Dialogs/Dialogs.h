@@ -202,7 +202,8 @@ struct Dialogs {
 
     static void dismissFileDialog();
 
-    static void showOpenDialog(std::function<void(URL)> const& callback, bool canSelectFiles, bool canSelectDirectories, String const& lastFileId, String const& extension, Component* parentComponent);
+    static void showOpenDialog(std::function<void(URL)> const& callback, bool canSelectFiles, bool canSelectDirectories, String const& extension, String const& lastFileId, Component* parentComponent);
+    static void showMultiOpenDialog(std::function<void(Array<URL>)> const& callback, bool canSelectFiles, bool canSelectDirectories, String const& extension, String const& lastFileId, Component* parentComponent);
 
     static void showSaveDialog(std::function<void(URL)> const& callback, String const& extension, String const& lastFileId, Component* parentComponent = nullptr, bool directoryMode = false, String const& defaultFileName = "Untitled");
 

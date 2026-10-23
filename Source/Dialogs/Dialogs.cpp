@@ -960,7 +960,7 @@ void Dialogs::dismissFileDialog()
     fileChooser.reset(nullptr);
 }
 
-void Dialogs::showOpenDialog(std::function<void(URL)> const& callback, bool const canSelectFiles, bool const canSelectDirectories, String const& extension, String const& lastFileId, Component* parentComponent)
+static void launchOpenDialog(std::function<void(Array<URL>)> const& callback, bool const canSelectFiles, bool const canSelectDirectories, bool const canSelectMultiple, String const& extension, String const& lastFileId, Component* parentComponent)
 {
 #if ENABLE_TESTING
     return; // Don't open file dialogs during testing
@@ -977,9 +977,9 @@ void Dialogs::showOpenDialog(std::function<void(URL)> const& callback, bool cons
     }
 
 #if JUCE_IOS
-    fileChooser = std::make_unique<FileChooser>(fileChooserText, initialFile, "*", nativeDialog, false, parentComponent);
+    Dialogs::fileChooser = std::make_unique<FileChooser>(fileChooserText, initialFile, "*", nativeDialog, false, parentComponent);
 #else
-    fileChooser = std::make_unique<FileChooser>(fileChooserText, initialFile, extension, nativeDialog, false, nullptr);
+    Dialogs::fileChooser = std::make_unique<FileChooser>(fileChooserText, initialFile, extension, nativeDialog, false, nullptr);
 #endif
     auto openChooserFlags = FileBrowserComponent::openMode;
 
@@ -987,23 +987,42 @@ void Dialogs::showOpenDialog(std::function<void(URL)> const& callback, bool cons
         openChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(openChooserFlags | FileBrowserComponent::canSelectFiles);
     if (canSelectDirectories)
         openChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(openChooserFlags | FileBrowserComponent::canSelectDirectories);
+    if (canSelectMultiple)
+        openChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(openChooserFlags | FileBrowserComponent::canSelectMultipleItems);
 
-    fileChooser->launchAsync(openChooserFlags,
+    Dialogs::fileChooser->launchAsync(openChooserFlags,
         [callback, lastFileId](FileChooser const& fileChooser) {
-            auto const result = fileChooser.getResult();
-            auto const resultURL = fileChooser.getURLResult();
+            Array<URL> resultURLs;
+            for (auto const& url : fileChooser.getURLResults()) {
+                if (url.isLocalFile() && url.getLocalFile().exists())
+                    resultURLs.add(url);
+            }
 
-            auto const lastDir = result.isDirectory() ? result : result.getParentDirectory();
-            if (result.exists()) {
+            if (!resultURLs.isEmpty()) {
 #if JUCE_IOS
-                // Create an input stream to access the security scoped resource
-                auto scopedAccessStream = resultURL.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress));
+                // Create input streams to access the security scoped resources
+                SmallArray<std::unique_ptr<InputStream>> scopedAccessStreams;
+                for (auto const& url : resultURLs) {
+                    scopedAccessStreams.emplace_back(url.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress)));
+                }
 #endif
+                auto const result = resultURLs.getFirst().getLocalFile();
+                auto const lastDir = result.isDirectory() ? result : result.getParentDirectory();
                 SettingsFile::getInstance()->setLastBrowserPathForId(lastFileId, lastDir);
-                callback(resultURL);
+                callback(resultURLs);
             }
             Dialogs::fileChooser = nullptr;
         });
+}
+
+void Dialogs::showOpenDialog(std::function<void(URL)> const& callback, bool const canSelectFiles, bool const canSelectDirectories, String const& extension, String const& lastFileId, Component* parentComponent)
+{
+    launchOpenDialog([callback](Array<URL> const& urls) { callback(urls.getFirst()); }, canSelectFiles, canSelectDirectories, false, extension, lastFileId, parentComponent);
+}
+
+void Dialogs::showMultiOpenDialog(std::function<void(Array<URL>)> const& callback, bool const canSelectFiles, bool const canSelectDirectories, String const& extension, String const& lastFileId, Component* parentComponent)
+{
+    launchOpenDialog(callback, canSelectFiles, canSelectDirectories, true, extension, lastFileId, parentComponent);
 }
 
 void Dialogs::showSaveDialog(std::function<void(URL)> const& callback, String const& extension, String const& lastFileId, Component* parentComponent, bool const directoryMode, String const& defaultFileName)
