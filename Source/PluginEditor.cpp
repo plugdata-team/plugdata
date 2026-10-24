@@ -27,6 +27,7 @@
 #include "Canvas.h"
 #include "Connection.h"
 #include "Components/ConnectionMessageDisplay.h"
+#include "Components/ObjectDragAndDrop.h"
 #include "Dialogs/Dialogs.h"
 #include "Statusbar.h"
 #include "Toolbar.h"
@@ -439,7 +440,9 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 PluginEditor::~PluginEditor()
 {
     setCachedComponentImage(nullptr);
-    
+
+    ObjectDragAndDrop::dismiss(this);
+
     removeModifierKeyListener(&pd->keyHandler);
 
     nvgSurface.detachContext();
