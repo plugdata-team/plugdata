@@ -91,9 +91,7 @@ private:
         // Hold patches in lambda capture so refcount can't become 0 (?)
         pd->enqueueFunctionAsync([_this = WeakReference(this), patches] {
             if (_this) {
-                _this->pd->lockAudioThread();
                 _this->save();
-                _this->pd->unlockAudioThread();
             }
         });
     }

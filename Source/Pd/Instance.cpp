@@ -1227,9 +1227,14 @@ void Instance::sendMessagesFromQueue()
     libpd_set_instance(static_cast<t_pdinstance*>(instance));
 
     std::function<void()> callback;
-    while (functionQueue.try_dequeue(callback)) {
+    if (!functionQueue.try_dequeue(callback))
+        return;
+
+    lockAudioThread();
+    do {
         callback();
-    }
+    } while (functionQueue.try_dequeue(callback));
+    unlockAudioThread();
 }
 
 Patch::Ptr Instance::openPatch(File const& toOpen)

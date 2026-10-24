@@ -293,9 +293,7 @@ void ObjectBase::sendMessage(SmallString const& message, SmallArray<pd::Atom> co
         }
     } else {
         pd->enqueueFunctionAsync<t_pd>(ptr, [pd = this->pd, m = message, a = args](t_pd* obj) {
-            sys_lock();
             pd->sendDirectMessage(obj, m, std::move(a));
-            sys_unlock();
         });
     }
 }

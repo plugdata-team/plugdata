@@ -1659,10 +1659,8 @@ void Canvas::focusGained(FocusChangeType cause)
             // canvas.active listener
             char buf[MAXPDSTRING];
             snprintf(buf, MAXPDSTRING - 1, ".x%lx.c", reinterpret_cast<unsigned long>(patchPtr));
-            pd->lockAudioThread();
             pd->sendTypedMessage(activeGui, "_focus", { pd->generateSymbol(buf), hasFocus });
             pd->sendTypedMessage(hammarGui, "_focus", { pd->generateSymbol(buf), hasFocus });
-            pd->unlockAudioThread();
         }
     });
 }
@@ -1676,10 +1674,8 @@ void Canvas::focusLost(FocusChangeType cause)
             // canvas.active listener
             char buf[MAXPDSTRING];
             snprintf(buf, MAXPDSTRING - 1, ".x%lx.c", reinterpret_cast<unsigned long>(patchPtr));
-            pd->lockAudioThread();
             pd->sendTypedMessage(activeGui, "_focus", { pd->generateSymbol(buf), hasFocus });
             pd->sendTypedMessage(hammarGui, "_focus", { pd->generateSymbol(buf), hasFocus });
-            pd->unlockAudioThread();
         }
     });
 }

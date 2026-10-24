@@ -322,9 +322,7 @@ public:
         currentTouchIndex = e.source.getIndex();
 
         pd->enqueueFunctionAsync<t_pdlua>(ptr, [x = e.x, y = e.y](t_pdlua* pdlua) {
-            sys_lock();
             pdlua->gfx.pdlua_gfx_mouse_down(pdlua, x, y);
-            sys_unlock();
         });
     }
 
@@ -334,18 +332,14 @@ public:
             return;
 
         pd->enqueueFunctionAsync<t_pdlua>(ptr, [x = e.x, y = e.y](t_pdlua* pdlua) {
-            sys_lock();
             pdlua->gfx.pdlua_gfx_mouse_drag(pdlua, x, y);
-            sys_unlock();
         });
     }
 
     void mouseMove(MouseEvent const& e) override
     {
         pd->enqueueFunctionAsync<t_pdlua>(ptr, [x = e.x, y = e.y](t_pdlua* pdlua) {
-            sys_lock();
             pdlua->gfx.pdlua_gfx_mouse_move(pdlua, x, y);
-            sys_unlock();
         });
     }
 
@@ -354,36 +348,28 @@ public:
         currentTouchIndex = -1;
 
         pd->enqueueFunctionAsync<t_pdlua>(ptr, [x = e.x, y = e.y](t_pdlua* pdlua) {
-            sys_lock();
             pdlua->gfx.pdlua_gfx_mouse_up(pdlua, x, y);
-            sys_unlock();
         });
     }
 
     void mouseEnter(MouseEvent const& e) override
     {
         pd->enqueueFunctionAsync<t_pdlua>(ptr, [x = e.x, y = e.y](t_pdlua* pdlua) {
-            sys_lock();
             pdlua->gfx.pdlua_gfx_mouse_enter(pdlua, x, y);
-            sys_unlock();
         });
     }
 
     void mouseExit(MouseEvent const& e) override
     {
         pd->enqueueFunctionAsync<t_pdlua>(ptr, [x = e.x, y = e.y](t_pdlua* pdlua) {
-            sys_lock();
             pdlua->gfx.pdlua_gfx_mouse_exit(pdlua, x, y);
-            sys_unlock();
         });
     }
 
     void sendRepaintMessage()
     {
         pd->enqueueFunctionAsync<t_pdlua>(ptr, [](t_pdlua* pdlua) {
-            sys_lock();
             pdlua->gfx.pdlua_gfx_repaint(pdlua, 0);
-            sys_unlock();
         });
     }
 
