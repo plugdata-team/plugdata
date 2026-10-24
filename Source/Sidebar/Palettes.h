@@ -956,7 +956,6 @@ private:
                 { "brane", "#X obj 0 0 brane.m~" },
                 { "sfont", "#X obj 0 0 sfont.m~" },
                 { "adsr", "#X obj 0 0 adsr.m~" },
-                { "instrument", "#X obj 0 0 instrument.m~" },
             } },
         { "Filters",
             {

@@ -541,6 +541,10 @@ list(APPEND ELSE_INCLUDES
 target_include_directories(externals PRIVATE ${ELSE_INCLUDES})
 target_include_directories(externals-multi PRIVATE ${ELSE_INCLUDES})
 
+# aubio's logging macros fall back to GNU-only variadic syntax without this, which MSVC can't compile
+target_compile_definitions(externals PRIVATE HAVE_C99_VARARGS_MACROS=1)
+target_compile_definitions(externals-multi PRIVATE HAVE_C99_VARARGS_MACROS=1)
+
 # ag: pdlua needs PLUGDATA symbol at compile time for plugdata integration.
 target_compile_definitions(externals PRIVATE ${LIBPD_COMPILE_DEFINITIONS} ${LUA_COMPILE_DEFINITIONS} PLUGDATA=1)
 target_compile_definitions(externals-multi PRIVATE ${LIBPD_COMPILE_DEFINITIONS} ${LUA_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1 PLUGDATA=1)
