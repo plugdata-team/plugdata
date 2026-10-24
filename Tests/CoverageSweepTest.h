@@ -1419,7 +1419,11 @@ private:
     void exerciseMidiDeviceManager()
     {
         auto& manager = editor->pd->getMidiDeviceManager();
-        manager.prepareToPlay(48000.0f);
+        {
+            // prepareToPlay and the MIDI buffers below belong to the audio thread, which is running
+            ScopedLock const audioLock(editor->pd->getCallbackLock());
+            manager.prepareToPlay(48000.0f);
+        }
         manager.updateMidiDevices();
 
         auto inputs = manager.getInputDevices();
@@ -1452,25 +1456,29 @@ private:
         manager.getPortDescription(true, 0);
         manager.getPortDescription(false, 0);
 
-        MidiBuffer input;
-        input.addEvent(MidiMessage::noteOn(1, 60, static_cast<uint8_t>(100)), 0);
-        manager.enqueueMidiInput(0, input);
-        int inputCallbacks = 0;
-        manager.dequeueMidiInput(64, [&inputCallbacks](int, MidiBuffer const&) {
-            ++inputCallbacks;
-        });
+        {
+            ScopedLock const audioLock(editor->pd->getCallbackLock());
 
-        manager.setInternalSynthPort(0);
-        manager.enqueueMidiOutput(0, MidiMessage::noteOn(1, 64, static_cast<uint8_t>(90)), 4);
-        manager.enqueueMidiOutput(0, MidiMessage::noteOff(1, 64), 24);
-        MidiBuffer dawOutput;
-        manager.sendAndCollectMidiOutput(dawOutput);
-        MidiBuffer synthOutput;
-        manager.dequeueMidiOutput(0, synthOutput, 64);
-        manager.getInputHistory();
-        manager.getOutputHistory();
-        manager.clearMidiOutputBuffers(64);
-        ignoreUnused(inputCallbacks);
+            MidiBuffer input;
+            input.addEvent(MidiMessage::noteOn(1, 60, static_cast<uint8_t>(100)), 0);
+            manager.enqueueMidiInput(0, input);
+            int inputCallbacks = 0;
+            manager.dequeueMidiInput(64, [&inputCallbacks](int, MidiBuffer const&) {
+                ++inputCallbacks;
+            });
+
+            manager.setInternalSynthPort(0);
+            manager.enqueueMidiOutput(0, MidiMessage::noteOn(1, 64, static_cast<uint8_t>(90)), 4);
+            manager.enqueueMidiOutput(0, MidiMessage::noteOff(1, 64), 24);
+            MidiBuffer dawOutput;
+            manager.sendAndCollectMidiOutput(dawOutput);
+            MidiBuffer synthOutput;
+            manager.dequeueMidiOutput(0, synthOutput, 64);
+            manager.getInputHistory();
+            manager.getOutputHistory();
+            manager.clearMidiOutputBuffers(64);
+            ignoreUnused(inputCallbacks);
+        }
 
         if (virtualInput.isNotEmpty())
             manager.setMidiDevicePort(true, virtualInput, -1);

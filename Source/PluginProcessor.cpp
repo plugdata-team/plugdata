@@ -1956,6 +1956,9 @@ void PluginProcessor::receiveSysMessage(SmallString const& selector, SmallArray<
     }
     case hash("quit"):
     case hash("verifyquit"): {
+#if ENABLE_TESTING
+        break; // The helpfile fuzzer clicks [; pd quit( message boxes, which would end the test run
+#endif
         if (ProjectInfo::isStandalone) {
             bool askToSave = hash(selector) == hash("verifyquit");
             for (auto* editor : getEditors()) {

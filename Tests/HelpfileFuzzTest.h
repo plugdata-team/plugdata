@@ -1,3 +1,11 @@
+#if defined(__SANITIZE_ADDRESS__)
+#    define PLUGDATA_HELPFILE_FUZZ_ASAN 1
+#elif defined(__has_feature)
+#    if __has_feature(address_sanitizer)
+#        define PLUGDATA_HELPFILE_FUZZ_ASAN 1
+#    endif
+#endif
+
 class HelpFileFuzzTest : public PlugDataUnitTest
 {
 public:
@@ -10,13 +18,19 @@ private:
     {
         static HeapArray<File> allHelpfiles = {};
 
+        // Set PLUGDATA_HELPFILE_FILTER to comma-separated parts of the paths you want to test
+        auto const filter = StringArray::fromTokens(SystemStats::getEnvironmentVariable("PLUGDATA_HELPFILE_FILTER", {}), ",", "");
+
         // Open every helpfile, this will make sure it initialises and closes every object at least once (but probasbly a whole bunch of times in different contexts)
         // Run with AddressSanitizer, UBSanitizer or ThreadSanitizer to find all memory, UB and threading problems
         for(auto& file : OSUtils::iterateDirectory(ProjectInfo::appDataDir.getChildFile("Documentation"), true, true))
             
         {
-            // TODO: multi.vsl causes a stack overflow, fix this!
-            if(file.getFileName() == "multi.vsl.pd") continue;
+
+#ifdef PLUGDATA_HELPFILE_FUZZ_ASAN
+            // The pdlua benchmark example keeps the audio thread busy for many minutes under ASan
+            if(file.getFileName() == "luajit.pd" && filter.isEmpty()) continue;
+#endif
             
             if(file.hasFileExtension(".pd"))
             {
@@ -27,6 +41,16 @@ private:
         // If you want to test a single helpfile:
         //allHelpfiles.clear();
         //allHelpfiles.emplace_back("/Users/timothy/Documents/plugdata/Documentation/...");
+
+        if (!filter.isEmpty()) {
+            allHelpfiles.remove_if([&filter](File const& file) {
+                for (auto const& token : filter) {
+                    if (file.getFullPathName().contains(token))
+                        return false;
+                }
+                return true;
+            });
+        }
 
         allHelpfiles.sort();
 
@@ -57,7 +81,8 @@ private:
         editor->pd->sendMessage("pd", "dsp", { 1.0f });
         editor->pd->unlockAudioThread();
 
-        HeapArray<Object*> objects;
+        // Clicks can delete objects (dynamic patching), so hold on to them with SafePointers
+        HeapArray<Component::SafePointer<Object>> objects;
         for(auto* obj : cnv->objects)
         {
             objects.add(obj);
@@ -72,17 +97,18 @@ private:
         });
     }
 
-    static void clickNextObject(Component::SafePointer<Canvas> cnv, HeapArray<Object*>& objects, std::function<void()> done)
+    static void clickNextObject(Component::SafePointer<Canvas> cnv, HeapArray<Component::SafePointer<Object>>& objects, std::function<void()> done)
     {
         if(!objects.size() || !cnv) {
             done();
             return;
         }
 
-        auto* obj = objects.back();
+        auto obj = objects.back();
         objects.remove_at(objects.size() - 1);
 
-        simulateClick(obj, cnv.getComponent());
+        if(obj)
+            simulateClick(obj.getComponent(), cnv.getComponent());
 
         cnv->pd->volume->store(0.0f);
 

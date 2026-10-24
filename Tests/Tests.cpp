@@ -32,6 +32,9 @@ void runTests(PluginEditor* editor)
 {
     // Need to execute tests on a separate thread, since our tests will block until the message thread has processed every test case
     std::thread testRunnerThread([editor] {
+        // Keep App Nap from throttling the message thread's timers while the window is in the background
+        ScopedLowPowerModeDisabler const lowPowerModeDisabler;
+
         SaveCloseRaceTest saveCloseRaceTest(editor);
         AbstractionReloadRaceTest abstractionReloadRaceTest(editor);
         DanglingBindingTest danglingBindingTest(editor);
@@ -88,8 +91,23 @@ void runTests(PluginEditor* editor)
             &objectFuzzer,
             &helpfileErrorTest };
 
+        // PLUGDATA_TEST_FILTER: comma-separated, case-insensitive substrings of test names to run.
+        // The filter can also select tests that don't run by default.
+        auto const filter = StringArray::fromTokens(SystemStats::getEnvironmentVariable("PLUGDATA_TEST_FILTER", {}), ",", "");
+        if (!filter.isEmpty()) {
+            tests.addArray(Array<UnitTest*> { &patchTextFuzzTest, &coverageSweepTest });
+            tests.removeIf([&filter](UnitTest* test) {
+                for (auto const& token : filter) {
+                    if (token.trim().isNotEmpty() && test->getName().containsIgnoreCase(token.trim()))
+                        return false;
+                }
+                return true;
+            });
+        }
 
-        runner.runTests(tests, 23);
+        // PLUGDATA_TEST_SEED: run the suite with a different random seed (0 picks a random one)
+        auto const seedString = SystemStats::getEnvironmentVariable("PLUGDATA_TEST_SEED", {});
+        runner.runTests(tests, seedString.isNotEmpty() ? seedString.getLargeIntValue() : 42);
 
         // The suite has finished (whether tests passed or failed). Quit the app
         // so the process exits instead of idling forever - the CI harness waits
