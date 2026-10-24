@@ -1159,6 +1159,11 @@ void PluginEditor::updateSelection(Canvas* cnv)
     if (auto* s = getSidebarForPanel(Sidebar::PatchSearchPanel); s && s->isShowingSearch())
         s->updateSearch();
 
+    // Selection changes arrive asynchronously, possibly from a canvas that is no longer
+    // the active one: the command target must always follow the active tab
+    if (auto* current = getCurrentCanvas())
+        cnv = current;
+
     auto name = String("empty");
     if (cnv) {
         auto objects = cnv->getSelectionOfType<Object>();
