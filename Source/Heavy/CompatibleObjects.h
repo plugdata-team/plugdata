@@ -259,7 +259,6 @@ class HeavyCompatibleObjects {
         "knob" // from ELSE library
     };
 
-
     static inline StackArray<SmallString, 8> const elseAbstractions = {
         "above",
         "add",
