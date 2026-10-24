@@ -425,8 +425,10 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
         auto* inlet = iolets[0];
         if (outlet->isSignal() == inlet->isSignal()) {
             // Call async to make sure the object is created before the connection
-            MessageManager::callAsync([this, outlet, inlet] {
-                cnv->connections.add(cnv, outlet, inlet, nullptr);
+            MessageManager::callAsync([_this = SafePointer(this), outlet = SafePointer(outlet), inlet = SafePointer(inlet)] {
+                if (!_this || !outlet || !inlet)
+                    return;
+                _this->cnv->connections.add(_this->cnv, outlet.getComponent(), inlet.getComponent(), nullptr);
             });
         }
     }
@@ -443,11 +445,11 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
 
         if (checkedOut && checkedIn && outlet->isSignal() == iolets[0]->isSignal() && inlet->isSignal() == iolets[this->numInputs]->isSignal()) {
             // Call async to make sure the object is created before the connection
-            MessageManager::callAsync([_this = SafePointer(this), this, outlet, inlet] {
-                if (!_this)
+            MessageManager::callAsync([_this = SafePointer(this), this, outlet = SafePointer(outlet), inlet = SafePointer(inlet)] {
+                if (!_this || !outlet || !inlet || !numInputs || iolets.size() <= numInputs)
                     return;
-                cnv->connections.add(cnv, outlet, iolets[0], nullptr);
-                cnv->connections.add(cnv, iolets[this->numInputs], inlet, nullptr);
+                cnv->connections.add(cnv, outlet.getComponent(), iolets[0], nullptr);
+                cnv->connections.add(cnv, iolets[this->numInputs], inlet.getComponent(), nullptr);
             });
             // remove the previous connection
             cnv->patch.removeConnection(checkedOut, cnv->lastSelectedConnection->outIdx, checkedIn, cnv->lastSelectedConnection->inIdx, cnv->lastSelectedConnection->getPathState());
