@@ -75,6 +75,8 @@ public:
     }
 
     Atom(t_atom const* atom)
+        : type(FLOAT)
+        , value(0)
     {
         if (atom->a_type == A_FLOAT) {
             type = FLOAT;
