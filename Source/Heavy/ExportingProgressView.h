@@ -500,7 +500,7 @@ class ExportingProgressView final : public Component
     , public Timer {
 
     ExporterConsole console;
-    ChildProcess* processToMonitor;
+    ChildProcess* processToMonitor = nullptr;
     bool showsConsole;
 
 public:
@@ -604,6 +604,9 @@ public:
         flushConsole();
         stopThread(-1);
         stopTimer();
+
+        // The process belongs to the exporter, which may be gone before the next flush
+        processToMonitor = nullptr;
     }
 
     void showState(ExportState const newState)
