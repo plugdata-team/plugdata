@@ -1,0 +1,170 @@
+name: Canvas export (provisional)
+
+on:
+  push:
+    branches: [feature/upstream-canvas-png-export]
+
+permissions:
+  contents: read
+
+jobs:
+  canvas-export-metal:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Use NanoVG PR #31 for CI only
+        run: bash .github/scripts/use-nanovg-pr31.sh
+
+      - name: Configure Metal test build
+        run: >
+          cmake -S . -B build-canvas-export -G Ninja
+          -DQUICK_BUILD=ON -DENABLE_TESTING=ON
+          -DNANOVG_METAL_IMPLEMENTATION=ON -DCMAKE_BUILD_TYPE=Release
+
+      - name: Verify Metal configuration
+        run: grep -q '^NANOVG_METAL_IMPLEMENTATION:BOOL=ON$' build-canvas-export/CMakeCache.txt
+
+      - name: Build standalone
+        run: cmake --build build-canvas-export --target plugdata_standalone --parallel 4
+
+      - name: Require a Metal device
+        run: >
+          swift -e 'import CoreGraphics; import Metal; import Darwin;
+          if MTLCreateSystemDefaultDevice() == nil {
+          print("No Metal device on runner: runtime export unverified"); exit(1) }'
+
+      - name: Run focused canvas export
+        env:
+          PLUGDATA_TEST_FILTER: canvas-export
+        run: ./Plugins/Standalone/plugdata.app/Contents/MacOS/plugdata -stderr
+
+  canvas-export-windows-build:
+    runs-on: windows-2022
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Use NanoVG PR #31 for CI only
+        shell: bash
+        run: bash .github/scripts/use-nanovg-pr31.sh
+
+      - name: Set up MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Install Ninja
+        uses: seanmiddleditch/gha-setup-ninja@v6
+
+      - name: Configure standalone build
+        run: >
+          cmake -S . -B build-canvas-export -G Ninja
+          -DQUICK_BUILD=ON -DENABLE_TESTING=OFF -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl
+
+      - name: Build standalone
+        run: cmake --build build-canvas-export --target plugdata_standalone --parallel 4
+
+  canvas-export-windows-runtime:
+    runs-on: windows-2022
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Use NanoVG PR #31 for CI only
+        shell: bash
+        run: bash .github/scripts/use-nanovg-pr31.sh
+
+      - name: Set up MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Install Ninja
+        uses: seanmiddleditch/gha-setup-ninja@v6
+
+      - name: Configure test-enabled standalone
+        run: >
+          cmake -S . -B build-canvas-export-tests -G Ninja
+          -DQUICK_BUILD=ON -DENABLE_TESTING=ON -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl
+
+      - name: Build test-enabled standalone
+        run: cmake --build build-canvas-export-tests --target plugdata_standalone --parallel 4
+
+      - name: Display adapter diagnostic
+        shell: pwsh
+        run: Get-CimInstance Win32_VideoController -ErrorAction SilentlyContinue | Format-Table Name, DriverVersion
+
+      - name: Run focused canvas export
+        shell: pwsh
+        env:
+          PLUGDATA_TEST_FILTER: canvas-export
+        run: |
+          $app = Join-Path $env:GITHUB_WORKSPACE 'Plugins\Standalone\plugdata.exe'
+          if (-not (Test-Path -LiteralPath $app)) { throw "Test executable missing: $app" }
+          $stdout = Join-Path $env:RUNNER_TEMP 'canvas-export-stdout.log'
+          $stderr = Join-Path $env:RUNNER_TEMP 'canvas-export-stderr.log'
+          $reportPath = Join-Path $env:RUNNER_TEMP 'canvas-export-result.txt'
+          $env:PLUGDATA_TEST_RESULT = $reportPath
+          $process = Start-Process -FilePath $app -ArgumentList '-stderr' -WorkingDirectory $env:GITHUB_WORKSPACE -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+          $timedOut = -not $process.WaitForExit(180000)
+          if ($timedOut) { $process.Kill() }
+          $process.WaitForExit()
+          $log = [string](Get-Content -LiteralPath $stdout -Raw -ErrorAction SilentlyContinue) + [string](Get-Content -LiteralPath $stderr -Raw -ErrorAction SilentlyContinue)
+          $report = [string](Get-Content -LiteralPath $reportPath -Raw -ErrorAction SilentlyContinue)
+          Write-Host $log
+          Write-Host $report
+          if ($timedOut) { throw 'Windows app exceeded 180 seconds; runtime unverified' }
+          if ($report -match 'Canvas Export Test / Renderer initialization: FAIL') { throw 'Renderer did not initialize on this Windows runner; runtime unverified' }
+          if ($process.ExitCode -ne 0) { throw "Focused canvas export exited with code $($process.ExitCode)" }
+          if ($report -notmatch 'Canvas Export Test / Full content and scale: PASS' -or
+              $report -notmatch 'Canvas Export Test / Failed publication preserves previous PNG: PASS') {
+            throw 'Focused canvas export sections did not complete'
+          }
+
+  canvas-export-linux-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Use NanoVG PR #31 for CI only
+        run: bash .github/scripts/use-nanovg-pr31.sh
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            cmake git wget bzip2 build-essential libasound2-dev \
+            libjack-jackd2-dev curl libcurl4-openssl-dev libfreetype6-dev \
+            libx11-dev libxi-dev libxcomposite-dev libxcursor-dev \
+            libxext-dev libxrandr-dev libxkbcommon-dev libxinerama-dev \
+            freeglut3-dev unzip ninja-build libfontconfig-dev \
+            libwayland-dev libdecor-0-dev libegl1-mesa-dev
+
+      - name: Configure standalone build
+        run: >
+          cmake -S . -B build-canvas-export -G Ninja
+          -DQUICK_BUILD=ON -DENABLE_TESTING=OFF -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build standalone
+        run: cmake --build build-canvas-export --target plugdata_standalone --parallel 4

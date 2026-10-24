@@ -30,6 +30,7 @@ using namespace juce::gl;
 #endif
 
 #include <atomic>
+#include <cstdint>
 #include <nanovg_async.h>
 
 #if !NANOVG_METAL_IMPLEMENTATION
@@ -197,8 +198,15 @@ public:
     // Safe to call from the message thread; blocks briefly on the render thread.
     Image renderToImage(Rectangle<int> logicalArea);
 
+    // `draw` records a standalone frame on the message thread. The render thread
+    // replays it into a separate target and reads back an opaque image.
+    Image renderOffscreenImage(int width, int height, std::function<void(NVGcontext*)> draw, bool& tooLarge);
+
+    int getMaxTextureSize() const;
+
 private:
     void serviceReadbackRequest();
+    void serviceOffscreenRequest();
 
     float calculateRenderScale() const;
     void updateRenderScale();
@@ -278,6 +286,17 @@ private:
     int readbackWidth = 0;
     int readbackHeight = 0;
     bool readbackSucceeded = false;
+
+    CriticalSection offscreenLock;
+    WaitableEvent offscreenReady;
+    AtomicValue<bool> offscreenPending { false };
+    int offscreenWidth = 0;
+    int offscreenHeight = 0;
+    void* offscreenTarget = nullptr;
+    uint64_t offscreenRequestId = 0;
+    HeapBlock<uint8> offscreenData;
+    bool offscreenSucceeded = false;
+    AtomicValue<int> cachedMaxTextureSize { 0 };
 
 #if PLUGDATA_NVG_FRAME_TIME_OVERLAY
     std::unique_ptr<FrameTimeOverlay> frameTimeOverlay;

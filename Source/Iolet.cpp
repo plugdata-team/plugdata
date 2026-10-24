@@ -78,7 +78,7 @@ void Iolet::render(NVGcontext* nvg)
         return;
 
     bool const isLocked = locked || commandLocked;
-    bool const isHovering = targeted && !isLocked;
+    bool const isHovering = targeted && !isLocked && !object->cnv->isDrawingForExport();
 
     auto const innerCol = isLocked ? nvgColour(colours.canvasBackgroundColour.contrasting(0.5f)) : type == Signal ? nvgColour(colours.signalColour)
         : type == GemState                                                                                                 ? nvgColour(colours.gemColour)

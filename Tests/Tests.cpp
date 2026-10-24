@@ -18,6 +18,7 @@
 #include "InspectorTest.h"
 #include "TextEditorDialogTest.h"
 #include "ExportProgressTest.h"
+#include "CanvasExportTest.h"
 #include "SmallUITest.h"
 #include "OnboardingTest.h"
 #include "CommandInputTest.h"
@@ -47,6 +48,7 @@ void runTests(PluginEditor* editor)
         InspectorTest inspectorTest(editor);
         TextEditorDialogTest textEditorDialogTest(editor);
         ExportProgressTest exportProgressTest(editor);
+        CanvasExportTest canvasExportTest(editor);
         SmallUITest smallUITest(editor);
         OnboardingTest onboardingTest(editor);
         CommandInputTest commandInputTest(editor);
@@ -73,6 +75,7 @@ void runTests(PluginEditor* editor)
             &inspectorTest,
             &textEditorDialogTest,
             &exportProgressTest,
+            &canvasExportTest,
             &smallUITest,
             &onboardingTest,
             &commandInputTest,
@@ -89,14 +92,34 @@ void runTests(PluginEditor* editor)
             &helpfileErrorTest };
 
 
-        runner.runTests(tests, 23);
+        if (SystemStats::getEnvironmentVariable("PLUGDATA_TEST_FILTER", {}) == "canvas-export")
+            runner.runTests({ &canvasExportTest }, 23);
+        else
+            runner.runTests(tests, 23);
 
-        // The suite has finished (whether tests passed or failed). Quit the app
-        // so the process exits instead of idling forever - the CI harness waits
-        // for the process to terminate and parses stdout for pass/fail.
-        MessageManager::callAsync([] {
-            if (auto* app = JUCEApplicationBase::getInstance())
+        bool passed = runner.getNumResults() > 0;
+        for (int i = 0; i < runner.getNumResults(); ++i) {
+            if (auto const* result = runner.getResult(i))
+                passed &= result->failures == 0;
+        }
+        auto const reportPath = SystemStats::getEnvironmentVariable("PLUGDATA_TEST_RESULT", {});
+        if (reportPath.isNotEmpty()) {
+            String report;
+            for (int i = 0; i < runner.getNumResults(); ++i) {
+                if (auto const* result = runner.getResult(i)) {
+                    report << result->unitTestName << " / " << result->subcategoryName
+                           << ": " << (result->failures == 0 ? "PASS" : "FAIL") << "\n";
+                    for (auto const& message : result->messages)
+                        report << message << "\n";
+                }
+            }
+            passed &= File(reportPath).replaceWithText(report);
+        }
+        MessageManager::callAsync([passed] {
+            if (auto* app = JUCEApplicationBase::getInstance()) {
+                app->setApplicationReturnValue(passed ? 0 : 1);
                 app->quit();
+            }
         });
     });
     testRunnerThread.detach();

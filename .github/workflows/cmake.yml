@@ -8,6 +8,7 @@ env:
 jobs:
   macos-build:
     name: ${{ matrix.name }}
+    if: github.ref != 'refs/heads/feature/upstream-canvas-png-export'
     runs-on: ${{ matrix.runner }}
 
     strategy:
@@ -90,6 +91,7 @@ jobs:
 
   windows-build:
     name: ${{ matrix.name }}
+    if: github.ref != 'refs/heads/feature/upstream-canvas-png-export'
     runs-on: windows-2022
 
     strategy:
@@ -164,6 +166,7 @@ jobs:
 
   linux-build:
     name: ${{ matrix.name }}
+    if: github.ref != 'refs/heads/feature/upstream-canvas-png-export'
     runs-on: ${{ matrix.runner }}
 
     container:

@@ -161,6 +161,16 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
             if (auto* cnv = editor->getCurrentCanvas())
                 cnv->saveAs();
         });
+#if !JUCE_IOS
+        TouchPopupMenu exportMenu;
+        for (int scale : { 1, 2, 4 }) {
+            exportMenu.addItem(String(scale) + "x", [editor, scale] {
+                if (auto* cnv = editor->getCurrentCanvas())
+                    cnv->showExportPngDialog(scale);
+            });
+        }
+        touchMenu.addSubMenu("Export canvas as PNG", exportMenu, editor->getCurrentCanvas() != nullptr);
+#endif
 
         TouchPopupMenu recentlyOpenedMenu;
 
