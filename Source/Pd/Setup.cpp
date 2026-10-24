@@ -1339,7 +1339,7 @@ void knob_setup();
 void pdlink_setup();
 void pdlink_tilde_setup();
 
-void pdlua_setup(char const* datadir, char* vers, int vers_len, void (*register_class_callback)(char const*));
+void pdlua_setup(char const* datadir, char* vers, int vers_len);
 void pdlua_instance_setup();
 
 void fftw_instance_setup();
@@ -1412,10 +1412,10 @@ void* Setup::createReceiver(void* ptr, char const* s,
     return x;
 }
 
-void Setup::initialisePdLua(char const* datadir, char* vers, int const vers_len, void (*register_class_callback)(char const*))
+void Setup::initialisePdLua(char const* datadir, char* vers, int const vers_len)
 {
     set_plugdata_object_probe_enabled(1);
-    pdlua_setup(datadir, vers, vers_len, register_class_callback);
+    pdlua_setup(datadir, vers, vers_len);
     set_plugdata_object_probe_enabled(0);
 }
 

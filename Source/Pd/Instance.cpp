@@ -737,7 +737,7 @@ void Instance::initialisePd(String& pdlua_version)
         auto const extra = ProjectInfo::appDataDir.getChildFile("Extra");
         StackArray<char, 1000> vers;
         vers[0] = 0;
-        pd::Setup::initialisePdLua(extra.getFullPathName().getCharPointer(), vers.data(), 1000, &registerLuaClass);
+        pd::Setup::initialisePdLua(extra.getFullPathName().getCharPointer(), vers.data(), 1000);
         if (vers[0])
             pdlua_version = vers.data();
     }
@@ -1416,16 +1416,6 @@ void Instance::clearObjectImplementationsForPatch(pd::Patch const* p)
     if (auto patch = p->getPointer()) {
         objectImplementations->clearObjectImplementationsForPatch(patch.get());
     }
-}
-
-void Instance::registerLuaClass(char const* className)
-{
-    luaClasses.insert(hash(className));
-}
-
-bool Instance::isLuaClass(hash32 const objectNameHash)
-{
-    return luaClasses.contains(objectNameHash);
 }
 
 } // namespace pd

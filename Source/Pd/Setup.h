@@ -32,7 +32,7 @@ struct Setup {
 
     static void parseArguments(char const** args, size_t argc, t_namelist** sys_openlist, t_namelist** sys_messagelist);
 
-    static void initialisePdLua(char const* datadir, char* vers, int vers_len, void (*register_class_callback)(char const*));
+    static void initialisePdLua(char const* datadir, char* vers, int vers_len);
     static void initialisePdInstance();
     static void initialiseELSE();
     static void initialiseCyclone();

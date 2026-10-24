@@ -27,6 +27,7 @@ __declspec(dllimport) void canvas_click(t_canvas* x, t_floatarg xpos, t_floatarg
 void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 void canvas_click(t_canvas* x, t_floatarg xpos, t_floatarg ypos, t_floatarg shift, t_floatarg ctrl, t_floatarg alt);
 #endif
+int pdlua_is_lua_object(t_pd* x);
 }
 
 #include "AllGuis.h"
@@ -551,20 +552,23 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
     // This will ensure the object is still valid at this point, and also locks the audio thread to make sure it will remain valid
     hash32 name;
     bool isNonPatchable = false;
+    bool isLuaObject = false;
+    bool hasLuaGui = false;
     if (auto checked = ptr.get<t_gobj>()) {
         name = hash(pd::Interface::getObjectClassName(checked.cast<t_pd>()));
         isNonPatchable = !pd::Interface::checkObject(checked.get());
+        // Check the class itself, not its name: other libraries can have a class with the same name as a lua class
+        isLuaObject = pdlua_is_lua_object(checked.cast<t_pd>());
+        hasLuaGui = isLuaObject && checked.cast<t_pdlua>()->has_gui;
     } else {
         return nullptr;
     }
 
-    if (parent->cnv->pd->isLuaClass(name)) {
-        if (auto checked = ptr.get<t_gobj>()) {
-            if (checked.cast<t_pdlua>()->has_gui) {
-                return new LuaObject(ptr, parent);
-            } else {
-                return new LuaTextObject(ptr, parent);
-            }
+    if (isLuaObject) {
+        if (hasLuaGui) {
+            return new LuaObject(ptr, parent);
+        } else {
+            return new LuaTextObject(ptr, parent);
         }
     }
     // check if object is a patcher object, or something else

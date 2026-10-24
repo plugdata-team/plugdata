@@ -219,9 +219,6 @@ public:
     void unregisterWeakReference(void* ptr, pd_weak_reference const* ref);
     void clearWeakReferences(void* ptr);
 
-    static void registerLuaClass(char const* object);
-    static bool isLuaClass(hash32 objectNameHash);
-
     virtual void updateConsole(SmallString const& message, bool isWarning, int numMessages, bool newWarning) = 0;
 
     virtual void titleChanged() = 0;
