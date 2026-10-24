@@ -188,7 +188,7 @@ struct ExporterBase : public Component
     virtual void setState(DynamicObject::Ptr state) = 0;
 
     // Options of the "Export type" property, empty if the exporter has only one
-    virtual StringArray getExportTypes() const { return { }; }
+    virtual StringArray getExportTypes() const { return {}; }
 
     // What this run exports as, which isn't always what the settings say
     int getExportType() const { return exportTypeOverride ? exportTypeOverride : getValue<int>(exportTypeValue); }
@@ -273,7 +273,7 @@ struct ExporterBase : public Component
     String startShellScriptWithOutput(String const& scriptText)
     {
         if (shouldQuit)
-            return { };
+            return {};
 
         exportingView->logToConsole("\n\x1b[1;34m> " + scriptText + " \x1b[0m \n\n");
 
@@ -343,7 +343,7 @@ struct ExporterBase : public Component
         projectTitle = projectTitle.replaceCharacter('-', '_').replaceCharacter(' ', '_');
 
         // Add original file location to search paths
-        auto searchPaths = StringArray { };
+        auto searchPaths = StringArray {};
         if (realPatchFile.existsAsFile() && !realPatchFile.isRoot()) // Make sure file actually exists
         {
             searchPaths.add(pathToString(realPatchFile.getParentDirectory()).quoted());
