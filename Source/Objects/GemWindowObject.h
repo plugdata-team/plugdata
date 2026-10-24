@@ -17,7 +17,7 @@ class GemCanvasObject final : public ObjectBase
     int nvgImage = -1;
     int texW = 0, texH = 0;
     std::vector<uint8_t> rgbaBuffer;
-    GemCanvas* gemCanvas = nullptr;
+    GemCanvas* cachedGemCanvas = nullptr;
 
     Array<KeyPress> heldKeys;
     bool shiftDown = false, ctrlDown = false, altDown = false, cmdDown = false;
@@ -35,6 +35,11 @@ public:
         stopTimer();
     }
 
+    GemCanvas* getGemCanvas() const
+    {
+        return ptr.isValid() ? cachedGemCanvas : nullptr;
+    }
+
     void updateCanvas()
     {
     }
@@ -42,7 +47,7 @@ public:
     void update() override
     {
         if (auto obj = ptr.get<t_gemcanvas>()) {
-            gemCanvas = &obj->canvas;
+            cachedGemCanvas = &obj->canvas;
             sizeProperty = VarArray { var(obj->canvas.requestedWidth.load()), var(obj->canvas.requestedHeight.load()) };
         }
     }
@@ -56,6 +61,7 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        auto* gemCanvas = getGemCanvas();
         auto const b = getLocalBounds().toFloat();
 
         // Dark background placeholder
@@ -97,6 +103,7 @@ public:
 
     void timerCallback() override
     {
+        auto* gemCanvas = getGemCanvas();
         // Repaint when a new frame is available
         if (gemCanvas && gemCanvas->frameDirty.load())
             repaint();
@@ -140,36 +147,42 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        auto* gemCanvas = getGemCanvas();
         if (gemCanvas && gemCanvas->mouseCallback)
             gemCanvas->mouseCallback(e, true);
     }
 
     void mouseUp(MouseEvent const& e) override
     {
+        auto* gemCanvas = getGemCanvas();
         if (gemCanvas && gemCanvas->mouseCallback)
             gemCanvas->mouseCallback(e, false);
     }
 
     void mouseMove(MouseEvent const& e) override
     {
+        auto* gemCanvas = getGemCanvas();
         if (gemCanvas && gemCanvas->motionCallback)
             gemCanvas->motionCallback(e);
     }
 
     void mouseDrag(MouseEvent const& e) override
     {
+        auto* gemCanvas = getGemCanvas();
         if (gemCanvas && gemCanvas->motionCallback)
             gemCanvas->motionCallback(e);
     }
 
     void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel) override
     {
+        auto* gemCanvas = getGemCanvas();
         if (gemCanvas && gemCanvas->scrollCallback)
             gemCanvas->scrollCallback(e, wheel);
     }
 
     bool keyPressed(KeyPress const& key) override
     {
+        auto* gemCanvas = getGemCanvas();
         if (!gemCanvas || !gemCanvas->keyCallback)
             return false;
         gemCanvas->keyCallback(key);
@@ -208,6 +221,7 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
+        auto* gemCanvas = getGemCanvas();
         if (auto gobj = ptr.get<t_gobj>()) {
             auto* patch = cnv->patch.getRawPointer();
             int x = 0, y = 0, w = 0, h = 0;
