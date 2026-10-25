@@ -20,6 +20,10 @@ public:
 
     PropertiesPanelProperty* usbMidiProperty;
     PropertiesPanelProperty* appTypeProperty;
+    PropertiesPanelProperty* debugPrintProperty;
+    PropertiesPanel::EditableComponent<int>* blocksizeProperty;
+    PropertiesPanelProperty* samplerateProperty;
+    PropertiesPanelProperty* patchSizeProperty;
 
     DaisyExporter(PluginEditor* editor, ExportingProgressView* exportingView)
         : ExporterBase(editor, exportingView)
@@ -31,12 +35,15 @@ public:
         properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, getExportTypes()));
         usbMidiProperty = new PropertiesPanel::BoolComponent("USB MIDI", usbMidiValue, { "No", "Yes" });
         properties.add(usbMidiProperty);
-        properties.add(new PropertiesPanel::BoolComponent("Debug printing", debugPrintValue, { "No", "Yes" }));
-        auto const blocksizeProperty = new PropertiesPanel::EditableComponent<int>("Blocksize", blocksizeValue, true, 1, 256);
+        debugPrintProperty = new PropertiesPanel::BoolComponent("Debug printing", debugPrintValue, { "No", "Yes" });
+        properties.add(debugPrintProperty);
+        blocksizeProperty = new PropertiesPanel::EditableComponent<int>("Blocksize", blocksizeValue, true, 1, 256);
         blocksizeProperty->editableOnClick(false);
         properties.add(blocksizeProperty);
-        properties.add(new PropertiesPanel::ComboComponent("Samplerate", samplerateValue, { "8000", "16000", "32000", "48000", "96000" }));
-        properties.add(new PropertiesPanel::ComboComponent("Patch size", patchSizeValue, { "Small", "Big", "Big + SDRAM", "Huge", "Huge + SDRAM", "Custom Linker..." }));
+        samplerateProperty = new PropertiesPanel::ComboComponent("Samplerate", samplerateValue, { "8000", "16000", "32000", "48000", "96000" });
+        properties.add(samplerateProperty);
+        patchSizeProperty = new PropertiesPanel::ComboComponent("Patch size", patchSizeValue, { "Small", "Big", "Big + SDRAM", "Huge", "Huge + SDRAM", "Custom Linker..." });
+        properties.add(patchSizeProperty);
         appTypeProperty = new PropertiesPanel::ComboComponent("App type", appTypeValue, { "NONE", "SRAM", "QSPI" });
         properties.add(appTypeProperty);
 
@@ -130,6 +137,14 @@ public:
         } else if (patchSize == 4 || patchSize == 5) {
             appTypeValue.setValue(3);
         }
+
+        bool const flashingBootloader = getValue<int>(exportTypeValue) == 4;
+        usbMidiProperty->setEnabled(!flashingBootloader);
+        debugPrintProperty->setEnabled(!flashingBootloader);
+        appTypeProperty->setEnabled(!flashingBootloader);
+        blocksizeProperty->setEnabled(!flashingBootloader);
+        samplerateProperty->setEnabled(!flashingBootloader);
+        patchSizeProperty->setEnabled(!flashingBootloader);
 
         if (v.refersToSameSourceAs(targetBoardValue)) {
             int const idx = getValue<int>(targetBoardValue);
