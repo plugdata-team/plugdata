@@ -48,40 +48,50 @@ private:
         std::vector<std::pair<String, StringArray>> sections;
         StringArray extra;
 
+        // Mouse path: skip ComboBox::mouseDown
         void mouseDown(MouseEvent const& e) override
         {
-            showMenu();
+            if (isEnabled() && !e.mods.isPopupMenu())
+                showPopup();
         }
 
-    private:
-        void showMenu()
+        // Keyboard path (space/return) calls showPopup() directly, so overriding
+        // it here makes keyboard and mouse behave the same
+        void showPopup() override
         {
+            auto const selectedId = getSelectedId();
+
             PopupMenu menu;
             int id = 1;
-            for (auto& [title, items] : sections) {
+
+            for (auto const& [title, items] : sections) {
                 PopupMenu sub;
-                for (auto& item : items)
-                    sub.addItem(id++, item);
+                for (auto const& item : items) {
+                    sub.addItem(id, item, true, id == selectedId);
+                    id++;
+                }
                 menu.addSubMenu(title, sub);
             }
+
             if (extra.size()) {
                 menu.addSeparator();
-                for (auto& item : extra)
-                    menu.addItem(id++, item);
+                for (auto const& item : extra) {
+                    menu.addItem(id, item, true, id == selectedId);
+                    id++;
+                }
             }
 
             menu.showMenuAsync(
                 PopupMenu::Options()
                     .withTargetComponent(this)
-                    .withItemThatMustBeVisible(getSelectedId())
-                    .withInitiallySelectedItem(getSelectedId())
                     .withMinimumWidth(getWidth())
                     .withMaximumNumColumns(1)
                     .withStandardItemHeight(24),
-                ModalCallbackFunction::create([this](int result) {
-                    if (result != 0)
-                        setSelectedId(result, sendNotificationSync);
-                }));
+                [safeThis = SafePointer<SectionedComboBox>(this)](int const result) {
+                    // The combo may have been destroyed while the menu was open
+                    if (safeThis != nullptr && result != 0)
+                        safeThis->setSelectedId(result, sendNotificationSync);
+                });
         }
     };
 
