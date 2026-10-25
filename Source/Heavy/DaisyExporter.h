@@ -123,12 +123,19 @@ public:
     {
         ExporterBase::valueChanged(v);
 
+        bool const flashingBootloader = getValue<int>(exportTypeValue) == 4;
+        debugPrintProperty->setEnabled(!flashingBootloader);
+        blocksizeProperty->setEnabled(!flashingBootloader);
+        samplerateProperty->setEnabled(!flashingBootloader);
+        patchSizeProperty->setEnabled(!flashingBootloader);
+
         bool const debugPrint = getValue<int>(debugPrintValue);
-        usbMidiProperty->setEnabled(!debugPrint);
+        usbMidiProperty->setEnabled(!debugPrint && !flashingBootloader);
 
         // need to actually hide this property until needed
         int const patchSize = getValue<int>(patchSizeValue);
-        appTypeProperty->setEnabled(patchSize == 6);
+        appTypeProperty->setEnabled(patchSize == 6 && !flashingBootloader);
+
 
         if (patchSize == 1) {
             appTypeValue.setValue(1);
@@ -137,14 +144,6 @@ public:
         } else if (patchSize == 4 || patchSize == 5) {
             appTypeValue.setValue(3);
         }
-
-        bool const flashingBootloader = getValue<int>(exportTypeValue) == 4;
-        usbMidiProperty->setEnabled(!flashingBootloader);
-        debugPrintProperty->setEnabled(!flashingBootloader);
-        appTypeProperty->setEnabled(!flashingBootloader);
-        blocksizeProperty->setEnabled(!flashingBootloader);
-        samplerateProperty->setEnabled(!flashingBootloader);
-        patchSizeProperty->setEnabled(!flashingBootloader);
 
         if (v.refersToSameSourceAs(targetBoardValue)) {
             int const idx = getValue<int>(targetBoardValue);
