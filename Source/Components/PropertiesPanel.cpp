@@ -179,6 +179,36 @@ PropertiesPanel::SectionComponent* PropertiesPanel::PropertyHolderComponent::get
     return nullptr;
 }
 
+static StringArray buildComboMenu(ComboBox& comboBox,
+    Array<PropertiesPanel::ComboComponent::OptionSection> const& sections, StringArray const& flatItems)
+{
+    auto* menu = comboBox.getRootMenu();
+    StringArray allItems;
+    int id = 1;
+
+    for (auto const& section : sections) {
+        PopupMenu subMenu;
+
+        for (auto const& item : section.items)
+            subMenu.addItem(id++, item);
+
+        menu->addSubMenu(section.title, subMenu);
+        allItems.addArray(section.items);
+    }
+
+    if (!flatItems.isEmpty()) {
+        if (!sections.isEmpty())
+            menu->addSeparator();
+
+        for (auto const& item : flatItems)
+            menu->addItem(id++, item);
+
+        allItems.addArray(flatItems);
+    }
+
+    return allItems;
+}
+
 PropertiesPanel::ComboComponent::ComboComponent(String const& propertyName, Value const& value, StringArray const& options)
     : PropertiesPanelProperty(propertyName)
     , items(options)
@@ -199,6 +229,18 @@ PropertiesPanel::ComboComponent::ComboComponent(String const& propertyName, Stri
     addAndMakeVisible(comboBox);
 }
 
+PropertiesPanel::ComboComponent::ComboComponent(String const& propertyName, Value const& value, Sections const& sections, StringArray const& flatItems)
+    : PropertiesPanelProperty(propertyName)
+    , sections(sections.sections)
+    , flatItems(flatItems)
+{
+    items = buildComboMenu(comboBox, this->sections, this->flatItems);
+    comboBox.getProperties().set("Style", "Inspector");
+    comboBox.getSelectedIdAsValue().referTo(value);
+
+    addAndMakeVisible(comboBox);
+}
+
 void PropertiesPanel::ComboComponent::resized()
 {
     comboBox.setBounds(getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel)));
@@ -206,6 +248,9 @@ void PropertiesPanel::ComboComponent::resized()
 
 PropertiesPanelProperty* PropertiesPanel::ComboComponent::createCopy()
 {
+    if (!sections.isEmpty())
+        return new ComboComponent(getName(), comboBox.getSelectedIdAsValue(), Sections(sections), flatItems);
+
     return new ComboComponent(getName(), comboBox.getSelectedIdAsValue(), items);
 }
 

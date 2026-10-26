@@ -5,99 +5,6 @@
  */
 #pragma once
 
-class SectionedComboComponent : public PropertiesPanelProperty {
-public:
-    SectionedComboComponent(String const& name, Value const& targetValue,
-        std::vector<std::pair<String, StringArray>> sections, StringArray extra)
-        : PropertiesPanelProperty(name)
-    {
-        // 1. Populate the combo itself with the flat list, ids 1..N.
-        //    This gives the closed combo its selected-item text and keeps
-        //    the id == flat index convention intact.
-        int id = 1;
-        for (auto& [title, items] : sections)
-            for (auto& item : items)
-                comboBox.addItem(item, id++);
-        for (auto& item : extra)
-            comboBox.addItem(item, id++);
-
-        comboBox.getProperties().set("Style", "Inspector");
-        comboBox.getSelectedIdAsValue().referTo(targetValue);
-
-        // sections/extra live on the inner combo for showPopup()
-        comboBox.sections = std::move(sections);
-        comboBox.extra = std::move(extra);
-
-        addAndMakeVisible(comboBox);
-    }
-
-    PropertiesPanelProperty* createCopy() override
-    {
-        return new SectionedComboComponent(getName(), comboBox.getSelectedIdAsValue(),
-            comboBox.sections, comboBox.extra);
-    }
-
-    void resized() override
-    {
-        comboBox.setBounds(getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel)));
-    }
-
-private:
-    class SectionedComboBox : public ComboBox {
-    public:
-        std::vector<std::pair<String, StringArray>> sections;
-        StringArray extra;
-
-        // Mouse path: skip ComboBox::mouseDown
-        void mouseDown(MouseEvent const& e) override
-        {
-            if (isEnabled() && !e.mods.isPopupMenu())
-                showPopup();
-        }
-
-        // Keyboard path (space/return) calls showPopup() directly, so overriding
-        // it here makes keyboard and mouse behave the same
-        void showPopup() override
-        {
-            auto const selectedId = getSelectedId();
-
-            PopupMenu menu;
-            int id = 1;
-
-            for (auto const& [title, items] : sections) {
-                PopupMenu sub;
-                for (auto const& item : items) {
-                    sub.addItem(id, item, true, id == selectedId);
-                    id++;
-                }
-                menu.addSubMenu(title, sub);
-            }
-
-            if (extra.size()) {
-                menu.addSeparator();
-                for (auto const& item : extra) {
-                    menu.addItem(id, item, true, id == selectedId);
-                    id++;
-                }
-            }
-
-            menu.showMenuAsync(
-                PopupMenu::Options()
-                    .withTargetComponent(this)
-                    .withMinimumWidth(getWidth())
-                    .withMaximumNumColumns(1)
-                    .withStandardItemHeight(24),
-                [safeThis = SafePointer<SectionedComboBox>(this)](int const result) {
-                    // The combo may have been destroyed while the menu was open
-                    if (safeThis != nullptr && result != 0)
-                        safeThis->setSelectedId(result, sendNotificationSync);
-                });
-        }
-    };
-
-    SectionedComboBox comboBox;
-};
-
 class DaisyExporter final : public ExporterBase {
 public:
     Value targetBoardValue = SynchronousValue(var(1));
@@ -120,9 +27,11 @@ public:
         exportTypeValue = var(3);
 
         PropertiesArray properties;
-        properties.add(new SectionedComboComponent("Target board", targetBoardValue,
-            { { "Official", { "Pod", "Petal", "Patch", "Patch.Init()", "Field", "Desktop Devkit", "Eurorack Devkit", "Pedal Devkit" } },
-              { "Community", { "Versio", "Terrarium", "Hothouse", "Simple Touch" } } },
+        properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue,
+            PropertiesPanel::ComboComponent::Sections {
+                PropertiesPanel::ComboComponent::OptionSection { "Official", { "Pod", "Petal", "Patch", "Patch.Init()", "Field", "Desktop Devkit", "Eurorack Devkit", "Pedal Devkit" } },
+                PropertiesPanel::ComboComponent::OptionSection { "Community", { "Versio", "Terrarium", "Hothouse", "Simple Touch" } },
+            },
             { "Custom JSON..." }));
         properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, getExportTypes()));
         usbMidiProperty = new PropertiesPanel::BoolComponent("USB MIDI", usbMidiValue, { "No", "Yes" });
