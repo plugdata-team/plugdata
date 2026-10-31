@@ -31,7 +31,12 @@ public:
         exportTypeValue = var(3);
 
         PropertiesArray properties;
-        properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, { "Pod", "Petal", "Patch", "Patch.Init()", "Field", "Versio", "Terrarium", "Hothouse", "Simple", "Custom JSON..." }));
+        properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue,
+            PropertiesPanel::ComboComponent::Sections {
+                PropertiesPanel::ComboComponent::OptionSection { "Official", { "Pod", "Petal", "Patch", "Patch.Init()", "Field", "Desktop Devkit", "Eurorack Devkit", "Pedal Devkit" } },
+                PropertiesPanel::ComboComponent::OptionSection { "Community", { "Versio", "Terrarium", "Hothouse", "Simple Touch" } },
+            },
+            { "Custom JSON..." }));
         properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, getExportTypes()));
         usbMidiProperty = new PropertiesPanel::BoolComponent("USB MIDI", usbMidiValue, { "No", "Yes" });
         properties.add(usbMidiProperty);
@@ -149,7 +154,7 @@ public:
             int const idx = getValue<int>(targetBoardValue);
 
             // Custom board option
-            if (idx == 10 && !blockDialog) {
+            if (idx == 13 && !blockDialog) {
                 Dialogs::showOpenDialog([this](URL const& url) {
                     auto const result = url.getLocalFile();
                     if (result.existsAsFile()) {
@@ -267,10 +272,10 @@ public:
         }
 
         // set board definition
-        auto boards = StringArray { "pod", "petal", "patch", "patch_init", "field", "versio", "terrarium", "hothouse", "simple", "custom" };
+        auto boards = StringArray { "pod", "petal", "patch", "patch_init", "field", "desktop_devkit", "eurorack_devkit", "pedal_devkit", "versio", "terrarium", "hothouse", "simple_touch", "custom" };
         auto const& board = boards[target];
 
-        auto extra_boards = StringArray { "versio", "terrarium", "hothouse", "simple" };
+        auto extra_boards = StringArray { "versio", "terrarium", "hothouse", "simple_touch" };
 
         DynamicObject::Ptr metaJson(new DynamicObject());
         var metaDaisy(new DynamicObject());
