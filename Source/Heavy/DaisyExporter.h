@@ -166,6 +166,35 @@ public:
         }
     }
 
+    bool hasDfuError()
+    {
+        // dfu-util will always return 2, even if everything worked
+        // We just test for the search for any dfu-util errors in
+        // the console to decide if the export was successful
+        StringArray errorMessages = {
+            "No DFU capable USB device available",
+            "More than one DFU capable USB device found!",
+            "Cannot open device",
+            "unable to initialize libusb:",
+            "Cannot claim interface",
+            "Cannot set alt interface zero",
+            "Cannot set alternate interface",
+            "error resetting ",
+            "error clear_status",
+            "Lost device after RESET?",
+            "Device still in Runtime Mode!",
+            "can't send DFU_ABORT",
+            "USB communication error",
+            "Transfer size must be specified",
+            "Cannot open file",
+            "Error: File ID",
+            "Unsupported mode:",
+            "error resetting after download"
+        };
+
+        return exportingView->hasConsoleMessage(errorMessages);
+    }
+
     int flashBootloader(auto bin, auto sourceDir, auto make, auto gccPath)
     {
         exportingView->reportStatus("Flashing bootloader");
@@ -183,7 +212,14 @@ public:
 
         Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 900);
 
-        return getExitCode();
+        auto const hadError = hasDfuError();
+
+        if (!hadError && exportingView->hasConsoleMessage({ "Error 74" })) {
+            exportingView->logToConsole("\x1b[1;36mnote:\x1b[0m Error 74 is not fatal and may be ignored\n");
+        }
+
+        bool const dfuSucceeded = exportingView->hasConsoleMessage({ "File downloaded successfully", "Download done." });
+        return (hadError || !dfuSucceeded) ? 1 : 0;
     }
 
     bool performExport(String const& pdPatch, String const& outdir, String const& name, String const& copyright, StringArray const& searchPaths) override
@@ -415,29 +451,7 @@ public:
                 // Delay to get correct exit code
                 Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
 
-                // dfu-util will always return 2, even if everything worked
-                // We just test for the search for any dfu-util errors in the console to decide if the export was successful
-                StringArray errorMessages = {
-                    "No DFU capable USB device available",
-                    "More than one DFU capable USB device found!",
-                    "Cannot open device",
-                    "unable to initialize libusb:",
-                    "Cannot claim interface",
-                    "Cannot set alt interface zero",
-                    "Cannot set alternate interface",
-                    "error resetting ",
-                    "error clear_status",
-                    "Lost device after RESET?",
-                    "Device still in Runtime Mode!",
-                    "can't send DFU_ABORT",
-                    "USB communication error",
-                    "Transfer size must be specified",
-                    "Cannot open file",
-                    "Error: File ID",
-                    "Unsupported mode:",
-                    "error resetting after download"
-                };
-                auto flashExitCode = exportingView->hasConsoleMessage(errorMessages);
+                auto const flashExitCode = hasDfuError();
 
                 if (!flashExitCode && exportingView->hasConsoleMessage({ "Error 74" })) {
                     exportingView->logToConsole("\x1b[1;36mnote:\x1b[0m Error 74 is not fatal and may be ignored\n");
