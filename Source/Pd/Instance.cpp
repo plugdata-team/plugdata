@@ -255,7 +255,7 @@ struct Instance::internal {
 };
 
 Instance::Instance()
-    : messageDispatcher(std::make_unique<MessageDispatcher>())
+    : messageDispatcher(std::make_unique<MessageDispatcher>(*this))
     , consoleMessageHandler(std::make_unique<ConsoleMessageHandler>(this))
 {
     pd::Setup::initialisePd();

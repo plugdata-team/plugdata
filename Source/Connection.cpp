@@ -546,20 +546,14 @@ StringArray Connection::getMessageFormated() const
         formatedMessage.add("symbol:");
         formatedMessage.add(args[0].toString());
     } else if (name == "list") {
-        if (numArgs >= 15) {
-            formatedMessage.add("list (14+):");
-        } else {
-            formatedMessage.add("list (" + String(numArgs) + "):");
-        }
+        formatedMessage.add("list (" + String(numArgs) + "):");
+        
         for (int arg = 0; arg < numArgs; arg++) {
             if (args[arg].isFloat()) {
                 formatedMessage.add(String(args[arg].getFloat()));
             } else if (args[arg].isSymbol()) {
                 formatedMessage.add(args[arg].toString());
             }
-        }
-        if (numArgs >= 15) {
-            formatedMessage.add("...");
         }
     } else {
         formatedMessage.add(name);
