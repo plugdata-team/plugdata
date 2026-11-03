@@ -1,0 +1,70 @@
+{
+  "title": [
+    "packet~"
+  ],
+  "description": "wave packet oscillator",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "fundamental frequency (f0) in Hz"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "center/formant frequency ratio"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "bandwidth (from 0 to 1)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "wave packet oscillator signal(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "fundamental frequency",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "formant frequency ratio",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "bandwidth",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[packet~] is a formant oscillator where you specify the fundamental (f0) frequency, the center (or formant) frequency as a ratio and the bandwidth. The object has support for multichannels."
+}

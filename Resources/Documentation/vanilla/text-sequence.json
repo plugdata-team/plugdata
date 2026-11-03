@@ -41,16 +41,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "messages from the sequence or waits if -g flag is given"
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "list",
-          "description": "waits if -w flag is given (which creates a mid outlet)"
+          "description": "messages from the sequence, or waits if the -g flag is given"
         }
       ],
       "repeat": false
@@ -59,7 +50,7 @@
       "messages": [
         {
           "type": "bang",
-          "description": "when finishing the sequence"
+          "description": "end of the sequence; with -w, a waits outlet comes first"
         }
       ],
       "repeat": false
@@ -116,9 +107,9 @@
       "description": "set values for $1, $2, etc in the text"
     },
     {
-      "type": "tempo <f, sym>",
+      "type": "tempo <float, symbol>",
       "description": "set tempo value (float) and time unit symbol"
     }
   ],
-  "body": ""
+  "body": "[text sequence] outputs the lines of a text in order. With -g, lines go to the receive name given by their first element; otherwise they go out the left outlet. With -w, lines starting with a number (or a given symbol) are waits: a bang outputs everything up to the next wait, and 'auto' plays the sequence automatically. 'line' sets the current line and 'step' outputs the next one."
 }

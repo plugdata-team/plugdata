@@ -15,7 +15,7 @@
           "description": "frequencies in MIDI"
         },
         {
-          "type": "signals",
+          "type": "float/signals",
           "description": "frequencies in Hz"
         }
       ],
@@ -43,7 +43,7 @@
   "flags": [
     {
       "name": "-midi",
-      "description": "sets frequency input in MIDI pitch\ndefault: Hz"
+      "description": "sets frequency input in MIDI pitch (default Hz)"
     },
     {
       "name": "-mc <list>",
@@ -53,7 +53,7 @@
   "methods": [
     {
       "type": "midi <float>",
-      "description": "non-0 sets to frequency input in MIDI pitch"
+      "description": "nonzero sets to frequency input in MIDI pitch"
     },
     {
       "type": "set <float, float>",

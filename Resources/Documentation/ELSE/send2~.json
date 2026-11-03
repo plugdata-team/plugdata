@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signals",
+          "type": "float/signals",
           "description": "signals to send"
         }
       ],
@@ -21,7 +21,7 @@
   "outlets": [],
   "arguments": [
     {
-      "type": "float",
+      "type": "symbol",
       "description": "send symbol",
       "default": "none"
     }

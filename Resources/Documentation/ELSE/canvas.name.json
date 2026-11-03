@@ -13,6 +13,10 @@
         {
           "type": "bang",
           "description": "outputs canvas name"
+        },
+        {
+          "type": "float",
+          "description": "sets depth level"
         }
       ],
       "repeat": false

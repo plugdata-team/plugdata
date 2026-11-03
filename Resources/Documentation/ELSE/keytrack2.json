@@ -1,0 +1,88 @@
+{
+  "title": [
+    "keytrack2"
+  ],
+  "description": "MIDI keyboard tracking",
+  "origin": "ELSE",
+  "categories": [
+    "MIDI",
+    "Converters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "MIDI input value(s) to be tracked/mapped"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "track amount below the reference"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "track amount above the reference"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "the tracked/mapped output as a ratio"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "track amount below and above",
+      "default": "100, 100"
+    },
+    {
+      "type": "list",
+      "description": "up to 2 reference points",
+      "default": "60"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-mode <float>",
+      "description": "set non-linear mode (default 0)"
+    },
+    {
+      "name": "-exp <list>",
+      "description": "2 exponential factors below and above (default 0 0, linear)"
+    }
+  ],
+  "methods": [
+    {
+      "type": "ref <list>",
+      "description": "up to two reference points"
+    },
+    {
+      "type": "exp <float, float>",
+      "description": "the two exponential factors below and above the reference"
+    },
+    {
+      "type": "mode <float>",
+      "description": "nonzero sets to satruated (tanh) exponential mode"
+    }
+  ],
+  "body": "It maps MIDI pitch input from a keyboard and outputs a function you can use to control things like a filter cutoff. The output is pitch ratio value. By default we have MIDI pitch 60 (middle C) as an unaltered reference point (ratio 1). The tracking amount affects the mapping amount, where a minimum value of 0 sets no tracking (all ratios are equal to 1)."
+}

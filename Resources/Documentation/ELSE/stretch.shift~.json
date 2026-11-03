@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "audio signal input"
         },
         {
@@ -53,7 +53,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "the buffer signal of the corresponding channel"
         }
       ],

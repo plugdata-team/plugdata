@@ -22,7 +22,7 @@
     {
       "messages": [
         {
-          "type": "signal(s)",
+          "type": "signals",
           "description": "summed (mono) or unsummed multichannel signals"
         }
       ],
@@ -32,7 +32,7 @@
   "arguments": [
     {
       "type": "float",
-      "description": "non zero sums, zero passes unchanged",
+      "description": "nonzero sums, zero passes unchanged",
       "default": "non zero"
     }
   ],
@@ -40,7 +40,7 @@
   "methods": [
     {
       "type": "sum <float>",
-      "description": "non zero sums to a single channel, zero passes unchanged"
+      "description": "nonzero sums to a single channel, zero passes unchanged"
     }
   ],
   "body": "[sum~] takes a multisignal connection and sums them into a single mono channel."

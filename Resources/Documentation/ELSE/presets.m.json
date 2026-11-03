@@ -5,30 +5,10 @@
   "description": "preset manager for modules",
   "origin": "MERDA",
   "categories": [],
-  "inlets": [
-    {
-      "messages": [
-        {
-          "type": "signal",
-          "description": "audio in"
-        }
-      ],
-      "repeat": false
-    }
-  ],
-  "outlets": [
-    {
-      "messages": [
-        {
-          "type": "signal",
-          "description": "audio out"
-        }
-      ],
-      "repeat": false
-    }
-  ],
+  "inlets": [],
+  "outlets": [],
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[presets.m] manages presets for MERDA modules: put it last in your patch, save and reopen it, then choose a preset number and click to save a preset. The parameters of all MERDA modules in the patch are saved with it and restored when you open it again."
 }

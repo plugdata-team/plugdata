@@ -3,7 +3,7 @@
     "float",
     "f"
   ],
-  "description": "the stored value",
+  "description": "store a floating point number",
   "origin": "vanilla",
   "categories": [
     "Data Math"
@@ -65,5 +65,5 @@
       "description": "send the stored value to a [receive] or [value] object that has the same name as the symbol (no output)"
     }
   ],
-  "body": "store a (floating point) number."
+  "body": "[float] stores a number. A float in the left inlet stores and outputs it, a float in the right inlet stores it without output, and a bang outputs the stored number."
 }

@@ -16,7 +16,7 @@
         },
         {
           "type": "float",
-          "description": "start (non-0), stop (0) recording"
+          "description": "start (nonzero), stop (0) recording"
         },
         {
           "type": "list",
@@ -70,19 +70,19 @@
   "flags": [
     {
       "name": "@append <float>",
-      "description": "append mode on (1) or off (0)\ndefault: 0"
+      "description": "append mode on (1) or off (0) (default 0)"
     },
     {
       "name": "@loop <float>",
-      "description": "loop mode on (1) or off (0)\ndefault: 0"
+      "description": "loop mode on (1) or off (0) (default 0)"
     },
     {
       "name": "@loopstart <float>",
-      "description": "loop start point in ms\ndefault: 0"
+      "description": "loop start point in ms (default 0)"
     },
     {
       "name": "@loopend <float>",
-      "description": "loop end point in ms\ndefault: 0"
+      "description": "loop end point in ms (default 0)"
     }
   ],
   "methods": [

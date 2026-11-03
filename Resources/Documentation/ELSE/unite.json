@@ -41,8 +41,8 @@
   "arguments": [
     {
       "type": "symbol",
-      "description": "separator (default space)",
-      "default": ""
+      "description": "separator",
+      "default": "space"
     }
   ],
   "flags": [],

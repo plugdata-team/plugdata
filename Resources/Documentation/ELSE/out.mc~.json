@@ -11,21 +11,12 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "incoming signal routed to mono output"
         },
         {
           "type": "float",
           "description": "sets slider (range is clipped to 0-1)"
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "signal",
-          "description": "incoming signal routed to right channel output: [dac~ 2]"
         }
       ],
       "repeat": false
@@ -47,7 +38,7 @@
   "flags": [
     {
       "name": "-ch <float>",
-      "description": "sets starting output channel\ndefault: 1"
+      "description": "sets starting output channel (default 1)"
     }
   ],
   "methods": [

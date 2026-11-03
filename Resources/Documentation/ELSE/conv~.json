@@ -37,8 +37,8 @@
     },
     {
       "type": "float",
-      "description": "optional - partition size",
-      "default": "1024, minimum 64"
+      "description": "partition size, a multiple of 64 (optional)",
+      "default": "256"
     }
   ],
   "flags": [],

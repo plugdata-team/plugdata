@@ -12,8 +12,8 @@
     {
       "messages": [
         {
-          "type": "signal",
-          "description": "input to '$v1'"
+          "type": "float/signal",
+          "description": "signal input to $v1"
         }
       ],
       "repeat": false
@@ -22,15 +22,15 @@
       "messages": [
         {
           "type": "float",
-          "description": "if inlet type is '$f#' or '$i#'"
+          "description": "input to $f# or $i#, where # is the inlet number"
         },
         {
           "type": "symbol",
-          "description": "if inlet type is '$s#' or '$i#'"
+          "description": "array name for $s#"
         },
         {
           "type": "signal",
-          "description": "if inlet type is '$v#'"
+          "description": "signal input to $v#"
         }
       ],
       "repeat": true
@@ -41,7 +41,7 @@
       "messages": [
         {
           "type": "signal",
-          "description": "expression result"
+          "description": "result of an expression, one outlet per expression"
         }
       ],
       "repeat": true
@@ -56,5 +56,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": "{{< md_include \"objects/expr-family.md\" >}}"
+  "body": "[expr~] evaluates C-like expressions on signals, vector by vector, combining signal and control processing. It works like [expr] with the addition of $v# for signal inputs, which is needed at least for the first inlet: \"$v1\" makes the first inlet a signal input. Inlets are defined by variables of the form $t#, where 't' is the type and # is the inlet number, counting from 1 at the left (up to 100): $f# is a float, $i# is an integer (floats are truncated) and $s# is a symbol, used for array names. Signal and control inlets can be mixed in any order.\n\nThe result is a signal. Multiple expressions separated by semicolons (up to 100) create one outlet each.\n\nArrays and variables (defined with [value]) are accessed as in C: \"tab[5]\" is element 5 of the array \"tab\", \"$s2[5]\" is element 5 of the array whose name came into inlet 2, and \"valx + 10\" adds 10 to the [value] named \"valx\". The store function \"=\" writes the result of an operation into a variable or array index, as in \"tab[$f1] = $f2\".\n\nBesides the C operators (arithmetic, relational, bitwise and logical), the available functions are:\nmath: min, max, int, rint, round, trunc, nearbyint, float, abs, fmod, remainder, floor, ceil, modf, imodf, copysign, ldexp, hypot, if, random, isnan, isinf, finite\npower and log: pow, sqrt, cbrt, exp, expm1, ln, log, log10, log1p, fact, erf, erfc\ntrigonometry: sin, cos, tan, asin, acos, atan, atan2, sinh, cosh, tanh, asinh, acosh, atanh\ntables: size, sum, Sum, avg, Avg\nacoustics: mtof, ftom, dbtorms, rmstodb, dbtopow, powtodb\nFunctions that output a symbol only work in [expr]."
 }

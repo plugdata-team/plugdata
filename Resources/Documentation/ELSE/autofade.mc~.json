@@ -57,8 +57,32 @@
       "description": "fade time in ms"
     },
     {
-      "type": "anything",
-      "description": "fade types <quartic, sin, sqrt, hann, lin, hannsin, linsin>"
+      "type": "quartic",
+      "description": "sets the fade type to 'quartic' (default)"
+    },
+    {
+      "type": "sin",
+      "description": "sets the fade type to 'sin'"
+    },
+    {
+      "type": "sqrt",
+      "description": "sets the fade type to 'sqrt'"
+    },
+    {
+      "type": "hann",
+      "description": "sets the fade type to 'hann'"
+    },
+    {
+      "type": "lin",
+      "description": "sets the fade type to 'lin'"
+    },
+    {
+      "type": "hannsin",
+      "description": "sets the fade type to 'hannsin'"
+    },
+    {
+      "type": "linsin",
+      "description": "sets the fade type to 'linsin'"
     }
   ],
   "body": "[autofade.mc~] is an automatic fade in/out for multichanne inputs. It responds to a gate control and uses internal lookup tables just like [fader~]. A gate on happens when the last input value was zero or less and the incoming value isn't. A gate off happens when the last value was greater than zero value and the incoming value isn't! The maximum gain depends on the gate on level."

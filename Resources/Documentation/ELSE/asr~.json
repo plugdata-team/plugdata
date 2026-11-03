@@ -28,7 +28,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "attack time in ms"
         }
       ],
@@ -37,7 +37,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "decay time in ms"
         }
       ],
@@ -46,7 +46,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "sustain amplitude (ratio to gate value)"
         }
       ],
@@ -81,23 +81,28 @@
     },
     {
       "type": "float",
-      "description": "release time in  ms",
+      "description": "release time in ms",
       "default": "10"
     },
     {
       "type": "float",
       "description": "curve parameter",
       "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "time multiplier",
+      "default": "1"
     }
   ],
   "flags": [
     {
       "name": "-curve <float>",
-      "description": "sets curve parameters\ndefault: 1"
+      "description": "sets curve parameters (default 1)"
     },
     {
       "name": "-lin",
-      "description": "sets to linear mode\ndefault: log"
+      "description": "sets to linear mode (default log)"
     },
     {
       "name": "-lag",
@@ -106,9 +111,25 @@
     {
       "name": "-rel",
       "description": "sets to immediate release mode"
+    },
+    {
+      "name": "-norm",
+      "description": "normalizes gates/trigger to 1"
+    },
+    {
+      "name": "-minsus <float>",
+      "description": "zero or above sets minimum sustain time (default -1)"
+    },
+    {
+      "name": "-maxsus <float>",
+      "description": "zero or above sets maximum sustain time (default -1)"
     }
   ],
   "methods": [
+    {
+      "type": "norm <float>",
+      "description": "nonzero normalizes gates/impulses to 1"
+    },
     {
       "type": "curve <float>",
       "description": "sets log curve parameter"
@@ -128,6 +149,14 @@
     {
       "type": "gate <float>",
       "description": "control gate values"
+    },
+    {
+      "type": "minsus <float>",
+      "description": "zero or above sets minimum sustain time"
+    },
+    {
+      "type": "maxsus <float>",
+      "description": "zero or above sets maximum sustain time"
     }
   ],
   "body": "[asr~] is an attack/sustain/release gated envelope. At gate on (transition from 0 to any value), [asr~] goes from 0 to the gate value at the specified attack time in ms. At gate off (transition from any value to 0) [asr~] goes to 0 at the specified release time in ms."

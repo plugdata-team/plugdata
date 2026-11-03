@@ -22,8 +22,8 @@
     {
       "messages": [
         {
-          "type": "signal",
-          "description": "table values"
+          "type": "float",
+          "description": "table value"
         }
       ],
       "repeat": false
@@ -54,7 +54,7 @@
       "description": "sets interpolation type"
     },
     {
-      "name": "-hermite <f, f>",
+      "name": "-hermite <float, float>",
       "description": "sets interpolation type"
     },
     {
@@ -63,7 +63,7 @@
     },
     {
       "name": "-ch <float>",
-      "description": "set initial loaded channel\ndefault: 1"
+      "description": "set initial loaded channel (default 1)"
     },
     {
       "name": "-index",
@@ -81,11 +81,11 @@
     },
     {
       "type": "index <float>",
-      "description": "non-0 sets index to read from"
+      "description": "nonzero sets index to read from"
     },
     {
       "type": "loop <float>",
-      "description": "non-0 sets loop mode"
+      "description": "nonzero sets loop mode"
     },
     {
       "type": "none",
@@ -100,6 +100,10 @@
       "description": "sets to cosine interpolation"
     },
     {
+      "type": "spline",
+      "description": "sets to spline interpolation"
+    },
+    {
       "type": "cubic",
       "description": "sets to cubic interpolation"
     },
@@ -108,7 +112,7 @@
       "description": "sets to Lagrange interpolation"
     },
     {
-      "type": "hermite <f, f>",
+      "type": "hermite <float, float>",
       "description": "sets to Hermite interpolation"
     }
   ],

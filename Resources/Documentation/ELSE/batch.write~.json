@@ -15,7 +15,7 @@
           "description": "record the whole array"
         },
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "signal inputs to record for each channel"
         }
       ],

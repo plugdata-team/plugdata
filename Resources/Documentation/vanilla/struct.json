@@ -7,13 +7,18 @@
   "categories": [
     "Data Structures"
   ],
-  "inlets": [],
+  "inlets": [
+    {
+      "messages": [],
+      "repeat": false
+    }
+  ],
   "outlets": [
     {
       "messages": [
         {
           "type": "anything",
-          "description": "messages notifying when there are interactions with objects of the structure ('select', 'deselect', 'click', 'displace' and 'change')"
+          "description": "select, deselect, click, displace and change notifications"
         }
       ],
       "repeat": false
@@ -27,6 +32,11 @@
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "add <symbol, anything>",
+      "description": "add a scalar of this template to the named window (prefixed with 'pd', as in 'pd-data'), optionally followed by field names and values"
+    }
+  ],
   "body": "There should be one \"struct\" object in each Pd window you are using as a data structure template. The arguments specify the types and names of the fields. For array fields, a third argument specifies the template that the array elements should belong to"
 }

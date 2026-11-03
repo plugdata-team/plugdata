@@ -20,12 +20,8 @@
           "description": "generates coefficients"
         },
         {
-          "type": "list <f, f, f>",
-          "description": "sets frequency, Q/Slope and gain, and then outputs coefficients"
-        },
-        {
-          "type": "anything",
-          "description": "sets filter type <allpass, lowpass, highpass, bandpass, resonant, bandstop, eq, lowshelf, highshelf, off>. It takes 3 more optional arguments that set frequency, Q/Slope and gain"
+          "type": "list",
+          "description": "frequency, Q/slope and gain, then outputs the coefficients"
         }
       ],
       "repeat": false
@@ -63,27 +59,63 @@
   "arguments": [
     {
       "type": "symbol",
-      "description": "(optional) sets type <highpass/etc>, (default='off')",
-      "default": ""
+      "description": "(optional) sets type <highpass/etc>,",
+      "default": "'off'"
     },
     {
       "type": "float",
-      "description": "sets cutoff/center frequency (default=0)",
-      "default": ""
+      "description": "sets cutoff/center frequency",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "sets Q/slope (default=1)",
-      "default": ""
+      "description": "sets Q/slope",
+      "default": "1"
     },
     {
       "type": "float",
-      "description": "sets gain in dB (default=0)",
-      "default": ""
+      "description": "sets gain in dB",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [
+    {
+      "type": "allpass <list>",
+      "description": "sets an allpass filter, optionally with frequency, Q/slope and gain"
+    },
+    {
+      "type": "lowpass <list>",
+      "description": "sets a lowpass filter, optionally with frequency, Q/slope and gain"
+    },
+    {
+      "type": "highpass <list>",
+      "description": "sets a highpass filter, optionally with frequency, Q/slope and gain"
+    },
+    {
+      "type": "bandpass <list>",
+      "description": "sets a bandpass filter, optionally with frequency, Q/slope and gain"
+    },
+    {
+      "type": "resonant <list>",
+      "description": "sets a resonant filter, optionally with frequency, Q/slope and gain"
+    },
+    {
+      "type": "bandstop <list>",
+      "description": "sets a bandstop filter, optionally with frequency, Q/slope and gain"
+    },
+    {
+      "type": "eq <list>",
+      "description": "sets an eq filter, optionally with frequency, Q/slope and gain"
+    },
+    {
+      "type": "lowshelf <list>",
+      "description": "sets a lowshelf filter, optionally with frequency, Q/slope and gain"
+    },
+    {
+      "type": "highshelf <list>",
+      "description": "sets a highshelf filter, optionally with frequency, Q/slope and gain"
+    },
     {
       "type": "qs <float>",
       "description": "sets \"Q\" or \"Slope\" and outputs coefficients"

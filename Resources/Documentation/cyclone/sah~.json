@@ -24,7 +24,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "trigger signal"
         }
       ],
@@ -51,5 +51,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": "When a trigger signal raises above a given threshold, [sah~] captures a value (\"samples\") from the input and continually outputs it (\"hold\") until the trigger signal rises again above the threshold after having dropped below it. This usually synchronizes one signal to the behavior of another.\nSample and hold random values from a noise input, rescaled to 500 - 1100 Hz range:"
+  "body": "When a trigger signal raises above a given threshold, [sah~] captures a value (\"samples\") from the input and continually outputs it (\"hold\") until the trigger signal rises again above the threshold after having dropped below it. This usually synchronizes one signal to the behavior of another."
 }

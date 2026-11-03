@@ -11,8 +11,8 @@
     {
       "messages": [
         {
-          "type": "float/signal",
-          "description": "input signal to analyze"
+          "type": "float",
+          "description": "input value to analyze"
         }
       ],
       "repeat": false
@@ -22,8 +22,8 @@
     {
       "messages": [
         {
-          "type": "signal",
-          "description": "minimum range"
+          "type": "float",
+          "description": "minimum value so far"
         }
       ],
       "repeat": false
@@ -31,8 +31,8 @@
     {
       "messages": [
         {
-          "type": "signal",
-          "description": "maximum range"
+          "type": "float",
+          "description": "maximum value so far"
         }
       ],
       "repeat": false
@@ -46,5 +46,5 @@
       "description": "resets object"
     }
   ],
-  "body": "[range~] analyxes a float input's range values."
+  "body": "[range] analyzes the range of the floats it receives: it outputs the lowest and the highest value so far, until it is reset."
 }

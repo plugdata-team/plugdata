@@ -2,19 +2,14 @@
   "title": [
     "adc~"
   ],
-  "description": "Audio input from sound card",
+  "description": "audio input from sound card",
   "origin": "vanilla",
   "categories": [
     "Audio I/O"
   ],
   "inlets": [
     {
-      "messages": [
-        {
-          "type": "set <list>",
-          "description": "resets the channel(s)"
-        }
-      ],
+      "messages": [],
       "repeat": false
     }
   ],
@@ -36,7 +31,17 @@
       "default": "1 2"
     }
   ],
-  "flags": [],
-  "methods": [],
-  "body": "adc~ and dac~ provide real-time audio input and output for Pd, respectively, whether analog or digital. By default they are stereo (with channel numbers 1, 2"
+  "flags": [
+    {
+      "name": "-m <list>",
+      "description": "creates a multichannel signal with number of input channels and starting channel (default 2 1)"
+    }
+  ],
+  "methods": [
+    {
+      "type": "set <list>",
+      "description": "resets the input channels, or the multichannel setting with the -m flag"
+    }
+  ],
+  "body": "[adc~] and [dac~] provide real-time audio input and output for Pd, respectively, whether analog or digital. By default they are stereo, with channels 1 and 2. Arguments set other channel numbers, and the -m flag makes a single multichannel signal instead."
 }

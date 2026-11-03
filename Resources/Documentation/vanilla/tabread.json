@@ -43,5 +43,5 @@
       "description": "set the table name"
     }
   ],
-  "body": "The tabread object reads values from an array (\"table\") according to an index. The index is rounded down to the next lower integer. Values in the table correspond to indices starting at 0 Indices outside of the range are replaced by the nearest index in range.\n\nCheck also the \"array\" examples from the Pd tutorial by clicking and opening `doc/2.control.examples/16.more.arrays`"
+  "body": "The tabread object reads values from an array (\"table\") according to an index. The index is rounded down to the next lower integer. Values in the table correspond to indices starting at 0. Indices outside of the range are replaced by the nearest index in range."
 }

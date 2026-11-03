@@ -2,7 +2,7 @@
   "title": [
     "hv.lfo"
   ],
-  "description": "Precision LFOs based on sampled signal oscillators",
+  "description": "precision LFOs based on sampled signal oscillators",
   "origin": "heavylib",
   "categories": [
     "Envelopes and LFOs"
@@ -47,5 +47,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[hv.lfo] is a precise control rate LFO based on sampled signal oscillators, with sine, ramp, saw, square or pulse shapes. It outputs values between 0 and 1; the right inlet resets the phase, or sets the pulse width for the pulse shape."
 }

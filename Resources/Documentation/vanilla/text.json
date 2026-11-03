@@ -41,8 +41,8 @@
   "arguments": [
     {
       "type": "symbol",
-      "description": "'sets the function of [text], possible values: define, get, set, insert,\ndelete, size, tolist, fromlist, search and sequence. The default value is ''define'''",
-      "default": ""
+      "description": "function of [text]: define, get, set, insert, delete, size, tolist, fromlist, search or sequence",
+      "default": "define"
     }
   ],
   "flags": [
@@ -81,5 +81,5 @@
       "description": "closes the text window"
     }
   ],
-  "body": ""
+  "body": "[text] on its own is [text define], which creates a named text: a list of messages, separated by semicolons or commas, that other [text] objects can read and edit. Its first argument selects another function: get, set, insert, delete, size, tolist, fromlist, search or sequence. With -k, the contents are saved with the patch."
 }

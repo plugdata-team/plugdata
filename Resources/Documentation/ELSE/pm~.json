@@ -11,8 +11,8 @@
     {
       "messages": [
         {
-          "type": "signal",
-          "description": "carrier frequency in hz"
+          "type": "float/signals",
+          "description": "carrier frequency in Hz"
         }
       ],
       "repeat": false
@@ -20,8 +20,8 @@
     {
       "messages": [
         {
-          "type": "signal",
-          "description": "modulation frequency in hz"
+          "type": "float/signals",
+          "description": "modulation frequency as a ratio of the carrier frequency"
         }
       ],
       "repeat": false
@@ -29,7 +29,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "modulation index"
         }
       ],
@@ -38,7 +38,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "phase input of modulator oscillator"
         }
       ],
@@ -49,7 +49,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "phase modulation output"
         }
       ],
@@ -59,13 +59,13 @@
   "arguments": [
     {
       "type": "float",
-      "description": "carrier frequency in hertz",
+      "description": "carrier frequency in Hz",
       "default": "0"
     },
     {
       "type": "float",
-      "description": "modulation frequency in hertz or ratio",
-      "default": "0"
+      "description": "modulation frequency as a ratio of the carrier frequency",
+      "default": "1"
     },
     {
       "type": "float",
@@ -78,17 +78,7 @@
       "default": "0"
     }
   ],
-  "flags": [
-    {
-      "name": "-ratio",
-      "description": "sets to ratio mode"
-    }
-  ],
-  "methods": [
-    {
-      "type": "ratio <float>",
-      "description": "non zero sets to ratio mode"
-    }
-  ],
+  "flags": [],
+  "methods": [],
   "body": "[pm~] is a very basic and simple phase modulation unit, which consists of a pair of sinusoidal oscillators, where one modulates the phase input of another."
 }

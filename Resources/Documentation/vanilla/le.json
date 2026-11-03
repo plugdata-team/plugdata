@@ -51,5 +51,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": "{{< md_include \"objects/relational-operators.md\" >}}"
+  "body": "[<=] outputs 1 if its left input is less than or equal to its right input, and 0 otherwise."
 }

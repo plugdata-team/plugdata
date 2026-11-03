@@ -72,7 +72,17 @@
       "default": "0 = omni, 1 = all"
     }
   ],
-  "flags": [],
-  "methods": [],
+  "flags": [
+    {
+      "name": "-ext",
+      "description": "only listen to external input source"
+    }
+  ],
+  "methods": [
+    {
+      "type": "ext <float>",
+      "description": "nonzero sets to listen only to external input source"
+    }
+  ],
   "body": "[ctl.in] extracts MIDI control information from raw MIDI input (such as from [midiin])."
 }

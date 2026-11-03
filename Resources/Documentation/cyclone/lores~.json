@@ -51,11 +51,11 @@
     {
       "type": "float",
       "description": "cutoff frequency",
-      "default": ""
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "resonance: 0 (a little bit sharp) \u2014 1 (sharp and LOUD)",
+      "description": "resonance, from 0 (a little sharp) to 1 (sharp and loud)",
       "default": "0"
     }
   ],
@@ -66,5 +66,5 @@
       "description": "clears the internal buffer's memory"
     }
   ],
-  "body": "[lores~] implements an inexpensive resonant lowpass filter. The first argument or middle inlet sets the cutoff frequency, and the resonance is set by the second argument or the right inlet. Below, we use a LFO to control the cutoff, resulting in a filter sweep effect."
+  "body": "[lores~] implements an inexpensive resonant lowpass filter. The first argument or middle inlet sets the cutoff frequency, and the resonance is set by the second argument or the right inlet."
 }

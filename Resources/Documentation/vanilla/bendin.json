@@ -22,7 +22,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "MIDI channel/port\nbref: MIDI input"
+          "description": "MIDI channel/port"
         }
       ],
       "repeat": false
@@ -32,10 +32,10 @@
     {
       "type": "float",
       "description": "MIDI channel/port",
-      "default": ""
+      "default": "OMNI"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": "**Known bug:** [bendin] and [bendout] are inconsistent ([bendin] outputs values from 0 to 16383 and [bendout] takes values from -8192 to 8191) - this won't change."
+  "body": "[bendin] outputs pitch bend values from MIDI input, with their channel. Known bug: [bendin] and [bendout] are inconsistent: [bendin] outputs values from 0 to 16383 and [bendout] takes values from -8192 to 8191. This won't change."
 }

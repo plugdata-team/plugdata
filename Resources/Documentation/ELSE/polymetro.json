@@ -12,7 +12,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "non-0 starts, zero stops"
+          "description": "nonzero starts, zero stops"
         },
         {
           "type": "bang",
@@ -67,7 +67,7 @@
       "default": "120"
     },
     {
-      "type": "symbol/float",
+      "type": "float/symbol",
       "description": "polyrhythmic multiplier ratio",
       "default": "1/1"
     }

@@ -11,8 +11,8 @@
     {
       "messages": [
         {
-          "type": "signal",
-          "description": "left 'n' inlets are channels of input A. middle 'n' inlets are channels of input B"
+          "type": "float/signal",
+          "description": "the left 'n' inlets take input A, the middle 'n' inlets input B"
         }
       ],
       "repeat": true
@@ -50,7 +50,17 @@
       "default": "0"
     }
   ],
-  "flags": [],
-  "methods": [],
+  "flags": [
+    {
+      "name": "-lin",
+      "description": "sets crossfade to linear"
+    }
+  ],
+  "methods": [
+    {
+      "type": "lin <float>",
+      "description": "nonzero sets to linear crossfade"
+    }
+  ],
   "body": "[xfade~] performs an equal power crossfade between two sources that can have 1 to 64 channels each."
 }

@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "MIDI channel/port\nbref: MIDI output"
+          "description": "MIDI channel/port"
         }
       ],
       "repeat": false
@@ -41,15 +41,15 @@
     {
       "type": "float",
       "description": "MIDI controller number",
-      "default": ""
+      "default": "0"
     },
     {
       "type": "float",
       "description": "MIDI channel/port",
-      "default": ""
+      "default": "1"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[ctlout] sends MIDI control change messages: a value, on the controller number and channel set by the arguments or the right inlets (channel 1 by default). Channels above 16 address further ports: 17 to 32 are channels 1 to 16 of port 2, and so on."
 }

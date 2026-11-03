@@ -1,6 +1,6 @@
 {
   "title": [
-    "duck~"
+    "sidechain~"
   ],
   "description": "sidechain compression",
   "origin": "ELSE",
@@ -12,7 +12,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "input signal"
         }
       ],
@@ -21,7 +21,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "control signal"
         }
       ],
@@ -32,7 +32,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "ducked signal alone or mixed with control signal"
         }
       ],
@@ -86,8 +86,8 @@
     },
     {
       "type": "mix <float>",
-      "description": "non-0 mixes with control signal"
+      "description": "nonzero mixes with control signal"
     }
   ],
-  "body": "[duck~] is an abstraction that performs a duck volume effect (a.k.a sidechain compression). It attenuates an input signal according to the level of a control signal. you can also mix the ducked signal with the control input signal."
+  "body": "[sidechain~] is an abstraction that performs sidechain compression, so it attenuates an input signal according to the level of a control signal (a.k.a. 'key signal' or side chain input). Usually you mix the compressed signal with the side chain input, and there's a flag for that. There's support for multichannels."
 }

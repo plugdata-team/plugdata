@@ -50,7 +50,7 @@
   "flags": [],
   "methods": [
     {
-      "type": "cleat",
+      "type": "clear",
       "description": "clears the probability matrix"
     },
     {
@@ -66,5 +66,5 @@
       "description": "sets a value for when reaching a number with no rule"
     }
   ],
-  "body": "[prob] outputs a weighted series of random numbers (1st order markov chain). It accepts lists of 3 numbers where the 3rd represents the weight/chance of going from value 1 to value 2, a bang will force [prob] to output. See below:"
+  "body": "[prob] outputs a weighted series of random numbers (1st order markov chain). It accepts lists of 3 numbers where the 3rd represents the weight/chance of going from value 1 to value 2. A bang makes [prob] output the next value."
 }

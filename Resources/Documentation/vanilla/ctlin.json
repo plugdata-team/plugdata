@@ -46,10 +46,10 @@
     {
       "type": "float",
       "description": "MIDI channel/port",
-      "default": ""
+      "default": "OMNI"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[ctlin] outputs MIDI control change messages: the value, controller number and channel. The first argument sets a controller number and the second a channel, each removing the matching outlet. Channels above 16 address further ports: 17 to 32 are channels 1 to 16 of port 2, and so on."
 }

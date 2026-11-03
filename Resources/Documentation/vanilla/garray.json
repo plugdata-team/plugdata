@@ -12,5 +12,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[garray] is the graphical array you put in a patch from the Put menu: a named array of numbers shown in a graph. Messages to its name resize, read, write or fill it."
 }

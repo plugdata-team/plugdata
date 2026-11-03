@@ -56,6 +56,14 @@
       "description": "load soundfont file (.sfz extension implied)"
     },
     {
+      "type": "set <list>",
+      "description": "load SFZ script as string"
+    },
+    {
+      "type": "path <symbol>",
+      "description": "set path for samples in a script (default patch's)"
+    },
+    {
       "type": "note",
       "description": "key, velocity"
     },
@@ -72,7 +80,7 @@
       "description": "aftertouch value"
     },
     {
-      "type": "polytouch <f, f>",
+      "type": "polytouch <float, float>",
       "description": "polytouch value: value, key"
     },
     {
@@ -97,11 +105,15 @@
     },
     {
       "type": "a4 <float>",
-      "description": "sets frequency of A4 in hertz"
+      "description": "sets frequency of A4 in Hz"
     },
     {
       "type": "transp <float>",
       "description": "transposition: cents, channel (optional)"
+    },
+    {
+      "type": "info",
+      "description": "prints information on terminal window"
     }
   ],
   "body": "[sfz~] is based on \"sfizz\" and is a synthesizer for soundfont instruments in the SFZ format. For more details on the SFZ format, players and instruments for download, see https://sfzformat.com/"

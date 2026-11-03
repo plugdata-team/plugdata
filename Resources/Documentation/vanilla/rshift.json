@@ -51,5 +51,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": "{{< md_include \"objects/bitwise-operators.md\" >}}"
+  "body": "[>>] shifts the bits of the left input to the right by the number of places given by the right input, which divides it by 2 to that power, rounding down. The shift is signed, so negative numbers stay negative. Float inputs are truncated to integers."
 }

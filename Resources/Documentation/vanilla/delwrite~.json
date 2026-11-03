@@ -12,12 +12,8 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "signal input into the delay time"
-        },
-        {
-          "type": "clear",
-          "description": "clear the delay time"
         }
       ],
       "repeat": false
@@ -32,11 +28,25 @@
     },
     {
       "type": "float",
-      "description": "length of delay line in msec (the maximum delay time in read objects)",
+      "description": "length of delay line in ms (the maximum delay time in read objects)",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "set number of channels",
       "default": ""
     }
   ],
   "flags": [],
-  "methods": [],
-  "body": "delread~ and delread4~ objects read from a delay line allocated in a delwrite~ object with the same name. Note that in this help file we're using delay names with \"$0\" (the patch ID number used to force locality in Pd). You can use more than one delread~ and/or delread4~ objects for the same delwrite~ object. If the specified delay time in delread~/delread4~ is longer than the size of the delay line or less than zero it is clipped to the length of the delay line.\n\nIn case the delwrite~ runs later in the DSP loop than the delread~ or delread4~ objects, the delay is constrained below by one vector length (usually 64 samples)."
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clear the delay time"
+    },
+    {
+      "type": "channels <float>",
+      "description": "set number of input channels"
+    }
+  ],
+  "body": "[delwrite~] allocates a delay line with the given name and size in ms, and writes its signal input into it.\n\n[delread~] and [delread4~] read from a delay line allocated in a [delwrite~] object with the same name. More than one of them can read from the same [delwrite~]. If the delay time is longer than the delay line or less than zero, it is clipped to the length of the delay line. Delay names often use \"$0\" (the patch ID number) to keep them local to a patch.\n\nIn case the [delwrite~] runs later in the DSP loop than the [delread~] or [delread4~] objects, the delay is constrained below by one vector length (usually 64 samples)."
 }

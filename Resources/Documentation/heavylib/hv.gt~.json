@@ -11,8 +11,8 @@
     {
       "messages": [
         {
-          "type": "signal",
-          "description": "right-hand signal"
+          "type": "float/signals",
+          "description": "left-hand signal"
         }
       ],
       "repeat": false
@@ -20,8 +20,8 @@
     {
       "messages": [
         {
-          "type": "signal",
-          "description": "left-hand signal"
+          "type": "float/signals",
+          "description": "right-hand signal"
         }
       ],
       "repeat": false
@@ -31,7 +31,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "1 if left is greater than right input, 0 otherwise"
         }
       ],
@@ -41,5 +41,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[hv.gt~] outputs a signal that is 1 where its left input is greater than its right input, and 0 elsewhere."
 }

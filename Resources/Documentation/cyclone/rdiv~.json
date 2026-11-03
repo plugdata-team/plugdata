@@ -4,7 +4,7 @@
     "!/~",
     "cyclone/!/~"
   ],
-  "description": "the division of the two numbers",
+  "description": "signal division with reversed inlets",
   "origin": "cyclone",
   "categories": [
     "Signal Math"
@@ -22,7 +22,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "the dividend"
         }
       ],

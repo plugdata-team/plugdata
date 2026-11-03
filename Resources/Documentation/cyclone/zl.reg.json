@@ -2,7 +2,7 @@
   "title": [
     "zl.reg"
   ],
-  "description": "list processor",
+  "description": "store a list",
   "origin": "cyclone",
   "categories": [
     "Data Management"
@@ -12,11 +12,11 @@
       "messages": [
         {
           "type": "bang",
-          "description": "mode dependent operation on current data see"
+          "description": "outputs the stored list"
         },
         {
           "type": "anything",
-          "description": "one or more element messages to be processed"
+          "description": "stores and outputs the list"
         }
       ],
       "repeat": false
@@ -25,7 +25,7 @@
       "messages": [
         {
           "type": "anything",
-          "description": "depends on the mode, see [pd examples]"
+          "description": "stores the list without output"
         }
       ],
       "repeat": false
@@ -36,52 +36,42 @@
       "messages": [
         {
           "type": "anything",
-          "description": "output according to the mode: see details in [pd examples]"
+          "description": "the stored list"
         }
       ],
       "repeat": false
     },
     {
-      "messages": [
-        {
-          "type": "anything",
-          "description": "output according to the mode: see details in [pd examples]"
-        }
-      ],
+      "messages": [],
       "repeat": false
     }
   ],
   "arguments": [
     {
-      "type": "float",
-      "description": "maximum list size (optional, 1 - 32767)",
-      "default": "256"
-    },
-    {
-      "type": "symbol",
-      "description": "mode",
+      "type": "list",
+      "description": "initially stored list",
       "default": ""
     }
   ],
   "flags": [
     {
       "name": "@zlmaxsize <float>",
-      "description": "max list size (1 - 32767)\ndefault: 256"
+      "description": "maximum list size, 1 to 32767 (default 256)"
     }
   ],
   "methods": [
     {
       "type": "mode <symbol>",
-      "description": "sets the mode (change, compare, delace, ecils, group, indexmap, iter, join, lace, len, lookup, median, mth, nth, queue, reg, rev, rot, sect, scramble, slice, sort, stack, stream, sub, sum, swap, thin, union or unique)"
+      "description": "changes the mode, as in [zl]"
     },
     {
       "type": "zlclear",
-      "description": "clears mode's arguments and received data in both inlets"
+      "description": "clears the mode's arguments and the data received in both inlets"
     },
     {
       "type": "zlmaxsize <float>",
-      "description": "sets the maximum list size (1 - 32767, default 256)"
+      "description": "sets the maximum list size, 1 to 32767"
     }
   ],
-  "body": "[zl] processes messages with one or more elements (\"list messages' or \"anything\") according to a mode (set via argument/message)."
+  "body": "[zl.reg] stores a list: the left inlet stores and outputs it, the right inlet only stores it, and a bang outputs it. The arguments set the initially stored list."
 }

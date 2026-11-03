@@ -57,6 +57,10 @@
       "description": "clear contents of the text"
     },
     {
+      "type": "set <anything>",
+      "description": "set text"
+    },
+    {
       "type": "send <symbol>",
       "description": "send pointer to a named receive object"
     },
@@ -81,5 +85,5 @@
       "description": "closes the text window"
     }
   ],
-  "body": "\"text define\" maintains a text object and can name it so that other objects can find it (and later should have some alternative, anonymous way to be found).\n\nan optional `-c` flag allows you to read or write to/from a file interpreting carriage returns as separators."
+  "body": "\"text define\" maintains a text object and can name it so that other objects can find it (and later should have some alternative, anonymous way to be found).\n\nAn optional -c flag allows you to read or write to/from a file interpreting carriage returns as separators."
 }

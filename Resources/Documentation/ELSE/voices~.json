@@ -40,7 +40,7 @@
     {
       "messages": [
         {
-          "type": "list",
+          "type": "signals",
           "description": "gate values normalized to 0-1 range"
         }
       ],
@@ -59,6 +59,10 @@
     {
       "type": "voices <float>",
       "description": "sets number of voices (in list mode only)"
+    },
+    {
+      "type": "n <float>",
+      "description": "sets number of voices"
     }
   ],
   "body": "[voices~] is an abstraction based on [voices] and generates multichannel signals that can be used to control pitch and gate with polyphony."

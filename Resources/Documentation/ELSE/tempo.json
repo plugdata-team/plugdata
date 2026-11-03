@@ -61,6 +61,11 @@
       "type": "float",
       "description": "swing deviation in %",
       "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "swing cycle",
+      "default": "0"
     }
   ],
   "flags": [
@@ -70,25 +75,29 @@
     },
     {
       "name": "-ms",
-      "description": "sets time measure to ms\ndefault: bpm"
+      "description": "sets time measure to ms (default bpm)"
     },
     {
       "name": "-hz",
-      "description": "sets time measure to Hz\ndefault: bpm"
+      "description": "sets time measure to Hz (default bpm)"
     },
     {
       "name": "-mul <float>",
-      "description": "sets tempo subdivision\ndefault: 1"
+      "description": "sets tempo subdivision (default 1)"
     },
     {
       "name": "-seed <float>",
-      "description": "sets seed\ndefault: no float sets a unique internal"
+      "description": "sets seed (default no float sets a unique internal)"
     }
   ],
   "methods": [
     {
       "type": "start",
       "description": "turn the metronome on"
+    },
+    {
+      "type": "set <float>",
+      "description": "set tempo in bpm, hz or ms for the next beat"
     },
     {
       "type": "mul <float>",
@@ -99,20 +108,28 @@
       "description": "turn the metronome off"
     },
     {
-      "type": "ms <f, f>",
+      "type": "ms <float, float>",
       "description": "sets time to ms, optional floats set tempo and swing"
     },
     {
-      "type": "hz <f, f>",
+      "type": "hz <float, float>",
       "description": "sets time to Hz, optional floats set tempo and swing"
     },
     {
-      "type": "bpm <f, f>",
+      "type": "bpm <float, float>",
       "description": "sets time to bpm, optional floats set tempo and swing"
+    },
+    {
+      "type": "sync <float>",
+      "description": "nonzero sets to sync mode"
     },
     {
       "type": "seed <float>",
       "description": "a float sets seed, no float sets a unique internal"
+    },
+    {
+      "type": "cycle <float>",
+      "description": "set swing cycle"
     }
   ],
   "body": "The [tempo] object sends bang at a time specified in bpm or ms. It has a swing parameter and is turned on and off by a toggle."

@@ -40,7 +40,7 @@
     },
     {
       "name": "-flush",
-      "description": "flush the output after each message\ndefault: on W32"
+      "description": "flush the output after each message (default on W32)"
     },
     {
       "name": "-nf",

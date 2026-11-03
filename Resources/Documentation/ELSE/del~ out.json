@@ -45,7 +45,7 @@
   "flags": [
     {
       "name": "-samps",
-      "description": "sets time value to samples\ndefault: ms"
+      "description": "sets time value to samples (default ms)"
     }
   ],
   "methods": [],

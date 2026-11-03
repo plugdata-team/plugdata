@@ -52,12 +52,21 @@
       "type": "float",
       "description": "size",
       "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "hold",
+      "default": "0"
     }
   ],
   "flags": [
     {
       "name": "-seed <float>",
       "description": "sets seed"
+    },
+    {
+      "name": "-offset <float>",
+      "description": "sets offset value (default, 0)"
     }
   ],
   "methods": [
@@ -72,6 +81,14 @@
     {
       "type": "size <float>",
       "description": "clears the memory and sets a new 'n' size"
+    },
+    {
+      "type": "hold <float>",
+      "description": "sets number of values to hold"
+    },
+    {
+      "type": "offset <float>",
+      "description": "sets offset value"
     }
   ],
   "body": "[rand.u] generates an unrepeated random values (from 0 to size-1). After the whole sequence is output, a bang is sent in the right outlet."

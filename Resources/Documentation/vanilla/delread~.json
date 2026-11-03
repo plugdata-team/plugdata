@@ -44,5 +44,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": "delread~ and delread4~ objects read from a delay line allocated in a delwrite~ object with the same name. Note that in this help file we're using delay names with \"$0\" (the patch ID number used to force locality in Pd"
+  "body": "delread~ and delread4~ objects read from a delay line allocated in a delwrite~ object with the same name. You can use more than one delread~ and/or delread4~ object for the same delwrite~. If the specified delay time is longer than the delay line or less than zero, it is clipped to the length of the delay line. Delay names often use \"$0\" (the patch ID number) to keep them local to a patch.\n\nIn case the delwrite~ runs later in the DSP loop than the delread~ or delread4~ objects, the delay is constrained below by one vector length (usually 64 samples)."
 }

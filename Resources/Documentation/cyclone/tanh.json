@@ -12,11 +12,11 @@
       "messages": [
         {
           "type": "bang",
-          "description": "output the arc-cosine of stored value"
+          "description": "outputs the hyperbolic tangent of the stored value"
         },
         {
-          "type": "float",
-          "description": "input to arc-cosine function"
+          "type": "float/list",
+          "description": "input to the hyperbolic tangent function"
         }
       ],
       "repeat": false
@@ -26,8 +26,8 @@
     {
       "messages": [
         {
-          "type": "float",
-          "description": "the arc-cosine of the input"
+          "type": "float/list",
+          "description": "the hyperbolic tangent of the input"
         }
       ],
       "repeat": false

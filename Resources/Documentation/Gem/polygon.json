@@ -12,7 +12,7 @@
       "messages": [
         {
           "type": "gemlist",
-          "description": "List of X Y Z points that define the polygon\n2nd and onwards:"
+          "description": "List of X Y Z points that define the polygon"
         },
         {
           "type": "list",

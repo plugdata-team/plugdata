@@ -31,6 +31,15 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "learnt send symbol"
+        }
+      ],
+      "repeat": false
     }
   ],
   "arguments": [
@@ -45,11 +54,28 @@
       "default": ""
     }
   ],
-  "flags": [],
+  "flags": [
+    {
+      "name": "-local",
+      "description": "sets locality within the same window"
+    }
+  ],
   "methods": [
     {
       "type": "clear",
       "description": "clears the receive names"
+    },
+    {
+      "type": "learn",
+      "description": "activate 'learn'"
+    },
+    {
+      "type": "deactivate",
+      "description": "deactivate 'learn'"
+    },
+    {
+      "type": "forget",
+      "description": "forget and clear the learnt symbol"
     }
   ],
   "body": "[receiver] is like vanilla's [receive]. It can have up to two names, has an inlet to set the receive names and at load time can expand dollar symbols according to parent patches."

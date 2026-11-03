@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "signal",
           "description": "sets exponent"
         }
       ],
@@ -47,5 +47,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": "[cyclone/pow~] has the inlets'functionality reversed in comparison to pd vanilla's [pow~], other than that, it's quite the same! [cyclone/pow~] raises the base value (set in the right inlet) to the power of the exponent (set in the left inlet). Either inlet can receive a signal or float.[cyclone/pow~] can be useful for generating curves from [line~] as in the example below to the right."
+  "body": "[cyclone/pow~] works like Pd Vanilla's [pow~], but with the inlets swapped: it raises the base value (right inlet) to the power of the exponent (left inlet). Either inlet takes a signal or a float. It can be useful for generating curves from [line~]."
 }

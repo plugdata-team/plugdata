@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "multichannel input to select from"
         },
         {
@@ -26,7 +26,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "bandlimited step noise"
         }
       ],
@@ -48,13 +48,17 @@
   "flags": [
     {
       "name": "-n <float>",
-      "description": "number of channels to select\ndefault: 1"
+      "description": "number of channels to select (default 1)"
     }
   ],
   "methods": [
     {
       "type": "time <float>",
       "description": "crossfade time in ms"
+    },
+    {
+      "type": "n <float>",
+      "description": "number of channels to select"
     }
   ],
   "body": "[xselect.mc~] selects between multiple channels from a multichannel connection (maximum 512 channels) with equal power crossfading."

@@ -25,6 +25,24 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "feedback value"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "wet value"
+        }
+      ],
+      "repeat": false
     }
   ],
   "outlets": [
@@ -42,12 +60,12 @@
     {
       "type": "float",
       "description": "number of stages from 2 to 64",
-      "default": "2"
+      "default": "4"
     },
     {
       "type": "float",
-      "description": "q- resonance",
-      "default": "1"
+      "description": "feedback from -1 to 1",
+      "default": "0"
     },
     {
       "type": "float",
@@ -55,8 +73,17 @@
       "default": "1"
     }
   ],
-  "flags": [],
+  "flags": [
+    {
+      "name": "-q <float>",
+      "description": "set q resonance (default 0.5)"
+    }
+  ],
   "methods": [
+    {
+      "type": "n <float>",
+      "description": "number of stages (needs to be a multiple of 2)"
+    },
     {
       "type": "q <float>",
       "description": "internal allpass resonance"

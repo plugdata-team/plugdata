@@ -1,0 +1,65 @@
+{
+  "title": [
+    "nlist.get"
+  ],
+  "description": "get a nested list element",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "element index to get"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "set name of nested list"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "nested list's element"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "output type or error"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "nested list name to bind to",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "name <symbol>",
+      "description": "set name of nested list"
+    }
+  ],
+  "body": "[nlist.get] gets an element from a nested list. The element can be a list or a nested list, in which case you can give a list index to get a nested element. The '-1' index is a special index that gives you the whole nested list.\n\nThe right outlet gives the type of the element (0 for float/symbol, 1 for list, 2 for nested list) or an error (-1 for an out of range index, -2 for an out of depth index). Clicking on the object opens the editor window of the [nlist.define] object with the same name."
+}

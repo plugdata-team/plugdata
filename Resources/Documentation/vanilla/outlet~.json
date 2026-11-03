@@ -13,7 +13,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "signal to send to parent patch"
         }
       ],
@@ -30,5 +30,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[outlet~] creates a signal outlet on the box of the subpatch or abstraction it is in, and sends the signal it receives out of it. In a subpatch with a different sample rate, the argument sets the resampling method."
 }

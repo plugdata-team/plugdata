@@ -7,12 +7,22 @@
   "categories": [
     "Signal Generators"
   ],
-  "inlets": [],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list/signals",
+          "description": "center frequency input(s) in Hz (default 440)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
   "outlets": [
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "dynamic stochastic synthesis output"
         }
       ],
@@ -22,32 +32,44 @@
   "arguments": [],
   "flags": [
     {
-      "name": "-n <f>",
-      "description": ""
+      "name": "-n <float>",
+      "description": "sets number of points (default 12)"
     },
     {
-      "name": "-frange <f f>",
-      "description": ""
+      "name": "-bw <float>",
+      "description": "sets bandwidth in cents or Hz (default 1200 cents)"
     },
     {
-      "name": "-freq_step <f>",
-      "description": ""
+      "name": "-cents <float>",
+      "description": "nonzero sets bandwidth in cents instead of Hz (default 1)"
     },
     {
-      "name": "-amp_step <f>",
-      "description": ""
+      "name": "-frange <float, float>",
+      "description": "sets minimum and maximum frequencies (default 220 440)"
     },
     {
-      "name": "-interp <f>",
-      "description": ""
+      "name": "-freq_step <float>",
+      "description": "sets maximum frequency step in % (default 50)"
     },
     {
-      "name": "-seed <f>",
-      "description": ""
+      "name": "-amp_step <float>",
+      "description": "sets maximum amplitude step in % (default 25)"
     },
     {
-      "name": "-dist <f f f f>",
-      "description": ""
+      "name": "-interp <float>",
+      "description": "sets interpolation mode (default 1, linear)"
+    },
+    {
+      "name": "-seed <float>",
+      "description": "sets seed (default unique internal)"
+    },
+    {
+      "name": "-dist <float, float, float, float>",
+      "description": "sets distributions and their parameters"
+    },
+    {
+      "name": "-mc <list>",
+      "description": "sets multichannel output with a list of center frequencies"
     }
   ],
   "methods": [
@@ -56,7 +78,19 @@
       "description": "set number of points (default 12)"
     },
     {
-      "type": "frange <f, f>",
+      "type": "set <float, float>",
+      "description": "<channel, freq> set a single center frequency channel"
+    },
+    {
+      "type": "bw <float>",
+      "description": "set bandwidth in cents or Hz (default 1200 cents)"
+    },
+    {
+      "type": "cents <float>",
+      "description": "nonzero (default) sets bandwidth in cents instead of Hz"
+    },
+    {
+      "type": "frange <float, float>",
       "description": "set minimum and maximum frequencies (default 220, 440)"
     },
     {
@@ -76,8 +110,8 @@
       "description": "sets seed, no float sets unique internal (default)"
     },
     {
-      "type": "dist <f, f, f, f>",
-      "description": "sets distributions and parameters, see [pd distributions]"
+      "type": "dist <float, float, float, float>",
+      "description": "sets distributions and their parameters"
     }
   ],
   "body": "[gendyn~] implements \"Dynamic Stochastic Synthesis\" based on Xenakis' 'GenDyn' algorithm. The waveform has a given number of points (linearly interpolated by default). The period of each point and its value changes according to a random walk (a.k.a. Brownian motion) with given distributions."

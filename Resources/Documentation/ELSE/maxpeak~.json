@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "incoming signal"
         }
       ],
@@ -48,11 +48,16 @@
     }
   ],
   "arguments": [],
-  "flags": [],
+  "flags": [
+    {
+      "name": "-lin",
+      "description": "sets output to linear (default dB)"
+    }
+  ],
   "methods": [
     {
-      "type": "-lin <float>",
-      "description": "non zero sets to linear output"
+      "type": "lin <float>",
+      "description": "nonzero sets to linear output"
     }
   ],
   "body": "[maxpeak~] returns the maximum peak amplitude so far in dB. A bang in the right inlet resets the maximum value. The right outlet sends bangs when the input is clipped (exceeds 0 dB)."

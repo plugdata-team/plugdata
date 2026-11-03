@@ -13,15 +13,15 @@
       "messages": [
         {
           "type": "float",
-          "description": "non-0 plays, 0 stops"
+          "description": "nonzero plays, 0 stops"
         },
         {
           "type": "bang",
-          "description": "play (same as non-0)"
+          "description": "play (same as nonzero)"
         },
         {
           "type": "signal",
-          "description": "gate on/impulse \u2014 starts, gate off \u2014 stops (not in trigger mode)"
+          "description": "gate on or impulse starts, gate off stops (not in trigger mode)"
         }
       ],
       "repeat": false
@@ -77,14 +77,6 @@
       "description": "sets to loop mode"
     },
     {
-      "name": "-tr",
-      "description": "sets to trigger mode"
-    },
-    {
-      "name": "-loop",
-      "description": "sets to loop mode"
-    },
-    {
       "name": "-xfade",
       "description": "sets to crossfade mode"
     },
@@ -93,14 +85,18 @@
       "description": ""
     },
     {
-      "name": "-range <f, f>",
+      "name": "-range <float, float>",
       "description": ""
+    },
+    {
+      "name": "-lagrange",
+      "description": "sets to lagrange interpolation mode (default spline)"
     }
   ],
   "methods": [
     {
       "type": "tr <float>",
-      "description": "non-0 sets to trigger mode, zero sets to gate mode"
+      "description": "nonzero sets to trigger mode, zero sets to gate mode"
     },
     {
       "type": "set <symbol>",
@@ -115,11 +111,11 @@
       "description": "sets end point in ms"
     },
     {
-      "type": "range <f, f>",
+      "type": "range <float, float>",
       "description": "sets start and end point range proportionally (from 0 to 1)"
     },
     {
-      "type": "pos <f>",
+      "type": "pos <float>",
       "description": "sets position proportionally within range (from 0 to 1)"
     },
     {
@@ -131,7 +127,7 @@
       "description": "sets playing speed in %"
     },
     {
-      "type": "play <f, f, f>",
+      "type": "play <float, float, float>",
       "description": "start playing, optional <start in ms, end in ms, speed rate>"
     },
     {
@@ -148,7 +144,7 @@
     },
     {
       "type": "loop <float>",
-      "description": "non-0 enables looping, <0> disables it"
+      "description": "nonzero enables looping, <0> disables it"
     },
     {
       "type": "fade <float>",
@@ -161,6 +157,10 @@
     {
       "type": "sr <float>",
       "description": "sets sample rate of sample (default, Pd's sample rate)"
+    },
+    {
+      "type": "lagrange/spline",
+      "description": "set interpolation mode (default spline)"
     }
   ],
   "body": "[tabplayer~] plays arrays, it's more powerful than [tabplay~] as it has multichannel support and can play backwards and in different speeds. It can also loop."

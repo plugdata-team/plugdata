@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "input signal"
         }
       ],
@@ -22,7 +22,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "compressed signal"
         }
       ],
@@ -31,8 +31,8 @@
     {
       "messages": [
         {
-          "type": "float",
-          "description": "reduction in dB"
+          "type": "float/list",
+          "description": "reduction in dB, one value per channel"
         }
       ],
       "repeat": false
@@ -46,7 +46,7 @@
     },
     {
       "type": "float",
-      "description": "attenuation ratio (default 1)",
+      "description": "attenuation ratio",
       "default": "1"
     },
     {

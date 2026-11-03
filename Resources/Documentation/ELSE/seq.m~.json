@@ -1,0 +1,85 @@
+{
+  "title": [
+    "seq.m~"
+  ],
+  "description": "step sequencer module",
+  "origin": "MERDA",
+  "categories": [
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "run gate (nonzero runs the sequencer)"
+        },
+        {
+          "type": "anything",
+          "description": "messages: run, reset, bpm, mul, steps, seq, triggers"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "external signal clock (impulses)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "external reset (impulses)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "MIDI pitch"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "gate lasting half a beat"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "impulse at each step"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "internal clock"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[seq.m~] is a MERDA step sequencer module with up to 16 steps per page, and several pages for concatenated sequences, each with its own BPM, beat multiplier and number of steps. Its outlets send MIDI pitch, a gate lasting half a beat, an impulse at each step and the internal clock. The left inlet runs the sequencer with a gate, and the others take impulses for an external clock and to reset to the first step."
+}

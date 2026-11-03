@@ -3,7 +3,7 @@
     "bang",
     "b"
   ],
-  "description": "a bang message",
+  "description": "convert any message to a bang",
   "origin": "vanilla",
   "categories": [
     "Data Management",

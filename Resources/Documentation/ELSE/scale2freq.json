@@ -45,11 +45,11 @@
   "flags": [
     {
       "name": "-base <float>",
-      "description": "sets base pitch value in MIDI\ndefault: 60"
+      "description": "sets base pitch value in MIDI (default 60)"
     },
     {
       "name": "-range <float float>",
-      "description": "sets min/max frequency range in Hz\ndefault: 20 20000"
+      "description": "sets min/max frequency range in Hz (default 20 20000)"
     }
   ],
   "methods": [
@@ -58,9 +58,9 @@
       "description": "sets base pitch value in MIDI"
     },
     {
-      "type": "range <f, f>",
+      "type": "range <float, float>",
       "description": "sets min/max frequency range in Hz"
     }
   ],
-  "body": "[scale2freq] gets a scale as a list of cents values, a base/fundamental pitch and outputs a list of frequency in Hz between a minimum and maximum value. Below we use [eqdiv] to generate a scale. Use it to feed values to things like [resonbank~], [oscbank2~] or [pvretune~]."
+  "body": "[scale2freq] gets a scale as a list of cents values, a base/fundamental pitch and outputs a list of frequency in Hz between a minimum and maximum value. [eqdiv] can generate such a scale. Use it to feed values to things like [resonbank~], [oscbank2~] or [pvretune~]."
 }

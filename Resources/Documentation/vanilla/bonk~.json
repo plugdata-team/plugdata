@@ -27,7 +27,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "raw\" attack's spectrum (loudness values for the 11 frequency bands used)"
+          "description": "attack spectrum: loudness in each of the 11 frequency bands"
         }
       ],
       "repeat": false
@@ -36,7 +36,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "cooked\" instrument number (if there's a template), velocity and temperature"
+          "description": "instrument number if there's a template, velocity and temperature"
         }
       ],
       "repeat": false
@@ -46,31 +46,31 @@
   "flags": [
     {
       "name": "-npts",
-      "description": "window size in points\ndefault: 256"
+      "description": "window size in points (default 256)"
     },
     {
       "name": "-hop",
-      "description": "analysis period (\"hop size\") in points\ndefault: 128"
+      "description": "analysis period (\"hop size\") in points (default 128)"
     },
     {
       "name": "-nfilters",
-      "description": "number of filters to use\ndefault: 11"
+      "description": "number of filters to use (default 11)"
     },
     {
       "name": "-halftones",
-      "description": "filter bandwidth of filters in halftones\ndefault: 6"
+      "description": "filter bandwidth of filters in halftones (default 6)"
     },
     {
       "name": "-minbandwidth",
-      "description": "minimum bandwidth in bins\ndefault: 1.5"
+      "description": "minimum bandwidth in bins (default 1.5)"
     },
     {
       "name": "-overlap",
-      "description": "overlap factor between filters\ndefault: 1"
+      "description": "overlap factor between filters (default 1)"
     },
     {
       "name": "-firstbin",
-      "description": "center frequency, in bins, of the lowest filter\ndefault: 1"
+      "description": "center frequency, in bins, of the lowest filter (default 1)"
     }
   ],
   "methods": [
@@ -87,28 +87,24 @@
       "description": "set number of frames over which to measure growth"
     },
     {
-      "type": "minlevel <float>",
-      "description": "set minimum \"velocity\" to output (ignore quieter notes)"
-    },
-    {
       "type": "spew <float>",
-      "description": "non-0 turns spew mode on, zero sets it off"
+      "description": "nonzero turns spew mode on, zero sets it off"
     },
     {
       "type": "useloudness <float>",
-      "description": "non-0 sets to alternative loudness units (experimental)"
+      "description": "nonzero sets to alternative loudness units (experimental)"
     },
     {
       "type": "debug <float>",
-      "description": "non-0 sets to debugging mode"
+      "description": "nonzero sets to debugging mode"
     },
     {
       "type": "print <float>",
-      "description": "print out settings, templates and filter bank settings for non-0"
+      "description": "print out settings, templates and filter bank settings for nonzero"
     },
     {
       "type": "debounce <float>",
-      "description": "set minimum time (in msec) between attacks in learn mode"
+      "description": "set minimum time (in ms) between attacks in learn mode"
     },
     {
       "type": "learn <float>",
@@ -125,7 +121,11 @@
     {
       "type": "read <symbol>",
       "description": "read templates from a file"
+    },
+    {
+      "type": "minvel <float>",
+      "description": "set minimum \"velocity\" to output (ignore quieter notes)"
     }
   ],
-  "body": "attack detection and spectral envelope measurement"
+  "body": "[bonk~] detects attacks in an audio signal and measures its spectral envelope. It reports each attack with its loudness in 11 frequency bands, and can learn templates to tell different instruments apart."
 }

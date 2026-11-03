@@ -23,11 +23,11 @@
   "arguments": [
     {
       "type": "float",
-      "description": "sets mode, 0 is \"abstraction\" mode, non-0 is \"subpatch\" mode",
+      "description": "sets mode, 0 is \"abstraction\" mode, nonzero is \"subpatch\" mode",
       "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": "[click] sends a bang when you put it in an abstraction or a subpatch and click on the parent. This is useful for making non graphical abstractions respond to a click in the same way compiled objects can. \nSee below how it sends a bang when you click on the subpatch. Note that you can still open the subpatch with right click and then \"open\"."
+  "body": "[click] sends a bang when you put it in an abstraction or a subpatch and click on the parent. This is useful for making non graphical abstractions respond to a click in the same way compiled objects can. Note that you can still open the subpatch with right click and then \"open\"."
 }

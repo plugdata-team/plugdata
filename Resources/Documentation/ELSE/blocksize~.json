@@ -29,7 +29,13 @@
       "repeat": false
     }
   ],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "[value] name",
+      "default": ""
+    }
+  ],
   "flags": [
     {
       "name": "-hz",

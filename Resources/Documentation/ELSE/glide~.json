@@ -12,7 +12,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "input signal"
         }
       ],
@@ -21,7 +21,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "glide time in ms"
         }
       ],
@@ -32,7 +32,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "glided signal"
         }
       ],
@@ -49,7 +49,7 @@
   "flags": [
     {
       "name": "-exp <float>",
-      "description": "sets exponential factor\ndefault: 1 - linear"
+      "description": "sets exponential factor (default 1 - linear)"
     }
   ],
   "methods": [

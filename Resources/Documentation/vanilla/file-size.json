@@ -55,5 +55,5 @@
       "description": "set verbosity on or off"
     }
   ],
-  "body": ""
+  "body": "[file size] outputs the size of a file in bytes, or 0 for a directory. The right outlet bangs if an error occurs, for example when the file doesn't exist."
 }

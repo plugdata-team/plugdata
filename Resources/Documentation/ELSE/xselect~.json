@@ -13,6 +13,10 @@
         {
           "type": "float",
           "description": "selected input (0 is none)"
+        },
+        {
+          "type": "signals",
+          "description": "first input to select from"
         }
       ],
       "repeat": false
@@ -20,18 +24,18 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "inputs to select from"
         }
       ],
-      "repeat": false
+      "repeat": true
     }
   ],
   "outlets": [
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "selected inlet/channel"
         }
       ],

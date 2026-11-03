@@ -23,7 +23,7 @@
       "messages": [
         {
           "type": "anything",
-          "description": "the loaded message (when the patch is loaded or when banged/clicked)"
+          "description": "the message, at load time or when banged or clicked"
         }
       ],
       "repeat": false
@@ -39,7 +39,7 @@
   "flags": [
     {
       "name": "@defer <0/1>",
-      "description": "output is deferred (@defer 0 will be sent before @defer 1)\ndefault: 0"
+      "description": "output is deferred (@defer 0 will be sent before @defer 1) (default 0)"
     }
   ],
   "methods": [

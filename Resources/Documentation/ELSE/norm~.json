@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "signal to be normalized"
         }
       ],
@@ -25,13 +25,22 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "window size in ms"
+        }
+      ],
+      "repeat": false
     }
   ],
   "outlets": [
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "normalized signal"
         }
       ],
@@ -48,7 +57,7 @@
   "flags": [
     {
       "name": "-size <float>",
-      "description": "sets analysis window size in samples\ndefault: 1024"
+      "description": "sets analysis window size in ms (default 10)"
     }
   ],
   "methods": [],

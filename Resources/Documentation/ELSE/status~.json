@@ -2,7 +2,7 @@
   "title": [
     "status~"
   ],
-  "description": "report 0/non-0 transitions",
+  "description": "report 0/nonzero transitions",
   "origin": "ELSE",
   "categories": [
     "Triggers and Clocks"
@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "signal to detect transitions from"
         }
       ],
@@ -22,8 +22,8 @@
     {
       "messages": [
         {
-          "type": "signal",
-          "description": "impulse if a zero to non-0 transition is detected"
+          "type": "signals",
+          "description": "impulse if a zero to nonzero transition is detected"
         }
       ],
       "repeat": false
@@ -31,8 +31,8 @@
     {
       "messages": [
         {
-          "type": "signal",
-          "description": "impulse if a non-0 to zero transition is detected"
+          "type": "signals",
+          "description": "impulse if a nonzero to zero transition is detected"
         }
       ],
       "repeat": false
@@ -47,5 +47,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": "[status~] is a signal version of [status]. It sends an impulse in the left outlet for \"zero to non-0\" transitions and an impulse in the right outlet for \"non-0 to zero\" transitions."
+  "body": "[status~] is a signal version of [status]. It sends an impulse in the left outlet for \"zero to nonzero\" transitions and an impulse in the right outlet for \"nonzero to zero\" transitions."
 }

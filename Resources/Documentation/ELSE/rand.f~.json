@@ -12,7 +12,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "trigger signal"
         },
         {
@@ -25,7 +25,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "lowest random value"
         }
       ],
@@ -34,7 +34,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "highest random value"
         }
       ],
@@ -45,7 +45,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "random values"
         }
       ],
@@ -68,12 +68,20 @@
     {
       "name": "-seed <float>",
       "description": "seed value"
+    },
+    {
+      "name": "-ch <float>",
+      "description": "set number of output channels (default: 1)"
     }
   ],
   "methods": [
     {
       "type": "seed <float>",
       "description": "a float sets seed, no float sets a unique internal"
+    },
+    {
+      "type": "ch <float>",
+      "description": "set number of output channels"
     }
   ],
   "body": "[rand.f~] generates random float values for a given range when triggered. A trigger happens at positive to negative or negative to positive transitions. Use the seed message if you want a reproducible output."

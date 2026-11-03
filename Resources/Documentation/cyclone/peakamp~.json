@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "float",
+          "type": "signal",
           "description": "signal to measure peak amplitude"
         },
         {

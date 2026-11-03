@@ -18,6 +18,24 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "feed memory with new information"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets order"
+        }
+      ],
+      "repeat": false
     }
   ],
   "outlets": [
@@ -39,14 +57,14 @@
     },
     {
       "type": "float",
-      "description": "non-0 sets to savestate mode",
+      "description": "nonzero sets to savestate mode",
       "default": "0"
     }
   ],
   "flags": [
     {
-      "name": "seed <float>",
-      "description": "sets seed"
+      "name": "-seed <float>",
+      "description": "sets seed (default: unique internal)"
     }
   ],
   "methods": [
@@ -63,8 +81,8 @@
       "description": "feed memory with new information"
     },
     {
-      "type": "savesate <float>",
-      "description": ""
+      "type": "savestate <float>",
+      "description": "nonzero saves the chain with the patch"
     },
     {
       "type": "reset",

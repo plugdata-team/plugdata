@@ -41,7 +41,7 @@
   "arguments": [
     {
       "type": "anything",
-      "description": "list of types to route; no args \u2014 everything is sent to the outlet",
+      "description": "list of types to route, without arguments everything is sent to the outlet",
       "default": ""
     }
   ],

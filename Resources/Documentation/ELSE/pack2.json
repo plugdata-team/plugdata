@@ -17,10 +17,6 @@
         {
           "type": "float/symbol",
           "description": "a float or symbol to set to slot 0 and output"
-        },
-        {
-          "type": "set <anything>",
-          "description": "a float or symbol to set to slot 0"
         }
       ],
       "repeat": false
@@ -53,11 +49,16 @@
   "arguments": [
     {
       "type": "anything",
-      "description": "the number of elements = the number of inlets. <f> or <symbol> \u2014 initial value",
+      "description": "one inlet per element, a float or symbol sets its initial value",
       "default": "two floats set to '0'"
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "set <anything>",
+      "description": "a float or symbol to set to slot 0"
+    }
+  ],
   "body": "[pack2] is kinda similar to Pd Vanilla's [pack], but any inlet triggers the output (though a \"set\" message avoids the output). It can also initialize a symbol value and it doesn't create a list selector for you. Moreover, you can change many elements with a list message and an element that was initialized as a float can become a symbol and vice versa."
 }

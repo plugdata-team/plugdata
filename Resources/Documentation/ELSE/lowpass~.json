@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "signal to be filtered"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "central frequency in Hz"
         }
       ],
@@ -29,7 +29,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "filter resonance (Q or bandwidth)"
         }
       ],
@@ -40,7 +40,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "filtered signal"
         }
       ],
@@ -55,17 +55,29 @@
     },
     {
       "type": "float",
-      "description": "resonance, either in 'Q' (default) or 'bw'",
-      "default": "1"
+      "description": "resonance, in Q (default) or bandwidth",
+      "default": "0.707107"
     }
   ],
   "flags": [
     {
       "name": "-bw",
       "description": "sets resonance parameter to bandwidth in octaves"
+    },
+    {
+      "name": "-t60",
+      "description": "sets resonance parameter to 't60'"
     }
   ],
   "methods": [
+    {
+      "type": "freq <list>",
+      "description": "cutoff frequency in Hz for each channel"
+    },
+    {
+      "type": "reson <list>",
+      "description": "filter resonance for each channel"
+    },
     {
       "type": "clear",
       "description": "clears filter's memory if you blow it up"
@@ -81,6 +93,10 @@
     {
       "type": "q",
       "description": "sets resonance parameter to Q (default)"
+    },
+    {
+      "type": "t60",
+      "description": "sets resonance parameter to 't60'"
     }
   ],
   "body": "[lowpass~] is a 2nd order lowpass resonant filter."

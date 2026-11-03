@@ -10,12 +10,7 @@
   ],
   "inlets": [
     {
-      "messages": [
-        {
-          "type": "set <list>",
-          "description": "set argument values (size, overlap, up/downsampling)"
-        }
-      ],
+      "messages": [],
       "repeat": false
     }
   ],
@@ -35,9 +30,19 @@
       "type": "float",
       "description": "up/down-sampling factor",
       "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "DSP computation offset in samples",
+      "default": "0"
     }
   ],
   "flags": [],
-  "methods": [],
-  "body": "set block size and on/off control for DSP"
+  "methods": [
+    {
+      "type": "set <list>",
+      "description": "set argument values: size, overlap, up/downsampling and DSP computation offset"
+    }
+  ],
+  "body": "[block~] sets the block size, overlap and up/downsampling of the window it is in. [switch~] does the same and can also switch DSP on and off for that window."
 }

@@ -86,5 +86,5 @@
     }
   ],
   "methods": [],
-  "body": ""
+  "body": "[plot] draws an array field of each scalar of the template it is in, as a polygon or, with the 'curve' argument, a Bezier curve. Its arguments set the field, color, line width, position and x spacing; the array elements are also drawn with their own template's drawing instructions."
 }

@@ -16,7 +16,7 @@
         },
         {
           "type": "anything",
-          "description": "float/symbol atoms to format variables (messages with more than one item and sends the remaining items to the next inlets)"
+          "description": "atoms for the format variables, extra items go to the next inlets"
         }
       ],
       "repeat": true

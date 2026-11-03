@@ -43,6 +43,11 @@
       "type": "float",
       "description": "multiplier",
       "default": "1"
+    },
+    {
+      "type": "symbol",
+      "description": "variable name",
+      "default": ""
     }
   ],
   "flags": [],

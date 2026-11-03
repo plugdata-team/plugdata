@@ -12,7 +12,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "incoming signal for channel 1"
         }
       ],
@@ -21,7 +21,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "incoming signal for channel 2"
         }
       ],
@@ -30,7 +30,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "incoming signal for channel 3"
         }
       ],
@@ -39,7 +39,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "incoming signal for channel 4"
         }
       ],
@@ -50,7 +50,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "left channel signal"
         }
       ],
@@ -59,7 +59,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "right channel signal"
         }
       ],
@@ -76,8 +76,8 @@
   "flags": [],
   "methods": [
     {
-      "type": "gain <float>",
-      "description": "sets gain for channel 1"
+      "type": "gain1 <float>",
+      "description": "sets gain for channel 1 (range is from 0 to 1)"
     },
     {
       "type": "gain2 <float>",
@@ -92,8 +92,8 @@
       "description": "sets gain for channel 4"
     },
     {
-      "type": "pan <float>",
-      "description": "sets pan for channel 1"
+      "type": "pan1 <float>",
+      "description": "sets pan for channel 1 (range is from -100 to 100)"
     },
     {
       "type": "pan2 <float>",

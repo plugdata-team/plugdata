@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "signal input to be granulated"
         },
         {
@@ -58,27 +58,27 @@
       "description": "(number of grains)"
     },
     {
-      "name": "-dur <f>",
+      "name": "-dur <float>",
       "description": ""
     },
     {
-      "name": "-size <f, f>",
+      "name": "-size <float, float>",
       "description": ""
     },
     {
-      "name": "-picth <f, f>",
+      "name": "-picth <float, float>",
       "description": ""
     },
     {
-      "name": "-autotune <f>",
+      "name": "-autotune <float>",
       "description": ""
     },
     {
-      "name": "-pan <f, f>",
+      "name": "-pan <float, float>",
       "description": ""
     },
     {
-      "name": "-amps <f, f>",
+      "name": "-amps <float, float>",
       "description": ""
     },
     {
@@ -86,7 +86,7 @@
       "description": ""
     },
     {
-      "name": "-base <f>",
+      "name": "-base <float>",
       "description": ""
     },
     {
@@ -94,12 +94,12 @@
       "description": ""
     },
     {
-      "name": "-env <any>",
+      "name": "-env <anything>",
       "description": ""
     },
     {
-      "name": "-length <f>",
-      "description": "delay length in ms\ndefault: 5000"
+      "name": "-length <float>",
+      "description": "delay length in ms (default 5000)"
     },
     {
       "name": "-sync",
@@ -108,31 +108,31 @@
   ],
   "methods": [
     {
-      "type": "dur <f>",
+      "type": "dur <float>",
       "description": "sets cloud event duration in ms (default 500)"
     },
     {
-      "type": "sync <f>",
-      "description": "non-0 sets to synchronous mode (default 0)"
+      "type": "sync <float>",
+      "description": "nonzero sets to synchronous mode (default 0)"
     },
     {
-      "type": "size <f, f>",
+      "type": "size <float, float>",
       "description": "sets min/max grain sizes in ms (default 50 to 450)"
     },
     {
-      "type": "transp <f, f>",
+      "type": "transp <float, float>",
       "description": "sets min/max transposition in cents (default -1200 to 1200)"
     },
     {
-      "type": "pan <f, f>",
+      "type": "pan <float, float>",
       "description": "sets left/right pan boundaries (default -1 to 1)"
     },
     {
-      "type": "pos <f, f>",
+      "type": "pos <float, float>",
       "description": "sets min/max position in delay line (default 0 to 1)"
     },
     {
-      "type": "amp <f, f>",
+      "type": "amp <float, float>",
       "description": "sets min/max amplitude values (default 0.1 to 1)"
     },
     {
@@ -140,12 +140,12 @@
       "description": "sets probability in % of grain being reversed (default 0)"
     },
     {
-      "type": "env <any>",
+      "type": "env <anything>",
       "description": "envelope type (sin, hann, tri, gauss) or function list"
     },
     {
-      "type": "autotune <f>",
-      "description": "non-0 autotunes to a given scale (default 0)"
+      "type": "autotune <float>",
+      "description": "nonzero autotunes to a given scale (default 0)"
     },
     {
       "type": "scale <list>",

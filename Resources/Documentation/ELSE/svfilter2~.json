@@ -1,0 +1,97 @@
+{
+  "title": [
+    "svfilter2~"
+  ],
+  "description": "zero-delay feedback state-variable filter",
+  "origin": "ELSE",
+  "categories": [
+    "Filters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "signal(s) to be filtered"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "sets cutoff/center frequency value(s)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "sets Q/resonance value(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "lowpass filter signal(s)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "highpass filter signal(s)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "bandpass filter signal(s)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "notch filter signal(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "cutoff/center frequency (Hz)",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "Q/resonance",
+      "default": "0.01"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clears the filter in case of a blow-up"
+    }
+  ],
+  "body": "[svfilter2~] is a zero-delay feedback state-variable filter. It is a more precise alternative to [svfilter~], with accurate cutoff tuning across the full frequency range, unconditional stability and resonance given directly in true Q units.\n\nThe filter outputs the same number of channels as the left input. If the right inputs have more than one channel, the number of channels must match the left input. A single channel in the secondary inlets gets repeated to match the channels of the left input."
+}

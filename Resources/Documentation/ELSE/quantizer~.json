@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "a float to be quantized"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "float",
+          "type": "float/signals",
           "description": "step value to quantize to"
         }
       ],
@@ -31,7 +31,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "quantized signal"
         }
       ],
@@ -50,7 +50,12 @@
       "default": "0"
     }
   ],
-  "flags": [],
+  "flags": [
+    {
+      "name": "-mode <float>",
+      "description": "sets approximation mode <0-4>"
+    }
+  ],
   "methods": [
     {
       "type": "mode <float>",

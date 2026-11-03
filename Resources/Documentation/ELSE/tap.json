@@ -13,6 +13,10 @@
         {
           "type": "bang",
           "description": "tap for tempo"
+        },
+        {
+          "type": "float",
+          "description": "open/close gate for tempo"
         }
       ],
       "repeat": false
@@ -33,7 +37,7 @@
   "flags": [
     {
       "name": "-ms",
-      "description": "sets output to ms\ndefault: bpm"
+      "description": "sets output to ms (default bpm)"
     }
   ],
   "methods": [],

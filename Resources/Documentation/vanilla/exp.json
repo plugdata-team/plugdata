@@ -32,5 +32,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[exp] raises e (Euler's number, about 2.718) to the power of its input."
 }

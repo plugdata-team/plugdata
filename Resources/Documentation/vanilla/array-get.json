@@ -83,5 +83,5 @@
     }
   ],
   "methods": [],
-  "body": "get contents (all or a range) as a list"
+  "body": "[array get] outputs the contents of an array as a list: all of it, or a range given by an onset and a number of points."
 }

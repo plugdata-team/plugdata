@@ -22,8 +22,8 @@
     {
       "messages": [
         {
-          "type": "list\nlabel: initialization Messages",
-          "description": ""
+          "type": "list",
+          "description": "initialization messages"
         }
       ],
       "repeat": false
@@ -31,8 +31,8 @@
     {
       "messages": [
         {
-          "type": "list\nlabel: arguments",
-          "description": ""
+          "type": "list",
+          "description": "arguments"
         }
       ],
       "repeat": false

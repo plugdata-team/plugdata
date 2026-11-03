@@ -8,7 +8,12 @@
     "Random and Noise",
     "Signal Generators"
   ],
-  "inlets": [],
+  "inlets": [
+    {
+      "messages": [],
+      "repeat": false
+    }
+  ],
   "outlets": [
     {
       "messages": [
@@ -24,11 +29,11 @@
   "flags": [
     {
       "name": "-seed <float>",
-      "description": "sets seed\ndefault: unique internal"
+      "description": "sets seed (default unique internal)"
     },
     {
       "name": "-ch <float>",
-      "description": "sets number of channels\ndefault: 1"
+      "description": "sets number of channels (default 1)"
     }
   ],
   "methods": [

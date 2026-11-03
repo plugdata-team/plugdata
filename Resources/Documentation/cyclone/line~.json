@@ -3,7 +3,7 @@
     "line~",
     "cyclone/line~"
   ],
-  "description": "a bang is sent when final target is reached",
+  "description": "signal ramp generator",
   "origin": "cyclone",
   "categories": [
     "Envelopes and LFOs"
@@ -13,11 +13,11 @@
       "messages": [
         {
           "type": "float",
-          "description": "jumps immediately to that value unless duration is set to other than 0 via the second inlet"
+          "description": "jumps there, or ramps if the middle inlet set a time"
         },
         {
           "type": "list",
-          "description": "pairs that specify target value and duration (in ms) to reach it (maximum is 128 target-time pairs). For an odd number of elements, the last element is treated as another pair with 0 ms duration"
+          "description": "target/time pairs in ms, up to 128; an odd last value jumps"
         }
       ],
       "repeat": false

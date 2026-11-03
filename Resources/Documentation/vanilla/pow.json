@@ -51,5 +51,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": "Pow raises a number on the left inlet to a numeric power (given by the right inlet or argument"
+  "body": "Pow raises a number on the left inlet to a numeric power (given by the right inlet or argument). Like the signal version, pow has protection against NaNs, which become 0."
 }

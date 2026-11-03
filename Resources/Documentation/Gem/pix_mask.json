@@ -2,7 +2,7 @@
   "title": [
     "pix_mask"
   ],
-  "description": "mask out a pix\n  - object",
+  "description": "mask out a pix",
   "origin": "Gem",
   "categories": [
     "Graphics"

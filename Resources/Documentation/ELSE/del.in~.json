@@ -1,0 +1,56 @@
+{
+  "title": [
+    "del.in~"
+  ],
+  "description": "delay line input",
+  "origin": "ELSE",
+  "categories": [
+    "Effects",
+    "Buffers"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "signal input(s) into the delay line"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "delay name (optional: default internal name relative to patch)",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "delay size in ms or samples",
+      "default": "1000"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-samps",
+      "description": "sets time value to samples (default is ms)"
+    }
+  ],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clears delay line"
+    },
+    {
+      "type": "size <float>",
+      "description": "changes the delay size"
+    },
+    {
+      "type": "freeze <float>",
+      "description": "nonzero freezes, zero unfreezes"
+    }
+  ],
+  "body": "[del.in~] sets and writes to a delay line. Use [del.out~] to read it. This is quite similar to [delread~]/[delread4~], but with more features."
+}

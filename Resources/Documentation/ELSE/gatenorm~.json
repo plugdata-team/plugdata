@@ -1,0 +1,61 @@
+{
+  "title": [
+    "gatenorm~"
+  ],
+  "description": "normalize a gate value",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "gate value(s)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "normalization on/off"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "the normalized gate(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "normalization value",
+      "default": "1"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-off",
+      "description": "set normalization to off (default: on)"
+    }
+  ],
+  "methods": [
+    {
+      "type": "set <float>",
+      "description": "set normalization value"
+    }
+  ],
+  "body": "[gatenorm~] normalizes a gate input. By default it normalizes to 1, but you can set other values (0 or negative are ignored). Negative gates are also normalized to a negative value."
+}

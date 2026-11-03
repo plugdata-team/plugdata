@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "input to ping pong delay"
         }
       ],
@@ -40,8 +40,17 @@
     {
       "messages": [
         {
+          "type": "signals",
+          "description": "left ping pong delay output"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
           "type": "signal",
-          "description": "ping pong delay output"
+          "description": "right ping pong delay output"
         }
       ],
       "repeat": false

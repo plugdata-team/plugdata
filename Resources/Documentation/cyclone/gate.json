@@ -45,7 +45,7 @@
   "arguments": [
     {
       "type": "float",
-      "description": "`n` number of outlets (1 to 100)",
+      "description": "n number of outlets (1 to 100)",
       "default": "1"
     },
     {

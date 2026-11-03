@@ -47,5 +47,5 @@
       "description": "set template and field name"
     }
   ],
-  "body": ""
+  "body": "[setsize] sets the number of elements of an array field in a scalar. The right inlet takes a pointer to the scalar, the arguments give its template and array field, and a float in the left inlet sets the size. The smallest size is 1; shrinking loses the extra elements and growing fills the new ones with zeros."
 }

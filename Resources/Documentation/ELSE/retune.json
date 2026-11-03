@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "float",
+          "type": "float/list",
           "description": "MIDI pitch to retune"
         }
       ],
@@ -47,8 +47,8 @@
   ],
   "flags": [
     {
-      "name": "-base <f>",
-      "description": "base MIDI pitch\ndefault: 60"
+      "name": "-base <float>",
+      "description": "base MIDI pitch (default 60)"
     }
   ],
   "methods": [

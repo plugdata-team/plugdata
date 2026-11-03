@@ -74,12 +74,12 @@
     {
       "type": "float",
       "description": "Specifies the starting grid coordinates.",
-      "default": "0\ndefault: 0"
+      "default": "0"
     },
     {
       "type": "float",
       "description": "Specifies the number of steps in the grid.",
-      "default": "1\ndefault: 1"
+      "default": "1"
     }
   ],
   "flags": [],

@@ -46,38 +46,38 @@
   "flags": [
     {
       "name": "-nsamples <float>",
-      "description": "sets number of samples per line (2-8192, default 256)\ndefault: 8"
+      "description": "sets number of samples per line (2-8192, default 256) (default 8)"
     },
     {
       "name": "-nlines <float>",
-      "description": "sets number of lines in buffer (8-256, default 128)\ndefault: 256"
+      "description": "sets number of lines in buffer (8-256, default 128) (default 256)"
     },
     {
-      "name": "-dim <f, f>",
-      "description": "sets width/height (default 200 100)\ndefault: 140 140"
+      "name": "-dim <float, float>",
+      "description": "sets width/height (default 140 140)"
     },
     {
-      "name": "-fgcolor <f, f, f>",
+      "name": "-fgcolor <float, float, float>",
       "description": "sets front/signal RGB color (values 0-255)"
     },
     {
-      "name": "-bgcolor <f, f, f>",
+      "name": "-bgcolor <float, float, float>",
       "description": "sets background RGB color (values 0-255)"
     },
     {
-      "name": "-gridcolor <f, f, f>",
+      "name": "-gridcolor <float, float, float>",
       "description": "sets grid RGB color (values 0-255)"
     },
     {
       "name": "-zoom <float>",
-      "description": "sets zoom level\ndefault: 1"
+      "description": "sets zoom level (default 1)"
     },
     {
       "name": "-perspective <float>",
-      "description": "sets perspective level\ndefault: 1"
+      "description": "sets perspective level (default 1)"
     },
     {
-      "name": "-rotate <f, f>",
+      "name": "-rotate <float, float>",
       "description": "rotate around x/y axis in degrees"
     },
     {
@@ -90,19 +90,19 @@
     },
     {
       "name": "-drag <float>",
-      "description": "enable/disable mouse interaction\ndefault: 1"
+      "description": "enable/disable mouse interaction (default 1)"
     },
     {
       "name": "-grid <float>",
-      "description": "enable/disable grid visualization\ndefault: 1"
+      "description": "enable/disable grid visualization (default 1)"
     },
     {
       "name": "-rate <float>",
-      "description": "sets refresh rate period in ms\ndefault: 50"
+      "description": "sets refresh rate period in ms (default 50)"
     },
     {
       "name": "-width <float>",
-      "description": "sets line width\ndefault: 1"
+      "description": "sets line width (default 1)"
     }
   ],
   "methods": [
@@ -115,19 +115,19 @@
       "description": "sets number of lines in buffer (8-256, default 128)"
     },
     {
-      "type": "dim <f, f>",
-      "description": "sets width/height (default 200 100)"
+      "type": "dim <float, float>",
+      "description": "sets width/height (default 140 140)"
     },
     {
-      "type": "fgcolor <f, f, f>",
+      "type": "fgcolor <float, float, float>",
       "description": "sets front/signal RGB color (values 0-255)"
     },
     {
-      "type": "bgcolor <f, f, f>",
+      "type": "bgcolor <float, float, float>",
       "description": "sets background RGB color (values 0-255)"
     },
     {
-      "type": "gridcolor <f, f, f>",
+      "type": "gridcolor <float, float, float>",
       "description": "sets grid RGB color (values 0-255)"
     },
     {
@@ -139,7 +139,7 @@
       "description": "sets perspective level"
     },
     {
-      "type": "rotate <f, f>",
+      "type": "rotate <float, float>",
       "description": "rotate around x/y axis in degrees"
     },
     {

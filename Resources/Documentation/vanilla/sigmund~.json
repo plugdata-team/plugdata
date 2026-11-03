@@ -11,18 +11,37 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "signal input to be analyzed"
         },
         {
           "type": "list",
-          "description": "(with '-t' flag) table name, num of points, index of first point, sample rate, and debug flag"
+          "description": "with -t: table name, points, first point, sample rate, debug flag"
         }
       ],
       "repeat": false
     }
   ],
-  "outlets": [],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "pitch in MIDI by default, the arguments choose the outlets"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "amplitude in dB (by default)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
   "arguments": [
     {
       "type": "list",
@@ -37,35 +56,47 @@
     },
     {
       "name": "-npts <float>",
-      "description": "set number of points in each analysis window\ndefault: 1024"
+      "description": "set number of points in each analysis window (default 1024)"
     },
     {
       "name": "-hop <float>",
-      "description": "set number of points between each analysis\ndefault: 512"
+      "description": "set number of points between each analysis (default 512)"
     },
     {
       "name": "-npeak <float>",
-      "description": "set number of sinusoidal peaks for 'peaks' output\ndefault: 20"
+      "description": "set number of sinusoidal peaks for 'peaks' output (default 20)"
     },
     {
       "name": "-maxfreq <float>",
-      "description": "set maximum sinusoid frequency in Hz\ndefault: 1000000"
+      "description": "set maximum sinusoid frequency in Hz (default 1000000)"
+    },
+    {
+      "name": "-nharmonics <float, float>",
+      "description": "rolloff harmonic and octave bias for pitch detection (default 6 0)"
+    },
+    {
+      "name": "-amppowerlaw <float>",
+      "description": "power applied to amplitude in pitch spectrum (default 0.5)"
+    },
+    {
+      "name": "-quality <float>",
+      "description": "minimum pitch quality to report a pitch (default 0.4)"
     },
     {
       "name": "-vibrato <float>",
-      "description": "set depth of vibrato to expect in semitones\ndefault: 1"
+      "description": "set depth of vibrato to expect in semitones (default 1)"
     },
     {
       "name": "-stabletime <float>",
-      "description": "set time in msec to wait to report new notes\ndefault: 50"
+      "description": "set time in ms to wait to report new notes (default 50)"
     },
     {
       "name": "-minpower <float>",
-      "description": "set minimum amplitude in dB to report a new note\ndefault: 50"
+      "description": "set minimum amplitude in dB to report a new note (default 50)"
     },
     {
       "name": "-growth <float>",
-      "description": "set amplitude growth in dB to report a repeated note\ndefault: 7"
+      "description": "set amplitude growth in dB to report a repeated note (default 7)"
     }
   ],
   "methods": [
@@ -86,12 +117,24 @@
       "description": "set maximum sinusoid frequency in Hz"
     },
     {
+      "type": "nharmonics <float, float>",
+      "description": "rolloff harmonic and (optionally) octave bias for pitch detection"
+    },
+    {
+      "type": "amppowerlaw <float>",
+      "description": "power applied to amplitude in pitch spectrum"
+    },
+    {
+      "type": "quality <float>",
+      "description": "minimum pitch quality to report a pitch"
+    },
+    {
       "type": "vibrato <float>",
       "description": "set depth of vibrato to expect in semitones (for note output)"
     },
     {
       "type": "stabletime <float>",
-      "description": "set time in msec to wait to report new notes (note output)"
+      "description": "set time in ms to wait to report new notes (note output)"
     },
     {
       "type": "minpower <float>",
@@ -100,7 +143,15 @@
     {
       "type": "growth <float>",
       "description": "set amplitude growth in dB to report a repeated note (note output)"
+    },
+    {
+      "type": "clear",
+      "description": "forget previous analisys for tracks output"
+    },
+    {
+      "type": "print",
+      "description": "print version number and current parameters"
     }
   ],
-  "body": ""
+  "body": "[sigmund~] analyzes a sound into sinusoidal components, which it can report individually or combine into a pitch estimate. The arguments choose its outlets: pitch, notes, env (amplitude), peaks and tracks. Flags and messages set the analysis parameters, and with -t it analyzes an array instead of its signal input."
 }

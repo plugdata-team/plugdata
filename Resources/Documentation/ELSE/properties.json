@@ -22,7 +22,7 @@
   "arguments": [
     {
       "type": "float",
-      "description": "sets mode, non-0 is \"subpatch\" mode",
+      "description": "sets mode, nonzero is \"subpatch\" mode",
       "default": "0 (\"abstraction\" mode)"
     }
   ],

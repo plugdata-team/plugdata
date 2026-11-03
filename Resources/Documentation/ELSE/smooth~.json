@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "signals",
+          "type": "float/signals",
           "description": "glide time in ms"
         }
       ],

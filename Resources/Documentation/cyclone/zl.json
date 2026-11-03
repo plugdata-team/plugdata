@@ -12,7 +12,7 @@
       "messages": [
         {
           "type": "bang",
-          "description": "mode dependent operation on current data see"
+          "description": "performs the mode's operation on the current data"
         },
         {
           "type": "anything",
@@ -25,7 +25,7 @@
       "messages": [
         {
           "type": "anything",
-          "description": "depends on the mode, see [pd examples]"
+          "description": "depends on the mode"
         }
       ],
       "repeat": false
@@ -36,7 +36,7 @@
       "messages": [
         {
           "type": "anything",
-          "description": "output according to the mode: see details in [pd examples]"
+          "description": "output according to the mode"
         }
       ],
       "repeat": false
@@ -45,7 +45,7 @@
       "messages": [
         {
           "type": "anything",
-          "description": "output according to the mode: see details in [pd examples]"
+          "description": "output according to the mode"
         }
       ],
       "repeat": false
@@ -66,7 +66,7 @@
   "flags": [
     {
       "name": "@zlmaxsize <float>",
-      "description": "max list size (1 - 32767)\ndefault: 256"
+      "description": "maximum list size, 1 to 32767 (default 256)"
     }
   ],
   "methods": [

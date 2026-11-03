@@ -7,16 +7,54 @@
   "categories": [
     "File Management"
   ],
-  "inlets": [],
-  "outlets": [],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "read number of bytes"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "change the associated file handle"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "data bytes"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "if the file can't be opened or the end of the file is reached"
+        }
+      ],
+      "repeat": false
+    }
+  ],
   "arguments": [
     {
       "type": "symbol",
-      "description": "'sets the function of [file], possible values: handle, define, mkdir,\nwhich, glob, stat, isfile, isdirectory, size, copy, move, delete, split, join,\nsplitext and splitname. The default value is ''handle'''",
-      "default": ""
+      "description": "function of [file]: handle, define, mkdir, which, glob, stat, isfile, isdirectory, size, copy, move, delete, split, join, splitext or splitname",
+      "default": "handle"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": "Short for \"file handle\""
+  "body": "[file] gives access to the file system. Its first argument selects the function; without one it is [file handle], which reads and writes files as lists of bytes."
 }

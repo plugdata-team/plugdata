@@ -41,7 +41,7 @@
       "messages": [
         {
           "type": "bang",
-          "description": "if file can't be opened, end of file is reached, or a read error occurred"
+          "description": "if the file can't be opened, at end of file, or on a read error"
         },
         {
           "type": "seek <float>",

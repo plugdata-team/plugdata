@@ -52,5 +52,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": "div and mod do integer division, where div outputs the integer quotient and mod outputs the remainder (modulus"
+  "body": "[mod] does integer division and outputs the remainder (modulus). [div] outputs the integer quotient."
 }

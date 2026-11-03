@@ -32,5 +32,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[sqrt] outputs the square root of its input. Negative inputs output 0."
 }

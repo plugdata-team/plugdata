@@ -54,7 +54,7 @@
   "arguments": [
     {
       "type": "list",
-      "description": "2 floats \u2014 min/max, 1 float \u2014 max",
+      "description": "two floats set min and max, one float sets max",
       "default": "0 and 1"
     }
   ],

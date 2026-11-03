@@ -46,6 +46,11 @@
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "set <float>",
+      "description": "set impulse value sent to right outlet"
+    }
+  ],
   "body": "[zerox~] functions as a zero-crossing detector and/or a zero-crossing counter (for transient detection). \nLeft outlet outputs a value that corresponds to the number of zero crossings per signal block - so it depends on the block size. Right outlet send an impulse at every zero crossing."
 }

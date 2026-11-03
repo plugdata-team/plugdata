@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "input phase signal"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "ramp up"
         }
       ],
@@ -29,7 +29,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "ramp down"
         }
       ],
@@ -56,17 +56,17 @@
     {
       "type": "float",
       "description": "ramp down",
-      "default": "0.1"
+      "default": "0.9"
     }
   ],
   "flags": [
     {
       "name": "@lo <float>",
-      "description": "lowest point\ndefault: 0"
+      "description": "lowest point (default 0)"
     },
     {
       "name": "@hi <float>",
-      "description": "highest point\ndefault: 1"
+      "description": "highest point (default 1)"
     }
   ],
   "methods": [

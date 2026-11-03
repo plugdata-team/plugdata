@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signals",
+          "type": "float/signals",
           "description": "multichannel to route/mix"
         },
         {
@@ -26,7 +26,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "routed signals from inlets"
         }
       ],

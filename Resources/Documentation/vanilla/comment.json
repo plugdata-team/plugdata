@@ -12,5 +12,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[comment] is a comment: text in a patch that documents it and does nothing else. It has no inlets, outlets or arguments."
 }

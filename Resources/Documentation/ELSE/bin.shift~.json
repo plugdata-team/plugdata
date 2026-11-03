@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "the signal to be shifted"
         }
       ],
@@ -46,7 +46,7 @@
     },
     {
       "type": "float",
-      "description": "non-0 sets to wrap mode",
+      "description": "nonzero sets to wrap mode",
       "default": "0"
     }
   ],
@@ -54,7 +54,7 @@
   "methods": [
     {
       "type": "wrap <float>",
-      "description": "non-0 sets to wrap mode"
+      "description": "nonzero sets to wrap mode"
     }
   ],
   "body": "[bin.shift~] is meant to be used for spectral processing, where you can shift samples (or frequency bins). It is similar to Pd Vanilla's [lrshift~] object, which acts in any block size and shifts samples to the left or right."

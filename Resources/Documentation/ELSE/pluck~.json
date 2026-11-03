@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "frequency input"
         },
         {
@@ -24,7 +24,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "trigger (determines the maximum amplitude)"
         }
       ],
@@ -33,7 +33,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "decay time in ms"
         }
       ],
@@ -42,7 +42,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "filter cutoff frequency"
         }
       ],
@@ -51,7 +51,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "optional noise input (with the -in flag)"
         }
       ],
@@ -62,7 +62,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "the Karplus-Strong output"
         }
       ],
@@ -94,13 +94,21 @@
     {
       "name": "-midi",
       "description": "sets to MIDI pitch input"
+    },
+    {
+      "name": "-midi_active",
+      "description": "force MIDI mode (default disabled)"
     }
   ],
   "methods": [
     {
       "type": "midi <float>",
-      "description": "non zero sets to MIDI pitch input instead of hz."
+      "description": "nonzero sets to MIDI pitch input instead of Hz"
+    },
+    {
+      "type": "midi_active <float>",
+      "description": "nonzero forces MIDI input over signal"
     }
   ],
-  "body": "[pluck~] is a Karplus-Strong algorithm with a 1st order lowpass filter in the feedback loop. It takes frequency in hertz or midi, a decay time in ms and a cutoff frequency in hz for the filter. It is triggered by signals at zero to non zero transitions or by lists at control rate."
+  "body": "[pluck~] is a Karplus-Strong algorithm with a 1st order lowpass filter in the feedback loop. It takes frequency in Hz or MIDI, a decay time in ms and a cutoff frequency in Hz for the filter. It is triggered by signals at zero to nonzero transitions or by lists at control rate."
 }

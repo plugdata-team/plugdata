@@ -59,7 +59,7 @@
   "arguments": [
     {
       "type": "float",
-      "description": "directory level, 0 \u2014 current patch's directory, 1 \u2014 parent's patch's, etc",
+      "description": "directory level: 0 is the current patch's directory, 1 its parent's, and so on",
       "default": "0"
     },
     {
@@ -108,8 +108,16 @@
       "description": "increments seek value and outputs file"
     },
     {
+      "type": "random",
+      "description": "output a random file from the directory"
+    },
+    {
       "type": "ext <symbol>",
       "description": "sets extension"
+    },
+    {
+      "type": "show/hide",
+      "description": "show or hide internal window with contents"
     }
   ],
   "body": "[dir] accesses files from directories."

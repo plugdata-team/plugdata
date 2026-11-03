@@ -12,7 +12,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float",
           "description": "frequency in Hz"
         }
       ],
@@ -21,7 +21,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float",
           "description": "pulse width (0-1)"
         }
       ],
@@ -30,8 +30,8 @@
     {
       "messages": [
         {
-          "type": "float/signal",
-          "description": "phase sync (internal phase reset)"
+          "type": "float",
+          "description": "phase sync (resets internal phase)"
         }
       ],
       "repeat": false
@@ -41,8 +41,8 @@
     {
       "messages": [
         {
-          "type": "signal",
-          "description": "random pulse signal"
+          "type": "float",
+          "description": "random pulse values"
         }
       ],
       "repeat": false
@@ -68,11 +68,11 @@
   "flags": [
     {
       "name": "-rate <float>",
-      "description": "sets refresh rate in ms"
+      "description": "sets refresh rate in ms (default 1)"
     },
     {
       "name": "-seed <float>",
-      "description": "sets seed"
+      "description": "sets seed (default unique internal)"
     }
   ],
   "methods": [
@@ -82,8 +82,8 @@
     },
     {
       "type": "seed <float>",
-      "description": "non-0 sets to random gate value mode"
+      "description": "a float sets seed, no float sets a unique internal"
     }
   ],
-  "body": "[randpulse] is a random pulse oscillator (which alternates between a random value and 0, or on/off) at control rate with a default resolution of 1 ms). It accepts negative frequencies, has inlets for pulse width and sync."
+  "body": "[randpulse] is a control rate random pulse oscillator: it alternates between a random value and 0, with a default resolution of 1 ms. It accepts negative frequencies and has inlets for pulse width and phase sync."
 }

@@ -12,7 +12,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "list/signals",
           "description": "density (rate) of random impulses"
         }
       ],
@@ -23,7 +23,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "random impulses"
         }
       ],
@@ -40,14 +40,30 @@
   "flags": [
     {
       "name": "-seed <float>",
-      "description": "seed value\ndefault: unique internal"
+      "description": "seed value (default unique internal)"
+    },
+    {
+      "name": "-ch <float>",
+      "description": "number of output channels (default 1)"
+    },
+    {
+      "name": "-mc <list>",
+      "description": "sets multichannel output with a list of densities"
     }
   ],
   "methods": [
+    {
+      "type": "ch <float>",
+      "description": "set number of output channels"
+    },
+    {
+      "type": "set <float, float>",
+      "description": "<channel, freq> set a single frequency channel"
+    },
     {
       "type": "seed <float>",
       "description": "a float sets seed, no float sets a unique internal"
     }
   ],
-  "body": "[dust~] is based on SuperCollider's \"Dust\" UGEN and outputs random impulse values (only positive values up to 1) at random times according to a density parameter. The difference to SuperCollider's is that it only produces actual impulses (one non-0 value in between 0 valued samples)."
+  "body": "[dust~] is based on SuperCollider's \"Dust\" UGEN and outputs random impulse values (only positive values up to 1) at random times according to a density parameter. The difference to SuperCollider's is that it only produces actual impulses (one nonzero value in between 0 valued samples)."
 }

@@ -12,7 +12,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "fm"
         }
       ],
@@ -21,7 +21,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "pwm"
         }
       ],
@@ -30,7 +30,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "sync"
         }
       ],
@@ -51,5 +51,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[lfo.m~] is a MERDA low frequency oscillator module, with signal inputs for frequency modulation and pulse width modulation (for the square and variable saw shapes), both with attenuverters, and a sync input that takes impulses."
 }

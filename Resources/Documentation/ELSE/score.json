@@ -20,7 +20,7 @@
         },
         {
           "type": "float",
-          "description": "non-0 starts, 0 stops sequence"
+          "description": "nonzero starts, 0 stops sequence"
         }
       ],
       "repeat": false
@@ -59,10 +59,23 @@
     {
       "type": "symbol",
       "description": "score file to load",
-      "default": "none\n\nclick: clicking on the object opens data/edit window (same as 'open')"
+      "default": ""
     }
   ],
-  "flags": [],
+  "flags": [
+    {
+      "name": "-k",
+      "description": "keeps contents with the patch"
+    },
+    {
+      "name": "-loop",
+      "description": "sets to looping mode"
+    },
+    {
+      "name": "-speed <float>",
+      "description": "sets speed in percentage (default 100)"
+    }
+  ],
   "methods": [
     {
       "type": "pause",
@@ -79,6 +92,18 @@
     {
       "type": "hide",
       "description": "closes edit window"
+    },
+    {
+      "type": "bar <float>",
+      "description": "set starting bar"
+    },
+    {
+      "type": "loop <float>",
+      "description": "nonzero sets to loop mode"
+    },
+    {
+      "type": "speed <float>",
+      "description": "sets speed in percentage"
     },
     {
       "type": "open <symbol>",

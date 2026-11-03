@@ -1,0 +1,87 @@
+{
+  "title": [
+    "limit~"
+  ],
+  "description": "look-ahead limiter",
+  "origin": "ELSE",
+  "categories": [
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "input signal(s)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "set limiting amplitude threshold (in linear or dB)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "set latency in ms (buffer size is half of this)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "limited signal(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "amplitude limit",
+      "default": "1, or 0 if dB"
+    },
+    {
+      "type": "float",
+      "description": "latency in ms",
+      "default": "1"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-db",
+      "description": "sets amplitude limit in dB (default linear)"
+    }
+  ],
+  "methods": [
+    {
+      "type": "amp <float>",
+      "description": "set amplitude limit (in linear or dB)"
+    },
+    {
+      "type": "dur <float>",
+      "description": "set latency in ms (buffer size is half of this)"
+    },
+    {
+      "type": "db <float>",
+      "description": "nonzero sets to dB amplitude mode"
+    },
+    {
+      "type": "clear",
+      "description": "reset the internal buffers"
+    }
+  ],
+  "body": "[limit~] performs look-ahead limiting, so it outputs with a latency defined by the 2nd argument or rightmost input. The buffer size for peak detection is half the latency time. This is based on SuperCollider's Limiter UGen."
+}

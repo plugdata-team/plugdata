@@ -12,11 +12,11 @@
       "messages": [
         {
           "type": "list",
-          "description": "up to 42 triplets composed of: 1) destination value, 2) time (ms) & 3) curve factor (from -1 to 1)"
+          "description": "up to 42 triplets of target, time in ms and curve factor from -1 to 1"
         },
         {
           "type": "float",
-          "description": "jumps immediately to that value (unless the duration is set before to other than 0 in the mid inlet)"
+          "description": "jumps there, or ramps if the middle inlet set a time"
         }
       ],
       "repeat": false
@@ -25,7 +25,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "curve duration in ms - works only if a float is sent into the left inlet after, and it works only once"
+          "description": "duration in ms, for the next float in the left inlet only"
         }
       ],
       "repeat": false
@@ -91,5 +91,5 @@
       "description": "stops & clears pending targets (still outputs last value)"
     }
   ],
-  "body": "Similar to [line~], but [curve~] produces curved (non linear) ramp signals. Below, when receiving 2 triples (of destination, time & curve factor), [curve~] generates a simple Attack-Release envelope."
+  "body": "Similar to [line~], but [curve~] produces curved (non linear) ramp signals. For example, two triples (of target, time and curve factor) make a simple attack-release envelope."
 }

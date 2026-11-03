@@ -17,7 +17,7 @@
         },
         {
           "type": "bang",
-          "description": "poll current value (if auto-mode is off)"
+          "description": "poll current values when auto mode is off"
         }
       ],
       "repeat": false
@@ -64,7 +64,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "peak number, frequency and amplitude"
+          "description": "peak number, frequency and amplitude (4th argument nonzero)"
         }
       ],
       "repeat": false
@@ -100,11 +100,11 @@
     },
     {
       "type": "vibrato <float, float>",
-      "description": "set period in msec and pitch deviation for \"cooked\" pitch outlet"
+      "description": "set period in ms and pitch deviation for \"cooked\" pitch outlet"
     },
     {
       "type": "reattack <float, float>",
-      "description": "set period in msec and amplitude in dB to report re-attack"
+      "description": "set period in ms and amplitude in dB to report re-attack"
     },
     {
       "type": "auto <float>",
@@ -119,9 +119,9 @@
       "description": "sets number of points in analysis window"
     },
     {
-      "type": "print <float>",
+      "type": "print",
       "description": "print out settings"
     }
   ],
-  "body": ""
+  "body": "[fiddle~] estimates the pitch and amplitude of an incoming sound, both continuously and as a stream of discrete note events, and reports attacks. It can also output the sinusoidal peaks it found in the spectrum. The arguments set the window size, the number of pitches to look for, the number of peaks to consider and the number of peaks to output."
 }

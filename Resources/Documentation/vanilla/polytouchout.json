@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "channel/port\nbref: MIDI output"
+          "description": "MIDI channel/port"
         }
       ],
       "repeat": false
@@ -41,10 +41,10 @@
     {
       "type": "float",
       "description": "channel/port",
-      "default": ""
+      "default": "1"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[polytouchout] sends MIDI polyphonic aftertouch: a value for a note number, on the channel set by the argument or the right inlet. Channels above 16 address further ports: 17 to 32 are channels 1 to 16 of port 2, and so on."
 }

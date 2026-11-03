@@ -13,6 +13,14 @@
         {
           "type": "bang",
           "description": "generates scale"
+        },
+        {
+          "type": "list",
+          "description": "degree start point and tonic"
+        },
+        {
+          "type": "anything",
+          "description": "note name, optionally followed by its degree (default 1)"
         }
       ],
       "repeat": false
@@ -21,7 +29,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "sets octave number"
+          "description": "sets octave number if the note name doesn't have one"
         }
       ],
       "repeat": false
@@ -32,25 +40,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "scale as note names"
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "list",
-          "description": "scale as MIDI pitches"
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "list",
-          "description": "scale as cents"
+          "description": "scale as note names or MIDI pitches"
         }
       ],
       "repeat": false
@@ -68,16 +58,13 @@
       "default": "major"
     }
   ],
-  "flags": [],
+  "flags": [
+    {
+      "name": "-pitch",
+      "description": "sets to MIDI pitch output mode"
+    }
+  ],
   "methods": [
-    {
-      "type": "anything <symbol, f>",
-      "description": "note name and its degree (optional, default 1)"
-    },
-    {
-      "type": "list <f, symbol>",
-      "description": "degree start point and tonic"
-    },
     {
       "type": "scale <list>",
       "description": "sets scale"

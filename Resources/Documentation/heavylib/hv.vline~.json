@@ -42,5 +42,5 @@
       "description": "freeze vline at its current value"
     }
   ],
-  "body": ""
+  "body": "[hv.vline~] is a [line~] based replacement for [vline~]. A float jumps to a value, a target and time pair ramps to it, and 'stop' freezes the output. It doesn't calculate block boundaries or interpolate, so its output can differ very slightly from [vline~]."
 }

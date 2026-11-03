@@ -50,7 +50,12 @@
       "default": "0"
     }
   ],
-  "flags": [],
+  "flags": [
+    {
+      "name": "-local",
+      "description": "sets locality within the same window"
+    }
+  ],
   "methods": [],
   "body": "[sender] is much like vanilla's [send], but can have up to two names and at load time can expand dollar symbols according to parent patches."
 }

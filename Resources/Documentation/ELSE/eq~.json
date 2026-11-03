@@ -13,7 +13,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "signal to be filtered"
         }
       ],
@@ -22,7 +22,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "central frequency in Hz"
         }
       ],
@@ -31,7 +31,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "filter resonance (Q or bandwidth)"
         }
       ],
@@ -40,7 +40,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "gain in dB"
         }
       ],
@@ -51,7 +51,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "filtered signal"
         }
       ],
@@ -82,6 +82,18 @@
     }
   ],
   "methods": [
+    {
+      "type": "freq <list>",
+      "description": "cutoff frequency in Hz for each channel"
+    },
+    {
+      "type": "reson <list>",
+      "description": "filter resonance for each channel"
+    },
+    {
+      "type": "db <list>",
+      "description": "gain in dB for each channel"
+    },
     {
       "type": "clear",
       "description": "clears filter's memory if you blow it up"

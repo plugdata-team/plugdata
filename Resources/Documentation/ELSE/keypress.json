@@ -7,7 +7,12 @@
   "categories": [
     "UI"
   ],
-  "inlets": [],
+  "inlets": [
+    {
+      "messages": [],
+      "repeat": false
+    }
+  ],
   "outlets": [
     {
       "messages": [
@@ -43,6 +48,10 @@
   ],
   "methods": [
     {
+      "type": "set <symbol>",
+      "description": "teach a specific key"
+    },
+    {
       "type": "learn",
       "description": "activate key learn"
     },
@@ -53,14 +62,6 @@
     {
       "type": "query",
       "description": "send stored input on right outlet"
-    },
-    {
-      "type": "teach <symbol>",
-      "description": "teach a specific key"
-    },
-    {
-      "type": "forget",
-      "description": "forget input"
     }
   ],
   "body": "[keypress] uses key presses of a single key to send a bang or a toggle. You can set the key symbol as an argument or ask the object to \"learn\" a pressed key (useful for kys like \"shift\" and stuff), which is then saved as an argument in the owning patch. Note that autorepeated keys are filtered! Key presses in edit mode are also filtered!"

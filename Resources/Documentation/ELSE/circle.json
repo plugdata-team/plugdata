@@ -37,53 +37,73 @@
   "flags": [
     {
       "name": "-size <float>",
-      "description": "sets x/y size\ndefault: 127"
+      "description": "sets x/y size (default 127)"
     },
     {
-      "name": "-line <float>",
-      "description": "non-0 sets line visibility\ndefault: 1"
+      "name": "-range <float, float>",
+      "description": "sets x and y range (default -1 1)"
     },
     {
-      "name": "-fgcolor <f, f, f>",
-      "description": "sets foreground color in RGB\ndefault: 0 0 0"
+      "name": "-xrange <float, float>",
+      "description": "sets x range (default -1 1)"
+    },
+    {
+      "name": "-yrange <float, float>",
+      "description": "sets y range (default -1 1)"
+    },
+    {
+      "name": "-mode <float>",
+      "description": "0 for none, 1 for crosshair, 2 for line to center (default 1)"
     },
     {
       "name": "-grid <float>",
-      "description": "non-0 sets grid visibility\ndefault: 0"
-    },
-    {
-      "name": "-savestate <float>",
-      "description": "non-0 sets will save object state\ndefault: 0"
-    },
-    {
-      "name": "-range <f, f>",
-      "description": "sets range (minimum and maximum values of x and y)\ndefault: -1 1"
-    },
-    {
-      "name": "-xrange <f> / -yrange <f>",
-      "description": "set x/y range independently"
-    },
-    {
-      "name": "-bgcolor1 <f, f, f>",
-      "description": "sets in bounds back color in RGB\ndefault: 255 255 255"
-    },
-    {
-      "name": "-bgcolor2 <f, f, f>",
-      "description": "sets out of bounds color in RGB\ndefault: 255 255 255"
-    },
-    {
-      "name": "-bgcolor <f, f, f>",
-      "description": "sets both background colors in RGB\ndefault: 255 255 255"
+      "description": "nonzero sets grid visibility (default 1)"
     },
     {
       "name": "-clip <float>",
-      "description": "non-0 sets to clip mode\ndefault: 1"
+      "description": "nonzero clips inside the circle (default 1)"
+    },
+    {
+      "name": "-jump <float>",
+      "description": "nonzero sets to jump on click mode (default 0)"
+    },
+    {
+      "name": "-savestate <float>",
+      "description": "nonzero saves the position with the patch (default 0)"
+    },
+    {
+      "name": "-bgcolor1 <float, float, float>",
+      "description": "sets the background square's color in RGB"
+    },
+    {
+      "name": "-bgcolor2 <float, float, float>",
+      "description": "sets the circle's color in RGB"
+    },
+    {
+      "name": "-fgcolor <float, float, float>",
+      "description": "sets foreground color in RGB"
+    },
+    {
+      "name": "-usetheme <float>",
+      "description": "nonzero uses Pd's theme colors instead of the colors set here (default 1)"
+    },
+    {
+      "name": "-transparent <float>",
+      "description": "0 for none, 1 for the background, 2 for all; bare means 1 (default 0)"
+    },
+    {
+      "name": "-send <symbol>",
+      "description": "sets send symbol (default empty)"
+    },
+    {
+      "name": "-receive <symbol>",
+      "description": "sets receive symbol (default empty)"
     }
   ],
   "methods": [
     {
       "type": "set <float, float>",
-      "description": "sets x and y"
+      "description": "sets x and y without output"
     },
     {
       "type": "size <float>",
@@ -91,47 +111,67 @@
     },
     {
       "type": "range <float, float>",
-      "description": "sets range (minimum and maximum values of x and y)"
+      "description": "sets x and y range"
     },
     {
-      "type": "yrange <float>",
-      "description": "sets range (minimum and maximum values of y)"
+      "type": "xrange <float, float>",
+      "description": "sets x range"
     },
     {
-      "type": "xrange <float>",
-      "description": "sets range (minimum and maximum values of x)"
+      "type": "yrange <float, float>",
+      "description": "sets y range"
     },
     {
-      "type": "line <float>",
-      "description": "non-0 sets line visibility"
+      "type": "mode <float>",
+      "description": "0 for none, 1 for crosshair, 2 for line to center"
     },
     {
       "type": "grid <float>",
-      "description": "non-0 sets grid visibility"
-    },
-    {
-      "type": "bgcolor1 <f, f, f>",
-      "description": "sets background color inside circle in RGB"
-    },
-    {
-      "type": "bgcolor2 <f, f, f>",
-      "description": "sets background color outside circle in RGB"
-    },
-    {
-      "type": "bgcolor <f, f, f>",
-      "description": "sets both background colors in RGB"
-    },
-    {
-      "type": "fgcolor <f, f, f>",
-      "description": "sets foreground color in RGB"
-    },
-    {
-      "type": "savestate <float>",
-      "description": "non-0 will save object state"
+      "description": "nonzero sets grid visibility"
     },
     {
       "type": "clip <float>",
-      "description": "non-0 clips inside the circle"
+      "description": "nonzero clips inside the circle"
+    },
+    {
+      "type": "jump <float>",
+      "description": "nonzero sets to jump on click mode"
+    },
+    {
+      "type": "savestate <float>",
+      "description": "nonzero saves the position with the patch"
+    },
+    {
+      "type": "bgcolor1 <float, float, float>",
+      "description": "sets the background square's color in RGB"
+    },
+    {
+      "type": "bgcolor2 <float, float, float>",
+      "description": "sets the circle's color in RGB"
+    },
+    {
+      "type": "bgcolor <float, float, float>",
+      "description": "sets both background colors in RGB"
+    },
+    {
+      "type": "fgcolor <float, float, float>",
+      "description": "sets foreground color in RGB"
+    },
+    {
+      "type": "usetheme <float>",
+      "description": "nonzero uses Pd's theme colors instead of the colors set here"
+    },
+    {
+      "type": "transparent <float>",
+      "description": "0 for none, 1 for the background, 2 for all"
+    },
+    {
+      "type": "send <symbol>",
+      "description": "sets send symbol"
+    },
+    {
+      "type": "receive <symbol>",
+      "description": "sets receive symbol"
     }
   ],
   "body": "[circle] is a two dimensional slider GUI abstraction (see also [else/slider2d)."

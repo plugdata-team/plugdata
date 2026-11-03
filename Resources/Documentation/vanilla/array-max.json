@@ -92,5 +92,5 @@
     }
   ],
   "methods": [],
-  "body": "find highest value in the array"
+  "body": "[array max] outputs the highest value in an array, or in a range of it, and its index."
 }

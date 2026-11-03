@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "freq"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "fm"
         }
       ],
@@ -29,7 +29,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "pm"
         }
       ],
@@ -38,7 +38,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "pwm"
         }
       ],
@@ -47,7 +47,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "sync"
         }
       ],
@@ -58,7 +58,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "audio out"
         }
       ],
@@ -68,5 +68,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[vco.m~] is a MERDA voltage controlled oscillator module with a polyphonic MIDI pitch input (60 when nothing is connected) and CV inputs for frequency modulation, phase modulation and pulse width modulation (for the square and variable saw shapes), plus a sync input that takes impulses. A detune number box shifts the pitch in Hz, and a transposition knob by up to 3 octaves."
 }

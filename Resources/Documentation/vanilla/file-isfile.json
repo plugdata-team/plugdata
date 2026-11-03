@@ -55,5 +55,5 @@
       "description": "set verbosity on or off"
     }
   ],
-  "body": ""
+  "body": "[file isfile] outputs 1 if a path is an existing regular file and 0 if not. The right outlet bangs if an error occurs."
 }

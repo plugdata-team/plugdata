@@ -11,8 +11,8 @@
     {
       "messages": [
         {
-          "type": "float/signal",
-          "description": "frequency in hertz"
+          "type": "float/signals",
+          "description": "frequency in Hz"
         }
       ],
       "repeat": false
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "master level for operator 1"
         }
       ],
@@ -29,7 +29,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "master level for operator 2"
         }
       ],
@@ -38,7 +38,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "master level for operator 3"
         }
       ],
@@ -47,7 +47,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "master level for operator 4"
         }
       ],
@@ -58,7 +58,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "left output"
         }
       ],
@@ -67,7 +67,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "right output"
         }
       ],
@@ -77,7 +77,7 @@
   "arguments": [
     {
       "type": "float",
-      "description": "frequency in hz",
+      "description": "frequency in Hz",
       "default": "0"
     }
   ],
@@ -145,5 +145,5 @@
       "description": "set op volume ('pan1' sets op1, etc)"
     }
   ],
-  "body": "[pm~] is a 4 operators FM (actually phase modulation) synthesizer. Each oscillator can modulate itself and each other."
+  "body": "[pm4~] is a 4 operator FM (actually phase modulation) synthesizer. Each oscillator can modulate itself and the others."
 }

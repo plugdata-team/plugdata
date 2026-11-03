@@ -12,7 +12,7 @@
     {
       "messages": [
         {
-          "type": "signals",
+          "type": "float/signals",
           "description": "a multichannel signal to break into mono tracks"
         }
       ],
@@ -39,5 +39,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": "ssssssssss"
+  "body": "[snake~ out] splits a multichannel signal into mono signals, one per outlet. The argument sets the number of channels."
 }

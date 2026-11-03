@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "signal input into the delay line"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "delay time"
         }
       ],
@@ -31,7 +31,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "the feed forward delayed signal"
         }
       ],
@@ -48,11 +48,11 @@
   "flags": [
     {
       "name": "-size <float>",
-      "description": "delay size, defines the delay's maximum time\ndefault: 1000 ms or argument's value"
+      "description": "delay size, defines the delay's maximum time (default 1000 ms or argument's value)"
     },
     {
       "name": "-samps",
-      "description": "sets delay time unit to \"samples\"\ndefault: ms"
+      "description": "sets delay time unit to \"samples\" (default ms)"
     }
   ],
   "methods": [
@@ -62,7 +62,11 @@
     },
     {
       "type": "freeze <float>",
-      "description": "non-0 freezes, zero unfreezes"
+      "description": "nonzero freezes, zero unfreezes"
+    },
+    {
+      "type": "time <list>",
+      "description": "sets list of delay times"
     },
     {
       "type": "clear",

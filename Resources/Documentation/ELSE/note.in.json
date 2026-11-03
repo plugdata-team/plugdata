@@ -32,7 +32,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "MIDI pitch and note-on velocity"
+          "description": "pitch and velocity (note-on, or both with -both)"
         }
       ],
       "repeat": false
@@ -40,8 +40,21 @@
     {
       "messages": [
         {
+          "type": "float",
+          "description": "MIDI channel"
+        },
+        {
           "type": "list",
-          "description": "MIDI pitch and note-off velocity"
+          "description": "with -rel: pitch and note-off velocity"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "with -rel: MIDI channel"
         }
       ],
       "repeat": false

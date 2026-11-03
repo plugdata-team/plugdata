@@ -17,14 +17,14 @@
           "description": "number to convert to signal"
         }
       ],
-      "repeat": false
+      "repeat": true
     }
   ],
   "outlets": [
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "converted signal"
         }
       ],
@@ -40,5 +40,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[sig~] converts a float to a signal. Its value can only change once per block; for changes in between blocks, use [vline~]."
 }

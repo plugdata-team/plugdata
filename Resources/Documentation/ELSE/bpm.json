@@ -12,8 +12,17 @@
     {
       "messages": [
         {
-          "type": "float",
-          "description": "input to convert"
+          "type": "float/list",
+          "description": "value(s) to convert"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "beat length"
         }
       ],
       "repeat": false
@@ -23,14 +32,20 @@
     {
       "messages": [
         {
-          "type": "float",
-          "description": "converted output"
+          "type": "float/list",
+          "description": "converted value(s)"
         }
       ],
       "repeat": false
     }
   ],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "beat length (as decimal or fraction)",
+      "default": "1/4"
+    }
+  ],
   "flags": [
     {
       "name": "-samps",

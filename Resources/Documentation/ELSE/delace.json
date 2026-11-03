@@ -36,7 +36,12 @@
       "default": "2"
     }
   ],
-  "flags": [],
+  "flags": [
+    {
+      "name": "-z",
+      "description": "add zeros for missing elements"
+    }
+  ],
   "methods": [],
   "body": "[delace] deinterleaves a list according to the number of outlets."
 }

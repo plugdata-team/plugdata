@@ -36,72 +36,120 @@
   "arguments": [],
   "flags": [
     {
-      "name": "-set <float>",
-      "description": "sets value (no output)"
-    },
-    {
-      "name": "-load <float>",
-      "description": "sets load value, no float sets current\ndefault: 0"
-    },
-    {
       "name": "-size <float>",
-      "description": "sets size in pixels\ndefault: 50"
+      "description": "sets size in pixels (default 50)"
     },
     {
-      "name": "-arc <float>",
-      "description": "non zero sets to arc drawing mode\ndefault: 1"
-    },
-    {
-      "name": "-nosquare <float>",
-      "description": "don't draw square\ndefault: 0"
-    },
-    {
-      "name": "-nooutline <float>",
-      "description": "don't draw outline\ndefault: 0"
-    },
-    {
-      "name": "-bgcolor <list>",
-      "description": "sets background color in hexdecimal or RGB list\ndefault: #dfdfdf"
-    },
-    {
-      "name": "-fgcolor <list>",
-      "description": "sets foreground color in hexdecimal or RGB list\ndefault: #000000"
-    },
-    {
-      "name": "-circular <float>",
-      "description": "non zero sets to circular dragging mode\ndefault: 0"
-    },
-    {
-      "name": "-angle <float>",
-      "description": "sets angular range value in degrees\ndefault: 320"
-    },
-    {
-      "name": "-offset <float>",
-      "description": "sets angular offset in degrees\ndefault: 0"
-    },
-    {
-      "name": "-send <symbol>",
-      "description": "sets send symbol\ndefault: empty"
-    },
-    {
-      "name": "-receive <symbol>",
-      "description": "sets receive symbol\ndefault: empty"
+      "name": "-range <float, float>",
+      "description": "sets lower and upper values (default 0 127)"
     },
     {
       "name": "-exp <float>",
-      "description": "sets exponential value\ndefault: 1"
+      "description": "sets an exponential curve (default 0, linear)"
     },
     {
-      "name": "-ticks <float>",
-      "description": "sets number of ticks\ndefault: 0"
+      "name": "-log",
+      "description": "sets to logarithmic mode"
     },
     {
-      "name": "-discrete <float>",
-      "description": "non zero sets to discrete mode\ndefault: 0"
+      "name": "-load <float>",
+      "description": "sets the value output at load time (default 0)"
     },
     {
-      "name": "-jump <float>",
-      "description": "non zero sets to jump on click mode\ndefault: 0"
+      "name": "-default <float>",
+      "description": "sets the value that 'reset' restores (default 0)"
+    },
+    {
+      "name": "-arcstart <float>",
+      "description": "sets the value the arc starts from (default 0)"
+    },
+    {
+      "name": "-angle <float>",
+      "description": "sets angular range in degrees (default 320)"
+    },
+    {
+      "name": "-offset <float>",
+      "description": "sets angular offset in degrees (default 0)"
+    },
+    {
+      "name": "-steps <float>",
+      "description": "sets number of steps (default 0, continuous)"
+    },
+    {
+      "name": "-discrete",
+      "description": "sets to discrete mode"
+    },
+    {
+      "name": "-circular <float>",
+      "description": "sets circular dragging mode, 0 to 2 (default 0)"
+    },
+    {
+      "name": "-jump",
+      "description": "sets to jump on click mode"
+    },
+    {
+      "name": "-readonly",
+      "description": "sets to read-only mode"
+    },
+    {
+      "name": "-nosquare",
+      "description": "doesn't draw the square"
+    },
+    {
+      "name": "-number <float>",
+      "description": "sets number display mode, 0 to 4 (default 0, none)"
+    },
+    {
+      "name": "-numbersize <float>",
+      "description": "sets size of the displayed number, minimum 8 (default 12)"
+    },
+    {
+      "name": "-numberpos <float, float>",
+      "description": "sets position of the displayed number (default 0 -15)"
+    },
+    {
+      "name": "-bgcolor <symbol>",
+      "description": "sets background color in hexadecimal (default #dfdfdf)"
+    },
+    {
+      "name": "-arccolor <symbol>",
+      "description": "sets arc color in hexadecimal (default #7c7c7c)"
+    },
+    {
+      "name": "-fgcolor <symbol>",
+      "description": "sets foreground color in hexadecimal (default #000000)"
+    },
+    {
+      "name": "-notheme",
+      "description": "doesn't use Pd's theme colors"
+    },
+    {
+      "name": "-transparent",
+      "description": "makes the background transparent"
+    },
+    {
+      "name": "-send <symbol>",
+      "description": "sets send symbol (default empty)"
+    },
+    {
+      "name": "-receive <symbol>",
+      "description": "sets receive symbol (default empty)"
+    },
+    {
+      "name": "-param <symbol>",
+      "description": "outputs '<symbol> <value>' messages instead of floats"
+    },
+    {
+      "name": "-var <symbol>",
+      "description": "assigns a [value] variable to the knob"
+    },
+    {
+      "name": "-savestate",
+      "description": "saves the current value with the patch"
+    },
+    {
+      "name": "-noloadbang",
+      "description": "doesn't output the value at load time"
     }
   ],
   "methods": [
@@ -110,8 +158,20 @@
       "description": "sets value (no output)"
     },
     {
+      "type": "dirty",
+      "description": "make the patch dirty so it asks to save changes"
+    },
+    {
       "type": "load <float>",
       "description": "sets load value, no float sets current"
+    },
+    {
+      "type": "default <float>",
+      "description": "sets the value 'reset' restores, no float sets current"
+    },
+    {
+      "type": "reload",
+      "description": "outputs the load value"
     },
     {
       "type": "size <float>",
@@ -123,11 +183,15 @@
     },
     {
       "type": "arc <float>",
-      "description": "non zero sets to arc drawing mode"
+      "description": "nonzero sets to arc drawing mode"
     },
     {
       "type": "square <float>",
-      "description": "non zero sets to square drawing mode"
+      "description": "nonzero sets to square drawing mode"
+    },
+    {
+      "type": "range <float, float>",
+      "description": "sets lower and upper values (default: 0, 127)"
     },
     {
       "type": "bgcolor <list>",
@@ -138,8 +202,20 @@
       "description": "sets foreground color in hexdecimal or RGB list"
     },
     {
+      "type": "colors <symbol, symbol, symbol>",
+      "description": "symbols (hexadecimal or color name) set background, arc and foreground color, respectively"
+    },
+    {
+      "type": "theme <float>",
+      "description": "nonzero sets to themed mode (default: 1)"
+    },
+    {
+      "type": "transparent <float>",
+      "description": "nonzero sets to transparent mode (default: 0)"
+    },
+    {
       "type": "circular <float>",
-      "description": "non zero sets to circular dragging mode"
+      "description": "nonzero sets to circular dragging mode"
     },
     {
       "type": "angle <float>",
@@ -159,19 +235,27 @@
     },
     {
       "type": "exp <float>",
-      "description": "sets exponential value"
+      "description": "sets an exponential curve, 0 for linear"
+    },
+    {
+      "type": "log <float>",
+      "description": "sets to log mode (default: 0)"
     },
     {
       "type": "ticks <float>",
-      "description": "sets number of ticks"
+      "description": "nonzero shows tick marks"
+    },
+    {
+      "type": "steps <float>",
+      "description": "sets number of steps, 0 for continuous"
     },
     {
       "type": "discrete <float>",
-      "description": "non zero sets to discrete mode"
+      "description": "nonzero sets to discrete mode"
     },
     {
       "type": "jump <float>",
-      "description": "non zero sets to jump on click mode"
+      "description": "nonzero sets to jump on click mode"
     },
     {
       "type": "readonly <float>",
@@ -207,16 +291,32 @@
     },
     {
       "type": "param <symbol>",
-      "description": "sets a parameter for the knob"
+      "description": "outputs '<symbol> <value>' messages instead of floats"
     },
     {
       "type": "var <symbol>",
-      "description": "assigns a variable to the knob"
+      "description": "assigns a [value] variable to the knob"
     },
     {
       "type": "arccolor <list>",
-      "description": "sets the arc color of the knob"
+      "description": "sets arc color in hexadecimal or RGB list"
+    },
+    {
+      "type": "learn",
+      "description": "activate a MIDI learn mechanism"
+    },
+    {
+      "type": "forget",
+      "description": "activate a MIDI forget mechanism"
+    },
+    {
+      "type": "inc/dec",
+      "description": "increment/decrement values, like using arrow keys"
+    },
+    {
+      "type": "shift <float>",
+      "description": "increment/decrement by a given number of steps"
     }
   ],
-  "body": ""
+  "body": "[knob] is a knob GUI: click and drag, or scroll, to change its value. It has a range with linear, exponential or logarithmic response, an optional arc and number display, ticks and discrete steps, and can be circular, jump to the clicked position or be read only. Right click for properties."
 }

@@ -2,7 +2,7 @@
   "title": [
     "zl.group"
   ],
-  "description": "list processor",
+  "description": "group elements into lists of a given size",
   "origin": "cyclone",
   "categories": [
     "Data Management"
@@ -12,11 +12,11 @@
       "messages": [
         {
           "type": "bang",
-          "description": "mode dependent operation on current data see"
+          "description": "outputs and clears the remaining stored elements"
         },
         {
           "type": "anything",
-          "description": "one or more element messages to be processed"
+          "description": "elements to group"
         }
       ],
       "repeat": false
@@ -24,8 +24,8 @@
     {
       "messages": [
         {
-          "type": "anything",
-          "description": "depends on the mode, see [pd examples]"
+          "type": "float",
+          "description": "group size"
         }
       ],
       "repeat": false
@@ -35,53 +35,43 @@
     {
       "messages": [
         {
-          "type": "anything",
-          "description": "output according to the mode: see details in [pd examples]"
+          "type": "list",
+          "description": "a full group"
         }
       ],
       "repeat": false
     },
     {
-      "messages": [
-        {
-          "type": "anything",
-          "description": "output according to the mode: see details in [pd examples]"
-        }
-      ],
+      "messages": [],
       "repeat": false
     }
   ],
   "arguments": [
     {
       "type": "float",
-      "description": "maximum list size (optional, 1 - 32767)",
-      "default": "256"
-    },
-    {
-      "type": "symbol",
-      "description": "mode",
-      "default": ""
+      "description": "group size",
+      "default": "0"
     }
   ],
   "flags": [
     {
       "name": "@zlmaxsize <float>",
-      "description": "max list size (1 - 32767)\ndefault: 256"
+      "description": "maximum list size, 1 to 32767 (default 256)"
     }
   ],
   "methods": [
     {
       "type": "mode <symbol>",
-      "description": "sets the mode (change, compare, delace, ecils, group, indexmap, iter, join, lace, len, lookup, median, mth, nth, queue, reg, rev, rot, sect, scramble, slice, sort, stack, stream, sub, sum, swap, thin, union or unique)"
+      "description": "changes the mode, as in [zl]"
     },
     {
       "type": "zlclear",
-      "description": "clears mode's arguments and received data in both inlets"
+      "description": "clears the mode's arguments and the data received in both inlets"
     },
     {
       "type": "zlmaxsize <float>",
-      "description": "sets the maximum list size (1 - 32767, default 256)"
+      "description": "sets the maximum list size, 1 to 32767"
     }
   ],
-  "body": "[zl] processes messages with one or more elements (\"list messages' or \"anything\") according to a mode (set via argument/message)."
+  "body": "[zl.group] collects incoming elements into lists of 'n' elements, where 'n' can't be larger than the maximum list size. Each time a group is full it goes out the left outlet, and the remaining elements are kept for the next one. A bang outputs and clears what's stored. The argument or the right inlet sets the group size."
 }

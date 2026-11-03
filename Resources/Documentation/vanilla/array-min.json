@@ -92,5 +92,5 @@
     }
   ],
   "methods": [],
-  "body": "find lowest value in the array"
+  "body": "[array min] outputs the lowest value in an array, or in a range of it, and its index."
 }

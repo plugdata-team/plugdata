@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "frequency in Hz"
         },
         {
@@ -24,7 +24,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "trigger, determines the maximum amplitude"
         }
       ],
@@ -33,7 +33,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "decay time in ms"
         }
       ],
@@ -44,7 +44,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "damped oscillator with cosine initial phase"
         }
       ],
@@ -53,7 +53,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "damped oscillator with sine initial phase"
         }
       ],
@@ -84,5 +84,5 @@
       "description": "sets to MIDI pitch frequency input"
     }
   ],
-  "body": "[damp.osc~] is based on a complex pole resonant filter ([vcf2~]) with two ouputs (real/cosine and imaginary/sine). It takes frequency in hertz or midi and a decay time in ms. It is triggered by signals at zero to non zero transitions or by lists at control rate."
+  "body": "[damp.osc~] is based on a complex pole resonant filter ([vcf2~]) with two ouputs (real/cosine and imaginary/sine). It takes frequency in Hz or MIDI and a decay time in ms. It is triggered by signals at zero to nonzero transitions or by lists at control rate."
 }

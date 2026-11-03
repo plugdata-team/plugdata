@@ -2,7 +2,7 @@
   "title": [
     "zl.sub"
   ],
-  "description": "list processor",
+  "description": "find a sublist in a list",
   "origin": "cyclone",
   "categories": [
     "Data Management"
@@ -12,11 +12,11 @@
       "messages": [
         {
           "type": "bang",
-          "description": "mode dependent operation on current data see"
+          "description": "performs the operation again on the last received list"
         },
         {
           "type": "anything",
-          "description": "one or more element messages to be processed"
+          "description": "list to search in"
         }
       ],
       "repeat": false
@@ -25,7 +25,7 @@
       "messages": [
         {
           "type": "anything",
-          "description": "depends on the mode, see [pd examples]"
+          "description": "sublist to search for"
         }
       ],
       "repeat": false
@@ -35,8 +35,8 @@
     {
       "messages": [
         {
-          "type": "anything",
-          "description": "output according to the mode: see details in [pd examples]"
+          "type": "float",
+          "description": "position of each occurrence, counting from 1"
         }
       ],
       "repeat": false
@@ -44,8 +44,8 @@
     {
       "messages": [
         {
-          "type": "anything",
-          "description": "output according to the mode: see details in [pd examples]"
+          "type": "float",
+          "description": "number of occurrences"
         }
       ],
       "repeat": false
@@ -53,35 +53,30 @@
   ],
   "arguments": [
     {
-      "type": "float",
-      "description": "maximum list size (optional, 1 - 32767)",
-      "default": "256"
-    },
-    {
-      "type": "symbol",
-      "description": "mode",
+      "type": "list",
+      "description": "sublist to search for",
       "default": ""
     }
   ],
   "flags": [
     {
       "name": "@zlmaxsize <float>",
-      "description": "max list size (1 - 32767)\ndefault: 256"
+      "description": "maximum list size, 1 to 32767 (default 256)"
     }
   ],
   "methods": [
     {
       "type": "mode <symbol>",
-      "description": "sets the mode (change, compare, delace, ecils, group, indexmap, iter, join, lace, len, lookup, median, mth, nth, queue, reg, rev, rot, sect, scramble, slice, sort, stack, stream, sub, sum, swap, thin, union or unique)"
+      "description": "changes the mode, as in [zl]"
     },
     {
       "type": "zlclear",
-      "description": "clears mode's arguments and received data in both inlets"
+      "description": "clears the mode's arguments and the data received in both inlets"
     },
     {
       "type": "zlmaxsize <float>",
-      "description": "sets the maximum list size (1 - 32767, default 256)"
+      "description": "sets the maximum list size, 1 to 32767"
     }
   ],
-  "body": "[zl] processes messages with one or more elements (\"list messages' or \"anything\") according to a mode (set via argument/message)."
+  "body": "[zl.sub] searches a list for occurrences of another one, set by the arguments or the right inlet. The right outlet sends the number of occurrences, and the left outlet the position of each one, counting from 1. When there are none, the right outlet sends 0."
 }

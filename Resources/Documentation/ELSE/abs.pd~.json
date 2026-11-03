@@ -12,7 +12,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "the left input to pd~ subprocess"
         },
         {
@@ -25,7 +25,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "the right input to pd~ subprocess"
         }
       ],

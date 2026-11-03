@@ -1,0 +1,46 @@
+{
+  "title": [
+    "nlist.append"
+  ],
+  "description": "append to a nested list",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "elements to append"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "set name of nested list"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "nested list name to bind to",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "name <symbol>",
+      "description": "set name of nested list"
+    }
+  ],
+  "body": "[nlist.append] appends elements to a nested list."
+}

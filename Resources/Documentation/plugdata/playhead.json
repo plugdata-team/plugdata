@@ -28,7 +28,7 @@
     {
       "messages": [
         {
-          "type": "list <f,f,f>",
+          "type": "list <float, float, float>",
           "description": "1 and start and end of loop if looping, zeros otherwise"
         }
       ],
@@ -82,7 +82,7 @@
     {
       "messages": [
         {
-          "type": "list <f,f,f>",
+          "type": "list <float, float, float>",
           "description": "position <ppq position, time in samples, time in seconds>"
         }
       ],

@@ -32,7 +32,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "elapsed time in msec"
+          "description": "elapsed time in ms"
         }
       ],
       "repeat": false
@@ -57,5 +57,5 @@
       "description": "set tempo value (float) and time unit (symbol)"
     }
   ],
-  "body": ""
+  "body": "[timer] measures elapsed logical time: a bang in the left inlet resets it, and a bang in the right inlet outputs the time since then. Logical time moves forward as if all computation were instantaneous and every [delay] and [metro] were exact. Times are in milliseconds by default, which the 'tempo' message or the arguments can change."
 }

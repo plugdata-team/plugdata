@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "signal to filter (real part)"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "signal to filter (imaginary part)"
         }
       ],
@@ -29,7 +29,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "filter coefficient (real part)"
         }
       ],
@@ -38,7 +38,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "filter coefficient (imaginary part)"
         }
       ],
@@ -83,5 +83,5 @@
       "description": "clear internal state to zero (same as \"set 0 0\")"
     }
   ],
-  "body": "cpole~ filters a complex audio signal (first two inlets"
+  "body": "cpole~ filters a complex audio signal (first two inlets) via a raw one-pole (recursive) filter, whose coefficients are controlled by creation arguments or by another complex audio signal (remaining two inlets).\n\nThe action of cpole~ is:\ny[n] = x[n] + a[n] * y[n-1]\nwhere y[n] is the output, x[n] the input, and a[n] the filter coefficient (all complex numbers). The filter is unstable if/when |a[n]| > 1.\n\nThe transfer function is H(Z) = 1/(1 - aZ^-1).\n\nPd also provides a suite of user-friendly filters. This and other raw filters are provided for situations which the user-friendly ones can't handle. See Chapter 8 of http://msp.ucsd.edu/techniques/latest/book-html/node127.html for an introduction to the necessary theory."
 }

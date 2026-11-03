@@ -1,18 +1,19 @@
 {
   "title": [
-    "seq8.m~"
+    "sortnote"
   ],
-  "description": "8-step sequencer module",
-  "origin": "MERDA",
+  "description": "sort note symbols",
+  "origin": "ELSE",
   "categories": [
-    "Signal Generators"
+    "Tuning",
+    "Data Management"
   ],
   "inlets": [
     {
       "messages": [
         {
           "type": "anything",
-          "description": "message in"
+          "description": "a message to sort"
         }
       ],
       "repeat": false
@@ -22,8 +23,8 @@
     {
       "messages": [
         {
-          "type": "signal",
-          "description": "sequencer out"
+          "type": "list",
+          "description": "the sorted list"
         }
       ],
       "repeat": false
@@ -32,5 +33,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[sortnote] sorts note symbols by pitch."
 }

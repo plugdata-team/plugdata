@@ -64,5 +64,5 @@
     }
   ],
   "methods": [],
-  "body": "\"array define\" maintains an array and can name it so that other objects can find it (and later should have some alternative, anonymous way to be found"
+  "body": "[array size] outputs the size of an array when it gets a bang, and sets it when it gets a float. The array is named by the argument or the right inlet, or found through a pointer with the -s flag."
 }

@@ -1,0 +1,56 @@
+{
+  "title": [
+    "snake_pick~"
+  ],
+  "description": "pick specific channels of a multichannel signal",
+  "origin": "vanilla",
+  "categories": [
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "multichannel signal to pick channels from"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "update channels to be picked (updates DSP)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "multichannel signal of the picked channels"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "channels to be picked",
+      "default": "empty list"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "channels <list>",
+      "description": "update channels to be picked (updates DSP)"
+    }
+  ],
+  "body": "[snake_pick~] is what [snake~ pick] creates."
+}

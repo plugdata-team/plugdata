@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "left channel reverb input"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "right channel reverb input"
         }
       ],
@@ -125,5 +125,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[rev3~] is a bigger reverberator than [rev2~], with two inputs and four outputs, a larger feedback delay network and an early reflections stage. The arguments or inlets set the output level in dB, the liveness (the internal feedback, 100 for infinite reverb), the crossover frequency and the high frequency damping."
 }

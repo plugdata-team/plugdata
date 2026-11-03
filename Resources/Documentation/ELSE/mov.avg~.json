@@ -13,17 +13,8 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "the signal to be averaged"
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float/signal",
-          "description": "number of last samples to apply the average to"
         }
       ],
       "repeat": false
@@ -33,7 +24,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "the moving average over the last 'n' samples"
         }
       ],
@@ -61,6 +52,10 @@
     {
       "type": "clear",
       "description": "clears filter's memory"
+    },
+    {
+      "type": "n <float>",
+      "description": "'n' number of last samples to apply the average to (the filter is cleared when changed)"
     },
     {
       "type": "size <float>",

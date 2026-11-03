@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "audio in"
         }
       ],
@@ -41,5 +41,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[plate.rev.m~] is a MERDA module wrapper around [plate.rev~], a plate reverb with mono input and stereo output. It has no CV inputs yet, so it works like an effect pedal."
 }

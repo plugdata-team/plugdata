@@ -65,27 +65,27 @@
   "flags": [
     {
       "name": "-n <float>",
-      "description": "sets number of presets\ndefault: 64"
+      "description": "sets number of presets (default 64)"
     },
     {
       "name": "-file <symbol>",
-      "description": "set a file to import from\ndefault: none"
+      "description": "set a file to import from (default none)"
     },
     {
       "name": "-morphtime <float>",
-      "description": "sets morph time\ndefault: 0"
+      "description": "sets morph time (default 0)"
     },
     {
-      "name": "-morph <f, f>",
-      "description": "sets morph time and grain\ndefault: 0 20"
+      "name": "-morph <float, float>",
+      "description": "sets morph time and grain (default 0 20)"
     },
     {
       "name": "-interp",
-      "description": "sets to interpolation mode\ndefault: no interpolation"
+      "description": "sets to interpolation mode (default no interpolation)"
     },
     {
       "name": "-exp <float>",
-      "description": "sets exponential factor for morph/interpolation\ndefault: 1"
+      "description": "sets exponential factor for morph/interpolation (default 1)"
     }
   ],
   "methods": [
@@ -106,15 +106,15 @@
       "description": "sets number of presets"
     },
     {
-      "type": "morph <f, f>",
+      "type": "morph <float, float>",
       "description": "sets morph time and grain for morphing between presets"
     },
     {
-      "type": "interp <f>",
+      "type": "interp <float>",
       "description": "sets to interpolation mode"
     },
     {
-      "type": "exp <f>",
+      "type": "exp <float>",
       "description": "sets exponential factor for interpolation/morphing"
     },
     {
@@ -146,5 +146,5 @@
       "description": "export presets as a list"
     }
   ],
-  "body": "[presets] manages presets for patches and abstractions and has interpolation and morphing features. Change the number and symbol below, save a preset and the patch, reopen to recall the presets. Use the \"read\" message to restore to this example's default."
+  "body": "[presets] manages presets for patches and abstractions and has interpolation and morphing features."
 }

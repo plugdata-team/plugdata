@@ -12,7 +12,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "input signal to be filtered"
         }
       ],
@@ -21,7 +21,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "cutoff frequency in linear region"
         }
       ],
@@ -30,7 +30,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "maximum downward slew of linear region"
         }
       ],
@@ -39,7 +39,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "asymptotic downward cutoff frequency"
         }
       ],
@@ -48,7 +48,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "maximum upward slew of linear region"
         }
       ],
@@ -57,7 +57,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "asymptotic upward cutoff frequency"
         }
       ],
@@ -109,5 +109,5 @@
       "description": "set state (previously stored output)"
     }
   ],
-  "body": ""
+  "body": "[slop~] is a lowpass filter whose response speed depends on its state, useful for slew limiting, dynamics processing (companders, limiters, noise gates) and soft saturation. Within a linear region it is a one-pole lowpass at the given cutoff; beyond the maximum upward and downward slews, its cutoff tends to separate asymptotic values."
 }

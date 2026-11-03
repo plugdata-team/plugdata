@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "value to perform the scaling function on"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "minimum output value"
         }
       ],
@@ -29,7 +29,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "maximum output value"
         }
       ],
@@ -40,7 +40,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "the rescaled signal"
         }
       ],
@@ -93,15 +93,19 @@
     },
     {
       "type": "clip <float>",
-      "description": "non zero sets clipping on, 0 sets it off"
+      "description": "nonzero sets clipping on, 0 sets it off"
     },
     {
       "type": "log <float>",
-      "description": "non zero sets to log mode"
+      "description": "nonzero sets to log mode"
     },
     {
       "type": "rlog <float>",
-      "description": "non zero sets to reverse log mode"
+      "description": "nonzero sets to reverse log mode"
+    },
+    {
+      "type": "in <float, float>",
+      "description": "set input range"
     }
   ],
   "body": "By default, [rescale~] rescales input values from -1 to 1 into another range of values (0-1 by default).  You can also set to log or exponential factor (0 by default - linear)."

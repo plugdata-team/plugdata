@@ -57,13 +57,13 @@
   "flags": [
     {
       "name": "-ext",
-      "description": "only listen to external input source\ndefault: no"
+      "description": "only listen to external input source (default no)"
     }
   ],
   "methods": [
     {
-      "type": "-ext <float>",
-      "description": "non zero sets to listen only to external input source"
+      "type": "ext <float>",
+      "description": "nonzero sets to listen only to external input source"
     }
   ],
   "body": "[pgm.in] extracts MIDI Program information from raw MIDI input (such as from [midiin]). Unlike vanilla's [pgmin] and [pgmout], the program change values are from 0 to 127!"

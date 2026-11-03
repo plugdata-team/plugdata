@@ -1,0 +1,51 @@
+{
+  "title": [
+    "conv.filt~"
+  ],
+  "description": "convolution filter",
+  "origin": "ELSE",
+  "categories": [
+    "Filters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "signal(s) to be convolved with samples from the array"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "the filtered signal(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "array name",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clear the filter history"
+    },
+    {
+      "type": "set <symbol>",
+      "description": "set array name"
+    }
+  ],
+  "body": "[conv.filt~] is a table/buffer based FIR (finite impulse response) filter, where an input signal is convolved in the time domain with the IR samples of an array. It works with any kind of array in Pd and takes its size, but the maximum number of samples is 4096."
+}

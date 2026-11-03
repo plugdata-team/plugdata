@@ -55,12 +55,12 @@
     {
       "type": "list",
       "description": "(optional) symbols sets number of inlets and type (f, s, p) and floats set float type and initial value",
-      "default": "f"
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "sets delay time in ms",
-      "default": "0\norder: last"
+      "description": "sets delay time in ms, always the last argument",
+      "default": "0"
     }
   ],
   "flags": [],
@@ -74,5 +74,5 @@
       "description": "sends the scheduled messages immediately"
     }
   ],
-  "body": "Message \"delay line\"\n\nThe [pipe] object stores a sequence of messages and outputs them after a specified delay time in milliseconds. The output is scheduled when storing the incoming message. Thus changing the delay time doesn't affect the messages that are already scheduled.\n\nYou can specify the data type with a first argument (which is a float by default"
+  "body": "Message \"delay line\"\n\nThe [pipe] object stores a sequence of messages and outputs them after a specified delay time in milliseconds. The output is scheduled when storing the incoming message. Thus changing the delay time doesn't affect the messages that are already scheduled.\n\nYou can specify the data type with a first argument (which is a float by default). A symbol argument \"s\", \"f\", or \"p\" specifies a \"symbol\", \"float\" (number), or pointer type. The delay time comes then as the last argument.\n\nYou can specify compound messages (lists) by adding more than one argument."
 }

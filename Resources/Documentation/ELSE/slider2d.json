@@ -16,7 +16,7 @@
         },
         {
           "type": "list",
-          "description": "sets x, y and output it"
+          "description": "sets x and y and outputs them"
         }
       ],
       "repeat": false
@@ -36,87 +36,147 @@
   "arguments": [],
   "flags": [
     {
-      "name": "-size <f>",
-      "description": "sets x/y size\ndefault: 127"
+      "name": "-size <float>",
+      "description": "sets x/y size (default 127)"
     },
     {
-      "name": "-dim <f,f>",
-      "description": "sets x/y dimensions independently\ndefault: 127"
+      "name": "-dim <float, float>",
+      "description": "sets x/y sizes independently (default 127 127)"
     },
     {
-      "name": "-range",
-      "description": "sets x/y range\ndefault: 0 127"
+      "name": "-width <float>",
+      "description": "sets x size (default 127)"
     },
     {
-      "name": "-xrange/-yrange",
-      "description": "sets x/y range independently"
+      "name": "-height <float>",
+      "description": "sets y size (default 127)"
     },
     {
-      "name": "-line <f>",
-      "description": "non-0 sets line visibility\ndefault: 1"
+      "name": "-range <float, float>",
+      "description": "sets x/y range (default 0 127)"
     },
     {
-      "name": "-grid <f>",
-      "description": "non-0 sets grid visibility\ndefault: 0"
+      "name": "-xrange <float, float>",
+      "description": "sets x range (default 0 127)"
     },
     {
-      "name": "-bgcolor <f,f,f>",
-      "description": "sets background color\ndefault: 255 255 255"
+      "name": "-yrange <float, float>",
+      "description": "sets y range (default 0 127)"
     },
     {
-      "name": "-fgcolor <f,f,f>",
-      "description": "sets foreground color\ndefault: 0 0 0"
+      "name": "-line <float>",
+      "description": "nonzero sets line visibility (default 1)"
+    },
+    {
+      "name": "-grid <float>",
+      "description": "nonzero sets grid visibility (default 0)"
+    },
+    {
+      "name": "-bgcolor <float, float, float>",
+      "description": "sets background color in RGB"
+    },
+    {
+      "name": "-fgcolor <float, float, float>",
+      "description": "sets foreground color in RGB"
     },
     {
       "name": "-savestate <float>",
-      "description": "non-0 will save object state\ndefault: 0"
+      "description": "nonzero sets to save state mode (default 0)"
+    },
+    {
+      "name": "-jump <float>",
+      "description": "nonzero sets to jump on click mode (default 0)"
+    },
+    {
+      "name": "-send <symbol>",
+      "description": "sets send symbol (default empty)"
+    },
+    {
+      "name": "-receive <symbol>",
+      "description": "sets receive symbol (default empty)"
+    },
+    {
+      "name": "-usetheme <float>",
+      "description": "nonzero uses Pd's theme colors instead of the colors set here (default 1)"
+    },
+    {
+      "name": "-transparent",
+      "description": "makes the background transparent"
     }
   ],
   "methods": [
     {
-      "type": "set <f,f>",
+      "type": "set <float, float>",
       "description": "sets x and y"
     },
     {
-      "type": "size <f>",
+      "type": "dim <float, float>",
+      "description": "sets x and y size together"
+    },
+    {
+      "type": "size <float>",
       "description": "sets size"
     },
     {
-      "type": "width <f>",
+      "type": "width <float>",
       "description": "sets x (horizontal) size"
     },
     {
-      "type": "height <f>",
+      "type": "height <float>",
       "description": "sets y (vertical) size"
     },
     {
-      "type": "xrange <f,f>",
+      "type": "range <float, float>",
+      "description": "sets range, minimum and maximum of x and y"
+    },
+    {
+      "type": "xrange <float, float>",
       "description": "sets x range"
     },
     {
-      "type": "yrange <f,f>",
+      "type": "yrange <float, float>",
       "description": "sets y range"
     },
     {
-      "type": "line <f>",
-      "description": "- non-0 sets line visibility"
+      "type": "line <float>",
+      "description": "nonzero sets line visibility"
     },
     {
-      "type": "grid <f>",
-      "description": "non-0 sets grid visibility"
+      "type": "grid <float>",
+      "description": "nonzero sets grid visibility"
     },
     {
-      "type": "bgcolor <f,f,f>",
+      "type": "bgcolor <float, float, float>",
       "description": "sets background color in RGB"
     },
     {
-      "type": "fgcolor <f,f,f>",
+      "type": "fgcolor <float, float, float>",
       "description": "sets foreground color in RGB"
     },
     {
       "type": "savestate <float>",
-      "description": "non-0 will save object state"
+      "description": "nonzero sets to save state mode"
+    },
+    {
+      "type": "jump <float>",
+      "description": "nonzero sets to jump on click mode"
+    },
+    {
+      "type": "send <symbol>",
+      "description": "sets send symbol"
+    },
+    {
+      "type": "receive <symbol>",
+      "description": "sets receive symbol"
+    },
+    {
+      "type": "usetheme <float>",
+      "description": "nonzero uses Pd's theme colors instead of the colors set here"
+    },
+    {
+      "type": "transparent <float>",
+      "description": "nonzero makes the background transparent"
     }
   ],
-  "body": "[slider3d] is a two-dimensional slider GUI abstraction (see also [circle)."
+  "body": "[slider2d] is a two-dimensional slider GUI (see also [circle])."
 }

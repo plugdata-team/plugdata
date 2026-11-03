@@ -1,0 +1,55 @@
+{
+  "title": [
+    "nlist.set"
+  ],
+  "description": "set a nested list element",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "element to set"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "set name of nested list"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "nested list name to bind to",
+      "default": ""
+    },
+    {
+      "type": "list",
+      "description": "index",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <list>",
+      "description": "set index"
+    },
+    {
+      "type": "name <symbol>",
+      "description": "set name of nested list"
+    }
+  ],
+  "body": "[nlist.set] sets an element of a nested list. The element can be an atom, a list or a nested list. You need to set the index with the 'set' message or argument (default 0) and it can be a float or a list depending on the level. The indexed element must exist.\n\nYou can replace a list with a single item, or a nested list with a list or an atom, which removes the further indexes of that list. Conversely, you can put a list or a nested list in the place of an atom and create a list of nested indexes."
+}

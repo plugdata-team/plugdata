@@ -21,7 +21,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "threshold value"
         }
       ],
@@ -43,6 +43,11 @@
     {
       "type": "float",
       "description": "threshold",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "initial value",
       "default": "0"
     }
   ],

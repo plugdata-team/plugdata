@@ -12,8 +12,12 @@
     {
       "messages": [
         {
-          "type": "signal",
-          "description": "trigger in"
+          "type": "float/signals",
+          "description": "gate input"
+        },
+        {
+          "type": "bang",
+          "description": "trigger/retrigger"
         }
       ],
       "repeat": false
@@ -21,7 +25,16 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
+          "description": "retrigger with impulses"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
           "description": "attack"
         }
       ],
@@ -30,7 +43,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "decay"
         }
       ],
@@ -39,7 +52,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "sustain"
         }
       ],
@@ -48,8 +61,17 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "release"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "time multiplier (affects all time parameters)"
         }
       ],
       "repeat": false
@@ -59,8 +81,17 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "envelope out"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "release value (can set the release parameter of [voices~])"
         }
       ],
       "repeat": false
@@ -69,5 +100,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[adsr.m~] is a MERDA module of [adsr~]: a polyphonic ADSR envelope with multichannel gate and retrigger inputs (a bang also retriggers). The other inlets are CV inputs for attack, decay, sustain and release, which go through attenuverters and add to the knob values, and a time multiplier for all time parameters. The right outlet sends the release value, which can set the release of [voices~]."
 }

@@ -12,7 +12,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "signals",
           "description": "sets index/phase"
         }
       ],
@@ -23,7 +23,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "table values"
         }
       ],
@@ -35,36 +35,45 @@
       "type": "symbol",
       "description": "array name (optional)",
       "default": "none"
+    },
+    {
+      "type": "float",
+      "description": "set initial loaded channel",
+      "default": "1"
     }
   ],
   "flags": [
     {
+      "name": "-none",
+      "description": "sets to no interpolation"
+    },
+    {
       "name": "-lin",
-      "description": "sets interpolation type"
+      "description": "sets to linear interpolation"
     },
     {
       "name": "-cos",
-      "description": "sets interpolation type"
+      "description": "sets to cosine interpolation"
     },
     {
       "name": "-cubic",
-      "description": "sets interpolation type"
+      "description": "sets to cubic interpolation"
     },
     {
       "name": "-lagrange",
-      "description": "sets interpolation type"
+      "description": "sets to Lagrange interpolation"
     },
     {
-      "name": "-hermite <f, f>",
-      "description": "sets interpolation type"
-    },
-    {
-      "name": "-none",
-      "description": "sets interpolation type"
+      "name": "-hermite <float, float>",
+      "description": "sets to Hermite interpolation with the given tension and bias"
     },
     {
       "name": "-ch <float>",
-      "description": "set initial loaded channel\ndefault: 1"
+      "description": "sets initial loaded channel (default 1)"
+    },
+    {
+      "name": "-index",
+      "description": "sets to indexed mode"
     },
     {
       "name": "-loop",
@@ -77,8 +86,16 @@
       "description": "sets an entire array to be used as a waveform"
     },
     {
+      "type": "channel <float>",
+      "description": "sets the channel to read from a multichannel array"
+    },
+    {
+      "type": "index <float>",
+      "description": "nonzero sets to index mode"
+    },
+    {
       "type": "loop <float>",
-      "description": "non-0 sets loop mode"
+      "description": "nonzero sets loop mode"
     },
     {
       "type": "none",
@@ -93,6 +110,10 @@
       "description": "sets to cosine interpolation"
     },
     {
+      "type": "spline",
+      "description": "sets to spline interpolation, the default"
+    },
+    {
       "type": "cubic",
       "description": "sets to cubic interpolation"
     },
@@ -101,8 +122,8 @@
       "description": "sets to Lagrange interpolation"
     },
     {
-      "type": "hermite <f, f>",
-      "description": "sets to Hermite interpolation"
+      "type": "hermite <float, float>",
+      "description": "sets to Hermite interpolation with the given tension and bias"
     }
   ],
   "body": "[tabreader~] accepts indexes from 0 to 1 by default and reads an array with different interpolation methods with multi channel support. There's no need to have guard points in the array as these are taken care of internally."

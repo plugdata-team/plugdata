@@ -12,7 +12,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "signal to be filtered"
         }
       ],
@@ -41,7 +41,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "the filtered signal"
         }
       ],
@@ -61,7 +61,7 @@
     },
     {
       "type": "float",
-      "description": "non-0 sets to gain mode",
+      "description": "nonzero sets to gain mode",
       "default": "0"
     }
   ],
@@ -77,7 +77,7 @@
     },
     {
       "type": "gain <float>",
-      "description": "non-0 sets to gain mode"
+      "description": "nonzero sets to gain mode"
     }
   ],
   "body": "[allpass.rev~] serves as a reverberator, allpass filter and delay. By default, you can set a delay time and a reverberation/decay time in ms (\"t60\"), which is the time the impulse takes to fall 60dB in energy (but you can change this parameter to a gain coefficient)."

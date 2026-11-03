@@ -56,5 +56,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[route] checks the first element of a message against its arguments: when one matches, the rest of the message goes out the matching outlet, and otherwise the whole message goes out the rightmost outlet. The arguments can be numbers or symbols, but not a mix of the two."
 }

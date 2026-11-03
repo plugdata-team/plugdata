@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "left input signal"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "right input signal"
         }
       ],
@@ -52,7 +52,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "left output"
         }
       ],
@@ -61,7 +61,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "right output"
         }
       ],
@@ -77,5 +77,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[hv.flanger2~] is a stereo flanger. Its right inlet takes messages that set the dry/wet mix, feedback, speed and intensity, and the argument sets the delay time."
 }

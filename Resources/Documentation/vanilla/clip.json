@@ -65,5 +65,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[clip] forces a number into a range: inputs below the lower limit output the lower limit, and inputs above the upper limit output the upper limit. The arguments or the right inlets set the limits."
 }

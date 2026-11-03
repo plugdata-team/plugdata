@@ -11,8 +11,8 @@
     {
       "messages": [
         {
-          "type": "float/signal",
-          "description": "gate: on/attack (non-0) or off/release (0)"
+          "type": "float/signals",
+          "description": "gate: on/attack (nonzero) or off/release (0)"
         },
         {
           "type": "bang",
@@ -20,7 +20,7 @@
         },
         {
           "type": "list",
-          "description": "sets and runs envelope (pairs of duration & target. if odd, 1st float is starting point)"
+          "description": "duration/target pairs, an odd first value is the start"
         }
       ],
       "repeat": false
@@ -28,8 +28,17 @@
     {
       "messages": [
         {
-          "type": "signals",
+          "type": "float/signals",
           "description": "impulses to retrigger the envelope"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "set time multiplier"
         }
       ],
       "repeat": false
@@ -58,7 +67,7 @@
   "arguments": [
     {
       "type": "list",
-      "description": "<f> \u2014 initial output value, <f,f,..> sets the envelope",
+      "description": "one float sets the initial output value, more floats set the envelope",
       "default": "0 0"
     }
   ],
@@ -70,6 +79,10 @@
     {
       "name": "-init <float>",
       "description": "default 0"
+    },
+    {
+      "name": "-curve <float/symbol>",
+      "description": "sets curve for all segments (default linear)"
     },
     {
       "name": "-retrigger <float>",
@@ -84,11 +97,27 @@
       "description": "default 0"
     },
     {
-      "name": "curve <float/symbol>",
-      "description": "sets curve for all segments (default linear)"
+      "name": "-samps",
+      "description": "sets time to samples (default ms)"
+    },
+    {
+      "name": "-loop",
+      "description": "sets to loop mode"
+    },
+    {
+      "name": "-mul <float>",
+      "description": "sets time multiplier (default: 1)"
+    },
+    {
+      "name": "-norm",
+      "description": "normalizes gates/trigger to 1"
     }
   ],
   "methods": [
+    {
+      "type": "norm <float>",
+      "description": "nonzero normalizes gates/impulses to 1"
+    },
     {
       "type": "setgain <float>",
       "description": "sets overall gain"
@@ -123,15 +152,15 @@
     },
     {
       "type": "legato <float>",
-      "description": "non-0 sets to legato mode"
+      "description": "nonzero sets to legato mode"
     },
     {
       "type": "loop <float>",
-      "description": "non-0 sets to loop mode"
+      "description": "nonzero sets to loop mode"
     },
     {
       "type": "samps <float>",
-      "description": "non-0 sets to samples instead of ms"
+      "description": "nonzero sets to samples instead of ms"
     }
   ],
   "body": "[envgen~] is an envelope (and an all purpose line) generator (here it creates a 1000 ms line to 1 and 500 ms line to 0)."

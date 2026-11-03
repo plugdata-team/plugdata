@@ -24,7 +24,7 @@
         },
         {
           "type": "signal",
-          "description": "0 to non-0 transition starts counter. Non-0 to 0 stops it"
+          "description": "0 to nonzero transition starts counter. Nonzero to 0 stops it"
         }
       ],
       "repeat": false
@@ -92,7 +92,7 @@
       "description": "sets minimum value without triggering the counter"
     },
     {
-      "type": "set <f, f>",
+      "type": "set <float, float>",
       "description": "sets minimum and maximum values without triggering"
     }
   ],

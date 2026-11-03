@@ -11,8 +11,8 @@
     {
       "messages": [
         {
-          "type": "float/signal",
-          "description": "carrier frequency in hz"
+          "type": "float/signals",
+          "description": "carrier frequency in Hz"
         }
       ],
       "repeat": false
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "modulation frequency as ratio of carrier"
         }
       ],
@@ -29,18 +29,28 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "modulation index"
         }
       ],
       "repeat": false
     }
   ],
-  "outlets": [],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "frequency modulation output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
   "arguments": [
     {
       "type": "float",
-      "description": "carrier frequency in hz",
+      "description": "carrier frequency in Hz",
       "default": "0"
     },
     {

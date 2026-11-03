@@ -32,7 +32,7 @@
   "arguments": [
     {
       "type": "float",
-      "description": "''1' wrap phase between -PI and PI. '0' \u2014 accumulate values without bounds",
+      "description": "1 wraps the phase between -pi and pi, 0 accumulates values without bounds",
       "default": "0"
     }
   ],

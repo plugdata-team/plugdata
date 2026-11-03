@@ -1,0 +1,70 @@
+{
+  "title": [
+    "formfm~"
+  ],
+  "description": "FM formant oscillator",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "fundamental frequency (f0) in Hz"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "center/formant frequency ratio"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "bandwidth (index)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "formant fm oscillator signal(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "fundamental frequency",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "formant frequency ratio",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "bandwidth or fm index",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[formfm~] is a FM formant oscillator (actually phase modulation) where you specify the fundamental (f0) frequency, the center (or formant) frequency as a ratio and the bandwidth (as the modulation index). The object has support for multichannels."
+}

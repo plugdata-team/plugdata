@@ -51,25 +51,41 @@
     },
     {
       "type": "float",
-      "description": "non-0 sets voice stealing",
+      "description": "nonzero sets voice stealing",
       "default": "0"
     }
   ],
   "flags": [
     {
-      "name": "-rel <f>",
+      "name": "-n <float>",
+      "description": "sets number of voices (default 1)"
+    },
+    {
+      "name": "-rel <float>",
       "description": "sets release time in ms (default: 0)"
     },
     {
       "name": "-retrig",
-      "description": "sets to retrigger mode <0, 1 or 2>\n(default: 0)"
+      "description": "sets to retrigger mode <0, 1 or 2> (default 0)"
     },
     {
       "name": "-split",
       "description": "split mode allocates outputs the given number of voices via separate outlets"
+    },
+    {
+      "name": "-offset <float>",
+      "description": "sets index offset (default 0)"
+    },
+    {
+      "name": "-steal",
+      "description": "sets to voice stealing mode (default no stealing)"
     }
   ],
   "methods": [
+    {
+      "type": "noteoff <float, float>",
+      "description": "sets a note off with note off release"
+    },
     {
       "type": "rel <float>",
       "description": "sets release time in ms"
@@ -80,7 +96,7 @@
     },
     {
       "type": "retrig <float>",
-      "description": "non-0 sets to retrigger mode"
+      "description": "nonzero sets to retrigger mode"
     },
     {
       "type": "clear",
@@ -91,7 +107,7 @@
       "description": "clears memory and output hanging notes"
     },
     {
-      "type": "voices <float>",
+      "type": "n <float>",
       "description": "sets number of voices (in list mode only)"
     }
   ],

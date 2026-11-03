@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "reverb input"
         }
       ],
@@ -58,7 +58,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "first reverb output"
         }
       ],
@@ -116,5 +116,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[rev2~] is a reverberator based on a feedback delay network, with one input and four outputs. The arguments or inlets set the output level in dB, the liveness (the internal feedback, 100 for infinite reverb), the crossover frequency and the high frequency damping: above the crossover, the feedback is reduced by the damping percentage."
 }

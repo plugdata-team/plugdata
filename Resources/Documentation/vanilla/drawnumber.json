@@ -49,8 +49,28 @@
     {
       "name": "-v <symbol>",
       "description": "assigns a field to make it visible/invisible"
+    },
+    {
+      "name": "-xe",
+      "description": "disable mouse actions in edit mode"
+    },
+    {
+      "name": "-xr",
+      "description": "disable mouse actions in run mode"
+    },
+    {
+      "name": "-x",
+      "description": "disable mouse actions in both edit and run mode"
+    },
+    {
+      "name": "-e",
+      "description": "select and edit text after a single mouse click"
+    },
+    {
+      "name": "-ne",
+      "description": "disable text selection and editing"
     }
   ],
   "methods": [],
-  "body": ""
+  "body": "[drawnumber] shows a float field of each scalar of the template it is in as a number, which you can drag up and down in run mode, or edit as text with -e. The position and color can also be field names, and an optional label is shown in front of the value. The -x, -xe and -xr flags disable mouse actions altogether or in edit or run mode."
 }

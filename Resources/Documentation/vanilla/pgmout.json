@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "MIDI channel/port\nbref: MIDI output"
+          "description": "MIDI channel/port"
         }
       ],
       "repeat": false
@@ -32,10 +32,10 @@
     {
       "type": "float",
       "description": "MIDI channel/port",
-      "default": ""
+      "default": "1"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": "**Known bug:** Program change values in [pgmin] and [pgmout] are indexed from 1, which means that the possible values are from 1 to 128 (not 0 to 127)!"
+  "body": "[pgmout] sends program changes to MIDI output, on the given channel. Known bug: program change values in [pgmin] and [pgmout] are indexed from 1, so they go from 1 to 128, not 0 to 127."
 }

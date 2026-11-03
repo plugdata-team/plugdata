@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "input signal to be filtered"
         },
         {
@@ -51,5 +51,5 @@
       "description": "clear filter's memory buffer"
     }
   ],
-  "body": "Biquad~ calculates the following difference equation:\n\n`y(n) = ff1 * w(n) + ff2 * w(n-1) + ff3 * w(n-2)`\n\n`w(n) = x(n) + fb1 * w(n-1) + fb2 * w(n-2)`\n\nThe filter's coefficients syntax (set via arguments or list input) is: fb1 fb2 ff1 ff2 ff3"
+  "body": "Biquad~ calculates the following difference equation:\ny(n) = ff1 * w(n) + ff2 * w(n-1) + ff3 * w(n-2)\nw(n) = x(n) + fb1 * w(n-1) + fb2 * w(n-2)\n\nThe filter's coefficients syntax (set via arguments or list input) is: fb1 fb2 ff1 ff2 ff3"
 }

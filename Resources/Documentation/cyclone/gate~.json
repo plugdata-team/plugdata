@@ -2,7 +2,7 @@
   "title": [
     "gate~"
   ],
-  "description": "route a signal to `n` outlets",
+  "description": "route a signal to n outlets",
   "origin": "cyclone",
   "categories": [
     "Mixing and Routing"
@@ -12,7 +12,7 @@
       "messages": [
         {
           "type": "float/signal",
-          "description": "outlet number to route to - values are truncated to integers and clipped from 0 to number of outlets"
+          "description": "outlet number to route to, 0 closes all"
         }
       ],
       "repeat": false
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "signal to be routed"
         }
       ],

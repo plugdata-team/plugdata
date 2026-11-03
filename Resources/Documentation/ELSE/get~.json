@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signals",
+          "type": "float/signals",
           "description": "multichannel signal to get stuff from"
         },
         {
@@ -26,7 +26,7 @@
     {
       "messages": [
         {
-          "type": "signal(s)",
+          "type": "signals",
           "description": "one or more channels that you got"
         }
       ],

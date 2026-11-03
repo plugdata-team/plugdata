@@ -15,7 +15,7 @@
           "description": "values to write into an array"
         },
         {
-          "type": "list <f, f, f>",
+          "type": "list <float, float, float>",
           "description": "<value>, <index> and <channel>"
         }
       ],

@@ -63,14 +63,14 @@
   "arguments": [
     {
       "type": "float",
-      "description": "float - non-0 turns on the pedal",
+      "description": "float - nonzero turns on the pedal",
       "default": "0 - off"
     }
   ],
   "flags": [
     {
       "name": "-retrig",
-      "description": "sets retrigger mode <0, 1, 2 or 3>\ndefault: 0"
+      "description": "sets retrigger mode <0, 1, 2 or 3> (default 0)"
     },
     {
       "name": "-tonal",
@@ -88,7 +88,7 @@
     },
     {
       "type": "tonal <float>",
-      "description": "non-0 sets to \"tonal\" mode"
+      "description": "nonzero sets to \"tonal\" mode"
     },
     {
       "type": "retrig <float>",

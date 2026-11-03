@@ -60,17 +60,17 @@
     {
       "type": "float",
       "description": "Specifies the coordinates for the left and right vertical clipping planes.",
-      "default": "0\ndefault: 0"
+      "default": "0"
     },
     {
       "type": "float",
       "description": "Specifies the coordinates for the bottom and top horizontal clipping planes.",
-      "default": "0\ndefault: 0"
+      "default": "0"
     },
     {
       "type": "float",
       "description": "Specifies the distances to the near and far depth clipping planes.",
-      "default": "0\ndefault: 0"
+      "default": "0"
     }
   ],
   "flags": [],

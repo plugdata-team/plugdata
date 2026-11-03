@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "signal to be filtered"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "float",
+          "type": "float/signals",
           "description": "cutoff frequency"
         }
       ],
@@ -31,7 +31,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "filtered signal"
         }
       ],
@@ -45,7 +45,21 @@
       "default": "0"
     }
   ],
-  "flags": [],
-  "methods": [],
+  "flags": [
+    {
+      "name": "-coeff",
+      "description": "sets right input to filter coefficient (default hz)"
+    }
+  ],
+  "methods": [
+    {
+      "type": "coeff <float>",
+      "description": "nonzero sets to coefficient input mode"
+    },
+    {
+      "type": "clear",
+      "description": "clear the filter state"
+    }
+  ],
   "body": "[lop2~] is a 1st order lowpass filter (1-pole, 1-zero)."
 }

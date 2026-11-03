@@ -49,7 +49,7 @@
     {
       "messages": [
         {
-          "type": "list/bang",
+          "type": "bang/list",
           "description": "deleted elements or bang when deleting fails"
         }
       ],

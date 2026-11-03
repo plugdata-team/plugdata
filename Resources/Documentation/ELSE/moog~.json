@@ -1,0 +1,109 @@
+{
+  "title": [
+    "moog~"
+  ],
+  "description": "moog filter simulation",
+  "origin": "ELSE",
+  "categories": [
+    "Filters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "signal(s) to be filtered"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "cutoff/resonant frequency in Hz"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "resonance"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "drive"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "filtered signal(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "cutoff/resonant frequency in Hz",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "resonance from 0 to 1",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "drive from -1 to 1",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-oversample <float>",
+      "description": "set oversample (default 2)"
+    }
+  ],
+  "methods": [
+    {
+      "type": "freq <list>",
+      "description": "cutoff frequency in Hz for each channel"
+    },
+    {
+      "type": "reson <list>",
+      "description": "filter resonance for each channel"
+    },
+    {
+      "type": "drive <list>",
+      "description": "drive for each channel"
+    },
+    {
+      "type": "clear",
+      "description": "clears filter's memory if you blow it up"
+    },
+    {
+      "type": "oversample <float>",
+      "description": "set oversampling"
+    },
+    {
+      "type": "bypass <float>",
+      "description": "nonzero bypasses the filter"
+    }
+  ],
+  "body": "[moog~] is similar and based on [bob~], which emulates moog's resonant lowpass filter. This object is also inspired by VCV's VCF module and has support for multichannels."
+}

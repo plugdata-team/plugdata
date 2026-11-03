@@ -60,5 +60,5 @@
       "description": "set a new sequence"
     }
   ],
-  "body": "When receiving a signal trigger (0 to non-0 transition) or a bang, [sequencer~] sends a signal value from a given sequence."
+  "body": "When receiving a signal trigger (0 to nonzero transition) or a bang, [sequencer~] sends a signal value from a given sequence."
 }

@@ -7,7 +7,12 @@
   "categories": [
     "UI"
   ],
-  "inlets": [],
+  "inlets": [
+    {
+      "messages": [],
+      "repeat": false
+    }
+  ],
   "outlets": [
     {
       "messages": [
@@ -26,13 +31,13 @@
   "arguments": [],
   "flags": [
     {
-      "name": "-dim <f, f>",
-      "description": "set horizontal and vertical dimensions\ndefault: 127 127"
+      "name": "-dim <float, float>",
+      "description": "set horizontal and vertical dimensions (default 127 127)"
     }
   ],
   "methods": [
     {
-      "type": "dim <f, f>",
+      "type": "dim <float, float>",
       "description": "set dimension (horizontal and vertical)"
     },
     {
@@ -44,8 +49,12 @@
       "description": "set height"
     },
     {
-      "type": "color <f, f, f>",
+      "type": "color <float, float, float>",
       "description": "set RGB color"
+    },
+    {
+      "type": "transparent <float>",
+      "description": "set background transparency"
     }
   ],
   "body": "[pad] is a GUI object that reports mouse coordinates over its area and click status. If you click and drag, you can get values outside the GUI area."

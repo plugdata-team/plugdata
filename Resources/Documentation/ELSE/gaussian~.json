@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "width"
         }
       ],
@@ -29,7 +29,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "phase sync (resets internal phase)"
         }
       ],
@@ -38,7 +38,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "phase offset (modulation input)"
         }
       ],
@@ -93,11 +93,11 @@
       "description": "nonzero sets frequency input in MIDI pitch"
     },
     {
-      "type": "-set <float, float>",
+      "type": "set <float, float>",
       "description": "<channel, freq> set a single frequency channel"
     },
     {
-      "type": "-soft <float>",
+      "type": "soft <float>",
       "description": "nonzero sets to soft sync mode"
     }
   ],

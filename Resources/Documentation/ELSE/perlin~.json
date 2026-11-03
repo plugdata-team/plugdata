@@ -40,7 +40,7 @@
   "flags": [
     {
       "name": "-seed <float>",
-      "description": "sets seed\ndefault: unique internal"
+      "description": "sets seed (default unique internal)"
     }
   ],
   "methods": [

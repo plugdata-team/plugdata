@@ -91,13 +91,13 @@
   "flags": [
     {
       "name": "@hires <0, 1, 2>",
-      "description": "pitch bend precision (see help)"
+      "description": "pitch bend precision: 0 for 7 bits, 1 for 14-bit floats from -1 to 1, 2 for 14-bit integers"
     }
   ],
   "methods": [
     {
-      "type": "hires <f>",
-      "description": "sets 14-bit pitch bend input precision (see help)"
+      "type": "hires <float>",
+      "description": "sets pitch bend precision: 0 for 7 bits, 1 for 14-bit floats from -1 to 1, 2 for 14-bit integers"
     }
   ],
   "body": "[midiparse] receives raw MIDI data and retrieves different MIDI messages from it."

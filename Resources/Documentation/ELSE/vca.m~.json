@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "audio in"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "gain"
         }
       ],
@@ -41,5 +41,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[vca.m~] is a MERDA voltage controlled amplifier module with a signal input and a CV input for the level. It takes multichannel signals, its VU shows the average of all channels, and its sum toggle (on by default) sums all channels into one output."
 }

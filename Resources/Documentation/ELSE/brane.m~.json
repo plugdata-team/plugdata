@@ -32,5 +32,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[brane.m~] is a MERDA module with a granular sampler that can stretch and compress time, and a harmonizer pitch shifter. The sampler records or plays mono files and runs two pitch shifters, for a root and a harmony voice. Unlike the other modules, it has its own preset system and doesn't save its state with the patch. The argument sets the recording time in minutes, or a file to load."
 }

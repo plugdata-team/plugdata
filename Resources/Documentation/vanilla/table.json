@@ -23,5 +23,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[table] creates a subpatch with an array of the given name and size. Unlike [array define], it doesn't save the array contents with the patch."
 }

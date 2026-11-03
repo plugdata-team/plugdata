@@ -60,8 +60,12 @@
     {
       "name": "-xv",
       "description": "disable dragging vertices when in \"run\" mode (keeps reporting mouse clicks)"
+    },
+    {
+      "name": "-d",
+      "description": "dragging in interior displaces the entire scalar"
     }
   ],
   "methods": [],
-  "body": ""
+  "body": "[drawpolygon] draws connected straight lines for each scalar of the template it is in, through vertices given as x/y pairs in its arguments. The coordinates, color and line width can be field names, so each scalar can look different, and in run mode you can drag the vertices to change those fields. With -v, a field controls whether it is visible."
 }

@@ -25,7 +25,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "sets the seed for the random number generator. 0 will use a random seed, any other integer float is the seed"
+          "description": "sets the random seed, 0 picks a random one"
         }
       ],
       "repeat": false

@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "incoming signal (routed to [dac~ 1])"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "incoming signal (routed to [dac~ 2])"
         }
       ],
@@ -29,7 +29,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "incoming signal (routed to [dac~ 3])"
         }
       ],
@@ -38,7 +38,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "incoming signal (routed to [dac~ 4])"
         }
       ],
@@ -47,7 +47,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "incoming signal (routed to [dac~ 5])"
         }
       ],
@@ -56,7 +56,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "incoming signal (routed to [dac~ 6])"
         }
       ],
@@ -65,7 +65,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "incoming signal (routed to [dac~ 7])"
         }
       ],
@@ -74,7 +74,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "incoming signal (routed to [dac~ 8])"
         }
       ],
@@ -121,5 +121,5 @@
       "description": "sets ramp time in ms for slider values (default 20)"
     }
   ],
-  "body": "[out8~] is a convenient octaphonic input/output abstraction. It has controls for mute, DSP on/off, ramp time, maximum gain and scaling mode. Note that you need to specify at least 8 output channels in preferences => audio."
+  "body": "[out8~] is a convenient octaphonic input/output abstraction. It has controls for mute, DSP on/off, ramp time, maximum gain and scaling mode. Note that you need to specify at least 8 output channels in the audio settings."
 }

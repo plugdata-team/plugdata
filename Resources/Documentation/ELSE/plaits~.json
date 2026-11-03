@@ -11,8 +11,12 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "pitch input"
+        },
+        {
+          "type": "list",
+          "description": "note on/off messages with pitch and velocity"
         }
       ],
       "repeat": false
@@ -20,7 +24,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "signal trigger input"
         }
       ],
@@ -29,8 +33,44 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "level for built-in VCA or excitation signal"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "frequency modulation input"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "timbre modulation input"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "harmonics modulation input"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "morph modulation input"
         }
       ],
       "repeat": false
@@ -40,7 +80,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "regular signal output"
         }
       ],
@@ -49,7 +89,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "secondary (auxiliary) signal output"
         }
       ],
@@ -74,17 +114,17 @@
     {
       "type": "float",
       "description": "harmonics",
-      "default": "0"
+      "default": "0.5"
     },
     {
       "type": "float",
       "description": "timbre",
-      "default": "0"
+      "default": "0.5"
     },
     {
       "type": "float",
       "description": "morph",
-      "default": "0"
+      "default": "0.5"
     },
     {
       "type": "float",
@@ -95,24 +135,59 @@
       "type": "float",
       "description": "decay",
       "default": "0.5"
+    },
+    {
+      "type": "float",
+      "description": "timbre modulation attenuverter",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "frequency modulation attenuverter",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "morph modulation attenuverter",
+      "default": "0"
     }
   ],
   "flags": [
     {
-      "name": "-cv/-midi",
-      "description": "set to pitch input in CV, MIDI\ndefault: Hz"
+      "name": "-cv",
+      "description": "sets pitch input to CV (default Hz)"
+    },
+    {
+      "name": "-midi",
+      "description": "sets pitch input to MIDI (default Hz)"
     },
     {
       "name": "-model <float>",
-      "description": "set model number\ndefault: 0"
+      "description": "set model number (default 0)"
     },
     {
-      "name": "-trigger",
-      "description": "set to trigger mode\ndefault: regular"
+      "name": "-tr_active",
+      "description": "enables trigger input (default disabled)"
     },
     {
-      "name": "-level",
-      "description": "enables level input\ndefault: disabled"
+      "name": "-lvl_active",
+      "description": "enables level input (default disabled)"
+    },
+    {
+      "name": "-timbre_active",
+      "description": "enables timbre modulation input (default disabled)"
+    },
+    {
+      "name": "-freq_active",
+      "description": "enables frequency modulation input (default disabled)"
+    },
+    {
+      "name": "-morph_active",
+      "description": "enables morph modulation input (default disabled)"
+    },
+    {
+      "name": "-midi_active",
+      "description": "force MIDI mode (default disabled)"
     }
   ],
   "methods": [
@@ -129,8 +204,16 @@
       "description": "set frequency mode to CV"
     },
     {
-      "type": "trigger <float>",
-      "description": "non-0 sets to trigger mode"
+      "type": "transp <float>",
+      "description": "set transposition in MIDI"
+    },
+    {
+      "type": "tr_active <float>",
+      "description": "nonzero sets to trigger mode"
+    },
+    {
+      "type": "lvl_active <float>",
+      "description": "nonzero enables level input"
     },
     {
       "type": "model <float>",
@@ -145,8 +228,36 @@
       "description": "set timbre (0-1)"
     },
     {
+      "type": "timbre_mod <float>",
+      "description": "set timbre modulation attenuverter (-1 to 1)"
+    },
+    {
+      "type": "timbre_active <float>",
+      "description": "nonzero activates signal input modulation"
+    },
+    {
       "type": "morph <float>",
       "description": "set morph (0-1)"
+    },
+    {
+      "type": "morph_mod <float>",
+      "description": "set morph modulation attenuverter (-1 to 1)"
+    },
+    {
+      "type": "morph_active <float>",
+      "description": "nonzero activates signal input modulation"
+    },
+    {
+      "type": "freq_active <float>",
+      "description": "nonzero activates signal input modulation"
+    },
+    {
+      "type": "midi_active <float>",
+      "description": "nonzero forces MIDI input over signal"
+    },
+    {
+      "type": "freq_mod <float>",
+      "description": "set frequency modulation attenuverter (-1 to 1)"
     },
     {
       "type": "cutoff <float>",

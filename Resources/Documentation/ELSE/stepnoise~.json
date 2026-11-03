@@ -40,11 +40,11 @@
   "flags": [
     {
       "name": "-seed <float>",
-      "description": "sets seed\ndefault: unique internal"
+      "description": "sets seed (default unique internal)"
     },
     {
       "name": "-ch <float>",
-      "description": "number of output channels\ndefault: 1"
+      "description": "number of output channels (default 1)"
     },
     {
       "name": "-mc <list>",

@@ -20,6 +20,15 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "list to compare to"
+        }
+      ],
+      "repeat": false
     }
   ],
   "outlets": [

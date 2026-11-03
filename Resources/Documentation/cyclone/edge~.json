@@ -23,7 +23,7 @@
       "messages": [
         {
           "type": "bang",
-          "description": "at zero to non-0 transition"
+          "description": "at zero to nonzero transition"
         }
       ],
       "repeat": false
@@ -32,7 +32,7 @@
       "messages": [
         {
           "type": "bang",
-          "description": "at non-0 to zero transition"
+          "description": "at nonzero to zero transition"
         }
       ],
       "repeat": false
@@ -41,5 +41,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": "[edge~] detects signal transitions from zero to non-0 and vice versa and reports bangs accordingly."
+  "body": "[edge~] detects signal transitions from zero to nonzero and vice versa and reports bangs accordingly."
 }

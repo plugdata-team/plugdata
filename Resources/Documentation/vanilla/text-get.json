@@ -63,7 +63,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "0 if terminated by semicolon, 1 if by comma, or 2 if message number out of range"
+          "description": "0 for a semicolon, 1 for a comma, 2 if out of range"
         }
       ],
       "repeat": false
@@ -93,5 +93,5 @@
     }
   ],
   "methods": [],
-  "body": ""
+  "body": "[text get] outputs a line of a text, given its number (0 for the first), or a range of its elements. The right outlet sends 0 if the line ended with a semicolon, 1 for a comma, or 2 if the number is out of range. The text is named by the argument or the right inlet, or found through a pointer with -s."
 }

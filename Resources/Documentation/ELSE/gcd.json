@@ -11,12 +11,8 @@
     {
       "messages": [
         {
-          "type": "float",
-          "description": "float input value"
-        },
-        {
-          "type": "list",
-          "description": "list of input values"
+          "type": "float/list",
+          "description": "input value(s)"
         }
       ],
       "repeat": false

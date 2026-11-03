@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "left-hand signal"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "right-hand signal"
         }
       ],
@@ -31,8 +31,8 @@
     {
       "messages": [
         {
-          "type": "signal",
-          "description": "1 if left input is equal to right input, 0 otherwise"
+          "type": "signals",
+          "description": "1 if left input is not equal to right input, 0 otherwise"
         }
       ],
       "repeat": false
@@ -41,5 +41,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[hv.neq~] outputs a signal that is 1 where its left input is not equal to its right input, and 0 elsewhere."
 }

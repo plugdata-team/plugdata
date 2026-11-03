@@ -41,10 +41,10 @@
     {
       "type": "float",
       "description": "MIDI channel/port",
-      "default": ""
+      "default": "OMNI"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[notein] outputs MIDI note messages: the note number, velocity and channel. A release comes out as velocity 0. It listens on all channels by default; an argument sets the channel and removes the channel outlet. Channels above 16 address further ports: 17 to 32 are channels 1 to 16 of port 2, and so on."
 }

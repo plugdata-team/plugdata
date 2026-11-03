@@ -1,0 +1,60 @@
+{
+  "title": [
+    "filter"
+  ],
+  "description": "filter a float or symbol from a data stream",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/symbol",
+          "description": "a message to be filtered"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/symbol",
+          "description": "element to filter"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float/symbol",
+          "description": "the filtered element"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/symbol",
+          "description": "the unfiltered element"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float/symbol",
+      "description": "element to filter",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[filter] outputs an element to be filtered on the left outlet and the unfiltered ones on the right outlet. This is very similar to [select] but outputs the filtered element instead."
+}

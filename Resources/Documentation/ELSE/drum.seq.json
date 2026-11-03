@@ -36,6 +36,19 @@
         {
           "type": "bang",
           "description": "when reaching the end of the sequence"
+        },
+        {
+          "type": "export <list>",
+          "description": "the sequence contents, after an 'export' message"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "when reaching the end of the sequence"
         }
       ],
       "repeat": false
@@ -45,19 +58,43 @@
   "flags": [
     {
       "name": "-tracks <float>",
-      "description": "sets tracks\ndefault: 2"
+      "description": "sets number of tracks (default 2)"
     },
     {
       "name": "-slots <float>",
-      "description": "sets number of slots\ndefault: 8"
+      "description": "sets number of slots (default 8)"
     },
     {
       "name": "-size <float>",
-      "description": "sets cell size in pixels\ndefault: 20"
+      "description": "sets cell size in pixels (default 20)"
     },
     {
       "name": "-embed",
-      "description": "sets embedding mode\ndefault: no embedding"
+      "description": "sets embedding mode (default no embedding)"
+    },
+    {
+      "name": "-bgcolor <float, float, float>",
+      "description": "sets background color in RGB"
+    },
+    {
+      "name": "-activecolor <float, float, float>",
+      "description": "sets active cell color in RGB"
+    },
+    {
+      "name": "-gridcolor <float, float, float>",
+      "description": "sets grid line color in RGB"
+    },
+    {
+      "name": "-flashcolor <float, float, float>",
+      "description": "sets the color the current column flashes in, in RGB"
+    },
+    {
+      "name": "-usetheme <float>",
+      "description": "nonzero uses Pd's theme colors instead of the colors set here (default 1)"
+    },
+    {
+      "name": "-transparent",
+      "description": "makes the background transparent"
     }
   ],
   "methods": [
@@ -72,6 +109,30 @@
     {
       "type": "clear",
       "description": "clears active cells (no output)"
+    },
+    {
+      "type": "bgcolor <float, float, float>",
+      "description": "sets background color in RGB"
+    },
+    {
+      "type": "activecolor <float, float, float>",
+      "description": "sets active cell color in RGB"
+    },
+    {
+      "type": "gridcolor <float, float, float>",
+      "description": "sets grid line color in RGB"
+    },
+    {
+      "type": "flashcolor <float, float, float>",
+      "description": "sets the color the current column flashes in, in RGB"
+    },
+    {
+      "type": "usetheme <float>",
+      "description": "nonzero uses Pd's theme colors instead of the colors set here"
+    },
+    {
+      "type": "transparent <float>",
+      "description": "nonzero makes the background transparent"
     },
     {
       "type": "export <float>",
@@ -95,11 +156,7 @@
     },
     {
       "type": "embed <float>",
-      "description": "non-0 save internal contents with the object"
-    },
-    {
-      "type": "export <list>",
-      "description": "array of contexts via the \"export\" message"
+      "description": "nonzero save internal contents with the object"
     }
   ],
   "body": "[drum.seq] provides a drum grid so you can activate cells to represent attacks."

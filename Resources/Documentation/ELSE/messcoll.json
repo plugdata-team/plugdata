@@ -1,0 +1,164 @@
+{
+  "title": [
+    "messcoll"
+  ],
+  "description": "collection of messages accessed via keys",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "outputs current/next address and its data"
+        },
+        {
+          "type": "list",
+          "description": "store address (1st element) and message (others)"
+        },
+        {
+          "type": "float/symbol",
+          "description": "set the address and output it with its data"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "set a name to access data from another [messcoll]"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "the stored message(s) at a given address"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/symbol",
+          "description": "integer or symbol atom address of the stored message"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "information output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "object name to bind to",
+      "default": ""
+    },
+    {
+      "type": "symbol",
+      "description": "filename to load",
+      "default": ""
+    }
+  ],
+  "flags": [
+    {
+      "name": "-k",
+      "description": "keep/saves contents with the patch"
+    },
+    {
+      "name": "-t",
+      "description": "threaded mode for reading operation"
+    }
+  ],
+  "methods": [
+    {
+      "type": "store <anything>",
+      "description": "store address (1st element) and message"
+    },
+    {
+      "type": "delete <float/symbol>",
+      "description": "delete address and its data"
+    },
+    {
+      "type": "clear",
+      "description": "delete all data"
+    },
+    {
+      "type": "dump",
+      "description": "dumps all values (1st outlet) and addresses (2nd)"
+    },
+    {
+      "type": "goto <float/symbol>",
+      "description": "goto an address (without output)"
+    },
+    {
+      "type": "prev",
+      "description": "outputs previous address and its data"
+    },
+    {
+      "type": "next",
+      "description": "same as bang: outputs next address and its data"
+    },
+    {
+      "type": "start",
+      "description": "sets the pointer to the first entry/address"
+    },
+    {
+      "type": "end",
+      "description": "sets the pointer to the last entry/address"
+    },
+    {
+      "type": "size",
+      "description": "sends number of stored values to rightmost outlet"
+    },
+    {
+      "type": "read <symbol>",
+      "description": "read a file (no symbol opens dialog window)"
+    },
+    {
+      "type": "write <symbol>",
+      "description": "save a file (no symbol opens dialog window)"
+    },
+    {
+      "type": "import <anything>",
+      "description": "import data from a list"
+    },
+    {
+      "type": "export",
+      "description": "export data as a list to the rightmost outlet"
+    },
+    {
+      "type": "show",
+      "description": "open editing window"
+    },
+    {
+      "type": "hide",
+      "description": "closes editing window"
+    },
+    {
+      "type": "keep <float>",
+      "description": "nonzero sets to save contents with the patch"
+    },
+    {
+      "type": "threaded <float>",
+      "description": "nonzero sets to threaded mode"
+    }
+  ],
+  "body": "In [messcoll], messages are stored with a given address/key, which can be either float (as a positive integer) or a symbol. You can add an entry with a list or 'store' message. The first element of a \"list\" or \"store\" message sets the address and it's shown in the edit window split by a comma. You can store multiple messages split by a comma (which need to be escaped by a backslash)."
+}

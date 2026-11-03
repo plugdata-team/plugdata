@@ -44,7 +44,7 @@
   "flags": [
     {
       "name": "-lin",
-      "description": "sets the output to linear\ndefault: dBFS"
+      "description": "sets the output to linear (default dBFS)"
     }
   ],
   "methods": [
@@ -54,7 +54,7 @@
     },
     {
       "type": "lin",
-      "description": "non zero sets to linear output"
+      "description": "nonzero sets to linear output"
     }
   ],
   "body": "[peak~] is similar to Pd Vanilla's [env~], but it reports the peak amplitude value in linear (default) or dBFS."

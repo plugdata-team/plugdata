@@ -41,10 +41,10 @@
     {
       "type": "float",
       "description": "MIDI channel/port",
-      "default": ""
+      "default": "1"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[noteout] sends MIDI note messages: a note number and velocity, on the channel set by the argument or the right inlet (channel 1 by default). A velocity of 0 is a note-off. Channels above 16 address further ports: 17 to 32 are channels 1 to 16 of port 2, and so on."
 }

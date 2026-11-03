@@ -1,0 +1,42 @@
+{
+  "title": [
+    "listspread"
+  ],
+  "description": "distribute lists to outlets",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "outlet index and elements to be distributed"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float/symbol",
+          "description": "elements sent from an inlet to a specified outlet"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets the number of outlets",
+      "default": "2"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[listspread] takes lists whose first element is an outlet number, starting at 1, and sends the other elements out that outlet and the following ones, one element per outlet. When there are no other elements, it outputs a bang. The argument sets the number of outlets."
+}

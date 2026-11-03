@@ -5,7 +5,12 @@
   "description": "the ELSE binary",
   "origin": "ELSE",
   "categories": [],
-  "inlets": [],
+  "inlets": [
+    {
+      "messages": [],
+      "repeat": false
+    }
+  ],
   "outlets": [
     {
       "messages": [

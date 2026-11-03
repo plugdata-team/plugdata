@@ -12,7 +12,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "input to hyperbolic arc-cosine function, this value is stored and updates the argument"
+          "description": "input to the hyperbolic arc-cosine function, also stored for bangs"
         },
         {
           "type": "bang",

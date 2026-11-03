@@ -32,5 +32,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": "{{< md_include \"objects/acoustic-conversions.md\" >}}"
+  "body": "[dbtorms] converts dB to linear (\"RMS\") amplitude. dB in Pd are dBFS with an offset of 100, so 100 dB corresponds to an RMS of 1. Zero dB, which should correspond to an RMS of 1e-05, is rounded down to zero instead, as are values below 0. [rmstodb] does the reverse."
 }

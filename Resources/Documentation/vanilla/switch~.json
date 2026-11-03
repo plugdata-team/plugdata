@@ -13,7 +13,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "non-0 turns DSP on, zero turns DSP off"
+          "description": "nonzero turns DSP on, zero turns DSP off"
         },
         {
           "type": "bang",
@@ -48,5 +48,5 @@
       "description": "set argument values (size, overlap, up/downsampling)"
     }
   ],
-  "body": ""
+  "body": "[switch~] sets the block size, overlap and up/downsampling of the window it is in, like [block~], and can also switch DSP on and off for that window: a nonzero float turns it on and 0 off. While it is off, a bang computes one DSP cycle."
 }

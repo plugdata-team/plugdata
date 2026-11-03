@@ -37,10 +37,15 @@
     {
       "type": "float",
       "description": "port to connect to at load time",
-      "default": ""
+      "default": "disconnected"
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "disconnect",
+      "description": "close connection"
+    }
+  ],
   "body": "[osc.receive] receives OSC messages from network connections and is an abstraction based on [osc.parse] and [netreceive]."
 }

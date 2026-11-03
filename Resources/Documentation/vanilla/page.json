@@ -12,5 +12,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[page] is an alias for [pd]: it creates a subpatch, a patch window inside the current patch."
 }

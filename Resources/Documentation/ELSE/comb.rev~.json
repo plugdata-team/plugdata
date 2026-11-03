@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "signal input to the filter"
         }
       ],
@@ -58,7 +58,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "output from comb filter"
         }
       ],
@@ -87,7 +87,12 @@
       "default": "0"
     }
   ],
-  "flags": [],
+  "flags": [
+    {
+      "name": "-size <float>",
+      "description": "sets delay size, which defines the delay's maximum time (default 1000 ms or argument's value if flag not given)"
+    }
+  ],
   "methods": [
     {
       "type": "size <float>",

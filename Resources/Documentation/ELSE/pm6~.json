@@ -11,8 +11,8 @@
     {
       "messages": [
         {
-          "type": "float/signal",
-          "description": "frequency in hertz"
+          "type": "float/signals",
+          "description": "frequency in Hz"
         }
       ],
       "repeat": false
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "master level for operator 1"
         }
       ],
@@ -29,7 +29,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "master level for operator 2"
         }
       ],
@@ -38,7 +38,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "master level for operator 3"
         }
       ],
@@ -47,7 +47,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "master level for operator 4"
         }
       ],
@@ -56,7 +56,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "master level for operator 5"
         }
       ],
@@ -65,7 +65,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "master level for operator 6"
         }
       ],
@@ -76,7 +76,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "left output"
         }
       ],
@@ -85,7 +85,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "right output"
         }
       ],
@@ -95,7 +95,7 @@
   "arguments": [
     {
       "type": "float",
-      "description": "frequency in hz",
+      "description": "frequency in Hz",
       "default": "0"
     }
   ],

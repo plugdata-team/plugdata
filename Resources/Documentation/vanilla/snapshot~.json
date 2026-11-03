@@ -13,6 +13,10 @@
     {
       "messages": [
         {
+          "type": "float/signals",
+          "description": "signal to convert"
+        },
+        {
           "type": "bang",
           "description": "convert a signal to a float"
         }
@@ -24,7 +28,7 @@
     {
       "messages": [
         {
-          "type": "float",
+          "type": "float/list",
           "description": "the converted signal at every bang"
         }
       ],

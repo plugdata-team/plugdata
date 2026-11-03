@@ -11,28 +11,12 @@
     {
       "messages": [
         {
-          "type": "dim <f, f>",
-          "description": "sets horizontal and vertical size in pixels"
+          "type": "bang",
+          "description": "when in bang mode, activates bang, change state otherwise"
         },
         {
-          "type": "size <float>",
-          "description": "sets both horizontal and vertical size in pixels"
-        },
-        {
-          "type": "width <float>",
-          "description": "sets horizontal size in pixels"
-        },
-        {
-          "type": "height <float>",
-          "description": "sets vertical size in pixels"
-        },
-        {
-          "type": "bgcolor <f, f, f>",
-          "description": "sets background color in RGB"
-        },
-        {
-          "type": "fgcolor <f, f, f>",
-          "description": "sets foreground color in RGB"
+          "type": "float",
+          "description": "when not in bang mode, set state"
         }
       ],
       "repeat": false
@@ -52,28 +36,52 @@
   "arguments": [],
   "flags": [
     {
-      "name": "-bang",
+      "name": "-bng",
       "description": "sets to bang mode (default latch)"
     },
     {
-      "name": "-toggle",
+      "name": "-tgl",
       "description": "sets to toggle mode (default latch)"
     },
     {
-      "name": "-dim <float, float>",
-      "description": "x/y dimensions (default = 20, 20)"
+      "name": "-oval",
+      "description": "sets to oval style"
     },
     {
-      "name": "size <float>",
+      "name": "-readonly",
+      "description": "sets to readonly mode"
+    },
+    {
+      "name": "-dim <float, float>",
+      "description": "x/y dimensions (default 20 20)"
+    },
+    {
+      "name": "-size <float>",
       "description": "sets both horizontal and vertical size in pixels"
     },
     {
-      "name": "-bgcolor <float, float>",
+      "name": "-send <symbol>",
+      "description": "set send name"
+    },
+    {
+      "name": "-receive <symbol>",
+      "description": "set receive name"
+    },
+    {
+      "name": "-transparent <float>",
+      "description": "set transparency level"
+    },
+    {
+      "name": "-bgcolor <float, float, float>",
       "description": "background color in RGB (default 255 255 255)"
     },
     {
-      "name": "-fgcolor <float, float>",
+      "name": "-fgcolor <float, float, float>",
       "description": "foreground color in RGB (default 255 255 255)"
+    },
+    {
+      "name": "-click",
+      "description": "sets to click mode (default latch)"
     }
   ],
   "methods": [
@@ -82,16 +90,40 @@
       "description": "sets to latch mode"
     },
     {
-      "type": "toggle",
+      "type": "tgl",
       "description": "sets to toggle mode"
     },
     {
-      "type": "bang",
+      "type": "bng",
       "description": "sets to bang mode"
     },
     {
-      "type": "dim <f, f>",
+      "type": "click",
+      "description": "sets to click mode"
+    },
+    {
+      "type": "toggle",
+      "description": "flips the state and outputs it (toggle mode only)"
+    },
+    {
+      "type": "set <float>",
+      "description": "sets the state without output (not in bang mode)"
+    },
+    {
+      "type": "dim <float, float>",
       "description": "sets horizontal and vertical size in pixels"
+    },
+    {
+      "type": "send <symbol>",
+      "description": "set send symbol"
+    },
+    {
+      "type": "receive <symbol>",
+      "description": "set receive symbol"
+    },
+    {
+      "type": "oval <float>",
+      "description": "nonzero sets to oval style, 0 hides it"
     },
     {
       "type": "size <float>",
@@ -106,12 +138,20 @@
       "description": "sets vertical size in pixels"
     },
     {
-      "type": "bgcolor <f, f, f>",
+      "type": "bgcolor <float, float, float>",
       "description": "sets background color in RGB"
     },
     {
-      "type": "fgcolor <f, f, f>",
+      "type": "fgcolor <float, float, float>",
       "description": "sets foreground color in RGB"
+    },
+    {
+      "type": "transparent <float>",
+      "description": "set transparency level"
+    },
+    {
+      "type": "readonly <float>",
+      "description": "nonzero sets to 'read only'"
     }
   ],
   "body": "[button] is a GUI button that responds to mouse clicks. When clicked on, it sends a \"1\" value, and outputs \"0\" when releasing the mouse button."

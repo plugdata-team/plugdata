@@ -3,7 +3,7 @@
     "delay",
     "del"
   ],
-  "description": "bang at a delayed time",
+  "description": "send a bang after a time delay",
   "origin": "vanilla",
   "categories": [
     "Triggers and Clocks",
@@ -73,5 +73,5 @@
       "description": "set tempo value (float) and time unit symbol"
     }
   ],
-  "body": ""
+  "body": "[delay] outputs a bang after a delay time, set by the argument or the right inlet. A bang starts the delay and a float sets the time and starts it; restarting it while it runs reschedules the output, and 'stop' cancels it. Times are in milliseconds by default, which the 'tempo' message or the 2nd and 3rd arguments can change."
 }

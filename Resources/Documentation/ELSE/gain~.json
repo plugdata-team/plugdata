@@ -12,7 +12,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "incoming signal whose gain will be adjusted"
         },
         {
@@ -27,7 +27,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "the adjusted gain signal"
         }
       ],
@@ -51,15 +51,15 @@
     },
     {
       "name": "-mode <float>",
-      "description": "sets scaling mode; 0 (quartic), 1 (dB) or 2 (linear)\ndefault: quartic"
+      "description": "sets scaling mode; 0 (quartic), 1 (dB) or 2 (linear) (default quartic)"
     },
     {
       "name": "-ramp <float>",
-      "description": "sets ramp time (minimum 5)\ndefault: 20"
+      "description": "sets ramp time (minimum 5) (default 20)"
     },
     {
       "name": "-savestate",
-      "description": "save object state\ndefault: 0"
+      "description": "save object state (default 0)"
     }
   ],
   "methods": [
@@ -81,7 +81,7 @@
     },
     {
       "type": "savestate <float>",
-      "description": "non-0 will save object state"
+      "description": "nonzero will save object state"
     },
     {
       "type": "learn",

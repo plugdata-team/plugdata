@@ -1,0 +1,36 @@
+{
+  "title": [
+    "snake_sum~"
+  ],
+  "description": "sum a multichannel signal into a mono signal",
+  "origin": "vanilla",
+  "categories": [
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "multichannel signal to sum into a mono signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the summed mono output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[snake_sum~] is what [snake~ sum] creates."
+}

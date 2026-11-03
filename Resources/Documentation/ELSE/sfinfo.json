@@ -36,6 +36,11 @@
   ],
   "arguments": [],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "inst",
+      "description": "query instrument metadata for aif files"
+    }
+  ],
   "body": "[sfinfo] supports all files that [sfload] and [play.file~] support and can be used to query file sample information but only channels so far as this object is still very experimental)."
 }

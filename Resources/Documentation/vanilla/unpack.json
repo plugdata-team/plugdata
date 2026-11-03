@@ -38,5 +38,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[unpack] splits a list into its elements and sends each out its own outlet, from right to left. The arguments set the number of outlets and the type of each element: f for float, s for symbol or p for pointer."
 }

@@ -22,7 +22,7 @@
         },
         {
           "type": "list",
-          "description": "1st element sets starting sample and 2nd element sets duration in samples"
+          "description": "starting sample and duration in samples"
         }
       ],
       "repeat": false
@@ -32,7 +32,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "sample output"
         }
       ],

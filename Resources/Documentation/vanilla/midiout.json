@@ -13,6 +13,10 @@
         {
           "type": "float",
           "description": "raw MIDI byte by byte"
+        },
+        {
+          "type": "list",
+          "description": "MIDI packets"
         }
       ],
       "repeat": false
@@ -21,7 +25,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "MIDI channel/port\nbref: MIDI output"
+          "description": "MIDI channel/port"
         }
       ],
       "repeat": false
@@ -31,5 +35,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[midiout] sends raw MIDI output, byte by byte or as packet lists, so it can send any MIDI message, including real-time and sysex ones. The right inlet sets the port number."
 }

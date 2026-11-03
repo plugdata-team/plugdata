@@ -11,11 +11,20 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "input channels"
         }
       ],
       "repeat": true
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "spread parameter"
+        }
+      ],
+      "repeat": false
     }
   ],
   "outlets": [
@@ -39,6 +48,11 @@
       "type": "float",
       "description": "'n' number of outputs (2 to 512)",
       "default": "2"
+    },
+    {
+      "type": "float",
+      "description": "spread",
+      "default": "1"
     }
   ],
   "flags": [],

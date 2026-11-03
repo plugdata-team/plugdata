@@ -16,7 +16,7 @@
         },
         {
           "type": "float",
-          "description": "non-0 (re)starts playing, zero stops"
+          "description": "nonzero (re)starts playing, zero stops"
         }
       ],
       "repeat": false
@@ -68,6 +68,10 @@
     {
       "name": "-loop",
       "description": "turns loop mode on"
+    },
+    {
+      "name": "-mc",
+      "description": "sets to multichannel output"
     }
   ],
   "methods": [
@@ -78,6 +82,14 @@
     {
       "type": "stop",
       "description": "stop playing the sample"
+    },
+    {
+      "type": "pause",
+      "description": "pause playback (resume with 'continue')"
+    },
+    {
+      "type": "continue",
+      "description": "resume playback where it was paused"
     },
     {
       "type": "open <symbol>",

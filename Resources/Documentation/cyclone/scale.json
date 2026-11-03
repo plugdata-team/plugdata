@@ -71,7 +71,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/list",
           "description": "the scaled values according to output range"
         }
       ],
@@ -107,8 +107,8 @@
   ],
   "flags": [
     {
-      "name": "@classic <int>",
-      "description": "0 \u2014 \"modern\", 1 \u2014 \"classic\" mode\ndefault: 0"
+      "name": "@classic <float>",
+      "description": "0 for \"modern\", 1 for \"classic\" mode (default 0)"
     }
   ],
   "methods": [

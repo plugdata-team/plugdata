@@ -51,5 +51,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[&&] outputs 1 if both its left and right inputs are nonzero, and 0 otherwise (a logical AND). Inputs are truncated to integers, so 0.5 counts as zero. A bang evaluates the operation again."
 }

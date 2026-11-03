@@ -54,7 +54,7 @@
   "arguments": [
     {
       "type": "float",
-      "description": ">= 0 \u2014 ascending, descending otherwise",
+      "description": "0 or more sorts ascending, negative descending",
       "default": "0"
     }
   ],

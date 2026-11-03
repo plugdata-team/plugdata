@@ -32,5 +32,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": "Unlike the signal version cos~, control-rate trigonometric functions take inputs in radians."
+  "body": "[atan] outputs the arc tangent of its input, as an angle in radians between -pi/2 and pi/2. [atan2] takes two inputs and covers the full circle."
 }

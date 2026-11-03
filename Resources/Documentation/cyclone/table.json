@@ -3,7 +3,7 @@
     "table",
     "cyclone/table"
   ],
-  "description": "index values or else depending on the given message",
+  "description": "store and edit a number array",
   "origin": "cyclone",
   "categories": [
     "Arrays and Tables"
@@ -13,15 +13,15 @@
       "messages": [
         {
           "type": "bang",
-          "description": "same as the quantile message with a random number between 0 and 32768 as an argument (see quantile in [pd All_Messages])"
+          "description": "outputs a random address, weighted by the table values like 'quantile'"
         },
         {
           "type": "float",
-          "description": "index (x): outputs its value or stores the value from the right inlet (if given) at that index"
+          "description": "index: outputs its value, or stores the right inlet's value there"
         },
         {
           "type": "list",
-          "description": "a pair of index (x) and its value (y): sets `y` to `x`"
+          "description": "index and value pair: stores the value at that index"
         }
       ],
       "repeat": false
@@ -90,16 +90,12 @@
       "description": "1 toggles saving the data as part of the patch - default 0 (don't save)"
     },
     {
-      "type": "flags <f, f>",
+      "type": "flags <float, float>",
       "description": "<1, 0> saves contents with the patch when it's saved, <0, 1> doesn't"
     },
     {
       "type": "fquantile <float>",
       "description": "sends the address at which the sum of all values up to that address is >= to the the sum of all table values times the <float> (between 0 and 1)"
-    },
-    {
-      "type": "getbits <list>",
-      "description": "1st float is the address to query, 2nd is starting bit location (0-31 from LSB to MSB) and 3rd is how many bits to the right of starting bit should be sent (as a single decimal integer)"
     },
     {
       "type": "goto <float>",
@@ -127,7 +123,7 @@
     },
     {
       "type": "name <symbol>",
-      "description": "sets a table name and is the same as `refer`"
+      "description": "sets a table name and is the same as refer"
     },
     {
       "type": "next",
@@ -135,7 +131,7 @@
     },
     {
       "type": "normal",
-      "description": "changes from `load mode` to `normal` mode (see `load message`)"
+      "description": "changes from load mode to normal mode (see load message)"
     },
     {
       "type": "open",
@@ -143,10 +139,10 @@
     },
     {
       "type": "prev",
-      "description": "similar to `next` message, but the decreases the pointer address (and wraps to last address when reaching start)"
+      "description": "similar to next message, but the decreases the pointer address (and wraps to last address when reaching start)"
     },
     {
-      "type": "quantile <int>",
+      "type": "quantile <float>",
       "description": "sends the address at which the sum of the all values up to that address is >= the the sum of all table values times the <int> divided by 2^15 (32768)"
     },
     {
@@ -166,10 +162,6 @@
       "description": "the first float specifies a starting address and the next numbers specify the values to be stored from that address on"
     },
     {
-      "type": "setbits <list>",
-      "description": "changes a stored number's bit values: 1st float is the address, 2nd is the starting bit location (0-31 from LSB to MSB), 3rd is how many from starting bit should be modified and 4th is the value (in decimal or hexadecimal form) to which those bits should be set"
-    },
-    {
       "type": "size <float>",
       "description": "sets the number of values in the table ("
     },
@@ -186,5 +178,5 @@
       "description": "opens a standard save file dialog for saving it in a text file format"
     }
   ],
-  "body": "[table] stores and edits a number array. You can graphically edit it by opening it or double clicking on it. There are also several message methods, check it below."
+  "body": "[table] stores and edits a number array. You can graphically edit it by opening it or double clicking on it. It also takes many messages to read, write and analyze its values."
 }

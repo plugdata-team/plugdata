@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "incoming signal (routed to [dac~ 1])"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "incoming signal (routed to [dac~ 2])"
         }
       ],
@@ -29,7 +29,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "incoming signal (routed to [dac~ 3])"
         }
       ],
@@ -38,7 +38,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "incoming signal (routed to [dac~ 4])"
         }
       ],
@@ -85,5 +85,5 @@
       "description": "sets ramp time in ms for slider values (default 20)"
     }
   ],
-  "body": "[out4~] is a convenient quadraphonic input/output abstraction. It has controls for mute, DSP on/off, ramp time, maximum gain and scaling mode. Note that you need to specify at least 4 output channels in preferences => audio."
+  "body": "[out4~] is a convenient quadraphonic input/output abstraction. It has controls for mute, DSP on/off, ramp time, maximum gain and scaling mode. Note that you need to specify at least 4 output channels in the audio settings."
 }

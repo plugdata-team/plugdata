@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "incoming value to be converted"
         }
       ],
@@ -22,7 +22,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "converted value"
         }
       ],
@@ -32,5 +32,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": "{{< md_include \"objects/acoustic-conversions-for-audio-signals.md\" >}}"
+  "body": "[dbtopow~] converts a signal in dB to power units (the square of the \"RMS\" amplitude), sample by sample, so that 100 dB corresponds to a power of 1. It outputs true zero for 0 dB and less."
 }

@@ -51,5 +51,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": "combine several atoms into one message"
+  "body": "[pack] combines several atoms into one list. The left inlet is hot: it outputs the list, while the other inlets only store their values. The arguments set the number of elements and their types: f for float, s for symbol, p for pointer, or a number as an initial float."
 }

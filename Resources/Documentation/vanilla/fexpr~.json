@@ -12,7 +12,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "input to '$x1'"
         }
       ],
@@ -69,5 +69,5 @@
       "description": "clear input/output memory, optional symbol specifies a specific input (such as x1) or output (y1)"
     }
   ],
-  "body": "{{< md_include \"objects/expr-family.md\" >}}"
+  "body": "[fexpr~] evaluates expressions sample by sample with access to previous input and output samples, which makes it a flexible tool for building FIR and IIR filters. It works like [expr] with the addition of $x# for signal inputs and $y# for previous outputs. Inlets are defined by variables of the form $t#, where 't' is the type and # is the inlet number, counting from 1 at the left (up to 100): $f# is a float, $i# is an integer (floats are truncated) and $s# is a symbol, used for array names.\n\n$x# is followed by a sample index in brackets: \"$x1[-1]\" is the previous sample of the first inlet, and without brackets the current sample is implied, so a filter that averages each sample with the previous one is \"fexpr~ ($x1 + $x1[-1])/2\". $y# accesses previous output samples of expression #, indexed from -1. Indexes reach back up to the block size (64 by default), and fractional indexes are linearly interpolated.\n\nMultiple expressions separated by semicolons (up to 100) create one outlet each.\n\nArrays and variables (defined with [value]) are accessed as in C: \"tab[5]\" is element 5 of the array \"tab\", \"$s2[5]\" is element 5 of the array whose name came into inlet 2, and \"valx + 10\" adds 10 to the [value] named \"valx\". The store function \"=\" writes the result of an operation into a variable or array index, as in \"tab[$f1] = $f2\".\n\nBesides the C operators (arithmetic, relational, bitwise and logical), the available functions are:\nmath: min, max, int, rint, round, trunc, nearbyint, float, abs, fmod, remainder, floor, ceil, modf, imodf, copysign, ldexp, hypot, if, random, isnan, isinf, finite\npower and log: pow, sqrt, cbrt, exp, expm1, ln, log, log10, log1p, fact, erf, erfc\ntrigonometry: sin, cos, tan, asin, acos, atan, atan2, sinh, cosh, tanh, asinh, acosh, atanh\ntables: size, sum, Sum, avg, Avg\nacoustics: mtof, ftom, dbtorms, rmstodb, dbtopow, powtodb\nFunctions that output a symbol only work in [expr]."
 }

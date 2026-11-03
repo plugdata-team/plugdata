@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "real signal to filter"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "filter coefficient"
         }
       ],
@@ -56,5 +56,5 @@
       "description": "clear internal state to zero (same as \"set 0\")"
     }
   ],
-  "body": "Rzero~ filters an audio signal (left inlet"
+  "body": "Rzero~ filters an audio signal (left inlet) via a raw one-zero (non-recursive) real filter, whose coefficient is controlled by a creation argument or by an audio signal (right inlet).\n\nThe action of rzero~ is:\ny[n] = x[n] - a[n] * x[n-1]\nwhere y[n] is the output, x[n] the input, and a[n] the filter coefficient. The filter is always stable.\n\nThe transfer function is H(Z) = 1 - aZ^-1.\n\nPd also provides a suite of user-friendly filters. This and other raw filters are provided for situations which the user-friendly ones can't handle. See Chapter 8 of http://msp.ucsd.edu/techniques/latest/book-html/node127.html for an introduction to the necessary theory."
 }

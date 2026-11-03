@@ -16,6 +16,15 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI channel"
+        }
+      ],
+      "repeat": false
     }
   ],
   "outlets": [
@@ -29,13 +38,28 @@
       "repeat": false
     }
   ],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "MIDI channel (0 is OMNI)",
+      "default": ""
+    }
+  ],
   "flags": [
     {
       "name": "-font <symbol>",
       "description": "default 'dejavu sans mono' or 'menlo' for mac"
+    },
+    {
+      "name": "-ext",
+      "description": "only output to outlet"
     }
   ],
-  "methods": [],
-  "body": "[midi.in] sends MIDI data from \"cooked\" data, instead of \"raw\" data like [midiout]. It takes data type symbol, values and channel (but a note output is received as a simple numeric list). It outputs raw MIDI data but it also sends out to the connected MIDI device."
+  "methods": [
+    {
+      "type": "ext <float>",
+      "description": "nonzero sets to listen only to external mode"
+    }
+  ],
+  "body": "[midi.out] sends MIDI data from \"cooked\" data, instead of \"raw\" data like [midiout]. It takes data type symbol, values and channel (but a note output is received as a simple numeric list). It outputs raw MIDI data but it also sends out to the connected MIDI device."
 }

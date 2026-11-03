@@ -11,17 +11,8 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "list/signals",
           "description": "frequency in Hz (negative values accepted)"
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float/signal",
-          "description": "'p' parameter (from 0 to 1)"
         }
       ],
       "repeat": false
@@ -31,7 +22,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "logistic chaotic signal"
         }
       ],
@@ -47,10 +38,29 @@
     {
       "type": "float",
       "description": "sets p",
-      "default": "0.5"
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "sets y[n-1]",
+      "default": "0.1"
     }
   ],
-  "flags": [],
-  "methods": [],
+  "flags": [
+    {
+      "name": "-mc <list>",
+      "description": "sets multichannel output with a list of frequencies"
+    }
+  ],
+  "methods": [
+    {
+      "type": "coeffs <list>",
+      "description": "up to 2 floats set 'p' and y[n-1]"
+    },
+    {
+      "type": "set <float, float>",
+      "description": "<channel, freq> set a single frequency channel"
+    }
+  ],
   "body": "[logistic~] is a chaotic generator based on the difference equation: y[n] = (3 + p) * y[n-1] * (1- y[n-1])."
 }

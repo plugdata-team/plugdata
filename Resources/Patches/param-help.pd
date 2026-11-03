@@ -19,7 +19,7 @@
 #X text 49 93 [param] sends and receives automation parameters to the DAW. You'll have to create an automation parameter in the sidebar., f 82;
 #X text 377 217 Use the paramname-gui-s and paramname-gui-r pair to send/receive values directly to GUI objects, f 55;
 #X obj 5 293 cnv 3 550 4 empty empty inlets 8 12 0 13 #dcdcdc #000000 0;
-#X obj 81 304 cnv 17 4 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 81 304 cnv 17 4 112 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
 #X obj 83 433 cnv 17 4 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0;
 #X obj 4 520 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000 0;
 #X msg 4 150 create;
@@ -36,8 +36,10 @@
 #X text 202 473 float;
 #X text 246 473 - DAW parameter value;
 #X text 245 303 - set DAW parameter value, f 45;
-#X text 189 525 1) float;
-#X text 246 525 - automatically handle parameter change state when GUI objects are interacted with \, 1 is enabled (default 0);
+#X text 182 525 1) symbol;
+#X text 246 525 - parameter name;
+#X text 189 545 2) float;
+#X text 246 545 - automatically handle parameter change state when GUI objects are interacted with \, 1 is enabled (default 0);
 #X text 256 339 this makes the parameter active in the sidebar and the DAW;
 #X text 63 321 create <float> <float> <float>;
 #X text 245 321 - create parameter \, optional arguments set: default value \, minimum \, maximum, f 77;

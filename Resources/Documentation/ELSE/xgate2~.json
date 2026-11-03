@@ -12,7 +12,7 @@
       "messages": [
         {
           "type": "signal",
-          "description": "channel selection"
+          "description": "input signal"
         }
       ],
       "repeat": false
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "output position"
         }
       ],
@@ -29,7 +29,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "spread parameter"
         }
       ],
@@ -44,7 +44,7 @@
           "description": "routed outputs with crossfade"
         }
       ],
-      "repeat": false
+      "repeat": true
     }
   ],
   "arguments": [
@@ -61,14 +61,14 @@
   ],
   "flags": [
     {
-      "name": "index",
+      "name": "-index",
       "description": "sets to indexed mode"
     }
   ],
   "methods": [
     {
       "type": "index <float>",
-      "description": "<1> \u2014 indexed mode, <0> \u2014 non-indexed (default)"
+      "description": "nonzero sets to indexed mode (default non indexed)"
     }
   ],
   "body": "[xgate2~] routes an input signal to 'n' specified outlets with equal power crossfade between two adjacent channels."

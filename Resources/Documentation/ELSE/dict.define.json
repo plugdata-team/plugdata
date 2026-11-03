@@ -1,0 +1,72 @@
+{
+  "title": [
+    "dict.define",
+    "dict"
+  ],
+  "description": "define, store and edit dictionaries",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "set and store dictionary data"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "name to bind to",
+      "default": ""
+    },
+    {
+      "type": "symbol",
+      "description": "filename to open",
+      "default": ""
+    }
+  ],
+  "flags": [
+    {
+      "name": "-k",
+      "description": "keep/saves contents with the patch"
+    }
+  ],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "delete all data"
+    },
+    {
+      "type": "show",
+      "description": "open editing window"
+    },
+    {
+      "type": "hide",
+      "description": "close editing window"
+    },
+    {
+      "type": "sort",
+      "description": "sorts the dictionary data"
+    },
+    {
+      "type": "read <symbol>",
+      "description": "read a file (no symbol opens dialog window)"
+    },
+    {
+      "type": "write <symbol>",
+      "description": "save a file (no symbol opens dialog window)"
+    },
+    {
+      "type": "keep <float>",
+      "description": "nonzero sets to save contents with the patch"
+    }
+  ],
+  "body": "[dict.define] defines a container for dictionaries in JSON syntax. With a given name, the data is shared and can be accessed and changed by the other dict objects, such as [dict.get], [dict.set] and [dict.add]. Unlike [messcoll], [dict.define] objects must not share the same name.\n\nKeys are symbols inside quotes followed by a colon, and values can be an atom, a list, a nested list or another dictionary. Nested keys are addressed by the other dict objects as a path separated by slashes, as in \"key/subkey\".\n\nBy default, the contents are not saved with the patch, but you can change that with the -k flag or the 'keep' message, which remains valid when reopening and resaving the patch. If a file argument is given, the keep flag and message are ignored, since the data is stored in the file.\n\nClicking on the object opens an editor window. Shift+click opens a dialog window to read a file, and alt+click one to save a file."
+}

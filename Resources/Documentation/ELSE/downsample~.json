@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "signal to be downsampled"
         },
         {
@@ -24,7 +24,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "rate (in Hz) used to downsample the input signal"
         }
       ],
@@ -35,7 +35,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "downsampled signal"
         }
       ],

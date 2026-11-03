@@ -1,0 +1,65 @@
+{
+  "title": [
+    "snake_split~"
+  ],
+  "description": "split a multichannel signal into 2 output signals",
+  "origin": "vanilla",
+  "categories": [
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "multichannel signal"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets new 'n' split point (updates DSP)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "the first 'n' channels of the input"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "the remaining channels"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initialize split point",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "index <float>",
+      "description": "sets new 'n' split point (updates DSP)"
+    }
+  ],
+  "body": "[snake_split~] is what [snake~ split] creates."
+}

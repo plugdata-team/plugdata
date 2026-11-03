@@ -1,0 +1,123 @@
+{
+  "title": [
+    "bassdrum~",
+    "bd~"
+  ],
+  "description": "classic bass drum algorithm",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "pulse(s) that set the accent and trigger"
+        },
+        {
+          "type": "bang",
+          "description": "control trigger"
+        },
+        {
+          "type": "float",
+          "description": "sets accent and triggers"
+        },
+        {
+          "type": "list <float, float>",
+          "description": "sets pitch in MIDI, velocity (0-127) and triggers"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "bass drum synthesis"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "frequency in Hz",
+      "default": "50"
+    },
+    {
+      "type": "float",
+      "description": "level value from 0 to 1",
+      "default": "0.5"
+    },
+    {
+      "type": "float",
+      "description": "punch value from 0 to 1",
+      "default": "0.5"
+    },
+    {
+      "type": "float",
+      "description": "tone value from 0 to 1",
+      "default": "0.5"
+    },
+    {
+      "type": "float",
+      "description": "decay value from 0 to 1",
+      "default": "0.5"
+    },
+    {
+      "type": "float",
+      "description": "ptime value from 0 to 1",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "pdepth value from 0 to 1",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-mode <float>",
+      "description": "sets mode: 0 is TR-808 (default), 1 is TR-909-like"
+    }
+  ],
+  "methods": [
+    {
+      "type": "level <float>",
+      "description": "sets accent for control trigger"
+    },
+    {
+      "type": "freq <float>",
+      "description": "bass drum resonant frequency in Hz"
+    },
+    {
+      "type": "mode <float>",
+      "description": "sets mode: 0 is TR-808, 1 is TR-909-like"
+    },
+    {
+      "type": "punch <float>",
+      "description": "attack sharpness and amount of overdrive"
+    },
+    {
+      "type": "tone <float>",
+      "description": "sets brightness"
+    },
+    {
+      "type": "decay <float>",
+      "description": "sets amplitude envelope decay time"
+    },
+    {
+      "type": "ptime <float>",
+      "description": "sets pitch envelope decay time"
+    },
+    {
+      "type": "pdepth <float>",
+      "description": "sets pitch envelope amount"
+    }
+  ],
+  "body": "[bassdrum~] provides a simulation of classic bass drums (TR-808 and TR-909 like). This is extracted from the Plaits module from Mutable Instruments.\n\nThe 'level' message only matters for control triggers: with a gate or impulse input signal, the level is taken from the signal's absolute value."
+}

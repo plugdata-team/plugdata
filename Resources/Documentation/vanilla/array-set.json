@@ -64,5 +64,5 @@
     }
   ],
   "methods": [],
-  "body": "set contents (all or a range) from a list"
+  "body": "[array set] writes a list into an array, starting at an onset (0 by default)."
 }

@@ -70,5 +70,5 @@
       "description": "stop the ramp"
     }
   ],
-  "body": ""
+  "body": "[line] outputs numbers ramping linearly to a target over a given time in ms, updating at a time grain (20 ms by default). A float in the left inlet sets the target and starts the ramp, using the time set in the middle inlet; without a time it jumps to the target. 'stop' stops the ramp and 'set' sets the current value without output."
 }

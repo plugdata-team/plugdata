@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "pulse width (from 0 to 1)"
         }
       ],
@@ -29,7 +29,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "phase sync (resets internal phase)"
         }
       ],
@@ -38,7 +38,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "phase offset (modulation input)"
         }
       ],
@@ -76,11 +76,11 @@
   "flags": [
     {
       "name": "-midi",
-      "description": "sets frequency input in MIDI pitch\ndefault: Hz"
+      "description": "sets frequency input in MIDI pitch (default Hz)"
     },
     {
       "name": "-soft",
-      "description": "sets to soft sync mode\ndefault: hard"
+      "description": "sets to soft sync mode (default hard)"
     },
     {
       "name": "-mc <list>",
@@ -90,11 +90,11 @@
   "methods": [
     {
       "type": "midi <float>",
-      "description": "non-0 sets to frequency input in MIDI pitch"
+      "description": "nonzero sets to frequency input in MIDI pitch"
     },
     {
       "type": "soft <float>",
-      "description": "non-0 sets to soft sync mode"
+      "description": "nonzero sets to soft sync mode"
     },
     {
       "type": "set <float, float>",

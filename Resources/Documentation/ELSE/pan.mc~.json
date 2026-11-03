@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float/signal",
-          "description": "azimuth  (normalized from 0-1 or radians)"
+          "description": "pan position from 0 to 1"
         }
       ],
       "repeat": false
@@ -39,7 +39,7 @@
       "messages": [
         {
           "type": "float/signal",
-          "description": "spread parameter (from -1 to 1)"
+          "description": "spread parameter, minimum 0.1"
         }
       ],
       "repeat": false
@@ -49,7 +49,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "equal power panned output"
         }
       ],
@@ -69,29 +69,37 @@
     },
     {
       "type": "float",
-      "description": "offset in degrees",
+      "description": "position offset from 0 to 1",
       "default": "0"
     }
   ],
   "flags": [
     {
-      "name": "-radians",
-      "description": "change 3rd inlet input from degrees to radians"
+      "name": "-open",
+      "description": "set to open mode"
+    },
+    {
+      "name": "-cartesian",
+      "description": "set to cartesian mode"
     }
   ],
   "methods": [
     {
-      "type": "offset <float>",
-      "description": "set offset angle in degrees"
+      "type": "open <float>",
+      "description": "set to open mode"
     },
     {
-      "type": "radians <float>",
-      "description": "set offset angle in radians"
+      "type": "cartesian <float>",
+      "description": "nonzero sets to cartesian mode"
+    },
+    {
+      "type": "offset <float>",
+      "description": "sets position offset from 0 to 1"
     },
     {
       "type": "n <float>",
       "description": "set number of output channels"
     }
   ],
-  "body": "[pan.mc~] pans an input signal to 'n' specified channels in a multichannel output with equal power crossfading between adjacent channels according to a spread parameter. The speakers are supposedly disposed in a circular setting with equidistant angles. The output selection can then be considered an azimuth angle input whose range is normalized from 0 to 1, where 1 goes back to 0!"
+  "body": "[pan.mc~] pans an input signal to 'n' channels of a multichannel output, with equal power crossfading between adjacent channels according to a spread parameter. The speakers are assumed to be in a circle with equal angles between them, so the position input goes around the circle: it ranges from 0 to 1, where 1 is the same as 0."
 }

@@ -11,12 +11,8 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "audio signal to be filtered"
-        },
-        {
-          "type": "clear",
-          "description": "clear filter's memory"
         }
       ],
       "repeat": false
@@ -50,6 +46,11 @@
     }
   ],
   "flags": [],
-  "methods": [],
-  "body": "hip~ is a one-pole highpass filter with a specified cutoff frequency. Left (audio"
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clear filter's memory"
+    }
+  ],
+  "body": "hip~ is a one-pole highpass filter with a specified cutoff frequency. Left (audio) inlet is the incoming audio signal. Right (control) inlet sets cutoff frequency."
 }

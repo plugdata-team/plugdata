@@ -24,8 +24,8 @@
     {
       "messages": [
         {
-          "type": "signal",
-          "description": "a non-0 value resets minimum and maximum"
+          "type": "float/signal",
+          "description": "a nonzero value resets minimum and maximum"
         }
       ],
       "repeat": false

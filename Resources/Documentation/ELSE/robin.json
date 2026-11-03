@@ -1,0 +1,47 @@
+{
+  "title": [
+    "robin"
+  ],
+  "description": "round-robin messages to outlets",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "any message type"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "any input message in a round robin fashion"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets number of outlets",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <float>",
+      "description": "sets the next output outlet (starting at 1)"
+    }
+  ],
+  "body": "[robin] sends each incoming message to the next outlet, wrapping around to the first after the last, in round-robin fashion. The argument sets the number of outlets, and 'set' sets the outlet for the next message."
+}

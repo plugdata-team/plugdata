@@ -37,7 +37,7 @@
   "flags": [
     {
       "name": "@separator <symbol>",
-      "description": "sets the separator character\ndefault: \"space"
+      "description": "sets the separator character (default \"space\")"
     }
   ],
   "methods": [
@@ -46,5 +46,5 @@
       "description": "sets the separator character"
     }
   ],
-  "body": "[tosymbol] converts any kind of message to a symbol message (maximum of 2048 characters). Start by sending it a float with the number box below and see how it converts to a symbol message."
+  "body": "[tosymbol] converts any kind of message to a symbol message (maximum of 2048 characters)."
 }

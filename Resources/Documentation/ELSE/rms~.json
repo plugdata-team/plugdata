@@ -11,8 +11,8 @@
     {
       "messages": [
         {
-          "type": "signal",
-          "description": "the signal to analyze"
+          "type": "signals",
+          "description": "signal(s) to analyze"
         }
       ],
       "repeat": false
@@ -22,8 +22,8 @@
     {
       "messages": [
         {
-          "type": "float",
-          "description": "RMS value"
+          "type": "list",
+          "description": "RMS value, one per input channel"
         }
       ],
       "repeat": false
@@ -43,12 +43,8 @@
   ],
   "flags": [
     {
-      "name": "-size <float>",
-      "description": "sets buffer size"
-    },
-    {
       "name": "-lin",
-      "description": "sets output to linear\ndefault: dBFS"
+      "description": "sets output to linear amplitude (default dBFS)"
     }
   ],
   "methods": [
@@ -57,9 +53,9 @@
       "description": "sets window and hop size in samples"
     },
     {
-      "type": "lin",
-      "description": "non zero sets to linear output"
+      "type": "lin <float>",
+      "description": "nonzero sets to linear output"
     }
   ],
-  "body": "[rms~] is similar to Pd Vanilla's [env~], but it reports the RMS value in linear amplitude (default) or in dBFS."
+  "body": "[rms~] is similar to Pd Vanilla's [env~], but it reports the RMS value in dBFS (default) or in linear amplitude."
 }

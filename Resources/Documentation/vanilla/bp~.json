@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "input signal to be filtered"
         }
       ],
@@ -56,7 +56,7 @@
     {
       "type": "float",
       "description": "initial Q",
-      "default": ""
+      "default": "0"
     }
   ],
   "flags": [],
@@ -66,5 +66,5 @@
       "description": "clear filter's memory"
     }
   ],
-  "body": ""
+  "body": "[bp~] is a 2-pole bandpass filter: it passes a sinusoid at the center frequency at about unit gain and attenuates other frequencies. The middle inlet sets the center frequency and the right one the Q; the higher the Q, the narrower the band. The center frequency can be at most the sample rate divided by 6.28; for a more general filter, try [vcf~]."
 }

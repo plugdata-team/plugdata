@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "frequency in Hz (negative values accepted)"
         },
         {
@@ -26,7 +26,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "Latoocarfian chaotic signal"
         }
       ],
@@ -70,11 +70,20 @@
       "default": "0.5"
     }
   ],
-  "flags": [],
+  "flags": [
+    {
+      "name": "-mc <list>",
+      "description": "sets multichannel output with a list of frequencies"
+    }
+  ],
   "methods": [
     {
-      "type": "coeffs <f, f, f, f>",
+      "type": "coeffs <float, float, float, float>",
       "description": "list sets values of 'a', 'b', 'c' and 'd'"
+    },
+    {
+      "type": "set <float, float>",
+      "description": "<channel, freq> set a single frequency channel"
     }
   ],
   "body": "[latoocarfian~] is a chaotic generator using the difference equations;\nx[n] = sin(a * y[n-1]) + d * sin(a * x[n-1]);\ny[n] = sin(b * x[n]) + c * sin(b * y[n-1]);"

@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "input to 'modulo 1' function"
         }
       ],
@@ -22,7 +22,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "output of 'modulo 1' function"
         }
       ],
@@ -32,5 +32,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": "wrap~ gives the difference between the input and the largest integer not exceeding it (for positive numbers this is the fractional part)\n\nCOMPATIBILITY NOTE: in Pd versions before 0.48, wrap~ with an input of 0 output 1 (but now correctly outputs 0). To get the old behavior, set \"compatibility\" to 0.47 or below in Pd's command line or by a message"
+  "body": "[wrap~] gives the difference between the input and the largest integer not exceeding it, which for positive numbers is the fractional part."
 }

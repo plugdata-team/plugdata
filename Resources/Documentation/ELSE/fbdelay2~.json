@@ -1,0 +1,83 @@
+{
+  "title": [
+    "fbdelay2~"
+  ],
+  "description": "feedback delay line",
+  "origin": "ELSE",
+  "categories": [
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "signal input to the delay line"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "delay time (in ms)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "feedback gain coefficient"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "the filtered/delayed signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "delay time",
+      "default": "1 sample"
+    },
+    {
+      "type": "float",
+      "description": "feedback gain",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-size <float>",
+      "description": "sets delay size (default 1000 ms or first argument's value if given)"
+    }
+  ],
+  "methods": [
+    {
+      "type": "size <float>",
+      "description": "changes the maximum delay size (in ms)"
+    },
+    {
+      "type": "freeze <float>",
+      "description": "nonzero freezes, zero unfreezes"
+    },
+    {
+      "type": "clear",
+      "description": "clears the delay buffer"
+    }
+  ],
+  "body": "[fbdelay2~] is a delay line with feedback, whose diagram and equation is:"
+}

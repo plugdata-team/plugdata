@@ -13,11 +13,11 @@
       "messages": [
         {
           "type": "bang",
-          "description": "a bang to be passed or not"
+          "description": "outputs a bang at one of the outlets, chosen by the probabilities"
         },
         {
           "type": "list",
-          "description": "updates arguments if more than 1 is given"
+          "description": "updates the probabilities when created with more than one"
         }
       ],
       "repeat": false
@@ -26,7 +26,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "sets chance number if only one argument"
+          "description": "chance in % of a bang going left, with one or no argument"
         }
       ],
       "repeat": false
@@ -37,7 +37,7 @@
       "messages": [
         {
           "type": "bang",
-          "description": "bangs according to chance"
+          "description": "random bangs according to the probabilities"
         }
       ],
       "repeat": true
@@ -50,12 +50,17 @@
       "default": "50 50"
     }
   ],
-  "flags": [],
+  "flags": [
+    {
+      "name": "-seed <float>",
+      "description": "seed value (default: unique internal)"
+    }
+  ],
   "methods": [
     {
       "type": "seed <float>",
       "description": "a float sets seed, no float sets a unique internal"
     }
   ],
-  "body": "When [chance] receives a bang, it outputs to an outlet according to its chance (probability weight). The total number is the sum of all arguments. It also has an index mode where it outputs the outlet index number instead."
+  "body": "When [chance] receives a bang, it outputs it at one of its outlets according to their chances (probability weights). There is one outlet per argument, and the total is the sum of all arguments. With one or no argument it has two outlets, and the right inlet sets the chance in % of the left one."
 }

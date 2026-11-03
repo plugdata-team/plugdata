@@ -22,7 +22,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "MIDI channel/port\nbref: MIDI input"
+          "description": "MIDI channel/port"
         }
       ],
       "repeat": false
@@ -31,5 +31,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[sysexin] outputs MIDI system exclusive messages byte by byte, with the port number on the right outlet."
 }

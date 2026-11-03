@@ -52,19 +52,19 @@
   "flags": [
     {
       "name": "-seed <float>",
-      "description": "seed value\ndefault: unique internal"
+      "description": "seed value (default unique internal)"
     },
     {
       "name": "-size <float>",
-      "description": "sets histogram size\ndefault: 128"
+      "description": "sets histogram size (default 128)"
     },
     {
       "name": "-eq <float>",
-      "description": "sets equal number of occurrences for all indexes\ndefault: 0"
+      "description": "sets equal number of occurrences for all indexes (default 0)"
     },
     {
       "name": "-u",
-      "description": "unrepeat mode\ndefault:"
+      "description": "unrepeat mode"
     }
   ],
   "methods": [
@@ -73,7 +73,7 @@
       "description": "a float sets seed, no float sets a unique internal"
     },
     {
-      "type": "set <f, f>",
+      "type": "set <float, float>",
       "description": "set index and occurrence value"
     },
     {
@@ -97,9 +97,9 @@
       "description": "sets an equal number of occurrences for all elements"
     },
     {
-      "type": "unrepeat",
-      "description": "non-0 sets unrepeat mode"
+      "type": "unrepeat <float>",
+      "description": "nonzero sets unrepeat mode"
     }
   ],
-  "body": "[rand.hist] generates weighted random numbers based on a histogram (which specifies how many times an index is output). Below to the left we have a random sequence where 0 has a 30% chance of occurring, 1 has 20% and 2 has 50%. A list sets a new histogram. In \"unrepeat\" mode, a random sequence is output without repetition, below to the right, the random sequence contains index 0 three times and index 1 twice. When the sequence is finished, a bang comes out the right outlet. In this case, the 'restart' message clears the memory so you can start a new sequence."
+  "body": "[rand.hist] generates weighted random numbers based on a histogram, which specifies how many times an index is output: with 3 2 5, index 0 has a 30% chance of occurring, 1 has 20% and 2 has 50%. A list sets a new histogram. In \"unrepeat\" mode, a random sequence is output without repetition, where 3 2 gives index 0 three times and index 1 twice. When the sequence is finished, a bang comes out the right outlet, and the 'restart' message clears the memory so you can start a new sequence."
 }

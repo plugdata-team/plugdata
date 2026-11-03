@@ -42,11 +42,11 @@
       "description": "default 0"
     },
     {
-      "name": "-color <f, f, f>",
+      "name": "-color <float, float, float>",
       "description": "default 0 0 0"
     },
     {
-      "name": "-bgcolor <f, f, f>",
+      "name": "-bgcolor <float, float, float>",
       "description": "default 255 255 255"
     },
     {
@@ -59,7 +59,7 @@
     },
     {
       "name": "-note <anything>",
-      "description": "sets note\ndefault: \"note"
+      "description": "sets note (default \"note\")"
     },
     {
       "name": "-underline",
@@ -97,15 +97,15 @@
     },
     {
       "type": "bold <float>",
-      "description": "non-0 sets to bold"
+      "description": "nonzero sets to bold"
     },
     {
       "type": "italic <float>",
-      "description": "non-0 sets to italic"
+      "description": "nonzero sets to italic"
     },
     {
       "type": "underline <float>",
-      "description": "non-0 sets underline"
+      "description": "nonzero sets underline"
     },
     {
       "type": "just <float>",
@@ -116,11 +116,11 @@
       "description": "sets width in pixels"
     },
     {
-      "type": "color <f, f, f>",
+      "type": "color <float, float, float>",
       "description": "sets RGB text color (values from 0 to 255)"
     },
     {
-      "type": "bgcolor <f, f, f>",
+      "type": "bgcolor <float, float, float>",
       "description": "sets RGB background color (values from 0 to 255)"
     },
     {
@@ -129,7 +129,7 @@
     },
     {
       "type": "outline <float>",
-      "description": "non-0 sets an outline"
+      "description": "nonzero sets an outline"
     },
     {
       "type": "receive <symbol>",

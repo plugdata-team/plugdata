@@ -31,17 +31,7 @@
       "repeat": false
     }
   ],
-  "outlets": [
-    {
-      "messages": [
-        {
-          "type": "",
-          "description": ""
-        }
-      ],
-      "repeat": false
-    }
-  ],
+  "outlets": [],
   "arguments": [
     {
       "type": "symbol",
@@ -51,5 +41,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": "[record] records to a [text] object that is suitable for [text sequence]."
+  "body": "[rec2] records note messages to a [text] object, in a format suitable for [text sequence]."
 }

@@ -12,7 +12,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "signal to write to a channel"
         }
       ],
@@ -21,7 +21,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "signal to write to a channel"
         }
       ],
@@ -40,7 +40,7 @@
   "methods": [
     {
       "type": "open <list>",
-      "description": "filename and optional flags -wave, -aiff, -caf, -next, - big, -little, -bytes <float>, -rate <float>"
+      "description": "filename and optional flags -wave, -aiff, -caf, -next, -big, -little, -bytes <float>, -rate <float>"
     },
     {
       "type": "start",
@@ -55,5 +55,5 @@
       "description": "prints information on Pd's terminal window"
     }
   ],
-  "body": "writesf~ creates a subthread whose task is to write audio streams to disk. You need not provide any disk access time between \"open\" and \"start\", but between \"stop\" and the next \"open\" you must give the object time to flush all the output to disk.\n\nThe \"open\" message may take flag-style arguments as follows:\n\n- -wave, -aiff, -caf, -next (file extension"
+  "body": "writesf~ creates a subthread whose task is to write audio streams to disk. You need not provide any disk access time between \"open\" and \"start\", but between \"stop\" and the next \"open\" you must give the object time to flush all the output to disk.\n\nThe \"open\" message may take flag-style arguments as follows:\n\n- -wave, -aiff, -caf, -next (file extension)\n- -big, -little (sample endianness)\n- -bytes <2, 3, or 4> (bit resolution)\n- -rate <sample rate> (affects the soundfile header, but the file will not be resampled)\n\nThe soundfile is uncompressed 2- or 3-byte integer (\"pcm\") or 4-byte floating point. The soundfile format is determined by the file extension (e.g. \"foo.wav\", \"foo.aiff\", \"foo.caf\", \"foo.snd\")."
 }

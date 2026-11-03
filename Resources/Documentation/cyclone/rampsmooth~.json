@@ -62,16 +62,16 @@
   "flags": [],
   "methods": [
     {
-      "type": "ramp_down <float>",
-      "description": "set the ramp-down time in samples"
+      "type": "ramp <float>",
+      "description": "set both ramp values"
     },
     {
-      "type": "ramp_up <float>",
+      "type": "rampup <float>",
       "description": "set the ramp-up time in samples"
     },
     {
-      "type": "ramp <float>",
-      "description": "set both ramp values"
+      "type": "rampdown <float>",
+      "description": "set the ramp-down time in samples"
     }
   ],
   "body": "[rampsmooth~] smooths an incoming signal across a number 'n' of samples. Each time an incoming value changes, it begins a linear ramp of the given 'n' samples to reach this value. It is also useful for envelope following and lowpass filtering."

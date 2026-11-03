@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "pitch"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "L1"
         }
       ],
@@ -29,7 +29,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "L2"
         }
       ],
@@ -38,7 +38,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "L3"
         }
       ],
@@ -47,7 +47,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "L4"
         }
       ],
@@ -56,7 +56,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "L5"
         }
       ],
@@ -65,7 +65,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "L6"
         }
       ],
@@ -74,7 +74,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "LM"
         }
       ],
@@ -85,8 +85,17 @@
     {
       "messages": [
         {
-          "type": "signal",
-          "description": "audio out"
+          "type": "signals",
+          "description": "left audio out"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "right audio out"
         }
       ],
       "repeat": false
@@ -95,5 +104,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[pm6.m~] is a six-operator FM (actually phase modulation) synthesizer module in the style of the DX7, with stereo output. A matrix sets the modulation index between the operators, including self feedback, and each operator has its own ratio, level and panning. The left inlet takes pitch in MIDI, and the other inlets set the level of each operator and the master level, which is 1 when nothing is connected."
 }

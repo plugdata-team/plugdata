@@ -32,5 +32,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": "Use the [atodb~] to convert a signal representing a linear amplitude value to a deciBel Full Scale (dBFS) equivalent."
+  "body": "Use the [atodb~] to convert a signal representing a linear amplitude value to its dBFS equivalent."
 }

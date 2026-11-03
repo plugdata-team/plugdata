@@ -21,7 +21,7 @@
     {
       "messages": [
         {
-          "type": "anything/list",
+          "type": "list/anything",
           "description": "user defined scales"
         }
       ],

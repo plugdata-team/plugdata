@@ -21,7 +21,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "pulse width (0-1)"
         }
       ],
@@ -30,7 +30,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "phase sync (internal phase reset)"
         }
       ],
@@ -67,7 +67,7 @@
     },
     {
       "name": "-ch <float>",
-      "description": "number of output channels\ndefault: 1"
+      "description": "number of output channels (default 1)"
     },
     {
       "name": "-mc <list>",
@@ -77,7 +77,11 @@
   "methods": [
     {
       "type": "seed <float>",
-      "description": "non-0 sets to random gate value mode"
+      "description": "nonzero sets to random gate value mode"
+    },
+    {
+      "type": "ch <float>",
+      "description": "set number of output channels"
     },
     {
       "type": "set <float, float>",

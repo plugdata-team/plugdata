@@ -48,5 +48,5 @@
       "description": "send pointer to a named receive object"
     }
   ],
-  "body": "create, store, and/or edit one\n\n`[read scalar-object-help.txt(` read/write a file (TBW)\n\n`[send scalar-help-send(` send a pointer to a named receive object"
+  "body": "[scalar define] defines and maintains a scalar of the template given as argument. A bang outputs a pointer to it, and with the -k flag its contents are saved with the patch."
 }

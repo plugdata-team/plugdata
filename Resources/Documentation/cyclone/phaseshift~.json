@@ -21,8 +21,8 @@
     {
       "messages": [
         {
-          "type": "signal",
-          "description": "sets filter's frequency point to be shifted to 180\u00ba"
+          "type": "float/signal",
+          "description": "sets the frequency that is shifted by 180 degrees"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "sets Q"
         }
       ],
@@ -67,5 +67,5 @@
       "description": "clears filter's memory"
     }
   ],
-  "body": "[phaseshift~] is a 2nd allpass filter, which keeps the gain and only alters the phase from 0 (at 0 Hz) to 360\u00ba (at the Nyquist frequency). The frequency at which it shifts to 180\u00ba is specified as the filter's frequency and the steepness of the curve is determined by the Q parameter (see graph below).\nIn this example, we add the phase shifted signal to the original, which cancels frequencies by phase opposition."
+  "body": "[phaseshift~] is a 2nd order allpass filter: it keeps the gain and only shifts the phase, from 0 (at 0 Hz) to 360 degrees (at the Nyquist frequency). The frequency that is shifted by 180 degrees is the filter's frequency, and the Q parameter sets how steep the curve is. Adding the shifted signal to the original cancels frequencies by phase opposition."
 }

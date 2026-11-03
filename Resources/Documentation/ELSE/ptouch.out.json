@@ -51,10 +51,20 @@
     {
       "type": "float",
       "description": "sets channel number",
-      "default": "0"
+      "default": "1"
     }
   ],
-  "flags": [],
-  "methods": [],
+  "flags": [
+    {
+      "name": "-ext",
+      "description": "only output to outlet"
+    }
+  ],
+  "methods": [
+    {
+      "type": "ext <float>",
+      "description": "nonzero sets to listen only to external mode"
+    }
+  ],
   "body": "[ptouch.out] formats and sends raw MIDI polyphonic aftertouch messages. An argument sets channel number (the default is 1)."
 }

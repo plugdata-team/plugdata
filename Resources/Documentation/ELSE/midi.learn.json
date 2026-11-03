@@ -41,7 +41,7 @@
   "arguments": [
     {
       "type": "float",
-      "description": "non-zero sets to abstraction mode",
+      "description": "nonzero sets to abstraction mode",
       "default": "0"
     },
     {

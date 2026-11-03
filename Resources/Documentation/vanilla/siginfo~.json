@@ -1,0 +1,46 @@
+{
+  "title": [
+    "siginfo~"
+  ],
+  "description": "get meta information about signal",
+  "origin": "vanilla",
+  "categories": [
+    "Analysis"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "signal to get information about"
+        },
+        {
+          "type": "bang",
+          "description": "output current signal information"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "signal information as messages, or one outlet per argument keyword"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "keywords choosing the outlets: dspstate, blocksize, channels, overlap, samplerate, samplespersecond",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[siginfo~] reports the dspstate, blocksize, number of channels, overlap factor, samplerate and the number of samples processed per second (which is the sample rate times the overlap) of the signal connected to it. Most information (with the exception of the number of channels) is the same for all signals within a window."
+}

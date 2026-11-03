@@ -1,0 +1,46 @@
+{
+  "title": [
+    "dict.delete"
+  ],
+  "description": "delete a dictionary entry",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "key to delete"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "set dictionary name"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "dictionary name to bind to",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "name <symbol>",
+      "description": "set dictionary name"
+    }
+  ],
+  "body": "[dict.delete] takes a key name and deletes it. If the key is not present, a warning is given."
+}

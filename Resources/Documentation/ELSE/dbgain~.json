@@ -20,8 +20,8 @@
     {
       "messages": [
         {
-          "type": "signals",
-          "description": "db value(s)"
+          "type": "float/signals",
+          "description": "dB value(s)"
         }
       ],
       "repeat": false

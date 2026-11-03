@@ -13,7 +13,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "signal to be analyzed"
         }
       ],
@@ -45,5 +45,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[env~] outputs the RMS amplitude of a signal in dB, where 1 is 100 dB and the output is bounded below by 0. The analysis is Hanning windowed; the arguments set the window size and the period between analyses, in samples."
 }

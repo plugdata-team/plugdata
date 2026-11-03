@@ -13,6 +13,10 @@
         {
           "type": "bang",
           "description": "output/convert color"
+        },
+        {
+          "type": "symbol",
+          "description": "Tcl/Tk color name to convert, such as black or magenta"
         }
       ],
       "repeat": false
@@ -33,15 +37,15 @@
   "flags": [
     {
       "name": "-rgb",
-      "description": "sets to RGB list output\ndefault: hexadecimal"
+      "description": "sets to RGB list output (default hexadecimal)"
     },
     {
       "name": "-iemgui",
-      "description": "sets to iemguis output\ndefault: hexadecimal"
+      "description": "sets to iemguis output (default hexadecimal)"
     },
     {
       "name": "-ds",
-      "description": "sets to Data Structures output\ndefault: hexadecimal"
+      "description": "sets to Data Structures output (default hexadecimal)"
     }
   ],
   "methods": [
@@ -50,7 +54,7 @@
       "description": "open color picker"
     },
     {
-      "type": "rgb <f, f, f>",
+      "type": "rgb <float, float, float>",
       "description": "RGB (Red, Green, Blue) color values"
     },
     {
@@ -66,15 +70,15 @@
       "description": "Data Structures' color value"
     },
     {
-      "type": "cmyk <f, f, f, f>",
+      "type": "cmyk <float, float, float, float>",
       "description": "CMYK (Cyan, Magenta, Yellow, and Key) color values"
     },
     {
-      "type": "hsl <f, f, f>",
+      "type": "hsl <float, float, float>",
       "description": "HSL (Hue, Saturation, and Lightness) color values"
     },
     {
-      "type": "hsv <f, f, f>",
+      "type": "hsv <float, float, float>",
       "description": "HSV (Hue, Saturation, and Value) color values"
     },
     {

@@ -40,20 +40,20 @@
       "description": "font size"
     },
     {
-      "name": "-size <f, f>",
+      "name": "-size <float, float>",
       "description": "size"
     },
     {
-      "name": "-fgcolor <f, f, f>",
+      "name": "-fgcolor <float, float, float>",
       "description": "foreground color"
     },
     {
-      "name": "-bgcolor <f, f, f>",
+      "name": "-bgcolor <float, float, float>",
       "description": "background color"
     },
     {
       "name": "-bold",
-      "description": "non-0 sets to bold"
+      "description": "nonzero sets to bold"
     }
   ],
   "methods": [
@@ -66,7 +66,7 @@
       "description": "appends to the message"
     },
     {
-      "type": "dim <f, f>",
+      "type": "dim <float, float>",
       "description": "sets width and height"
     },
     {
@@ -75,16 +75,16 @@
     },
     {
       "type": "bold",
-      "description": "non-0 sets to bold"
+      "description": "nonzero sets to bold"
     },
     {
-      "type": "bgcolor <f, f, f>",
+      "type": "bgcolor <float, float, float>",
       "description": "sets background color"
     },
     {
-      "type": "fgcolor <f, f, f>",
+      "type": "fgcolor <float, float, float>",
       "description": "sets text color"
     }
   ],
-  "body": "The [messbox] object is an object you can type in messages while in run mode. It's like atom boxes but does all that a message box does. Any message type is possible. It deals with dollar signs, comma and semicolons in the same way as regular message boxes. See [pd syntax] for more details."
+  "body": "The [messbox] object is an object you can type in messages while in run mode. It's like atom boxes but does all that a message box does. Any message type is possible. It deals with dollar signs, comma and semicolons in the same way as regular message boxes."
 }

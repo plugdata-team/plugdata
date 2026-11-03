@@ -15,7 +15,7 @@
           "description": "index to read from or write to table"
         },
         {
-          "type": "list <f, f, f>",
+          "type": "list <float, float, float>",
           "description": "writes <value>, <index> and <channel> to table"
         }
       ],
@@ -76,7 +76,7 @@
     },
     {
       "type": "clip <float>",
-      "description": "- enable <1> or disable <0> clipping into -1 to 1 range"
+      "description": "enable <1> or disable <0> clipping into -1 to 1 range"
     }
   ],
   "body": "[peek~] reads (without interpolation) and write values to an array via messages. Thus, not a proper signal object as it can't handle signals and works even when the DSP is off!"

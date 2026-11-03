@@ -12,8 +12,8 @@
     {
       "messages": [
         {
-          "type": "float/signal",
-          "description": "frequency in hz or midi"
+          "type": "float/signals",
+          "description": "frequency in Hz or MIDI"
         },
         {
           "type": "bang",
@@ -25,7 +25,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "phase sync (resets internal phase)"
         }
       ],
@@ -34,7 +34,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "phase offset (modulation input)"
         }
       ],
@@ -45,7 +45,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "noise signal"
         }
       ],
@@ -55,20 +55,20 @@
   "arguments": [
     {
       "type": "float",
-      "description": "frequency in midi pitch or hertz",
+      "description": "frequency in MIDI pitch or Hz",
       "default": "0"
     }
   ],
   "flags": [
     {
       "name": "-midi <float>",
-      "description": "sets frequency input in MIDI pitch (default hertz)"
+      "description": "sets frequency input in MIDI pitch (default Hz)"
     }
   ],
   "methods": [
     {
       "type": "midi <float>",
-      "description": "non zero sets to frequency input in MIDI pitch"
+      "description": "nonzero sets to frequency input in MIDI pitch"
     }
   ],
   "body": "[oscnoise~] is an oscillator that accepts negative frequencies, has inlets for phase sync and phase modulation. The waveform is a table filled with white noise. A bang updates the noise table."

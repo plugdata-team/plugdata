@@ -50,13 +50,13 @@
   "arguments": [
     {
       "type": "float",
-      "description": "contrast (>=0,",
-      "default": "1)\ndefault: 1"
+      "description": "contrast, 0 or more",
+      "default": "1"
     },
     {
       "type": "float",
-      "description": "saturation (>=0,",
-      "default": "1)\ndefault: 1"
+      "description": "saturation, 0 or more",
+      "default": "1"
     }
   ],
   "flags": [],

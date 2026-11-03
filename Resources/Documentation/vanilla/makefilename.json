@@ -33,16 +33,16 @@
   "arguments": [
     {
       "type": "symbol",
-      "description": "format string with specifiers (%c,  %d, %i, %e, %E, %f, %g, %G, %o, %s, %u, %x, %X, and %p)",
+      "description": "format string with specifiers (%c, %d, %i, %e, %E, %f, %g, %G, %o, %s, %u, %x, %X, and %p)",
       "default": ""
     }
   ],
   "flags": [],
   "methods": [
     {
-      "type": "set <string>",
-      "description": "message replaces format"
+      "type": "set <symbol>",
+      "description": "sets a new format string"
     }
   ],
-  "body": "-"
+  "body": "[makefilename] formats a symbol from a format string, replacing its specifier (such as %d or %s) with the float or symbol it receives."
 }

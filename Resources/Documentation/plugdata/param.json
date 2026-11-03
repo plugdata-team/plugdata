@@ -51,16 +51,20 @@
   "flags": [],
   "methods": [
     {
-      "type": "create",
-      "description": "activate the automation paramter"
+      "type": "create <list>",
+      "description": "creates the parameter, optionally with a default value, minimum and maximum"
+    },
+    {
+      "type": "destroy",
+      "description": "removes the parameter"
     },
     {
       "type": "range <float, float>",
-      "description": "set parameter range"
+      "description": "sets parameter range"
     },
     {
       "type": "mode <float>",
-      "description": "set parameter mode (1=float, 2=integer, 3=logarithmic, 4=exponential)"
+      "description": "sets parameter mode: 1 for float, 2 integer, 3 logarithmic, 4 exponential"
     }
   ],
   "body": "[param] sends and receives automation parameters to the DAW. You'll have to create an automation parameter in the sidebar."

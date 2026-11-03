@@ -1,0 +1,59 @@
+{
+  "title": [
+    "sfont.m~"
+  ],
+  "description": "soundfont player module",
+  "origin": "MERDA",
+  "categories": [
+    "MIDI",
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "MIDI note messages (pitch and velocity)"
+        },
+        {
+          "type": "bang",
+          "description": "open a soundfont file"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "left audio out"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "right audio out"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "open <symbol>",
+      "description": "load a soundfont file"
+    },
+    {
+      "type": "pgm <float>",
+      "description": "set the program"
+    }
+  ],
+  "body": "[sfont.m~] is a minimal MERDA module wrapper around [sfont~], a soundfont player. It takes MIDI note messages, lets you choose the program from a menu and loads soundfonts with its bang button; the default soundfont is GeneralUser_GS.sf3, which comes with ELSE."
+}

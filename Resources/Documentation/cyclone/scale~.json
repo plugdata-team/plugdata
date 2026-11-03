@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "signal/float",
+          "type": "float/signal",
           "description": "sets the low end of the input range"
         }
       ],
@@ -29,7 +29,7 @@
     {
       "messages": [
         {
-          "type": "signal/float",
+          "type": "float/signal",
           "description": "sets the high end of the input range"
         }
       ],
@@ -38,7 +38,7 @@
     {
       "messages": [
         {
-          "type": "signal/float",
+          "type": "float/signal",
           "description": "sets the low end of the output range"
         }
       ],
@@ -47,7 +47,7 @@
     {
       "messages": [
         {
-          "type": "signal/float",
+          "type": "float/signal",
           "description": "sets the high end of the output range"
         }
       ],
@@ -56,7 +56,7 @@
     {
       "messages": [
         {
-          "type": "signal/float",
+          "type": "float/signal",
           "description": "sets the exponentiation factor"
         }
       ],
@@ -103,8 +103,8 @@
   ],
   "flags": [
     {
-      "name": "@classic <int>",
-      "description": "0 \u2014 \"modern\", 1 \u2014 \"classic\" mode\ndefault: 0"
+      "name": "@classic <float>",
+      "description": "0 for \"modern\", 1 for \"classic\" mode (default 0)"
     }
   ],
   "methods": [

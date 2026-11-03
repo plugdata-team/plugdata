@@ -12,7 +12,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "signal to be filtered or excite the resonator"
         }
       ],
@@ -21,7 +21,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "central frequency in Hz"
         }
       ],
@@ -30,7 +30,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "resonance (Q, bw or t60)"
         }
       ],
@@ -41,24 +41,8 @@
     {
       "messages": [
         {
-          "type": "signal",
-          "description": "resonator/filtered signal\n\nmethods:"
-        },
-        {
-          "type": "clear",
-          "description": "clears filter's memory"
-        },
-        {
-          "type": "bypass <float>",
-          "description": "1 (bypass on), 0 (bypass off)"
-        },
-        {
-          "type": "t60",
-          "description": "sets resonance parameter in decay time in ms"
-        },
-        {
-          "type": "bw",
-          "description": "sets resonance parameter to bandwidth in octaves"
+          "type": "signals",
+          "description": "resonator/filtered signal"
         }
       ],
       "repeat": false
@@ -76,11 +60,32 @@
       "default": "0"
     }
   ],
-  "flags": [],
+  "flags": [
+    {
+      "name": "-bw",
+      "description": "sets resonance parameter to bandwidth in octaves"
+    },
+    {
+      "name": "-t60",
+      "description": "sets resonance parameter to 't60'"
+    }
+  ],
   "methods": [
+    {
+      "type": "freq <list>",
+      "description": "cutoff frequency in Hz for each channel"
+    },
+    {
+      "type": "reson <list>",
+      "description": "filter resonance for each channel"
+    },
     {
       "type": "clear",
       "description": "clears filter's memory"
+    },
+    {
+      "type": "bypass <float>",
+      "description": "1 (bypasses input signal) or 0 (doesn't bypass)"
     },
     {
       "type": "q",

@@ -14,6 +14,10 @@
         {
           "type": "list",
           "description": "sets and outputs column, row and status"
+        },
+        {
+          "type": "bang",
+          "description": "same as 'flush'"
         }
       ],
       "repeat": false
@@ -25,6 +29,10 @@
         {
           "type": "list",
           "description": "column, row, status"
+        },
+        {
+          "type": "export <list>",
+          "description": "all cell statuses row by row, after an 'export' message"
         }
       ],
       "repeat": false
@@ -33,26 +41,54 @@
   "arguments": [],
   "flags": [
     {
-      "name": "-n <f, f>",
-      "description": "number of columns and rows"
+      "name": "-n <float, float>",
+      "description": "number of columns and rows (default 3 3)"
     },
     {
       "name": "-size <float>",
-      "description": "cell size in pixels"
+      "description": "cell size in pixels (default 20)"
     },
     {
       "name": "-embed",
-      "description": "embed flag"
+      "description": "saves the cell contents with the patch"
+    },
+    {
+      "name": "-cols <float>",
+      "description": "number of columns (default 3)"
+    },
+    {
+      "name": "-rows <float>",
+      "description": "number of rows (default 3)"
+    },
+    {
+      "name": "-bgcolor <float, float, float>",
+      "description": "background color in RGB"
+    },
+    {
+      "name": "-fgcolor <float, float, float>",
+      "description": "active cell color in RGB"
+    },
+    {
+      "name": "-gridcolor <float, float, float>",
+      "description": "grid line color in RGB"
+    },
+    {
+      "name": "-usetheme <float>",
+      "description": "nonzero uses Pd's theme colors instead of the colors set here (default 1)"
+    },
+    {
+      "name": "-transparent",
+      "description": "makes the background transparent"
     }
   ],
   "methods": [
     {
-      "type": "set <list>",
-      "description": "sets column, row and status (no output)"
+      "type": "set <float, float, float>",
+      "description": "sets column, row and status without output"
     },
     {
-      "type": "get <list>",
-      "description": "outputs value of row/column"
+      "type": "get <float, float>",
+      "description": "outputs the status of the cell at the given column and row"
     },
     {
       "type": "clear",
@@ -60,15 +96,15 @@
     },
     {
       "type": "flush",
-      "description": "flushes active cell values"
+      "description": "outputs the status of every cell"
     },
     {
       "type": "export",
-      "description": "exports contents as an array"
+      "description": "outputs all cell statuses as an 'export' message"
     },
     {
-      "type": "import",
-      "description": "imports contents as an array"
+      "type": "import <list>",
+      "description": "sets all cells from a list of statuses, row by row"
     },
     {
       "type": "rows <float>",
@@ -84,7 +120,27 @@
     },
     {
       "type": "embed <float>",
-      "description": "non-0 save internal contents with the object"
+      "description": "nonzero save internal contents with the object"
+    },
+    {
+      "type": "bgcolor <float, float, float>",
+      "description": "sets background color in RGB"
+    },
+    {
+      "type": "fgcolor <float, float, float>",
+      "description": "sets active cell color in RGB"
+    },
+    {
+      "type": "gridcolor <float, float, float>",
+      "description": "sets grid line color in RGB"
+    },
+    {
+      "type": "usetheme <float>",
+      "description": "nonzero uses Pd's theme colors instead of the colors set here"
+    },
+    {
+      "type": "transparent <float>",
+      "description": "nonzero makes the background transparent"
     }
   ],
   "body": "[mtx.ctl] provides a user matrix interface control. The cells in the grid can be either on or off. The output is a list with 3 floats that specify: column, row and status."

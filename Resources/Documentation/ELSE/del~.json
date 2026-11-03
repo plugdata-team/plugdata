@@ -8,8 +8,28 @@
     "Effects",
     "Buffers"
   ],
-  "inlets": [],
-  "outlets": [],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "signal input into the delay line (as [del~ in])"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "dummy outlet to force order of execution (as [del~ in])"
+        }
+      ],
+      "repeat": false
+    }
+  ],
   "arguments": [
     {
       "type": "symbol",
@@ -17,7 +37,12 @@
       "default": "in"
     }
   ],
-  "flags": [],
+  "flags": [
+    {
+      "name": "-samps",
+      "description": "sets time value to samples (default is ms)"
+    }
+  ],
   "methods": [],
   "body": "[del~] sets and writes to a delay line if created as [del~ in] (default) and reads from it (with interpolation) if created as [del~ out]. It's quite similar to [delread~]/[delread4~], but with more features."
 }

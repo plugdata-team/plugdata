@@ -74,6 +74,10 @@
       "description": "move and output next pointer or \"bang\" to right outlet if we reach the end of the list"
     },
     {
+      "type": "get <field>",
+      "description": "get one or more field values. The result appears as a list out the rightmost outlet."
+    },
+    {
       "type": "rewind",
       "description": "goes back to the head of the list and output its pointer (unless the end of list was reached)"
     },
@@ -90,7 +94,7 @@
       "description": "send pointer to a receive name given by the symbol"
     },
     {
-      "type": "send-window <any>",
+      "type": "send-window <anything>",
       "description": "send any message to the canvas containing the scalar"
     },
     {
@@ -98,5 +102,5 @@
       "description": "compare an incoming pointer with the stored pointer"
     }
   ],
-  "body": ""
+  "body": "[pointer] stores a reference to a scalar of a data structure, or to the head of a list of scalars. A bang outputs it, and 'traverse' and 'next' move it through the scalars of a patch, each going out the outlet for its template; the rightmost outlet bangs at the end of the list. Pointers are safe: when a scalar is deleted, pointers to it become invalid instead of pointing at freed memory."
 }
