@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the target texture."
+          "description": "level-of-detail number (0 is the base image)"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the level-of-detail number. Level 0 is the base image level."
+          "description": "internal format of the texture (Gem calls this one xoffset)"
         }
       ],
       "repeat": false
@@ -39,7 +39,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the internal format of the texture."
+          "description": "width of the texture image (Gem calls this one yoffset)"
         }
       ],
       "repeat": false
@@ -48,7 +48,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the width of the texture image."
+          "description": "height of the texture image (Gem calls this one width)"
         }
       ],
       "repeat": false
@@ -57,43 +57,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the height of the texture image."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Specifies the border of the texture."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Specifies the format of the pixel data."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Specifies the data type of the pixel data."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "const GLvoid*",
-          "description": "Specifies a pointer to the image data in memory."
+          "description": "width of the border, 0 or 1 (Gem calls this one height)"
         }
       ],
       "repeat": false
@@ -113,51 +77,36 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the target texture.",
-      "default": ""
+      "description": "level-of-detail number (0 is the base image)",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the level-of-detail number. Level 0 is the base image level.",
-      "default": ""
+      "description": "internal format of the texture (Gem calls this one xoffset)",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the internal format of the texture.",
-      "default": ""
+      "description": "width of the texture image (Gem calls this one yoffset)",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the width of the texture image.",
-      "default": ""
+      "description": "height of the texture image (Gem calls this one width)",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the height of the texture image.",
-      "default": ""
-    },
-    {
-      "type": "float",
-      "description": "Specifies the border of the texture.",
-      "default": ""
-    },
-    {
-      "type": "float",
-      "description": "Specifies the format of the pixel data.",
-      "default": ""
-    },
-    {
-      "type": "float",
-      "description": "Specifies the data type of the pixel data.",
-      "default": ""
-    },
-    {
-      "type": "const GLvoid*",
-      "description": "Specifies a pointer to the image data in memory.",
-      "default": ""
+      "description": "width of the border, 0 or 1 (Gem calls this one height)",
+      "default": "0"
     }
   ],
   "flags": [],
-  "methods": [],
-  "body": ""
+  "methods": [
+    {
+      "type": "target <float>",
+      "description": "texture target (no effect: [GEMglTexImage2D] always uses GL_TEXTURE_2D)"
+    }
+  ],
+  "body": "[GEMglTexImage2D] calls glTexImage2D() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. The image is the pix in the gemlist; its format, type and data go to the call as they are. Gem passes its inlets to glTexImage2D shifted by one: the one named xoffset sets the internal format, yoffset the width, width the height and height the border. See glTexImage2D in the OpenGL reference."
 }

@@ -2,7 +2,7 @@
   "title": [
     "GEMglTexGeni"
   ],
-  "description": "set texture coordinate generation parameters (integer version)",
+  "description": "control the generation of texture coordinates",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the texture coordinate function."
+          "description": "texture coordinate"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the parameter to set for the texture coordinate function."
+          "description": "symbolic name of the texture-coordinate generation function"
         }
       ],
       "repeat": false
@@ -39,7 +39,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the value to set the specified parameter."
+          "description": "texture generation mode, e.g. GL_OBJECT_LINEAR or GL_SPHERE_MAP"
         }
       ],
       "repeat": false
@@ -59,21 +59,21 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the texture coordinate function.",
-      "default": ""
+      "description": "texture coordinate",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the parameter to set for the texture coordinate function.",
-      "default": ""
+      "description": "symbolic name of the texture-coordinate generation function",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the value to set the specified parameter.",
-      "default": ""
+      "description": "texture generation mode, e.g. GL_OBJECT_LINEAR or GL_SPHERE_MAP",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglTexGeni] calls glTexGeni() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. GL constants are numbers here: [GLdefine] turns a name like GL_LINES into its value. See glTexGen in the OpenGL reference."
 }

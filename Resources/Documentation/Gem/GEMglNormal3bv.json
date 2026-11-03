@@ -2,7 +2,7 @@
   "title": [
     "GEMglNormal3bv"
   ],
-  "description": "set the current normal vector with a pointer to three signed byte values",
+  "description": "set the current normal vector",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -20,8 +20,8 @@
     {
       "messages": [
         {
-          "type": "pointer",
-          "description": "Specifies a pointer to an array of three signed bytes."
+          "type": "list",
+          "description": "list of the normal's x, y and z coordinates"
         }
       ],
       "repeat": false
@@ -40,12 +40,22 @@
   ],
   "arguments": [
     {
-      "type": "pointer",
-      "description": "Specifies a pointer to an array of three signed bytes.",
-      "default": ""
+      "type": "float",
+      "description": "x value",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "y value",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "z value",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglNormal3bv] calls glNormal3bv() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glNormal in the OpenGL reference."
 }

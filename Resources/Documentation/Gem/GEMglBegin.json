@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the primitive or group of primitives."
+          "description": "primitive to build from the vertices, e.g. GL_LINES or GL_TRIANGLES"
         }
       ],
       "repeat": false
@@ -40,12 +40,12 @@
   ],
   "arguments": [
     {
-      "type": "float",
-      "description": "Specifies the primitive or group of primitives.",
+      "type": "float/symbol",
+      "description": "primitive to build from the vertices, e.g. GL_LINES or GL_TRIANGLES",
       "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglBegin] calls glBegin() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. Its creation arguments also take GL constants by name; its inlets only take their values. See glBegin in the OpenGL reference."
 }

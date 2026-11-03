@@ -3,7 +3,7 @@
     "tube"
   ],
   "description": "renders a tube",
-  "origin": "ELSE",
+  "origin": "Gem",
   "categories": [
     "MIDI"
   ],
@@ -136,7 +136,7 @@
   "methods": [
     {
       "type": "draw <symbol>",
-      "description": "'fill', 'line' or 'points'"
+      "description": "drawing style: default, point, line or fill"
     },
     {
       "type": "width <float>",
@@ -145,6 +145,10 @@
     {
       "type": "numslices <float>",
       "description": "set number of slices"
+    },
+    {
+      "type": "blend <float>",
+      "description": "nonzero turns alpha blending on"
     }
   ],
   "body": ""

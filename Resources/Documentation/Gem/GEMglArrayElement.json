@@ -2,7 +2,7 @@
   "title": [
     "GEMglArrayElement"
   ],
-  "description": "render a vertex using vertex arrays",
+  "description": "render a vertex using the specified vertex array element",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the index of the vertex in the enabled arrays."
+          "description": "index into the enabled vertex data arrays"
         }
       ],
       "repeat": false
@@ -41,11 +41,11 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the index of the vertex in the enabled arrays.",
+      "description": "index into the enabled vertex data arrays",
       "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglArrayElement] calls glArrayElement() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glArrayElement in the OpenGL reference."
 }

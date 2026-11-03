@@ -16,11 +16,11 @@
         },
         {
           "type": "bang",
-          "description": "do grab!"
+          "description": "grab the screen into the texture"
         },
         {
           "type": "float",
-          "description": "turn texturing on/off"
+          "description": "nonzero turns texturing on, 0 off"
         }
       ],
       "repeat": false
@@ -29,7 +29,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "X and Y offset"
+          "description": "x and y offset of the grabbed area, in pixels (default 0 0)"
         }
       ],
       "repeat": false
@@ -38,7 +38,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "width adn height"
+          "description": "width and height of the grabbed area, in pixels (default: window size)"
         }
       ],
       "repeat": false
@@ -53,35 +53,60 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "texture info: ID, x ratio, y ratio, type, upside-down flag"
+        }
+      ],
+      "repeat": false
     }
   ],
   "arguments": [
     {
       "type": "float",
-      "description": "X offset",
-      "default": ""
+      "description": "x offset of the grabbed area, in pixels",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Y offset",
-      "default": ""
+      "description": "y offset of the grabbed area, in pixels",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "width",
-      "default": ""
+      "description": "width of the grabbed area, in pixels",
+      "default": "window width"
     },
     {
       "type": "float",
-      "description": "height",
-      "default": ""
+      "description": "height of the grabbed area, in pixels",
+      "default": "window height"
     }
   ],
   "flags": [],
   "methods": [
     {
       "type": "quality <float>",
-      "description": "turn texture-resampling on/off"
+      "description": "nonzero turns texture resampling on (default 1)"
+    },
+    {
+      "type": "rectangle <float>",
+      "description": "nonzero uses rectangle textures if available"
+    },
+    {
+      "type": "repeat <float>",
+      "description": "texture wrapping: 0 clamp to the edge, 1 repeat"
+    },
+    {
+      "type": "snap",
+      "description": "grab the screen into the texture"
+    },
+    {
+      "type": "texunit <float>",
+      "description": "texture unit to bind the texture to (for shaders)"
     }
   ],
   "body": ""

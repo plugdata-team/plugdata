@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the coordinates for the left and right vertical clipping planes."
+          "description": "left vertical clipping plane"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the coordinates for the bottom and top horizontal clipping planes."
+          "description": "right vertical clipping plane"
         }
       ],
       "repeat": false
@@ -39,7 +39,34 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the coordinates for the near and far depth clipping planes."
+          "description": "bottom horizontal clipping plane"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "top horizontal clipping plane"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "distance to the near depth clipping plane"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "distance to the far depth clipping plane"
         }
       ],
       "repeat": false
@@ -59,21 +86,36 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the coordinates for the left and right vertical clipping planes.",
-      "default": "0.0"
+      "description": "left vertical clipping plane",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the coordinates for the bottom and top horizontal clipping planes.",
-      "default": "0.0"
+      "description": "right vertical clipping plane",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the coordinates for the near and far depth clipping planes.",
-      "default": "0.0"
+      "description": "bottom horizontal clipping plane",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "top horizontal clipping plane",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "distance to the near depth clipping plane",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "distance to the far depth clipping plane",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglOrtho] calls glOrtho() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glOrtho in the OpenGL reference."
 }

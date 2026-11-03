@@ -21,16 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the information to return."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "gemlist",
-          "description": "Returns a string describing the current GL connection."
+          "description": "string to query: GL_VENDOR, GL_RENDERER, GL_VERSION or GL_EXTENSIONS"
         }
       ],
       "repeat": false
@@ -45,16 +36,25 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "the queried string"
+        }
+      ],
+      "repeat": false
     }
   ],
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the information to return.",
-      "default": "GL_VENDOR"
+      "description": "string to query: GL_VENDOR, GL_RENDERER, GL_VERSION or GL_EXTENSIONS",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglGetString] calls glGetString() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glGetString in the OpenGL reference."
 }

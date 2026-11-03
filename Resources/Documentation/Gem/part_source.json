@@ -12,7 +12,16 @@
       "messages": [
         {
           "type": "gemlist",
-          "description": ""
+          "description": "particle system (from [part_head])"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "number of particles emitted per frame"
         }
       ],
       "repeat": false
@@ -21,7 +30,7 @@
       "messages": [
         {
           "type": "symbol",
-          "description": "domain, one of \"point\", \"line\", \"triangle\", \"plane\", \"box\", \"sphere\", \"cylinder\", \"cone\", \"blob\", \"disc\", \"rectangle"
+          "description": "domain: point, line, triangle, plane, box, sphere, cylinder, cone, blob, disc or rectangle"
         }
       ],
       "repeat": false
@@ -30,7 +39,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "up to 9 floats defining the specified domain"
+          "description": "up to 9 values that define the domain"
         }
       ],
       "repeat": false

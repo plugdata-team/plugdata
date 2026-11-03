@@ -2,7 +2,7 @@
   "title": [
     "GEMglDepthFunc"
   ],
-  "description": "set the function used for depth buffer comparisons",
+  "description": "specify the value used for depth buffer comparisons",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the depth comparison function."
+          "description": "depth comparison function"
         }
       ],
       "repeat": false
@@ -40,12 +40,12 @@
   ],
   "arguments": [
     {
-      "type": "float",
-      "description": "Specifies the depth comparison function.",
-      "default": "GL_LESS"
+      "type": "float/symbol",
+      "description": "depth comparison function",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglDepthFunc] calls glDepthFunc() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. Its creation arguments also take GL constants by name; its inlets only take their values. See glDepthFunc in the OpenGL reference."
 }

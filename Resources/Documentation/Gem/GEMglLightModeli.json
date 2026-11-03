@@ -2,7 +2,7 @@
   "title": [
     "GEMglLightModeli"
   ],
-  "description": "set the value of a light model parameter",
+  "description": "set the lighting model parameters",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the light model parameter."
+          "description": "single-valued lighting model parameter"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the parameter value."
+          "description": "value to set the lighting model parameter to"
         }
       ],
       "repeat": false
@@ -50,16 +50,16 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the light model parameter.",
-      "default": "GL_LIGHT_MODEL_TWO_SIDE"
+      "description": "single-valued lighting model parameter",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the parameter value.",
+      "description": "value to set the lighting model parameter to",
       "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglLightModeli] calls glLightModeli() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. GL constants are numbers here: [GLdefine] turns a name like GL_LINES into its value. See glLightModel in the OpenGL reference."
 }

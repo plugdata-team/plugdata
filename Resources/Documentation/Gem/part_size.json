@@ -12,7 +12,20 @@
       "messages": [
         {
           "type": "gemlist",
-          "description": ""
+          "description": "particle system (from [part_head])"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "size of the particles"
+        },
+        {
+          "type": "list",
+          "description": "x, y and z size of the particles"
         }
       ],
       "repeat": false
@@ -32,7 +45,7 @@
   "arguments": [
     {
       "type": "float",
-      "description": "particle size",
+      "description": "size of the particles",
       "default": ""
     }
   ],

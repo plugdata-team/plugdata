@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies a unique integer that represents the display list."
+          "description": "display-list name"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the compilation mode."
+          "description": "compilation mode, which can be GL_COMPILE or GL_COMPILE_AND_EXECUTE"
         }
       ],
       "repeat": false
@@ -50,16 +50,16 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies a unique integer that represents the display list.",
-      "default": "1"
+      "description": "display-list name",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the compilation mode.",
-      "default": "GL_COMPILE"
+      "description": "compilation mode, which can be GL_COMPILE or GL_COMPILE_AND_EXECUTE",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglNewList] calls glNewList() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. GL constants are numbers here: [GLdefine] turns a name like GL_LINES into its value. See glNewList in the OpenGL reference."
 }

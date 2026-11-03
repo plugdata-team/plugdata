@@ -2,7 +2,7 @@
   "title": [
     "GEMglVertex2d"
   ],
-  "description": "specify a two-dimensional vertex with double-precision coordinates",
+  "description": "specify a vertex",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -20,8 +20,8 @@
     {
       "messages": [
         {
-          "type": "double",
-          "description": "Specifies the x-coordinate of the vertex."
+          "type": "float",
+          "description": "x coordinate of the vertex"
         }
       ],
       "repeat": false
@@ -29,8 +29,8 @@
     {
       "messages": [
         {
-          "type": "double",
-          "description": "Specifies the y-coordinate of the vertex."
+          "type": "float",
+          "description": "y coordinate of the vertex"
         }
       ],
       "repeat": false
@@ -49,17 +49,17 @@
   ],
   "arguments": [
     {
-      "type": "double",
-      "description": "Specifies the x-coordinate of the vertex.",
+      "type": "float",
+      "description": "x coordinate of the vertex",
       "default": "0"
     },
     {
-      "type": "double",
-      "description": "Specifies the y-coordinate of the vertex.",
+      "type": "float",
+      "description": "y coordinate of the vertex",
       "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglVertex2d] calls glVertex2d() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glVertex in the OpenGL reference."
 }

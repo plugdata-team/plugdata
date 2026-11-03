@@ -2,7 +2,7 @@
   "title": [
     "diffuse"
   ],
-  "description": "diffuse coloring",
+  "description": "set the diffuse color of the material",
   "origin": "Gem",
   "categories": [
     "Graphics"

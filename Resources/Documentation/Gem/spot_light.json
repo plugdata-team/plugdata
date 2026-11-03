@@ -2,7 +2,7 @@
   "title": [
     "spot_light"
   ],
-  "description": "Adds a spot-light to the scene",
+  "description": "adds a spot light to the scene",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -11,8 +11,12 @@
     {
       "messages": [
         {
+          "type": "gemlist",
+          "description": ""
+        },
+        {
           "type": "float",
-          "description": "Turn light on/off"
+          "description": "nonzero turns the spot light on (default 1)"
         }
       ],
       "repeat": false
@@ -21,7 +25,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "Set the color of the light-source"
+          "description": "color of the light: 3 (RGB) values"
         }
       ],
       "repeat": false
@@ -30,7 +34,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "Set the attenuation parameters"
+          "description": "linear attenuation, cone cutoff angle and decay at the edges"
         }
       ],
       "repeat": false
@@ -41,7 +45,7 @@
       "messages": [
         {
           "type": "gemlist",
-          "description": "None"
+          "description": ""
         }
       ],
       "repeat": false
@@ -50,26 +54,16 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Turn light on/off",
-      "default": "1"
-    },
-    {
-      "type": "debug <float>",
-      "description": "Show debugging object",
-      "default": ""
-    },
-    {
-      "type": "list",
-      "description": "Set the color of the light-source",
-      "default": ""
-    },
-    {
-      "type": "list",
-      "description": "Set the attenuation parameters",
-      "default": ""
+      "description": "number of the OpenGL light, 1 to 8; 0 takes the next free one",
+      "default": "0"
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "debug <float>",
+      "description": "nonzero shows a debugging object at the light's position (default 0)"
+    }
+  ],
   "body": ""
 }

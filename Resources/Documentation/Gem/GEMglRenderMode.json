@@ -2,12 +2,31 @@
   "title": [
     "GEMglRenderMode"
   ],
-  "description": "set OpenGL rendering mode",
+  "description": "set rasterization mode",
   "origin": "Gem",
   "categories": [
     "Graphics"
   ],
-  "inlets": [],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "rasterization mode"
+        }
+      ],
+      "repeat": false
+    }
+  ],
   "outlets": [
     {
       "messages": [
@@ -17,16 +36,25 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "return value of glRenderMode (hits, values or 0)"
+        }
+      ],
+      "repeat": false
     }
   ],
   "arguments": [
     {
-      "type": "GLenum",
-      "description": "Specifies the rendering mode.",
-      "default": ""
+      "type": "float/symbol",
+      "description": "rasterization mode",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglRenderMode] calls glRenderMode() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. Its creation arguments also take GL constants by name; its inlets only take their values. See glRenderMode in the OpenGL reference."
 }

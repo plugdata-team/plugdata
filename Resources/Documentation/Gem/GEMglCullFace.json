@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the culling mode."
+          "description": "whether front- or back-facing facets are candidates for culling"
         }
       ],
       "repeat": false
@@ -40,12 +40,12 @@
   ],
   "arguments": [
     {
-      "type": "float",
-      "description": "Specifies the culling mode.",
-      "default": "GL_BACK"
+      "type": "float/symbol",
+      "description": "whether front- or back-facing facets are candidates for culling",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglCullFace] calls glCullFace() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. Its creation arguments also take GL constants by name; its inlets only take their values. See glCullFace in the OpenGL reference."
 }

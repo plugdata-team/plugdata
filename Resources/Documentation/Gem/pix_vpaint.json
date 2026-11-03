@@ -1,8 +1,8 @@
 {
   "title": [
-    "vertex_add"
+    "pix_vpaint"
   ],
-  "description": "add vertices",
+  "description": "paint Voronoi regions based on the pixel colors",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -13,6 +13,14 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns processing on (default 1)"
+        },
+        {
+          "type": "bang",
+          "description": "start again with a new set of regions"
         }
       ],
       "repeat": false
@@ -20,8 +28,8 @@
     {
       "messages": [
         {
-          "type": "gemlist",
-          "description": ""
+          "type": "list",
+          "description": "size of the regions: width, height"
         }
       ],
       "repeat": false
@@ -38,18 +46,7 @@
       "repeat": false
     }
   ],
-  "arguments": [
-    {
-      "type": "symbol",
-      "description": "v, c, t, or n",
-      "default": ""
-    },
-    {
-      "type": "symbol",
-      "description": "v, c, t, or n",
-      "default": ""
-    }
-  ],
+  "arguments": [],
   "flags": [],
   "methods": [],
   "body": ""

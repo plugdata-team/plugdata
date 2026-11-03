@@ -32,7 +32,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "RotationX, Y, and Z"
+          "description": "rotation around x, y and z"
         }
       ],
       "repeat": false
@@ -41,7 +41,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "Shear YX, YZ, and ZX"
+          "description": "shear YX, YZ and ZX"
         }
       ],
       "repeat": false
@@ -50,7 +50,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "Scale X, Y, and Z"
+          "description": "scale along x, y and z"
         }
       ],
       "repeat": false
@@ -59,7 +59,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "TranslationX, Y, and Z"
+          "description": "translation along x, y and z"
         }
       ],
       "repeat": false

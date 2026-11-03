@@ -12,7 +12,7 @@
       "messages": [
         {
           "type": "gemlist",
-          "description": ""
+          "description": "particle system (from [part_head])"
         }
       ],
       "repeat": false
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "color R1 G1 B1"
+          "description": "first color: R G B"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "color R2 G2 B2"
+          "description": "second color: R G B"
         }
       ],
       "repeat": false

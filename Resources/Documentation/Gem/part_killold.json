@@ -12,7 +12,16 @@
       "messages": [
         {
           "type": "gemlist",
-          "description": ""
+          "description": "particle system (from [part_head])"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "age above which particles are killed, in frames"
         }
       ],
       "repeat": false
@@ -32,7 +41,7 @@
   "arguments": [
     {
       "type": "float",
-      "description": "kill time",
+      "description": "age above which particles are killed, in frames",
       "default": "10"
     }
   ],

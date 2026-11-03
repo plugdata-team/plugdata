@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies which clipping plane is being specified."
+          "description": "which clipping plane is being positioned"
         }
       ],
       "repeat": false
@@ -29,8 +29,8 @@
     {
       "messages": [
         {
-          "type": "float",
-          "description": "Specifies the equation coefficients of the clipping plane."
+          "type": "list",
+          "description": "list of the 4 coefficients of the plane equation"
         }
       ],
       "repeat": false
@@ -50,16 +50,26 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies which clipping plane is being specified.",
+      "description": "coefficient a of the plane equation (ax + by + cz + d = 0)",
       "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the equation coefficients of the clipping plane.",
-      "default": "[0, 0, 0, 0]"
+      "description": "coefficient b of the plane equation",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "coefficient c of the plane equation",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "coefficient d of the plane equation",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglClipPlane] calls glClipPlane() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glClipPlane in the OpenGL reference."
 }

@@ -20,17 +20,8 @@
     {
       "messages": [
         {
-          "type": "float",
-          "description": "Specifies the number of textures to be deleted."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Specifies an array of textures to be deleted."
+          "type": "list",
+          "description": "list of texture IDs to delete"
         }
       ],
       "repeat": false
@@ -49,17 +40,12 @@
   ],
   "arguments": [
     {
-      "type": "float",
-      "description": "Specifies the number of textures to be deleted.",
-      "default": "0"
-    },
-    {
-      "type": "float",
-      "description": "Specifies an array of textures to be deleted.",
-      "default": "0"
+      "type": "list",
+      "description": "list of texture IDs to delete",
+      "default": ""
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglDeleteTextures] calls glDeleteTextures() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glDeleteTextures in the OpenGL reference."
 }

@@ -38,11 +38,22 @@
       "repeat": false
     }
   ],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "color format, as for the format message",
+      "default": ""
+    },
+    {
+      "type": "symbol",
+      "description": "data type: BYTE or FLOAT",
+      "default": ""
+    }
+  ],
   "flags": [],
   "methods": [
     {
-      "type": "dimen <float> <float>",
+      "type": "dimen <float, float>",
       "description": "set the dimensions of the framebuffer"
     },
     {
@@ -50,8 +61,36 @@
       "description": "set the color format of the framebuffer"
     },
     {
-      "type": "color <float> <float> <float> <float>",
+      "type": "color <float, float, float, float>",
       "description": "set the background color of the framebuffer"
+    },
+    {
+      "type": "dim <float, float>",
+      "description": "size of the cube map faces: width, height"
+    },
+    {
+      "type": "face <float>",
+      "description": "cube map face to render into, 0 to 5"
+    },
+    {
+      "type": "mode <float>",
+      "description": "same as rectangle"
+    },
+    {
+      "type": "perspec <anything>",
+      "description": "frustum: left, right, bottom, top, near, far"
+    },
+    {
+      "type": "rectangle <float>",
+      "description": "nonzero uses rectangle textures if available"
+    },
+    {
+      "type": "texunit <float>",
+      "description": "texture unit to bind the texture to (for shaders)"
+    },
+    {
+      "type": "type <symbol>",
+      "description": "data type: BYTE (default) or FLOAT"
     }
   ],
   "body": ""

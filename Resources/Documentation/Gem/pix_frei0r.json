@@ -24,8 +24,8 @@
     {
       "messages": [
         {
-          "type": "variable",
-          "description": "depending on the settable parameter"
+          "type": "anything",
+          "description": "value of parameter $nth, of the type the plugin expects"
         }
       ],
       "repeat": true

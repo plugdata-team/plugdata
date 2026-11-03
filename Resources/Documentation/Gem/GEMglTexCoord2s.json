@@ -21,7 +21,16 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the s, t, and r texture coordinates."
+          "description": "s texture coordinate"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "t texture coordinate"
         }
       ],
       "repeat": false
@@ -41,11 +50,16 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the s, t, and r texture coordinates.",
-      "default": ""
+      "description": "s texture coordinate",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "t texture coordinate",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglTexCoord2s] calls glTexCoord2s() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glTexCoord in the OpenGL reference."
 }

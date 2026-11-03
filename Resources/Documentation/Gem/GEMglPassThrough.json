@@ -2,7 +2,7 @@
   "title": [
     "GEMglPassThrough"
   ],
-  "description": "pass a token through the feedback pipeline",
+  "description": "place a marker in the feedback buffer",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies a token value to be passed through the feedback pipeline."
+          "description": "marker value to put in the feedback buffer"
         }
       ],
       "repeat": false
@@ -41,11 +41,11 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies a token value to be passed through the feedback pipeline.",
-      "default": ""
+      "description": "marker value to put in the feedback buffer",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglPassThrough] calls glPassThrough() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glPassThrough in the OpenGL reference."
 }

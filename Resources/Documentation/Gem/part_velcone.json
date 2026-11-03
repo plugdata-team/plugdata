@@ -2,7 +2,7 @@
   "title": [
     "part_velcone"
   ],
-  "description": "sets a cone with a specified height and center to be the velocity-domain of emitted particles",
+  "description": "set a cone as the velocity domain of new particles",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "height"
+          "description": "height of the cone"
         }
       ],
       "repeat": false

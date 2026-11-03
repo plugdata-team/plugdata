@@ -2,7 +2,7 @@
   "title": [
     "GEMglIsList"
   ],
-  "description": "test if a name corresponds to a display list",
+  "description": "determine if a name corresponds to a display list",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the name of a display list."
+          "description": "potential display list name"
         }
       ],
       "repeat": false
@@ -31,8 +31,17 @@
     {
       "messages": [
         {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
           "type": "float",
-          "description": "Returns GL_TRUE if the name corresponds to a display list, and GL_FALSE otherwise."
+          "description": "1 if the ID is a display list, 0 if not"
         }
       ],
       "repeat": false
@@ -41,11 +50,11 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the name of a display list.",
-      "default": ""
+      "description": "potential display list name",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglIsList] calls glIsList() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glIsList in the OpenGL reference."
 }

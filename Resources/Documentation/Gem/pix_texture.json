@@ -1,6 +1,7 @@
 {
   "title": [
-    "pix_texture"
+    "pix_texture",
+    "pix_texture2"
   ],
   "description": "apply texture mapping",
   "origin": "Gem",
@@ -16,7 +17,16 @@
         },
         {
           "type": "float",
-          "description": "turn texturing on/off"
+          "description": "nonzero turns texturing on, 0 off"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "ID of an external texture to use instead of the pix"
         }
       ],
       "repeat": false
@@ -36,7 +46,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "texture info <id> <width> <height> <type> <upsidedown flag>"
+          "description": "texture info: ID, x ratio, y ratio, type, upside-down flag"
         }
       ],
       "repeat": false
@@ -47,7 +57,7 @@
   "methods": [
     {
       "type": "env <float>",
-      "description": "texture environment mode (0=GL_REPLACE, 1=GL_DECAL, 2=GL_BLEND, 3=GL_ADD, 4=GL_COMBINE, >4=GL_MODULATE)"
+      "description": "texture environment mode: 0 GL_REPLACE, 1 GL_DECAL, 2 GL_BLEND, 3 GL_ADD, 4 GL_COMBINE, else GL_MODULATE"
     },
     {
       "type": "quality <float>",
@@ -66,20 +76,24 @@
       "description": "use client-storage if available"
     },
     {
-      "type": "env <float>",
-      "description": "texture environment mode"
-    },
-    {
       "type": "texunit <float>",
-      "description": "useful only with shader, change texunit of the texture"
+      "description": "texture unit to bind the texture to (for shaders)"
     },
     {
-      "type": "pbo",
-      "description": "change pixel buffer object number"
+      "type": "pbo <float>",
+      "description": "number of pixel buffer objects to use"
     },
     {
-      "type": "yuv",
-      "description": "use native YUV-mode if available"
+      "type": "yuv <float>",
+      "description": "nonzero uses native YUV mode if available (default 1)"
+    },
+    {
+      "type": "matrixcoord <float>",
+      "description": "nonzero uses the texture matrix for the coordinates"
+    },
+    {
+      "type": "mode <float>",
+      "description": "same as rectangle (deprecated)"
     }
   ],
   "body": ""

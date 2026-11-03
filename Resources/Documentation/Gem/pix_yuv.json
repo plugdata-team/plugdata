@@ -16,7 +16,7 @@
         },
         {
           "type": "float",
-          "description": "turn conversion on/off"
+          "description": "nonzero turns the conversion on (default 1)"
         }
       ],
       "repeat": false

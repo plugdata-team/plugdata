@@ -13,6 +13,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns alpha blending on (default 1)"
         }
       ],
       "repeat": false
@@ -41,20 +45,19 @@
   "arguments": [
     {
       "type": "float",
-      "description": "turn alpha blending on/off",
-      "default": "1"
-    },
-    {
-      "type": "float",
-      "description": "blending function",
-      "default": "GL_ONE_MINUS_SRC_ALPHA"
+      "description": "blending function: 1 to 10 pick GL_ONE, GL_ZERO, GL_SRC_COLOR, ...",
+      "default": "0 (GL_ONE_MINUS_SRC_ALPHA)"
     }
   ],
   "flags": [],
   "methods": [
     {
       "type": "auto <float>",
-      "description": "turn on/off automatic depth detection"
+      "description": "nonzero turns automatic depth detection on"
+    },
+    {
+      "type": "test <float>",
+      "description": "nonzero turns the alpha test on (default 1)"
     }
   ],
   "body": ""

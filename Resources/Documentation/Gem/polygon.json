@@ -2,7 +2,7 @@
   "title": [
     "polygon"
   ],
-  "description": "Renders a polygon.",
+  "description": "renders a polygon",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -12,14 +12,19 @@
       "messages": [
         {
           "type": "gemlist",
-          "description": "List of X Y Z points that define the polygon"
-        },
-        {
-          "type": "list",
-          "description": "3(XYZ) float values representing control points of the polygon"
+          "description": ""
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "x, y and z of vertex $nth"
+        }
+      ],
+      "repeat": true
     }
   ],
   "outlets": [
@@ -27,14 +32,37 @@
       "messages": [
         {
           "type": "gemlist",
-          "description": "Rendered polygon"
+          "description": ""
         }
       ],
       "repeat": false
     }
   ],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of vertices, each with its own inlet; without it, set them with 'vertex'",
+      "default": ""
+    }
+  ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "draw <symbol>",
+      "description": "drawing style: default, line, fill, point, or a GL primitive (linestrip, tri, tristrip, quad, ...)"
+    },
+    {
+      "type": "width <float>",
+      "description": "line width (default 1)"
+    },
+    {
+      "type": "vertex <float, float, float, float>",
+      "description": "set a vertex: index, x, y and z"
+    },
+    {
+      "type": "blend <float>",
+      "description": "nonzero turns alpha blending on"
+    }
+  ],
   "body": ""
 }

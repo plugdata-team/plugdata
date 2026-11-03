@@ -2,7 +2,7 @@
   "title": [
     "scopeXYZ~"
   ],
-  "description": "3D oscilloscope",
+  "description": "draw three signals as a 3D oscilloscope",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -13,6 +13,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "bang",
+          "description": "print the stored vertices to the console"
         }
       ],
       "repeat": false
@@ -20,7 +24,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "x-values of the oscilloscope"
         }
       ],
@@ -29,7 +33,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "y-values of the oscilloscope"
         }
       ],
@@ -38,7 +42,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "z-values of the oscilloscope"
         }
       ],
@@ -66,16 +70,24 @@
   "flags": [],
   "methods": [
     {
-      "type": "draw [default|line|linestrip|fill|point|tri|tristrip|trifan|quad|quadstrip]",
-      "description": ""
+      "type": "draw <symbol>",
+      "description": "drawing style: default, line, linestrip, fill, point, tri, tristrip, trifan, quad or quadstrip"
     },
     {
       "type": "width <float>",
-      "description": "line-width ("
+      "description": "line width (default 1)"
     },
     {
       "type": "length <float>",
       "description": "number of signal points to be stored"
+    },
+    {
+      "type": "blend <float>",
+      "description": "nonzero turns alpha blending on"
+    },
+    {
+      "type": "linewidth <float>",
+      "description": "same as width"
     }
   ],
   "body": ""

@@ -12,11 +12,15 @@
       "messages": [
         {
           "type": "gemlist",
-          "description": "gemlist"
+          "description": ""
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns processing on (default 1)"
         },
         {
           "type": "bang",
-          "description": "do dump"
+          "description": "output the pixel data"
         }
       ],
       "repeat": false
@@ -47,7 +51,19 @@
   "methods": [
     {
       "type": "bytemode <float>",
-      "description": "set normalization on or off"
+      "description": "nonzero outputs values as bytes (0 to 255), 0 as 0 to 1"
+    },
+    {
+      "type": "mode <symbol>",
+      "description": "rgb outputs only R G B of an RGBA image, rgba all four values"
+    },
+    {
+      "type": "RGBA/rgba",
+      "description": "output R G B A values"
+    },
+    {
+      "type": "RGB/rgb",
+      "description": "output only R G B values"
     }
   ],
   "body": ""

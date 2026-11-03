@@ -9,16 +9,7 @@
   ],
   "inlets": [
     {
-      "messages": [
-        {
-          "type": "open <symbol> <float>",
-          "description": "read a filename into buffer starting at index"
-        },
-        {
-          "type": "set <symbol>",
-          "description": "write to another buffer"
-        }
-      ],
+      "messages": [],
       "repeat": false
     }
   ],
@@ -44,12 +35,21 @@
   ],
   "arguments": [
     {
-      "type": "list",
-      "description": "buffer name",
+      "type": "symbol",
+      "description": "name of the [pix_buffer] to write to",
       "default": ""
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "open <symbol, float>",
+      "description": "read a film into the buffer: file name, first index"
+    },
+    {
+      "type": "set <symbol>",
+      "description": "write to another buffer"
+    }
+  ],
   "body": ""
 }

@@ -1,0 +1,74 @@
+{
+  "title": [
+    "pix_tIIRf"
+  ],
+  "description": "time-based IIR filter for images, with typed coefficients",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        },
+        {
+          "type": "list",
+          "description": "feedback and feedforward coefficients"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "feedback coefficient (one inlet per feedback tap)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "feedforward coefficient (one inlet per feedforward tap)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of feedback taps, minus 1",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "number of feedforward taps, minus 1",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <anything>",
+      "description": "fill the filter buffers with the next image (or blank them with a value)"
+    }
+  ],
+  "body": "Like [pix_tIIR], [pix_tIIRf] filters each pixel over time. Its arguments set the number of taps: after the gemlist inlet come one inlet per feedback coefficient, then one per feedforward coefficient."
+}

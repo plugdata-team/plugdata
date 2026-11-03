@@ -2,7 +2,7 @@
   "title": [
     "pix_composite"
   ],
-  "description": "alpha-blend 2 images.",
+  "description": "alpha-blend 2 images",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -13,6 +13,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns processing on (default 1)"
         }
       ],
       "repeat": false

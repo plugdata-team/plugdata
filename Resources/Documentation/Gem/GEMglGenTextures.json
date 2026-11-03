@@ -20,8 +20,8 @@
     {
       "messages": [
         {
-          "type": "float",
-          "description": "Specifies the number of texture names to generate."
+          "type": "list",
+          "description": "number of texture IDs to generate"
         }
       ],
       "repeat": false
@@ -40,12 +40,12 @@
   ],
   "arguments": [
     {
-      "type": "float",
-      "description": "Specifies the number of texture names to generate.",
-      "default": "1"
+      "type": "list",
+      "description": "number of texture IDs to generate",
+      "default": ""
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglGenTextures] calls glGenTextures() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glGenTextures in the OpenGL reference."
 }

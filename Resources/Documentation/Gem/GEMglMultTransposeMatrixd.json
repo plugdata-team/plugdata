@@ -1,8 +1,8 @@
 {
   "title": [
-    "vertex_mul"
+    "GEMglMultTransposeMatrixd"
   ],
-  "description": "multiply vertices",
+  "description": "multiply the current matrix with the specified row-major ordered matrix",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -20,8 +20,8 @@
     {
       "messages": [
         {
-          "type": "gemlist",
-          "description": ""
+          "type": "list",
+          "description": "list of 16 values, the matrix in row-major order"
         }
       ],
       "repeat": false
@@ -38,19 +38,8 @@
       "repeat": false
     }
   ],
-  "arguments": [
-    {
-      "type": "symbol",
-      "description": "v, c, t, or n",
-      "default": ""
-    },
-    {
-      "type": "symbol",
-      "description": "v, c, t, or n",
-      "default": ""
-    }
-  ],
+  "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglMultTransposeMatrixd] calls glMultTransposeMatrixd() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glMultTransposeMatrix in the OpenGL reference."
 }

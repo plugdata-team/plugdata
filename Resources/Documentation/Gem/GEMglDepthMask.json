@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies whether the depth buffer is enabled for writing."
+          "description": "whether the depth buffer is enabled for writing"
         }
       ],
       "repeat": false
@@ -41,11 +41,11 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies whether the depth buffer is enabled for writing.",
-      "default": "GL_TRUE"
+      "description": "whether the depth buffer is enabled for writing",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglDepthMask] calls glDepthMask() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glDepthMask in the OpenGL reference."
 }

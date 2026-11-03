@@ -2,7 +2,7 @@
   "title": [
     "GEMglUniform1fARB"
   ],
-  "description": "load a floating-point uniform variable to a program object (ARB version)",
+  "description": "specify the value of a uniform variable for the current program object",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the location of the uniform variable."
+          "description": "location of the uniform variable"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the new values to be used for the specified uniform variable."
+          "description": "new value of the uniform variable"
         }
       ],
       "repeat": false
@@ -50,16 +50,16 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the location of the uniform variable.",
-      "default": ""
+      "description": "location of the uniform variable",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the new values to be used for the specified uniform variable.",
-      "default": ""
+      "description": "new value of the uniform variable",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglUniform1fARB] calls glUniform1fARB() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glUniform in the OpenGL reference."
 }

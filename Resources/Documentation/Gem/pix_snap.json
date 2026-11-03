@@ -69,12 +69,16 @@
       "description": "set type (BYTE|FLOAT|DOUBLE)"
     },
     {
-      "type": "dimen <float> <float.",
-      "description": "set size (width, height)"
+      "type": "dimen <float, float>",
+      "description": "size of the grabbed area: width, height"
     },
     {
-      "type": "offset <float> <float>",
+      "type": "offset <float, float>",
       "description": "set offset (x, y)"
+    },
+    {
+      "type": "pbo <float>",
+      "description": "number of pixel buffer objects to use"
     }
   ],
   "body": ""

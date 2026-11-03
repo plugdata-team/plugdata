@@ -1,8 +1,9 @@
 {
   "title": [
-    "vertex_draw"
+    "GemSplash",
+    "Gem"
   ],
-  "description": "draw a vertex array",
+  "description": "draw Gem's splash screen",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -32,5 +33,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GemSplash] (also [Gem]) draws Gem's logo into the gemlist it gets. Its help patch, Gem-help.pd, is the starting point of Gem's documentation."
 }

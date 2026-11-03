@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the width of rasterized lines."
+          "description": "width of rasterized lines"
         }
       ],
       "repeat": false
@@ -41,11 +41,11 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the width of rasterized lines.",
-      "default": "1.0"
+      "description": "width of rasterized lines",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglLineWidth] calls glLineWidth() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glLineWidth in the OpenGL reference."
 }

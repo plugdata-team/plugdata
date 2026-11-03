@@ -41,30 +41,30 @@
   "arguments": [
     {
       "type": "float",
-      "description": "ID",
+      "description": "ID of the shared memory region",
       "default": ""
     },
     {
       "type": "float",
-      "description": "width",
+      "description": "width of the image",
       "default": ""
     },
     {
       "type": "float",
-      "description": "height",
+      "description": "height of the image",
       "default": ""
     },
     {
       "type": "symbol",
-      "description": "colourspace",
+      "description": "color space: RGBA, YUV or Grey (or 4, 2, 1)",
       "default": ""
     }
   ],
   "flags": [],
   "methods": [
     {
-      "type": "set <float> <float> <float> <symbol>",
-      "description": ""
+      "type": "set <float, float, float, symbol>",
+      "description": "shared memory to read from: ID, width, height and color space (RGBA, YUV or Grey)"
     }
   ],
   "body": ""

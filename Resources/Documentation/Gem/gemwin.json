@@ -18,7 +18,17 @@
       "repeat": false
     }
   ],
-  "outlets": [],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "window events and information: mouse, keyboard, dimen, ..."
+        }
+      ],
+      "repeat": false
+    }
+  ],
   "arguments": [
     {
       "type": "float",
@@ -28,7 +38,7 @@
     {
       "type": "symbol",
       "description": "context name",
-      "default": "20"
+      "default": ""
     }
   ],
   "flags": [],
@@ -46,11 +56,11 @@
       "description": "reset Gem window attributes"
     },
     {
-      "type": "dimen <float> <float>",
+      "type": "dimen <float, float>",
       "description": "set Gem window size"
     },
     {
-      "type": "offset <float> <float>",
+      "type": "offset <float, float>",
       "description": "set Gem window position"
     },
     {
@@ -62,8 +72,8 @@
       "description": "set frames per second"
     },
     {
-      "type": "color <float> <float> <float>",
-      "description": "set background colour"
+      "type": "color <float, float, float>",
+      "description": "set background color"
     },
     {
       "type": "print",

@@ -13,6 +13,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns processing on (default 1)"
         }
       ],
       "repeat": false
@@ -35,6 +39,10 @@
     {
       "type": "mode <float>",
       "description": "enforce (1) or not (0)"
+    },
+    {
+      "type": "adaptive <float>",
+      "description": "adaptive deinterlacing mode"
     }
   ],
   "body": ""

@@ -2,7 +2,7 @@
   "title": [
     "sphere"
   ],
-  "description": "renders a segmented sphere.",
+  "description": "renders a segmented sphere",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "size"
+          "description": "size of the sphere"
         }
       ],
       "repeat": false
@@ -49,17 +49,30 @@
   ],
   "arguments": [
     {
-      "type": "symbol",
-      "description": "draw [line|fill|point]",
-      "default": ""
+      "type": "float",
+      "description": "size of the sphere",
+      "default": "1"
     },
     {
       "type": "float",
-      "description": "size of the sphere",
-      "default": ""
+      "description": "number of slices and stacks",
+      "default": "10"
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "draw <symbol>",
+      "description": "drawing style: default, line, fill or point"
+    },
+    {
+      "type": "width <float>",
+      "description": "line width for the line drawing styles (default 1)"
+    },
+    {
+      "type": "blend <float>",
+      "description": "nonzero turns alpha blending on"
+    }
+  ],
   "body": ""
 }

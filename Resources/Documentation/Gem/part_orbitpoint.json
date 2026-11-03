@@ -12,7 +12,25 @@
       "messages": [
         {
           "type": "gemlist",
-          "description": ""
+          "description": "particle system (from [part_head])"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "position of the orbit point: x, y and z"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "strength of the attraction"
         }
       ],
       "repeat": false
@@ -47,7 +65,7 @@
     },
     {
       "type": "float",
-      "description": "attraction",
+      "description": "strength of the attraction",
       "default": "1"
     }
   ],

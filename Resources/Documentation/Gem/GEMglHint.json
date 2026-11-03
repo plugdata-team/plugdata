@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the target."
+          "description": "symbolic constant indicating the behavior to be controlled"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the mode."
+          "description": "symbolic constant indicating the desired behavior"
         }
       ],
       "repeat": false
@@ -49,17 +49,17 @@
   ],
   "arguments": [
     {
-      "type": "float",
-      "description": "Specifies the target.",
-      "default": "GL_PERSPECTIVE_CORRECTION_HINT"
+      "type": "float/symbol",
+      "description": "symbolic constant indicating the behavior to be controlled",
+      "default": "0"
     },
     {
-      "type": "float",
-      "description": "Specifies the mode.",
-      "default": "GL_FASTEST"
+      "type": "float/symbol",
+      "description": "symbolic constant indicating the desired behavior",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglHint] calls glHint() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. Its creation arguments also take GL constants by name; its inlets only take their values. See glHint in the OpenGL reference."
 }

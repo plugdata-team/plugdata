@@ -13,6 +13,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "bang",
+          "description": "grab the next incoming image"
         }
       ],
       "repeat": false
@@ -59,32 +63,44 @@
       "description": "start/stop recording"
     },
     {
-      "type": "bang",
-      "description": "grab the next incoming pix"
-    },
-    {
       "type": "auto <float>",
       "description": "start/stop grabbing all incoming pixes"
     },
     {
       "type": "codeclist",
-      "description": "codeclist: enumerate a list of available codecs to the outlet#3"
-    },
-    {
-      "type": "codex <float>",
-      "description": "select codec"
+      "description": "output the list of available codecs on the right outlet"
     },
     {
       "type": "codec <symbol>",
       "description": "select codec by short name"
     },
     {
-      "type": "set <symbol> <float>",
-      "description": "set a property named ar1 to the value arg2"
+      "type": "set <symbol, anything>",
+      "description": "set a codec property to a value"
     },
     {
       "type": "dialog",
       "description": "popup a dialog to select the codec (if available)"
+    },
+    {
+      "type": "backend <anything>",
+      "description": "use only the given backends, in that order"
+    },
+    {
+      "type": "clearProps",
+      "description": "forget the properties stored with setProps"
+    },
+    {
+      "type": "clearprops",
+      "description": "forget the properties stored with setProps"
+    },
+    {
+      "type": "enumProps",
+      "description": "list the properties the backend supports, on the right outlet"
+    },
+    {
+      "type": "proplist",
+      "description": "list the properties the backend supports, on the right outlet"
     }
   ],
   "body": ""

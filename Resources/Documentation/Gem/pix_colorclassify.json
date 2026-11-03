@@ -3,7 +3,7 @@
     "pix_colorclassify",
     "pix_colourclassify"
   ],
-  "description": "RGBA image with encoded color class representatives for each pixel",
+  "description": "classify the colors of an image into basic color classes",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -14,6 +14,10 @@
         {
           "type": "gemlist",
           "description": "RGBA image"
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns processing on (default 1)"
         }
       ],
       "repeat": false
@@ -24,7 +28,7 @@
       "messages": [
         {
           "type": "gemlist",
-          "description": "RGBA image with encoded color class representatives for each pixel"
+          "description": "RGBA image with each pixel set to its color class"
         }
       ],
       "repeat": false

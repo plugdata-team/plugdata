@@ -2,12 +2,31 @@
   "title": [
     "GEMglTexCoord1fv"
   ],
-  "description": "set the current texture coordinates (floating-point version)",
+  "description": "set the current texture coordinates",
   "origin": "Gem",
   "categories": [
     "Graphics"
   ],
-  "inlets": [],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "list of 0 texture coordinates ()"
+        }
+      ],
+      "repeat": false
+    }
+  ],
   "outlets": [
     {
       "messages": [
@@ -22,11 +41,11 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the s texture coordinate.",
-      "default": ""
+      "description": "list of 0 texture coordinates ()",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglTexCoord1fv] calls glTexCoord1fv() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glTexCoord in the OpenGL reference."
 }

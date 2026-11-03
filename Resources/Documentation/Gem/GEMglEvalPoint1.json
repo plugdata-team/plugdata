@@ -2,7 +2,7 @@
   "title": [
     "GEMglEvalPoint1"
   ],
-  "description": "compute a one-dimensional grid of points",
+  "description": "generate and evaluate a single point in a mesh",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,16 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the starting grid coordinate."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Specifies the number of steps in the grid."
+          "description": "integer value for grid domain variable i"
         }
       ],
       "repeat": false
@@ -50,16 +41,11 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the starting grid coordinate.",
+      "description": "integer value for grid domain variable i",
       "default": "0"
-    },
-    {
-      "type": "float",
-      "description": "Specifies the number of steps in the grid.",
-      "default": "1"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglEvalPoint1] calls glEvalPoint1() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glEvalPoint in the OpenGL reference."
 }

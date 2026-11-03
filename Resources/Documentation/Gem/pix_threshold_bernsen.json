@@ -13,6 +13,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns processing on (default 1)"
         }
       ],
       "repeat": false
@@ -21,7 +25,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "number of tiles"
+          "description": "number of tiles in x and y"
         }
       ],
       "repeat": false
@@ -30,7 +34,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "contrast"
+          "description": "contrast: below it, a tile's values are clamped to 0"
         }
       ],
       "repeat": false
@@ -47,28 +51,8 @@
       "repeat": false
     }
   ],
-  "arguments": [
-    {
-      "type": "float",
-      "description": "number of tiles in x-direction",
-      "default": "16"
-    },
-    {
-      "type": "float",
-      "description": "number of tiles in y-direction",
-      "default": "16"
-    }
-  ],
+  "arguments": [],
   "flags": [],
-  "methods": [
-    {
-      "type": "float",
-      "description": "number of tiles"
-    },
-    {
-      "type": "float",
-      "description": "contrast. if the (max-min)<contrast, values are clamped to 0"
-    }
-  ],
+  "methods": [],
   "body": ""
 }

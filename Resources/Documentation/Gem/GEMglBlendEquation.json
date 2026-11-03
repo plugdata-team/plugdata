@@ -2,7 +2,7 @@
   "title": [
     "GEMglBlendEquation"
   ],
-  "description": "specify the equation used for both the RGB and alpha blending",
+  "description": "specify the equation used for both the RGB blend equation and the Alpha blend equation",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the blending equation."
+          "description": "specifies how source and destination colors are combined"
         }
       ],
       "repeat": false
@@ -41,11 +41,11 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the blending equation.",
+      "description": "specifies how source and destination colors are combined",
       "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglBlendEquation] calls glBlendEquation() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. GL constants are numbers here: [GLdefine] turns a name like GL_LINES into its value. See glBlendEquation in the OpenGL reference."
 }

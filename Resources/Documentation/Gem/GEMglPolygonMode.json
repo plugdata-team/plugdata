@@ -2,7 +2,7 @@
   "title": [
     "GEMglPolygonMode"
   ],
-  "description": "set the front and back polygon fill mode",
+  "description": "select a polygon rasterization mode",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the face for which the polygon mode is set."
+          "description": "polygons that mode applies to"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies how the polygons will be rasterized."
+          "description": "how polygons will be rasterized"
         }
       ],
       "repeat": false
@@ -49,17 +49,17 @@
   ],
   "arguments": [
     {
-      "type": "float",
-      "description": "Specifies the face for which the polygon mode is set.",
-      "default": ""
+      "type": "float/symbol",
+      "description": "polygons that mode applies to",
+      "default": "0"
     },
     {
-      "type": "float",
-      "description": "Specifies how the polygons will be rasterized.",
-      "default": ""
+      "type": "float/symbol",
+      "description": "how polygons will be rasterized",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglPolygonMode] calls glPolygonMode() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. Its creation arguments also take GL constants by name; its inlets only take their values. See glPolygonMode in the OpenGL reference."
 }

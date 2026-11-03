@@ -2,7 +2,7 @@
   "title": [
     "GEMglPushAttrib"
   ],
-  "description": "push and save attribute state",
+  "description": "push and pop the server attribute stack",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies which groups of attributes to save in the display list."
+          "description": "mask that indicates which attributes to save"
         }
       ],
       "repeat": false
@@ -41,11 +41,11 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies which groups of attributes to save in the display list.",
-      "default": ""
+      "description": "mask that indicates which attributes to save",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglPushAttrib] calls glPushAttrib() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glPushAttrib in the OpenGL reference."
 }

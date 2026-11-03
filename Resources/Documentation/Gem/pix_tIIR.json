@@ -2,7 +2,7 @@
   "title": [
     "pix_tIIR"
   ],
-  "description": "timebased IIR-filter",
+  "description": "time-based IIR filter for images",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -13,6 +13,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns processing on (default 1)"
         }
       ],
       "repeat": false
@@ -21,7 +25,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "$nth feedback-coefficient"
+          "description": "filter coefficient $nth: the feedback ones, then the feedforward ones"
         }
       ],
       "repeat": true

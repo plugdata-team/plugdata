@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the s texture coordinate."
+          "description": "s texture coordinate"
         }
       ],
       "repeat": false
@@ -41,11 +41,11 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the s texture coordinate.",
-      "default": ""
+      "description": "s texture coordinate",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglTexCoord1i] calls glTexCoord1i() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glTexCoord in the OpenGL reference."
 }

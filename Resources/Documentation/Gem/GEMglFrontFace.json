@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the orientation of front-facing polygons."
+          "description": "orientation of front-facing polygons"
         }
       ],
       "repeat": false
@@ -40,12 +40,12 @@
   ],
   "arguments": [
     {
-      "type": "float",
-      "description": "Specifies the orientation of front-facing polygons.",
-      "default": "GL_CCW"
+      "type": "float/symbol",
+      "description": "orientation of front-facing polygons",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglFrontFace] calls glFrontFace() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. Its creation arguments also take GL constants by name; its inlets only take their values. See glFrontFace in the OpenGL reference."
 }

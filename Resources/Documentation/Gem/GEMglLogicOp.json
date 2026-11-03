@@ -2,7 +2,7 @@
   "title": [
     "GEMglLogicOp"
   ],
-  "description": "set the pixel transfer operation for rendering",
+  "description": "specify a logical pixel operation for color index rendering",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies a symbolic constant that selects a logical operation."
+          "description": "symbolic constant that selects a logical operation"
         }
       ],
       "repeat": false
@@ -40,12 +40,12 @@
   ],
   "arguments": [
     {
-      "type": "float",
-      "description": "Specifies a symbolic constant that selects a logical operation.",
-      "default": "GL_COPY"
+      "type": "float/symbol",
+      "description": "symbolic constant that selects a logical operation",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglLogicOp] calls glLogicOp() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. Its creation arguments also take GL constants by name; its inlets only take their values. See glLogicOp in the OpenGL reference."
 }

@@ -2,7 +2,7 @@
   "title": [
     "ortho"
   ],
-  "description": "orthographic rendering",
+  "description": "render with an orthographic projection",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -13,6 +13,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns orthographic rendering on (default 1)"
         }
       ],
       "repeat": false
@@ -33,12 +37,8 @@
   "flags": [],
   "methods": [
     {
-      "type": "float",
-      "description": "turn orthographic rendering ON (default) or OFF"
-    },
-    {
-      "type": "float",
-      "description": "switch aspect ratio ("
+      "type": "compat <float>",
+      "description": "aspect ratio: 1 keeps it at 1 (default), 0 follows the window"
     }
   ],
   "body": ""

@@ -13,24 +13,10 @@
         {
           "type": "gemlist",
           "description": ""
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "size"
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
+        },
         {
           "type": "bang",
-          "description": "grab"
+          "description": "start a new ripple at the current position"
         }
       ],
       "repeat": false
@@ -39,7 +25,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "posX (centered)"
+          "description": "size of the square"
         }
       ],
       "repeat": false
@@ -48,7 +34,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "posY (centered)"
+          "description": "amount of distortion"
         }
       ],
       "repeat": false
@@ -57,7 +43,16 @@
       "messages": [
         {
           "type": "float",
-          "description": "amount"
+          "description": "x position of the ripple (centered)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "y position of the ripple (centered)"
         }
       ],
       "repeat": false
@@ -76,12 +71,30 @@
   ],
   "arguments": [
     {
-      "type": "message",
-      "description": "draw [line|fill|point]",
-      "default": "fill"
+      "type": "float",
+      "description": "number of grid segments along x",
+      "default": "32"
+    },
+    {
+      "type": "float",
+      "description": "number of grid segments along y",
+      "default": "32"
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "draw <symbol>",
+      "description": "drawing style: default, point, line or fill"
+    },
+    {
+      "type": "width <float>",
+      "description": "line width for the line drawing styles (default 1)"
+    },
+    {
+      "type": "blend <float>",
+      "description": "nonzero turns alpha blending on"
+    }
+  ],
   "body": ""
 }

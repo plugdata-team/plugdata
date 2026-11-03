@@ -1,0 +1,67 @@
+{
+  "title": [
+    "glsl"
+  ],
+  "description": "load, compile and link a GLSL shader program",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        },
+        {
+          "type": "bang",
+          "description": "reload the shader files"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "<uniform name> <values>: set a uniform variable"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "ID of the linked program"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "open <symbol>",
+      "description": "base name of the shader files to load (name.vert, name.frag, ...)"
+    },
+    {
+      "type": "print",
+      "description": "print information about GLSL support and the linked program"
+    }
+  ],
+  "body": "[glsl] wraps [glsl_vertex], [glsl_fragment], [glsl_geometry] and [glsl_program]: it loads all shader files with the given base name and links them. Messages to its right inlet go to the [glsl_program] inside."
+}

@@ -1,6 +1,7 @@
 {
   "title": [
-    "pix_buffer"
+    "pix_buffer",
+    "pix_depot"
   ],
   "description": "a storage place for a number of images",
   "origin": "Gem",
@@ -29,15 +30,26 @@
       "repeat": false
     }
   ],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "name of the buffer, for [pix_buffer_read] and [pix_buffer_write]",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "number of slots (images) in the buffer",
+      "default": ""
+    }
+  ],
   "flags": [],
   "methods": [
     {
-      "type": "allocate <float> <float>",
+      "type": "allocate <float, float>",
       "description": "preallocate memory for images"
     },
     {
-      "type": "open <symbol> <float>",
+      "type": "open <symbol, float>",
       "description": "put an image into the pix_buffer at the given index"
     },
     {
@@ -45,12 +57,44 @@
       "description": "re-allocate slots in the buffer (slots will survive this)"
     },
     {
-      "type": "copy <symbol> <symbol>",
-      "description": "copy a pix from one slot to another"
+      "type": "copy <float, float>",
+      "description": "copy the image in one slot to another: source, target"
     },
     {
-      "type": "save <symbol> <float>",
+      "type": "save <symbol, float>",
       "description": "save image in a given slot to hard disk"
+    },
+    {
+      "type": "backend <anything>",
+      "description": "use only the given backends, in that order"
+    },
+    {
+      "type": "clearProps",
+      "description": "forget the properties stored with setProps"
+    },
+    {
+      "type": "enumProps",
+      "description": "list the properties the backend supports, on the right outlet"
+    },
+    {
+      "type": "load <symbol, float>",
+      "description": "load an image file into a slot: file name, slot"
+    },
+    {
+      "type": "loadbackend <anything>",
+      "description": "backends to use for loading images"
+    },
+    {
+      "type": "savebackend <anything>",
+      "description": "backends to use for saving images"
+    },
+    {
+      "type": "setProp <anything>",
+      "description": "store properties (name value ...) to use from the next save on"
+    },
+    {
+      "type": "setProps <anything>",
+      "description": "store properties (name value ...) to use from the next open on"
     }
   ],
   "body": ""

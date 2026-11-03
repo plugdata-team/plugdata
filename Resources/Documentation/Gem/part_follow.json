@@ -2,7 +2,7 @@
   "title": [
     "part_follow"
   ],
-  "description": "make particles follow each other.",
+  "description": "make particles follow each other",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -12,7 +12,16 @@
       "messages": [
         {
           "type": "gemlist",
-          "description": ""
+          "description": "particle system (from [part_head])"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "acceleration towards the next particle"
         }
       ],
       "repeat": false
@@ -31,8 +40,8 @@
   ],
   "arguments": [
     {
-      "type": "symbol",
-      "description": "particle follow",
+      "type": "float",
+      "description": "acceleration towards the next particle",
       "default": ""
     }
   ],

@@ -32,8 +32,8 @@
   "arguments": [
     {
       "type": "float",
-      "description": "dimension of the table",
-      "default": ""
+      "description": "number of dimensions in the table",
+      "default": "1"
     },
     {
       "type": "symbol",
@@ -42,6 +42,11 @@
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "set <symbol>",
+      "description": "read from another table"
+    }
+  ],
   "body": ""
 }

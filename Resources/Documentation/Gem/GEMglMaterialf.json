@@ -2,7 +2,7 @@
   "title": [
     "GEMglMaterialf"
   ],
-  "description": "specify material parameters for lighting",
+  "description": "specify material parameters for the lighting model",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the face and the material parameter."
+          "description": "which face or faces are being updated"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the material parameter."
+          "description": "material parameter to set, e.g. GL_SHININESS or GL_DIFFUSE"
         }
       ],
       "repeat": false
@@ -39,7 +39,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the parameter value."
+          "description": "value to set the material parameter to (GL_SHININESS takes 0 to 128)"
         }
       ],
       "repeat": false
@@ -59,21 +59,21 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the face and the material parameter.",
-      "default": "GL_FRONT"
+      "description": "which face or faces are being updated",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the material parameter.",
-      "default": "GL_DIFFUSE"
+      "description": "material parameter to set, e.g. GL_SHININESS or GL_DIFFUSE",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the parameter value.",
-      "default": "0.2"
+      "description": "value to set the material parameter to (GL_SHININESS takes 0 to 128)",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglMaterialf] calls glMaterialf() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. GL constants are numbers here: [GLdefine] turns a name like GL_LINES into its value. See glMaterial in the OpenGL reference."
 }

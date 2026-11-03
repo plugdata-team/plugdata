@@ -2,7 +2,7 @@
   "title": [
     "GEMglVertex4d"
   ],
-  "description": "specify a four-dimensional vertex (double version)",
+  "description": "specify a vertex",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,34 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the x, y, z, and w coordinates of the vertex."
+          "description": "x coordinate of the vertex"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "y coordinate of the vertex"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "z coordinate of the vertex"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "w coordinate of the vertex"
         }
       ],
       "repeat": false
@@ -41,11 +68,26 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the x, y, z, and w coordinates of the vertex.",
-      "default": ""
+      "description": "x coordinate of the vertex",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "y coordinate of the vertex",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "z coordinate of the vertex",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "w coordinate of the vertex",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglVertex4d] calls glVertex4d() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glVertex in the OpenGL reference."
 }

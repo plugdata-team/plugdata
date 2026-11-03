@@ -16,7 +16,7 @@
         },
         {
           "type": "float",
-          "description": "apply/don't apply"
+          "description": "nonzero turns processing on (default 1)"
         }
       ],
       "repeat": false
@@ -53,6 +53,11 @@
   ],
   "arguments": [],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "saturate <float>",
+      "description": "nonzero clips the results at the maximum value (default 1)"
+    }
+  ],
   "body": ""
 }

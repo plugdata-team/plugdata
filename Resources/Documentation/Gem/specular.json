@@ -2,7 +2,7 @@
   "title": [
     "specular"
   ],
-  "description": "specular coloring",
+  "description": "set the specular color of the material",
   "origin": "Gem",
   "categories": [
     "Graphics"

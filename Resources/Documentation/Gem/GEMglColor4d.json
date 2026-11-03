@@ -2,7 +2,7 @@
   "title": [
     "GEMglColor4d"
   ],
-  "description": "set the current RGBA color using double-precision floating-point values",
+  "description": "set the current color",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the red component of the current color."
+          "description": "red value of the current color"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the green component of the current color."
+          "description": "green value of the current color"
         }
       ],
       "repeat": false
@@ -39,7 +39,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the blue component of the current color."
+          "description": "blue value of the current color"
         }
       ],
       "repeat": false
@@ -48,7 +48,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the alpha component of the current color."
+          "description": "alpha value of the current color"
         }
       ],
       "repeat": false
@@ -68,26 +68,26 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the red component of the current color.",
+      "description": "red value of the current color",
       "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the green component of the current color.",
+      "description": "green value of the current color",
       "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the blue component of the current color.",
+      "description": "blue value of the current color",
       "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the alpha component of the current color.",
+      "description": "alpha value of the current color",
       "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglColor4d] calls glColor4d() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glColor in the OpenGL reference."
 }

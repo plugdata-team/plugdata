@@ -13,6 +13,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "bang",
+          "description": "write the next image to a file"
         }
       ],
       "repeat": false
@@ -33,16 +37,12 @@
   "flags": [],
   "methods": [
     {
-      "type": "file <float>",
-      "description": "set type/quality (0 = TIFF, >0 = JPG)"
+      "type": "file <anything>",
+      "description": "base file name and/or type: 0 TIFF, above 0 JPEG with that quality"
     },
     {
-      "type": "file <symbol>",
-      "description": "set basefilename, and type = TIFF"
-    },
-    {
-      "type": "file <symbol> <float>",
-      "description": "set basefilename and type/quality"
+      "type": "auto <float>",
+      "description": "nonzero writes every image"
     }
   ],
   "body": ""

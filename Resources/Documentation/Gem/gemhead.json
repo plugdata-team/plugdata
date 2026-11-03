@@ -11,12 +11,12 @@
     {
       "messages": [
         {
-          "type": "float (1/0)",
-          "description": "turn rendering on/off"
+          "type": "float",
+          "description": "nonzero turns rendering of this chain on, 0 off (default 1)"
         },
         {
           "type": "bang",
-          "description": "force rendering now"
+          "description": "render this chain now"
         }
       ],
       "repeat": false
@@ -36,20 +36,25 @@
   "arguments": [
     {
       "type": "float",
-      "description": "priority",
+      "description": "priority: lower numbers render first",
       "default": "50"
+    },
+    {
+      "type": "symbol",
+      "description": "name of the context (window) to render in",
+      "default": ""
     }
   ],
   "flags": [],
   "methods": [
     {
-      "type": "set <priority>",
-      "description": "change priority value of this chain"
+      "type": "set <float>",
+      "description": "change the priority of this chain"
     },
     {
-      "type": "context <name>",
-      "description": "change rendering context (for multiple windows)"
+      "type": "context <symbol>",
+      "description": "render into another context (window)"
     }
   ],
-  "body": ""
+  "body": "[gemhead]'s two arguments can come in either order."
 }

@@ -2,7 +2,7 @@
   "title": [
     "GEMglMaterialfv"
   ],
-  "description": "specify material parameters for lighting with float values",
+  "description": "specify material parameters for the lighting model",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the face and the material parameter."
+          "description": "which face or faces are being updated"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the material parameter."
+          "description": "material parameter to set, e.g. GL_SHININESS or GL_DIFFUSE"
         }
       ],
       "repeat": false
@@ -39,7 +39,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "Specifies the RGBA parameter values."
+          "description": "list of values for the material parameter"
         }
       ],
       "repeat": false
@@ -58,22 +58,12 @@
   ],
   "arguments": [
     {
-      "type": "float",
-      "description": "Specifies the face and the material parameter.",
-      "default": "GL_FRONT"
-    },
-    {
-      "type": "float",
-      "description": "Specifies the material parameter.",
-      "default": "GL_DIFFUSE"
-    },
-    {
-      "type": "float",
-      "description": "Specifies the RGBA parameter values.",
-      "default": "[0.2, 0.2, 0.2, 1.0]"
+      "type": "list",
+      "description": "list of values for the material parameter",
+      "default": ""
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglMaterialfv] calls glMaterialfv() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. GL constants are numbers here: [GLdefine] turns a name like GL_LINES into its value. See glMaterial in the OpenGL reference."
 }

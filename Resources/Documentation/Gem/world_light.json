@@ -2,7 +2,7 @@
   "title": [
     "world_light"
   ],
-  "description": "adds a point-light to the scene.",
+  "description": "adds a point-light to the scene",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -12,7 +12,11 @@
       "messages": [
         {
           "type": "gemlist",
-          "description": "debug 1|0: show debugging object (default: 0), f 66"
+          "description": "nonzero shows a debugging object at the light's position (default 0)"
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns the light on (default 1)"
         }
       ],
       "repeat": false
@@ -41,11 +45,16 @@
   "arguments": [
     {
       "type": "float",
-      "description": "turn light on/off (",
-      "default": "1)"
+      "description": "number of the OpenGL light, 1 to 8; 0 takes the next free one",
+      "default": "0"
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "debug <float>",
+      "description": "show debugging object (default:0)"
+    }
+  ],
   "body": ""
 }

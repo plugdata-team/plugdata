@@ -16,11 +16,11 @@
         },
         {
           "type": "float",
-          "description": "apply/don't apply"
+          "description": "nonzero turns processing on (default 1)"
         },
         {
           "type": "bang",
-          "description": "reshuffle"
+          "description": "shuffle the pieces again"
         }
       ],
       "repeat": false
@@ -41,7 +41,7 @@
   "flags": [],
   "methods": [
     {
-      "type": "size <float> <float>",
+      "type": "size <float, float>",
       "description": "number of elements in x/y"
     },
     {

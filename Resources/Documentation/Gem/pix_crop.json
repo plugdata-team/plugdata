@@ -13,6 +13,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns processing on (default 1)"
         }
       ],
       "repeat": false
@@ -21,7 +25,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "width"
+          "description": "width of the cropped area"
         }
       ],
       "repeat": false
@@ -30,7 +34,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "height"
+          "description": "height of the cropped area"
         }
       ],
       "repeat": false
@@ -88,6 +92,15 @@
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "dimen <float, float>",
+      "description": "size of the cropped area: width, height"
+    },
+    {
+      "type": "offset <float, float>",
+      "description": "position of the cropped area: x, y"
+    }
+  ],
   "body": ""
 }

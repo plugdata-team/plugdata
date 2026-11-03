@@ -32,7 +32,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "texture info"
+          "description": "texture info: ID, width, height, type, upside-down flag"
         }
       ],
       "repeat": false
@@ -43,14 +43,14 @@
   "methods": [
     {
       "type": "type <symbol>",
-      "description": "type of the framebuffer data (BYTE, INT or FLOAT])"
+      "description": "data type of the framebuffer: BYTE, INT or FLOAT"
     },
     {
-      "type": "dimen <float> <float>",
+      "type": "dimen <float, float>",
       "description": "dimension of the framebuffer texture"
     },
     {
-      "type": "color <float> <float> <float> <float>",
+      "type": "color <float, float, float, float>",
       "description": "background color of the framebuffer"
     },
     {
@@ -62,12 +62,40 @@
       "description": "texturing mode; rectangle (1) or normalized (0)"
     },
     {
-      "type": "perspec <float> <float> <float> <float> <float> <float>",
+      "type": "perspec <float, float, float, float, float, float>",
       "description": "frustum of the framebuffer"
     },
     {
       "type": "format <symbol>",
       "description": "color format of the framebuffer (RGB|RGBA|RGB32|RGBA32F|YUV)"
+    },
+    {
+      "type": "clear <float>",
+      "description": "nonzero clears the framebuffer before rendering (default 1)"
+    },
+    {
+      "type": "quality <float>",
+      "description": "texture filtering: 0 GL_NEAREST, 1 GL_LINEAR"
+    },
+    {
+      "type": "repeat <float>",
+      "description": "texture wrapping: 0 GL_CLAMP_TO_EDGE, 1 GL_REPEAT"
+    },
+    {
+      "type": "verbose <float>",
+      "description": "nonzero prints information about the framebuffer"
+    },
+    {
+      "type": "MSAA <float>",
+      "description": "number of samples for multisample anti-aliasing (0 turns it off)"
+    },
+    {
+      "type": "dim <float, float>",
+      "description": "same as dimen"
+    },
+    {
+      "type": "mode <float>",
+      "description": "same as rectangle"
     }
   ],
   "body": ""

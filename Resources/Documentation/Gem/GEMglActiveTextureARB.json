@@ -2,7 +2,7 @@
   "title": [
     "GEMglActiveTextureARB"
   ],
-  "description": "select active texture unit (ARB extension)",
+  "description": "select active texture unit",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies which texture unit to make active."
+          "description": "texture unit to make active, e.g. GL_TEXTURE0"
         }
       ],
       "repeat": false
@@ -41,11 +41,11 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies which texture unit to make active.",
+      "description": "texture unit to make active, e.g. GL_TEXTURE0",
       "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglActiveTextureARB] calls glActiveTextureARB() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glActiveTexture in the OpenGL reference."
 }

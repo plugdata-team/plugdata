@@ -31,6 +31,11 @@
   ],
   "arguments": [],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "draw <anything>",
+      "description": "drawing style: line or point"
+    }
+  ],
   "body": ""
 }

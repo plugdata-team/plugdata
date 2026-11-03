@@ -2,7 +2,7 @@
   "title": [
     "pix_multiimage"
   ],
-  "description": "loads in an image to be used as a texture, bitblit, or something else.",
+  "description": "loads in an image to be used as a texture, bitblit, or something else",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -41,14 +41,29 @@
   "arguments": [
     {
       "type": "symbol",
-      "description": "filename (with wildcard *) for images to load",
+      "description": "file name pattern, with * where the number goes",
       "default": ""
+    },
+    {
+      "type": "float",
+      "description": "first number",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "last number",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "step between the numbers",
+      "default": "1"
     }
   ],
   "flags": [],
   "methods": [
     {
-      "type": "open <symbol> <float>",
+      "type": "open <symbol, float>",
       "description": "open images"
     }
   ],

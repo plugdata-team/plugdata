@@ -2,7 +2,7 @@
   "title": [
     "GEMglGetMapiv"
   ],
-  "description": "return the coefficients of the specified map",
+  "description": "return evaluator parameters",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the map to query."
+          "description": "symbolic name of a map"
         }
       ],
       "repeat": false
@@ -30,16 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the target coordinate space."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Returns the coefficients of the specified map."
+          "description": "which parameter to return"
         }
       ],
       "repeat": false
@@ -59,16 +50,16 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the map to query.",
-      "default": "GL_ORDER"
+      "description": "symbolic name of a map",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the target coordinate space.",
-      "default": "GL_OBJECT_LINEAR"
+      "description": "which parameter to return",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglGetMapiv] calls glGetMapiv() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. GL constants are numbers here: [GLdefine] turns a name like GL_LINES into its value. See glGetMap in the OpenGL reference."
 }

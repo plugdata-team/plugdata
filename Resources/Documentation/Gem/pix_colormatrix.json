@@ -3,7 +3,7 @@
     "pix_colormatrix",
     "pix_colourmatrix"
   ],
-  "description": "",
+  "description": "transform the pixel values with a matrix",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -14,6 +14,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns processing on (default 1)"
         }
       ],
       "repeat": false

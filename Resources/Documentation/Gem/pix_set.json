@@ -15,6 +15,10 @@
           "description": ""
         },
         {
+          "type": "float",
+          "description": "nonzero turns processing on (default 1)"
+        },
+        {
           "type": "bang",
           "description": "send image (to update texture, for example)"
         }
@@ -25,7 +29,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "interleaved image-data (R1 G1 B1 A1 R2 B2...) or (R1 B1 G1 R2 B2...) or (L1 L2 L3...)"
+          "description": "image data, interleaved: R G B A ..., R G B ... or grey values"
         }
       ],
       "repeat": false
@@ -45,36 +49,52 @@
   "arguments": [
     {
       "type": "float",
-      "description": "width",
+      "description": "width of the image",
       "default": ""
     },
     {
       "type": "float",
-      "description": "height",
+      "description": "height of the image",
       "default": ""
     }
   ],
   "flags": [],
   "methods": [
     {
-      "type": "RGB",
-      "description": "set colourspace"
-    },
-    {
-      "type": "RGBA",
-      "description": "set colourspace"
-    },
-    {
-      "type": "GREY",
-      "description": "set colourspace"
+      "type": "colorspace <symbol>",
+      "description": "set format of input-data"
     },
     {
       "type": "fill <list>",
       "description": "set the whole image with value (value could be G, RGB or RGBA)"
     },
     {
-      "type": "set <float> <float>",
-      "description": "set the size of the image"
+      "type": "dimen <float, float>",
+      "description": "set the size of the image: width, height"
+    },
+    {
+      "type": "bytemode <float>",
+      "description": "nonzero takes values from 0 to 255, 0 from 0 to 1"
+    },
+    {
+      "type": "set <float, float>",
+      "description": "same as dimen"
+    },
+    {
+      "type": "type <symbol>",
+      "description": "data type of the input: BYTE, FLOAT or DOUBLE"
+    },
+    {
+      "type": "RGBA/rgba",
+      "description": "the data is RGBA"
+    },
+    {
+      "type": "RGB/rgb",
+      "description": "the data is RGB"
+    },
+    {
+      "type": "GREY/GRAY/grey/gray",
+      "description": "the data is greyscale"
     }
   ],
   "body": ""

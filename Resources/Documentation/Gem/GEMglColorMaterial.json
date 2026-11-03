@@ -2,7 +2,7 @@
   "title": [
     "GEMglColorMaterial"
   ],
-  "description": "specify the material parameters for the lighting model",
+  "description": "cause a material color to track the current color",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies which material face or faces are being updated."
+          "description": "faces tracking the color: GL_FRONT, GL_BACK or GL_FRONT_AND_BACK"
         }
       ],
       "repeat": false
@@ -30,16 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies which of the ambient, diffuse, specular, and emission material parameters are being set."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "If GL_TRUE, the material parameter is set to the corresponding current color. If GL_FALSE, the corresponding material parameter is set to the value specified by params."
+          "description": "which of several material parameters track the current color"
         }
       ],
       "repeat": false
@@ -58,22 +49,17 @@
   ],
   "arguments": [
     {
-      "type": "float",
-      "description": "Specifies which material face or faces are being updated.",
-      "default": "GL_FRONT_AND_BACK"
+      "type": "float/symbol",
+      "description": "faces tracking the color: GL_FRONT, GL_BACK or GL_FRONT_AND_BACK",
+      "default": "0"
     },
     {
-      "type": "float",
-      "description": "Specifies which of the ambient, diffuse, specular, and emission material parameters are being set.",
-      "default": "GL_AMBIENT_AND_DIFFUSE"
-    },
-    {
-      "type": "float",
-      "description": "If GL_TRUE, the material parameter is set to the corresponding current color. If GL_FALSE, the corresponding material parameter is set to the value specified by params.",
-      "default": "GL_FALSE"
+      "type": "float/symbol",
+      "description": "which of several material parameters track the current color",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglColorMaterial] calls glColorMaterial() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. Its creation arguments also take GL constants by name; its inlets only take their values. See glColorMaterial in the OpenGL reference."
 }

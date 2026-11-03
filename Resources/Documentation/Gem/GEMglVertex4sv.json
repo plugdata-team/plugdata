@@ -2,7 +2,7 @@
   "title": [
     "GEMglVertex4sv"
   ],
-  "description": "specify a four-dimensional vertex (short version)",
+  "description": "specify a vertex",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -20,8 +20,8 @@
     {
       "messages": [
         {
-          "type": "const float*",
-          "description": "Specifies a pointer to an array of four elements, which are the x, y, z, and w coordinates of the vertex."
+          "type": "list",
+          "description": "list of the vertex's 4 coordinates (x, y, z and w)"
         }
       ],
       "repeat": false
@@ -40,12 +40,27 @@
   ],
   "arguments": [
     {
-      "type": "const float*",
-      "description": "Specifies a pointer to an array of four elements, which are the x, y, z, and w coordinates of the vertex.",
-      "default": ""
+      "type": "float",
+      "description": "x coordinate of the vertex",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "y coordinate of the vertex",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "z coordinate of the vertex",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "w coordinate of the vertex",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglVertex4sv] calls glVertex4sv() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glVertex in the OpenGL reference."
 }

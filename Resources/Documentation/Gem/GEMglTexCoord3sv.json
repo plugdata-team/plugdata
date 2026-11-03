@@ -2,12 +2,31 @@
   "title": [
     "GEMglTexCoord3sv"
   ],
-  "description": "set the current texture coordinates (short integer version)",
+  "description": "set the current texture coordinates",
   "origin": "Gem",
   "categories": [
     "Graphics"
   ],
-  "inlets": [],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "list of 3 texture coordinates (s, t and r)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
   "outlets": [
     {
       "messages": [
@@ -22,11 +41,21 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the s, t, and r texture coordinates.",
-      "default": ""
+      "description": "s texture coordinate",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "t texture coordinate",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "r texture coordinate",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglTexCoord3sv] calls glTexCoord3sv() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glTexCoord in the OpenGL reference."
 }

@@ -2,7 +2,7 @@
   "title": [
     "GEMglEvalCoord2dv"
   ],
-  "description": "evaluate enabled two-dimensional maps at the specified parametric coordinates",
+  "description": "evaluate enabled one- and two-dimensional maps",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -20,17 +20,8 @@
     {
       "messages": [
         {
-          "type": "float",
-          "description": "Specifies the parametric coordinates at which to evaluate the maps."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Specifies the parametric coordinates at which to evaluate the maps."
+          "type": "list",
+          "description": "list of 2 domain coordinates (u and v)"
         }
       ],
       "repeat": false
@@ -50,11 +41,16 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the parametric coordinates at which to evaluate the maps.",
+      "description": "value of the first domain coordinate",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "value of the second domain coordinate",
       "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglEvalCoord2dv] calls glEvalCoord2dv() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glEvalCoord in the OpenGL reference."
 }

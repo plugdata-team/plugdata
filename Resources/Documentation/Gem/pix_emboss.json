@@ -1,8 +1,8 @@
 {
   "title": [
-    "vertex_grid"
+    "pix_emboss"
   ],
-  "description": "create a grid of vertices",
+  "description": "emboss an image",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -13,6 +13,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns processing on (default 1)"
         }
       ],
       "repeat": false
@@ -29,18 +33,7 @@
       "repeat": false
     }
   ],
-  "arguments": [
-    {
-      "type": "float",
-      "description": "x",
-      "default": ""
-    },
-    {
-      "type": "float",
-      "description": "y",
-      "default": ""
-    }
-  ],
+  "arguments": [],
   "flags": [],
   "methods": [],
   "body": ""

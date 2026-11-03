@@ -2,7 +2,7 @@
   "title": [
     "gemargs"
   ],
-  "description": "pass the initial message and arguments for the Gem subsystem",
+  "description": "get the arguments and init messages of the parent abstraction",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -12,7 +12,7 @@
       "messages": [
         {
           "type": "bang",
-          "description": "send a bang to initiate Gem subsystem"
+          "description": "output the init messages and the arguments"
         }
       ],
       "repeat": false
@@ -22,8 +22,8 @@
     {
       "messages": [
         {
-          "type": "list",
-          "description": "initialization messages"
+          "type": "anything",
+          "description": "init messages (the parts after ';' in the parent's box)"
         }
       ],
       "repeat": false
@@ -32,7 +32,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "arguments"
+          "description": "arguments of the parent abstraction"
         }
       ],
       "repeat": false

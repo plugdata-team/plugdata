@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the stencil test function."
+          "description": "test function"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the reference value for the stencil test."
+          "description": "reference value for the stencil test"
         }
       ],
       "repeat": false
@@ -39,7 +39,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies a mask that is ANDed with both the reference value and the stored stencil value when the test is done."
+          "description": "mask ANDed with the reference value and the stored stencil value"
         }
       ],
       "repeat": false
@@ -59,21 +59,21 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the stencil test function.",
-      "default": ""
+      "description": "test function",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the reference value for the stencil test.",
-      "default": ""
+      "description": "reference value for the stencil test",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies a mask that is ANDed with both the reference value and the stored stencil value when the test is done.",
-      "default": ""
+      "description": "mask ANDed with the reference value and the stored stencil value",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglStencilFunc] calls glStencilFunc() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. GL constants are numbers here: [GLdefine] turns a name like GL_LINES into its value. See glStencilFunc in the OpenGL reference."
 }

@@ -3,7 +3,7 @@
     "pix_colorreduce",
     "pix_colourreduce"
   ],
-  "description": "",
+  "description": "reduce the number of colors of an image",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -14,6 +14,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns processing on (default 1)"
         }
       ],
       "repeat": false
@@ -22,7 +26,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "number of colours"
+          "description": "number of colors"
         }
       ],
       "repeat": false
@@ -60,7 +64,7 @@
   "arguments": [
     {
       "type": "float",
-      "description": "number of colours",
+      "description": "number of colors",
       "default": ""
     }
   ],

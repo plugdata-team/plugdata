@@ -2,7 +2,7 @@
   "title": [
     "GEMglVertex2fv"
   ],
-  "description": "specify a two-dimensional vertex with single-precision coordinates using an array",
+  "description": "specify a vertex",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -20,8 +20,8 @@
     {
       "messages": [
         {
-          "type": "float",
-          "description": "Specifies an array containing the x and y coordinates of the vertex."
+          "type": "list",
+          "description": "list of the vertex's 2 coordinates (x and y)"
         }
       ],
       "repeat": false
@@ -41,11 +41,16 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies an array containing the x and y coordinates of the vertex.",
-      "default": "[0, 0]"
+      "description": "x coordinate of the vertex",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "y coordinate of the vertex",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglVertex2fv] calls glVertex2fv() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glVertex in the OpenGL reference."
 }

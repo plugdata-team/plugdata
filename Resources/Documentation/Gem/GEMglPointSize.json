@@ -2,7 +2,7 @@
   "title": [
     "GEMglPointSize"
   ],
-  "description": "specify the rasterized point size",
+  "description": "specify the diameter of rasterized points",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the size of rasterized points."
+          "description": "diameter of rasterized points"
         }
       ],
       "repeat": false
@@ -41,11 +41,11 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the size of rasterized points.",
-      "default": "1.0"
+      "description": "diameter of rasterized points",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglPointSize] calls glPointSize() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glPointSize in the OpenGL reference."
 }

@@ -2,7 +2,7 @@
   "title": [
     "ambient"
   ],
-  "description": "ambient coloring",
+  "description": "set the ambient color of the material",
   "origin": "Gem",
   "categories": [
     "Graphics"

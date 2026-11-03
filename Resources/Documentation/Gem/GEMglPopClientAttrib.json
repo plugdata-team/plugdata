@@ -2,7 +2,7 @@
   "title": [
     "GEMglPopClientAttrib"
   ],
-  "description": "restore the state of the client attribute stack",
+  "description": "push and pop the client attribute stack",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -32,5 +32,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglPopClientAttrib] calls glPopClientAttrib() each time a gemlist passes through it. See glPushClientAttrib in the OpenGL reference."
 }

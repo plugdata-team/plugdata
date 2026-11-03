@@ -2,7 +2,7 @@
   "title": [
     "GEMglStencilMask"
   ],
-  "description": "control the writing of individual bits in the stencil planes",
+  "description": "control the front and back writing of individual bits in the stencil planes",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the mask that is ANDed with the stencil value when it is written."
+          "description": "bit mask of the stencil bits that may be written"
         }
       ],
       "repeat": false
@@ -41,11 +41,11 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the mask that is ANDed with the stencil value when it is written.",
-      "default": ""
+      "description": "bit mask of the stencil bits that may be written",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglStencilMask] calls glStencilMask() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glStencilMask in the OpenGL reference."
 }

@@ -2,7 +2,7 @@
   "title": [
     "GEMglTexSubImage2D"
   ],
-  "description": "define a subregion of a two-dimensional texture image",
+  "description": "specify a two-dimensional texture subimage",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the target texture."
+          "description": "level-of-detail number"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the level-of-detail number."
+          "description": "texel offset in the x direction within the texture array"
         }
       ],
       "repeat": false
@@ -39,7 +39,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the xoffset of the subregion."
+          "description": "texel offset in the y direction within the texture array"
         }
       ],
       "repeat": false
@@ -48,7 +48,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the yoffset of the subregion."
+          "description": "width of the texture subimage"
         }
       ],
       "repeat": false
@@ -57,43 +57,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the width of the subregion."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Specifies the height of the subregion."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Specifies the format of the pixel data."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Specifies the data type of the pixel data."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "const GLvoid*",
-          "description": "Specifies a pointer to the image data in memory."
+          "description": "height of the texture subimage"
         }
       ],
       "repeat": false
@@ -113,51 +77,36 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the target texture.",
-      "default": ""
+      "description": "level-of-detail number",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the level-of-detail number.",
-      "default": ""
+      "description": "texel offset in the x direction within the texture array",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the xoffset of the subregion.",
-      "default": ""
+      "description": "texel offset in the y direction within the texture array",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the yoffset of the subregion.",
-      "default": ""
+      "description": "width of the texture subimage",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the width of the subregion.",
-      "default": ""
-    },
-    {
-      "type": "float",
-      "description": "Specifies the height of the subregion.",
-      "default": ""
-    },
-    {
-      "type": "float",
-      "description": "Specifies the format of the pixel data.",
-      "default": ""
-    },
-    {
-      "type": "float",
-      "description": "Specifies the data type of the pixel data.",
-      "default": ""
-    },
-    {
-      "type": "const GLvoid*",
-      "description": "Specifies a pointer to the image data in memory.",
-      "default": ""
+      "description": "height of the texture subimage",
+      "default": "0"
     }
   ],
   "flags": [],
-  "methods": [],
-  "body": ""
+  "methods": [
+    {
+      "type": "target <float>",
+      "description": "target texture"
+    }
+  ],
+  "body": "[GEMglTexSubImage2D] calls glTexSubImage2D() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glTexSubImage2D in the OpenGL reference."
 }

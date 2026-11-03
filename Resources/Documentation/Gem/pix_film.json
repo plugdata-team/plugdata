@@ -1,6 +1,7 @@
 {
   "title": [
-    "pix_film"
+    "pix_film",
+    "pix_filmQT"
   ],
   "description": "load in a movie-file",
   "origin": "Gem",
@@ -70,7 +71,7 @@
   "flags": [],
   "methods": [
     {
-      "type": "open <symbol> <symbol>",
+      "type": "open <symbol, symbol>",
       "description": "opens the movie arg1, decodes it into the specified arg2 color-space if supported"
     },
     {
@@ -79,11 +80,23 @@
     },
     {
       "type": "auto <float>",
-      "description": "starts/stops automatic playback. ("
+      "description": "nonzero plays the film automatically, at that speed (default 0)"
     },
     {
       "type": "loader <symbol>",
       "description": "open the film using only the specified backend(s)"
+    },
+    {
+      "type": "backend <list>",
+      "description": "open films with only the given backends"
+    },
+    {
+      "type": "driver <anything>",
+      "description": "use the given driver (backend)"
+    },
+    {
+      "type": "thread <float>",
+      "description": "nonzero loads in a separate thread"
     }
   ],
   "body": ""

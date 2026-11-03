@@ -2,7 +2,7 @@
   "title": [
     "GEMglTexParameteri"
   ],
-  "description": "set texture parameters (integer version)",
+  "description": "set texture parameters",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the target texture."
+          "description": "texture target, e.g. GL_TEXTURE_2D"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the parameter to set for the texture."
+          "description": "symbolic name of a single-valued texture parameter"
         }
       ],
       "repeat": false
@@ -39,7 +39,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the value to set the specified parameter."
+          "description": "value of pname"
         }
       ],
       "repeat": false
@@ -59,21 +59,21 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the target texture.",
-      "default": ""
+      "description": "texture target, e.g. GL_TEXTURE_2D",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the parameter to set for the texture.",
-      "default": ""
+      "description": "symbolic name of a single-valued texture parameter",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the value to set the specified parameter.",
-      "default": ""
+      "description": "value of pname",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglTexParameteri] calls glTexParameteri() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. GL constants are numbers here: [GLdefine] turns a name like GL_LINES into its value. See glTexParameter in the OpenGL reference."
 }

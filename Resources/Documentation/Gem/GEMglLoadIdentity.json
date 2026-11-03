@@ -32,5 +32,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglLoadIdentity] calls glLoadIdentity() each time a gemlist passes through it. See glLoadIdentity in the OpenGL reference."
 }

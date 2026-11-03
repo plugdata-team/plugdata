@@ -7,7 +7,44 @@
   "categories": [
     "Graphics"
   ],
-  "inlets": [],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "scale factor along the x axis"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "scale factor along the y axis"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "scale factor along the z axis"
+        }
+      ],
+      "repeat": false
+    }
+  ],
   "outlets": [
     {
       "messages": [
@@ -22,21 +59,21 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the scale factors along the x, y, and z axes, respectively.",
-      "default": ""
+      "description": "scale factor along the x axis",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the scale factors along the x, y, and z axes, respectively.",
-      "default": ""
+      "description": "scale factor along the y axis",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the scale factors along the x, y, and z axes, respectively.",
-      "default": ""
+      "description": "scale factor along the z axis",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglScalef] calls glScalef() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glScale in the OpenGL reference."
 }

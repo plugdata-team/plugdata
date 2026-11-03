@@ -12,7 +12,25 @@
       "messages": [
         {
           "type": "gemlist",
-          "description": ""
+          "description": "particle system (from [part_head])"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "target color: R G B (A)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "how fast particles take on the color"
         }
       ],
       "repeat": false
@@ -31,14 +49,14 @@
   ],
   "arguments": [
     {
-      "type": "symbol",
-      "description": "RGB or RGBA vector representing the target color",
+      "type": "list",
+      "description": "target color: R G B (A)",
       "default": ""
     },
     {
       "type": "float",
-      "description": "scale factor (",
-      "default": "0.05)"
+      "description": "how fast particles take on the color",
+      "default": "0.05"
     }
   ],
   "flags": [],

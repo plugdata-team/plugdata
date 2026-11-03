@@ -3,7 +3,7 @@
     "pix_a_2grey",
     "pix_a_2gray"
   ],
-  "description": "",
+  "description": "convert pixels to grey depending on their alpha value",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -14,6 +14,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns processing on (default 1)"
         }
       ],
       "repeat": false
@@ -21,7 +25,7 @@
     {
       "messages": [
         {
-          "type": "<float>",
+          "type": "float",
           "description": "alpha-threshold (-1..0..+1)"
         }
       ],
@@ -39,8 +43,19 @@
       "repeat": false
     }
   ],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "alpha threshold, -1 to 1 (see the alpha message)",
+      "default": "0"
+    }
+  ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "alpha <float>",
+      "description": "alpha threshold, -1 to 1: positive greys pixels above it, negative below"
+    }
+  ],
   "body": ""
 }

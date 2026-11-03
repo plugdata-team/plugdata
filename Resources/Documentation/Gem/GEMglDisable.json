@@ -2,7 +2,7 @@
   "title": [
     "GEMglDisable"
   ],
-  "description": "disable server-side GL capabilities",
+  "description": "enable or disable server-side GL capabilities",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the GL capability to disable."
+          "description": "symbolic constant indicating a GL capability"
         }
       ],
       "repeat": false
@@ -40,12 +40,12 @@
   ],
   "arguments": [
     {
-      "type": "float",
-      "description": "Specifies the GL capability to disable.",
-      "default": "GL_TEXTURE_2D"
+      "type": "float/symbol",
+      "description": "symbolic constant indicating a GL capability",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglDisable] calls glDisable() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. Its creation arguments also take GL constants by name; its inlets only take their values. See glEnable in the OpenGL reference."
 }

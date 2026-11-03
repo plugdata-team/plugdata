@@ -22,7 +22,7 @@
     {
       "messages": [
         {
-          "type": "list of floats",
+          "type": "list",
           "description": "a list of <D> floats"
         }
       ],
@@ -32,12 +32,7 @@
   "arguments": [
     {
       "type": "float",
-      "description": "reading point (0.0 to 1.0)",
-      "default": ""
-    },
-    {
-      "type": "float",
-      "description": "dimensions of the table",
+      "description": "number of dimensions in the table",
       "default": "1"
     },
     {
@@ -47,6 +42,11 @@
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "set <symbol>",
+      "description": "read from another table"
+    }
+  ],
   "body": ""
 }

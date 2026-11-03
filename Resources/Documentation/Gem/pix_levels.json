@@ -2,7 +2,7 @@
   "title": [
     "pix_levels"
   ],
-  "description": "level adjustment",
+  "description": "adjust the levels of an image",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -13,6 +13,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns processing on (default 1)"
         }
       ],
       "repeat": false
@@ -96,7 +100,7 @@
     },
     {
       "type": "auto <float>",
-      "description": "turns automatic level-correction on/off"
+      "description": "nonzero turns automatic level correction on"
     }
   ],
   "body": ""

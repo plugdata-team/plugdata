@@ -2,7 +2,7 @@
   "title": [
     "light"
   ],
-  "description": "adds a point-light to the scene.",
+  "description": "adds a point-light to the scene",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -11,8 +11,12 @@
     {
       "messages": [
         {
+          "type": "gemlist",
+          "description": ""
+        },
+        {
           "type": "float",
-          "description": "turn light on/off."
+          "description": "nonzero turns the light on (default 1)"
         }
       ],
       "repeat": false
@@ -21,7 +25,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "RGB or RGBA float values for the light color."
+          "description": "color of the light: 3 (RGB) or 4 (RGBA) values"
         }
       ],
       "repeat": false
@@ -40,20 +44,16 @@
   ],
   "arguments": [
     {
-      "type": "gemlist",
-      "description": "",
-      "default": ""
+      "type": "float",
+      "description": "number of the OpenGL light, 1 to 8; 0 takes the next free one",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [
     {
       "type": "debug <float>",
-      "description": "turn debug mode on/off."
-    },
-    {
-      "type": "list <float> <float> <float> <float>",
-      "description": "set RGB or RGBA float values for the light color."
+      "description": "nonzero shows a debugging object at the light's position (default 0)"
     }
   ],
   "body": ""

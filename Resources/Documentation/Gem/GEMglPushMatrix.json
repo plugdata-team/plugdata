@@ -2,7 +2,7 @@
   "title": [
     "GEMglPushMatrix"
   ],
-  "description": "push the current matrix stack",
+  "description": "push and pop the current matrix stack",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -32,5 +32,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglPushMatrix] calls glPushMatrix() each time a gemlist passes through it. See glPushMatrix in the OpenGL reference."
 }

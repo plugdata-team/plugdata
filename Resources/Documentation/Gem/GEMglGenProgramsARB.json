@@ -2,7 +2,7 @@
   "title": [
     "GEMglGenProgramsARB"
   ],
-  "description": "generate program object names",
+  "description": "generate ARB program IDs",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the number of program object names to generate."
+          "description": "list of program IDs, written into by the call"
         }
       ],
       "repeat": false
@@ -40,12 +40,12 @@
   ],
   "arguments": [
     {
-      "type": "float",
-      "description": "Specifies the number of program object names to generate.",
-      "default": "1"
+      "type": "list",
+      "description": "list of program IDs, written into by the call",
+      "default": ""
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglGenProgramsARB] calls glGenProgramsARB() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets."
 }

@@ -2,7 +2,7 @@
   "title": [
     "GEMglPrioritizeTextures"
   ],
-  "description": "set texture object priorities",
+  "description": "set texture residence priority",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the number of texture names in textures."
+          "description": "number of textures to be prioritized"
         }
       ],
       "repeat": false
@@ -29,8 +29,8 @@
     {
       "messages": [
         {
-          "type": "float",
-          "description": "Specifies an array containing the texture names to be prioritized."
+          "type": "list",
+          "description": "list of texture IDs"
         }
       ],
       "repeat": false
@@ -38,8 +38,8 @@
     {
       "messages": [
         {
-          "type": "float",
-          "description": "Specifies an array of priorities for the corresponding texture names in textures."
+          "type": "list",
+          "description": "list of texture priorities, from 0 to 1"
         }
       ],
       "repeat": false
@@ -59,21 +59,11 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the number of texture names in textures.",
-      "default": ""
-    },
-    {
-      "type": "float",
-      "description": "Specifies an array containing the texture names to be prioritized.",
-      "default": ""
-    },
-    {
-      "type": "float",
-      "description": "Specifies an array of priorities for the corresponding texture names in textures.",
-      "default": ""
+      "description": "number of textures to be prioritized",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglPrioritizeTextures] calls glPrioritizeTextures() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glPrioritizeTextures in the OpenGL reference."
 }

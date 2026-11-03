@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the shading model."
+          "description": "symbolic value representing a shading technique"
         }
       ],
       "repeat": false
@@ -40,12 +40,12 @@
   ],
   "arguments": [
     {
-      "type": "float",
-      "description": "Specifies the shading model.",
-      "default": ""
+      "type": "float/symbol",
+      "description": "symbolic value representing a shading technique",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglShadeModel] calls glShadeModel() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. Its creation arguments also take GL constants by name; its inlets only take their values. See glShadeModel in the OpenGL reference."
 }

@@ -13,6 +13,14 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns processing on (default 1)"
+        },
+        {
+          "type": "bang",
+          "description": "generate a new noise image"
         }
       ],
       "repeat": false
@@ -32,24 +40,20 @@
   "arguments": [
     {
       "type": "float",
-      "description": "width",
+      "description": "width of the image",
       "default": ""
     },
     {
       "type": "float",
-      "description": "height",
+      "description": "height of the image",
       "default": ""
     }
   ],
   "flags": [],
   "methods": [
     {
-      "type": "bang",
-      "description": "generate new image"
-    },
-    {
       "type": "auto <float>",
-      "description": "generate new image for each frame on/off"
+      "description": "nonzero generates a new image every frame"
     },
     {
       "type": "set <list>",
@@ -57,19 +61,23 @@
     },
     {
       "type": "seed <float>",
-      "description": "change the seed of the random function\\"
+      "description": "change the seed of the random function"
     },
     {
-      "type": "RGB",
-      "description": "set colourspace"
+      "type": "debug",
+      "description": "print the state of the random generator"
     },
     {
-      "type": "RGBA",
-      "description": "set colourspace"
+      "type": "RGBA/rgba",
+      "description": "generate RGBA noise"
     },
     {
-      "type": "GREY",
-      "description": "set colourspace"
+      "type": "RGB/rgb",
+      "description": "generate RGB noise (opaque)"
+    },
+    {
+      "type": "GREY/GRAY/grey/gray",
+      "description": "generate greyscale noise"
     }
   ],
   "body": ""

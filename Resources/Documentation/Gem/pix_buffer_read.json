@@ -1,6 +1,7 @@
 {
   "title": [
-    "pix_buffer_read"
+    "pix_buffer_read",
+    "pix_get"
   ],
   "description": "reads an image from the named buffer provided by [pix_buffer]",
   "origin": "Gem",
@@ -13,6 +14,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns processing on (default 1)"
         }
       ],
       "repeat": false
@@ -41,7 +46,7 @@
   "arguments": [
     {
       "type": "symbol",
-      "description": "<buffer_name>",
+      "description": "name of the [pix_buffer] to read from",
       "default": ""
     }
   ],
@@ -50,6 +55,14 @@
     {
       "type": "set <symbol>",
       "description": "read from another buffer"
+    },
+    {
+      "type": "auto <float>",
+      "description": "nonzero advances to the next frame on each render, at that speed"
+    },
+    {
+      "type": "loop <float>",
+      "description": "nonzero loops automatic playback"
     }
   ],
   "body": ""

@@ -1,0 +1,60 @@
+{
+  "title": [
+    "glsl_tesscontrol"
+  ],
+  "description": "loads and compiles a GLSL tessellation control shader into a module",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "ID of the GLSL module"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "file to load as GLSL tessellation control shader",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "open <symbol>",
+      "description": "load the GLSL tessellation control shader from the file with the given name"
+    },
+    {
+      "type": "print",
+      "description": "print information about GLSL support"
+    }
+  ],
+  "body": "Pass the module's ID to [glsl_program] with the other shader modules to link it."
+}

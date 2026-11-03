@@ -2,7 +2,7 @@
   "title": [
     "depth"
   ],
-  "description": "Activate / Deactivate depth test.",
+  "description": "turn the depth test on or off",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -13,15 +13,10 @@
         {
           "type": "gemlist",
           "description": ""
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
+        },
         {
           "type": "float",
-          "description": "depth test on/off (0/1)"
+          "description": "nonzero turns the depth test on, 0 off"
         }
       ],
       "repeat": false
@@ -38,7 +33,13 @@
       "repeat": false
     }
   ],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "nonzero turns the depth test on, 0 off",
+      "default": "1"
+    }
+  ],
   "flags": [],
   "methods": [],
   "body": ""

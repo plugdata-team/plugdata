@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies a scale factor that is used to create a variable depth offset for each polygon."
+          "description": "scale factor for a variable depth offset per polygon"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies a constant factor that is used to create a variable depth offset for each polygon."
+          "description": "constant depth offset, in implementation-specific units"
         }
       ],
       "repeat": false
@@ -50,16 +50,16 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies a scale factor that is used to create a variable depth offset for each polygon.",
-      "default": "0.0"
+      "description": "scale factor for a variable depth offset per polygon",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies a constant factor that is used to create a variable depth offset for each polygon.",
-      "default": "0.0"
+      "description": "constant depth offset, in implementation-specific units",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglPolygonOffset] calls glPolygonOffset() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glPolygonOffset in the OpenGL reference."
 }

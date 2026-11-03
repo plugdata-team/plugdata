@@ -2,7 +2,7 @@
   "title": [
     "rotate"
   ],
-  "description": "rotation",
+  "description": "rotate a gemlist around an axis",
   "origin": "Gem",
   "categories": [
     "Graphics"

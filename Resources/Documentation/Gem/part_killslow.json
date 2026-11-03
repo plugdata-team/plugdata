@@ -12,7 +12,16 @@
       "messages": [
         {
           "type": "gemlist",
-          "description": ""
+          "description": "particle system (from [part_head])"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "speed below which particles are killed"
         }
       ],
       "repeat": false
@@ -32,7 +41,7 @@
   "arguments": [
     {
       "type": "float",
-      "description": "kill speed",
+      "description": "speed below which particles are killed",
       "default": "0.01"
     }
   ],

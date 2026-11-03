@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the color index."
+          "description": "new value of the current color index"
         }
       ],
       "repeat": false
@@ -41,11 +41,11 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the color index.",
-      "default": "1"
+      "description": "new value of the current color index",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglIndexub] calls glIndexub() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glIndex in the OpenGL reference."
 }

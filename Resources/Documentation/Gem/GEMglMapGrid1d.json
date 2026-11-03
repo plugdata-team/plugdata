@@ -2,7 +2,7 @@
   "title": [
     "GEMglMapGrid1d"
   ],
-  "description": "define a one-dimensional grid for evaluators",
+  "description": "define a one- or two-dimensional mesh",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the number of partitions in the grid."
+          "description": "number of partitions in the grid range interval [u1, u2]"
         }
       ],
       "repeat": false
@@ -30,7 +30,16 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the coordinates of the two end points of the grid."
+          "description": "u at the start of the grid"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "u at the end of the grid"
         }
       ],
       "repeat": false
@@ -50,16 +59,21 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the number of partitions in the grid.",
-      "default": "1"
+      "description": "number of partitions in the grid range interval [u1, u2]",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the coordinates of the two end points of the grid.",
-      "default": ""
+      "description": "u at the start of the grid",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "u at the end of the grid",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglMapGrid1d] calls glMapGrid1d() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glMapGrid in the OpenGL reference."
 }

@@ -2,7 +2,7 @@
   "title": [
     "GEMglBlendFunc"
   ],
-  "description": "specify pixel arithmetic for RGB and alpha components",
+  "description": "specify pixel arithmetic",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies how the source blending factor is computed."
+          "description": "source blending factor, e.g. GL_SRC_ALPHA"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies how the destination blending factor is computed."
+          "description": "destination blending factor, e.g. GL_ONE_MINUS_SRC_ALPHA"
         }
       ],
       "repeat": false
@@ -49,17 +49,17 @@
   ],
   "arguments": [
     {
-      "type": "float",
-      "description": "Specifies how the source blending factor is computed.",
+      "type": "float/symbol",
+      "description": "source blending factor, e.g. GL_SRC_ALPHA",
       "default": "0"
     },
     {
-      "type": "float",
-      "description": "Specifies how the destination blending factor is computed.",
+      "type": "float/symbol",
+      "description": "destination blending factor, e.g. GL_ONE_MINUS_SRC_ALPHA",
       "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglBlendFunc] calls glBlendFunc() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. Its creation arguments also take GL constants by name; its inlets only take their values. See glBlendFunc in the OpenGL reference."
 }

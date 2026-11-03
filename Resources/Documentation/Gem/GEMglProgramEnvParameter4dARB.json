@@ -2,7 +2,7 @@
   "title": [
     "GEMglProgramEnvParameter4dARB"
   ],
-  "description": "specify a double-precision environment parameter for a program object",
+  "description": "set an environment parameter of ARB programs",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the target program object."
+          "description": "GL_VERTEX_PROGRAM_ARB or GL_FRAGMENT_PROGRAM_ARB"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the index of the parameter to be modified."
+          "description": "index of the parameter"
         }
       ],
       "repeat": false
@@ -39,7 +39,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the new parameter value."
+          "description": "x component"
         }
       ],
       "repeat": false
@@ -48,7 +48,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the new parameter value."
+          "description": "y component"
         }
       ],
       "repeat": false
@@ -57,7 +57,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the new parameter value."
+          "description": "z component"
         }
       ],
       "repeat": false
@@ -66,7 +66,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the new parameter value."
+          "description": "w component"
         }
       ],
       "repeat": false
@@ -83,39 +83,8 @@
       "repeat": false
     }
   ],
-  "arguments": [
-    {
-      "type": "float",
-      "description": "Specifies the target program object.",
-      "default": ""
-    },
-    {
-      "type": "float",
-      "description": "Specifies the index of the parameter to be modified.",
-      "default": ""
-    },
-    {
-      "type": "float",
-      "description": "Specifies the new parameter value.",
-      "default": ""
-    },
-    {
-      "type": "float",
-      "description": "Specifies the new parameter value.",
-      "default": ""
-    },
-    {
-      "type": "float",
-      "description": "Specifies the new parameter value.",
-      "default": ""
-    },
-    {
-      "type": "float",
-      "description": "Specifies the new parameter value.",
-      "default": ""
-    }
-  ],
+  "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglProgramEnvParameter4dARB] calls glProgramEnvParameter4dARB() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. GL constants are numbers here: [GLdefine] turns a name like GL_LINES into its value."
 }

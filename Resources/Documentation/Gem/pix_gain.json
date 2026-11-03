@@ -2,7 +2,7 @@
   "title": [
     "pix_gain"
   ],
-  "description": "multiply pixel-values",
+  "description": "multiply the pixel values",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -15,7 +15,16 @@
           "description": ""
         },
         {
-          "type": "<float>",
+          "type": "float",
+          "description": "nonzero turns processing on (default 1)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
           "description": "multiplier for all channels"
         }
       ],
@@ -25,7 +34,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "3 (RGB) or 4 (RGBA) values as multipliers for each channel"
+          "description": "3 (RGB) or 4 (RGBA) multipliers, one per channel"
         }
       ],
       "repeat": false
@@ -44,12 +53,17 @@
   ],
   "arguments": [
     {
-      "type": "<list>",
-      "description": "gain vector",
+      "type": "list",
+      "description": "gain: one multiplier for all channels, or 3 or 4 per channel",
       "default": ""
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "saturate <float>",
+      "description": "nonzero clips the results at the maximum value (default 1)"
+    }
+  ],
   "body": ""
 }

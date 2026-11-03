@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the number of contiguous empty display lists to be generated."
+          "description": "number of contiguous empty display lists to be generated"
         }
       ],
       "repeat": false
@@ -36,16 +36,25 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "first display list ID of the generated range"
+        }
+      ],
+      "repeat": false
     }
   ],
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the number of contiguous empty display lists to be generated.",
-      "default": "1"
+      "description": "number of contiguous empty display lists to be generated",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglGenLists] calls glGenLists() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glGenLists in the OpenGL reference."
 }

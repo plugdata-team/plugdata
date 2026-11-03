@@ -1,8 +1,8 @@
 {
   "title": [
-    "vertex_combine"
+    "part_move"
   ],
-  "description": "combine two matrices",
+  "description": "move the particles",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -12,16 +12,7 @@
       "messages": [
         {
           "type": "gemlist",
-          "description": ""
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "gemlist",
-          "description": ""
+          "description": "particle system (from [part_head])"
         }
       ],
       "repeat": false
@@ -41,5 +32,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[part_move] moves the particles according to their velocity and constraints, and updates their ages. [part_draw] and [part_render] do this themselves, so it is only needed without them, as in [part_info]."
 }

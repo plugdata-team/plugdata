@@ -32,5 +32,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglFinish] calls glFinish() each time a gemlist passes through it. See glFinish in the OpenGL reference."
 }

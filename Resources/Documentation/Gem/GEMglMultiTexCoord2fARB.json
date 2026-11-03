@@ -2,7 +2,7 @@
   "title": [
     "GEMglMultiTexCoord2fARB"
   ],
-  "description": "set the texture coordinates for a specified texture unit with two float values (ARB extension)",
+  "description": "set the current texture coordinates",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the texture unit."
+          "description": "texture unit, e.g. GL_TEXTURE0"
         }
       ],
       "repeat": false
@@ -30,7 +30,16 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the s and t texture coordinates."
+          "description": "s texture coordinate"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "t texture coordinate"
         }
       ],
       "repeat": false
@@ -50,16 +59,21 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the texture unit.",
-      "default": "GL_TEXTURE0_ARB"
+      "description": "texture unit, e.g. GL_TEXTURE0",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the s and t texture coordinates.",
-      "default": "0.0"
+      "description": "s texture coordinate",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "t texture coordinate",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglMultiTexCoord2fARB] calls glMultiTexCoord2fARB() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glMultiTexCoord in the OpenGL reference."
 }

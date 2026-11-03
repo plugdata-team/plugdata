@@ -7,29 +7,25 @@
   "categories": [
     "Graphics"
   ],
-  "inlets": [
-    {
-      "messages": [
-        {
-          "type": "non-used",
-          "description": ""
-        }
-      ],
-      "repeat": false
-    }
-  ],
+  "inlets": [],
   "outlets": [
     {
       "messages": [
         {
-          "type": "keyCode",
-          "description": ""
+          "type": "float",
+          "description": "key code of the key pressed or released"
         }
       ],
       "repeat": false
     }
   ],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "optional: name of the context (window) to listen to",
+      "default": ""
+    }
+  ],
   "flags": [],
   "methods": [],
   "body": ""

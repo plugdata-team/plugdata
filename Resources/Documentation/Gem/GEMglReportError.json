@@ -2,13 +2,12 @@
   "title": [
     "GEMglReportError"
   ],
-  "description": "get and clear OpenGL error flag",
+  "description": "report the last OpenGL error",
   "origin": "Gem",
   "categories": [
     "Graphics"
   ],
-  "inlets": [],
-  "outlets": [
+  "inlets": [
     {
       "messages": [
         {
@@ -19,8 +18,28 @@
       "repeat": false
     }
   ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "error code (0 is GL_NO_ERROR)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglReportError] calls glReportError() each time a gemlist passes through it. It reports the last OpenGL error on its right outlet and in the console."
 }

@@ -2,7 +2,7 @@
   "title": [
     "GEMglIsEnabled"
   ],
-  "description": "test whether a specific GL capability is enabled",
+  "description": "test whether a capability is enabled",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the capability to test."
+          "description": "symbolic constant indicating a GL capability"
         }
       ],
       "repeat": false
@@ -31,8 +31,17 @@
     {
       "messages": [
         {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
           "type": "float",
-          "description": "Returns GL_TRUE if the capability is enabled, and GL_FALSE otherwise."
+          "description": "1 if the capability is enabled, 0 if not"
         }
       ],
       "repeat": false
@@ -40,12 +49,12 @@
   ],
   "arguments": [
     {
-      "type": "float",
-      "description": "Specifies the capability to test.",
-      "default": "GL_LIGHTING"
+      "type": "float/symbol",
+      "description": "symbolic constant indicating a GL capability",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglIsEnabled] calls glIsEnabled() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. Its creation arguments also take GL constants by name; its inlets only take their values. See glIsEnabled in the OpenGL reference."
 }

@@ -2,7 +2,7 @@
   "title": [
     "GEMglCopyPixels"
   ],
-  "description": "copy pixels into a 1D or 2D texture image",
+  "description": "copy pixels in the frame buffer",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the left x-coordinate, in pixels, of the source rectangle."
+          "description": "window x of the lower left corner of the region to copy"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the lower y-coordinate, in pixels, of the source rectangle."
+          "description": "window y of the lower left corner of the region to copy"
         }
       ],
       "repeat": false
@@ -39,7 +39,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the width of the texture image."
+          "description": "width of the region to copy"
         }
       ],
       "repeat": false
@@ -48,7 +48,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the height of the texture image."
+          "description": "height of the region to copy"
         }
       ],
       "repeat": false
@@ -57,7 +57,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the format of the pixel data."
+          "description": "whether color values, depth values, or stencil values are to be copied"
         }
       ],
       "repeat": false
@@ -77,31 +77,31 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the left x-coordinate, in pixels, of the source rectangle.",
+      "description": "window x of the lower left corner of the region to copy",
       "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the lower y-coordinate, in pixels, of the source rectangle.",
+      "description": "window y of the lower left corner of the region to copy",
       "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the width of the texture image.",
+      "description": "width of the region to copy",
       "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the height of the texture image.",
+      "description": "height of the region to copy",
       "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the format of the pixel data.",
-      "default": "GL_COLOR"
+      "description": "whether color values, depth values, or stencil values are to be copied",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglCopyPixels] calls glCopyPixels() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glCopyPixels in the OpenGL reference."
 }

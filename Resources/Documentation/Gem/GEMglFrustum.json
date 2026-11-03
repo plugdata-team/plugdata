@@ -2,7 +2,7 @@
   "title": [
     "GEMglFrustum"
   ],
-  "description": "define a perspective matrix",
+  "description": "multiply the current matrix by a perspective matrix",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the coordinates for the left and right vertical clipping planes."
+          "description": "left vertical clipping plane"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the coordinates for the bottom and top horizontal clipping planes."
+          "description": "right vertical clipping plane"
         }
       ],
       "repeat": false
@@ -39,7 +39,34 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the distances to the near and far depth clipping planes."
+          "description": "bottom horizontal clipping plane"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "top horizontal clipping plane"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "distance to the near depth clipping plane (positive)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "distance to the far depth clipping plane (positive)"
         }
       ],
       "repeat": false
@@ -59,21 +86,36 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the coordinates for the left and right vertical clipping planes.",
+      "description": "left vertical clipping plane",
       "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the coordinates for the bottom and top horizontal clipping planes.",
+      "description": "right vertical clipping plane",
       "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the distances to the near and far depth clipping planes.",
+      "description": "bottom horizontal clipping plane",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "top horizontal clipping plane",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "distance to the near depth clipping plane (positive)",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "distance to the far depth clipping plane (positive)",
       "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglFrustum] calls glFrustum() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glFrustum in the OpenGL reference."
 }

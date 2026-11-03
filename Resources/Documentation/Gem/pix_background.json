@@ -15,6 +15,10 @@
           "description": ""
         },
         {
+          "type": "float",
+          "description": "nonzero turns processing on (default 1)"
+        },
+        {
           "type": "bang",
           "description": "alias for reset"
         }
@@ -29,7 +33,7 @@
         },
         {
           "type": "list",
-          "description": "range"
+          "description": "how far a pixel may differ to count as background: one value or one per channel"
         }
       ],
       "repeat": false
@@ -52,6 +56,10 @@
     {
       "type": "reset",
       "description": "reset the background and capture a new image"
+    },
+    {
+      "type": "range <float, float, float>",
+      "description": "range of the background: one value for all channels, or one per channel"
     }
   ],
   "body": ""

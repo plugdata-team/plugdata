@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the number of bits in the stipple pattern."
+          "description": "multiplier for each bit in the line stipple pattern"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the bit pattern for the line stipple."
+          "description": "16-bit pattern of which fragments of a line are drawn"
         }
       ],
       "repeat": false
@@ -50,16 +50,16 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the number of bits in the stipple pattern.",
-      "default": "1"
+      "description": "multiplier for each bit in the line stipple pattern",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the bit pattern for the line stipple.",
-      "default": "0x0101"
+      "description": "16-bit pattern of which fragments of a line are drawn",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglLineStipple] calls glLineStipple() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glLineStipple in the OpenGL reference."
 }

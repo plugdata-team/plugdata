@@ -41,15 +41,30 @@
   "arguments": [
     {
       "type": "symbol",
-      "description": "filename (with wildcard *) for images to load",
+      "description": "file name pattern, with * where the number goes",
       "default": ""
+    },
+    {
+      "type": "float",
+      "description": "first number",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "last number",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "step between the numbers",
+      "default": "1"
     }
   ],
   "flags": [],
   "methods": [
     {
-      "type": "preload",
-      "description": "open images (the wildcard in the filename is expanded with integer 0..#)"
+      "type": "preload <symbol, float, float, float>",
+      "description": "load images: file name with a wildcard *, first number, last number, skip"
     },
     {
       "type": "download",
@@ -58,6 +73,18 @@
     {
       "type": "purge",
       "description": "delete images from texture-RAM"
+    },
+    {
+      "type": "open <symbol, float, float, float>",
+      "description": "same as preload"
+    },
+    {
+      "type": "quality <float>",
+      "description": "texture filtering: 0 GL_NEAREST, 1 GL_LINEAR"
+    },
+    {
+      "type": "repeat <float>",
+      "description": "texture wrapping: 0 clamp to the edge, 1 repeat"
     }
   ],
   "body": ""

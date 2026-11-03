@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the lower left corner of the viewport rectangle, in pixels. The initial value is (0,0)."
+          "description": "x of the lower left corner of the viewport, in pixels"
         }
       ],
       "repeat": false
@@ -30,7 +30,25 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the width and height of the viewport. Values for width and height must be greater than 0."
+          "description": "y of the lower left corner of the viewport, in pixels"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "width of the viewport"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "height of the viewport"
         }
       ],
       "repeat": false
@@ -50,16 +68,26 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the lower left corner of the viewport rectangle, in pixels. The initial value is (0,0).",
+      "description": "x of the lower left corner of the viewport, in pixels",
       "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the width and height of the viewport. Values for width and height must be greater than 0.",
+      "description": "y of the lower left corner of the viewport, in pixels",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "width of the viewport",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "height of the viewport",
       "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglViewport] calls glViewport() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glViewport in the OpenGL reference."
 }

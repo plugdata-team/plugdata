@@ -20,8 +20,8 @@
     {
       "messages": [
         {
-          "type": "float",
-          "description": "Specifies which texture unit to make active."
+          "type": "list",
+          "description": "texture unit to make active, e.g. GL_TEXTURE0"
         }
       ],
       "repeat": false
@@ -40,12 +40,12 @@
   ],
   "arguments": [
     {
-      "type": "float",
-      "description": "Specifies which texture unit to make active.",
+      "type": "list",
+      "description": "texture unit to make active, e.g. GL_TEXTURE0",
       "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglActiveTexture] calls glActiveTexture() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glActiveTexture in the OpenGL reference."
 }

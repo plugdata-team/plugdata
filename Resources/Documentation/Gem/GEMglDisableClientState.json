@@ -2,7 +2,7 @@
   "title": [
     "GEMglDisableClientState"
   ],
-  "description": "disable client-side capability",
+  "description": "enable or disable client-side capability",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the array to disable."
+          "description": "capability to enable"
         }
       ],
       "repeat": false
@@ -40,12 +40,12 @@
   ],
   "arguments": [
     {
-      "type": "float",
-      "description": "Specifies the array to disable.",
-      "default": "GL_VERTEX_ARRAY"
+      "type": "float/symbol",
+      "description": "capability to enable",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglDisableClientState] calls glDisableClientState() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. Its creation arguments also take GL constants by name; its inlets only take their values. See glEnableClientState in the OpenGL reference."
 }

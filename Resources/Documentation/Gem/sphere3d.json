@@ -2,7 +2,7 @@
   "title": [
     "sphere3d"
   ],
-  "description": "renders a segmented sphere3d.",
+  "description": "renders a segmented sphere3d",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "size"
+          "description": "size of the sphere"
         }
       ],
       "repeat": false
@@ -49,29 +49,46 @@
   ],
   "arguments": [
     {
-      "type": "symbol",
-      "description": "draw [line|fill|point]",
-      "default": ""
+      "type": "float",
+      "description": "size of the sphere",
+      "default": "1"
     },
     {
       "type": "float",
-      "description": "size of the sphere3d",
-      "default": ""
+      "description": "number of slices",
+      "default": "10"
+    },
+    {
+      "type": "float",
+      "description": "number of stacks",
+      "default": "same as slices"
     }
   ],
   "flags": [],
   "methods": [
     {
-      "type": "setCartesian <float> <float> <float> <float> <float>",
-      "description": "Set Cartesian coordinates for a specific point."
+      "type": "draw <symbol>",
+      "description": "drawing style: default, line, fill or point"
     },
     {
-      "type": "setSpherical <float> <float> <float> <float> <float>",
-      "description": "Set Spherical coordinates for a specific point (in degrees)."
+      "type": "width <float>",
+      "description": "line width for the line drawing styles (default 1)"
+    },
+    {
+      "type": "blend <float>",
+      "description": "nonzero turns alpha blending on"
+    },
+    {
+      "type": "set/setCartesian <float, float, float, float, float>",
+      "description": "move a vertex: slice, stack, x, y, z"
+    },
+    {
+      "type": "setSph/setSpherical <float, float, float, float, float>",
+      "description": "move a vertex in spherical coordinates: slice, stack, radius, azimuth, elevation"
     },
     {
       "type": "print",
-      "description": "Print information."
+      "description": "print the vertex coordinates"
     }
   ],
   "body": ""
