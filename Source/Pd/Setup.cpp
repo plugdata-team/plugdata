@@ -1326,6 +1326,36 @@ void streamout_tilde_setup();
 void vosim_tilde_setup();
 void width_tilde_setup();
 
+void bassdrum_tilde_setup();
+void bd_tilde_setup();
+void setup_conv0x2efilt_tilde();
+void hip2_tilde_setup();
+void limit_tilde_setup();
+void lop3_tilde_setup();
+void svfilter2_tilde_setup();
+
+void dict_setup();
+void setup_dict0x2edefine();
+void setup_dict0x2eadd();
+void setup_dict0x2edelete();
+void setup_dict0x2eget();
+void setup_dict0x2ehas();
+void setup_dict0x2ekeys();
+void setup_dict0x2eset();
+void setup_dict0x2esize();
+
+void setup_nlist0x2eappend();
+void setup_nlist0x2edelete();
+void setup_nlist0x2edepth();
+void setup_nlist0x2eflat();
+void setup_nlist0x2eget();
+void setup_nlist0x2einsert();
+void setup_nlist0x2eiter();
+void setup_nlist0x2elen();
+void setup_nlist0x2eprepend();
+void setup_nlist0x2eset();
+void setup_nlist0x2etraverse();
+
 #ifdef ENABLE_FFMPEG
 void setup_play0x2efile_tilde();
 void sfload_setup();
@@ -1867,6 +1897,36 @@ void Setup::initialiseELSE()
     pvretune_tilde_setup();
     vosim_tilde_setup();
     width_tilde_setup();
+
+    bassdrum_tilde_setup();
+    bd_tilde_setup();
+    setup_conv0x2efilt_tilde();
+    hip2_tilde_setup();
+    limit_tilde_setup();
+    lop3_tilde_setup();
+    svfilter2_tilde_setup();
+
+    dict_setup();
+    setup_dict0x2edefine();
+    setup_dict0x2eadd();
+    setup_dict0x2edelete();
+    setup_dict0x2eget();
+    setup_dict0x2ehas();
+    setup_dict0x2ekeys();
+    setup_dict0x2eset();
+    setup_dict0x2esize();
+
+    setup_nlist0x2eappend();
+    setup_nlist0x2edelete();
+    setup_nlist0x2edepth();
+    setup_nlist0x2eflat();
+    setup_nlist0x2eget();
+    setup_nlist0x2einsert();
+    setup_nlist0x2eiter();
+    setup_nlist0x2elen();
+    setup_nlist0x2eprepend();
+    setup_nlist0x2eset();
+    setup_nlist0x2etraverse();
 
 #ifdef ENABLE_SFIZZ
     sfz_tilde_setup();
