@@ -116,8 +116,12 @@
       "description": "sets extension"
     },
     {
-      "type": "show/hide",
-      "description": "show or hide internal window with contents"
+      "type": "show",
+      "description": "show the internal window with the contents"
+    },
+    {
+      "type": "hide",
+      "description": "hide the internal window with the contents"
     }
   ],
   "body": "[dir] accesses files from directories."

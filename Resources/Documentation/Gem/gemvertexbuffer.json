@@ -47,36 +47,84 @@
       "description": "read vertex positions from a table (x y z interleaved), with an optional offset"
     },
     {
-      "type": "posX/posY/posZ <symbol, float>",
-      "description": "read the x, y or z of the vertex positions from a table"
+      "type": "posX <symbol, float>",
+      "description": "read the x of the vertex positions from a table"
+    },
+    {
+      "type": "posY <symbol, float>",
+      "description": "read the y of the vertex positions from a table"
+    },
+    {
+      "type": "posZ <symbol, float>",
+      "description": "read the z of the vertex positions from a table"
     },
     {
       "type": "color <symbol, float>",
       "description": "read vertex colors from a table (r g b a interleaved), with an optional offset"
     },
     {
-      "type": "colorR/colorG/colorB/colorA <symbol, float>",
-      "description": "read one color channel from a table"
+      "type": "colorR <symbol, float>",
+      "description": "read the red channel of the vertex colors from a table"
+    },
+    {
+      "type": "colorG <symbol, float>",
+      "description": "read the green channel of the vertex colors from a table"
+    },
+    {
+      "type": "colorB <symbol, float>",
+      "description": "read the blue channel of the vertex colors from a table"
+    },
+    {
+      "type": "colorA <symbol, float>",
+      "description": "read the alpha channel of the vertex colors from a table"
     },
     {
       "type": "texture <symbol, float>",
       "description": "read texture coordinates from a table (u v interleaved)"
     },
     {
-      "type": "textureU/textureV <symbol, float>",
-      "description": "read u or v of the texture coordinates from a table"
+      "type": "textureU <symbol, float>",
+      "description": "read the u of the texture coordinates from a table"
+    },
+    {
+      "type": "textureV <symbol, float>",
+      "description": "read the v of the texture coordinates from a table"
     },
     {
       "type": "normal <symbol, float>",
       "description": "read vertex normals from a table (x y z interleaved)"
     },
     {
-      "type": "normalX/normalY/normalZ <symbol, float>",
-      "description": "read the x, y or z of the normals from a table"
+      "type": "normalX <symbol, float>",
+      "description": "read the x of the normals from a table"
     },
     {
-      "type": "position_enable/color_enable/texture_enable/normal_enable/attribute_enable <float>",
-      "description": "nonzero uses that kind of data, 0 ignores it"
+      "type": "normalY <symbol, float>",
+      "description": "read the y of the normals from a table"
+    },
+    {
+      "type": "normalZ <symbol, float>",
+      "description": "read the z of the normals from a table"
+    },
+    {
+      "type": "position_enable <float>",
+      "description": "nonzero uses the position data, 0 ignores it"
+    },
+    {
+      "type": "color_enable <float>",
+      "description": "nonzero uses the color data, 0 ignores it"
+    },
+    {
+      "type": "texture_enable <float>",
+      "description": "nonzero uses the texture coordinates, 0 ignores them"
+    },
+    {
+      "type": "normal_enable <float>",
+      "description": "nonzero uses the normals, 0 ignores them"
+    },
+    {
+      "type": "attribute_enable <float>",
+      "description": "nonzero uses the shader attributes, 0 ignores them"
     },
     {
       "type": "attribute <symbol, symbol, float>",

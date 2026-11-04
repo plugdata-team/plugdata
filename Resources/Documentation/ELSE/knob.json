@@ -310,8 +310,12 @@
       "description": "activate a MIDI forget mechanism"
     },
     {
-      "type": "inc/dec",
-      "description": "increment/decrement values, like using arrow keys"
+      "type": "inc",
+      "description": "increment the value, like the up arrow key"
+    },
+    {
+      "type": "dec",
+      "description": "decrement the value, like the down arrow key"
     },
     {
       "type": "shift <float>",

@@ -68,16 +68,20 @@
       "description": "print the state of the random generator"
     },
     {
-      "type": "RGBA/rgba",
+      "type": "rgba",
       "description": "generate RGBA noise"
     },
     {
-      "type": "RGB/rgb",
+      "type": "rgb",
       "description": "generate RGB noise (opaque)"
     },
     {
-      "type": "GREY/GRAY/grey/gray",
+      "type": "grey",
       "description": "generate greyscale noise"
+    },
+    {
+      "type": "gray",
+      "description": "same as 'grey'"
     }
   ],
   "body": ""

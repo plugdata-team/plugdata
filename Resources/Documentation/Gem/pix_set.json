@@ -85,16 +85,20 @@
       "description": "data type of the input: BYTE, FLOAT or DOUBLE"
     },
     {
-      "type": "RGBA/rgba",
+      "type": "rgba",
       "description": "the data is RGBA"
     },
     {
-      "type": "RGB/rgb",
+      "type": "rgb",
       "description": "the data is RGB"
     },
     {
-      "type": "GREY/GRAY/grey/gray",
+      "type": "grey",
       "description": "the data is greyscale"
+    },
+    {
+      "type": "gray",
+      "description": "same as 'grey'"
     }
   ],
   "body": ""

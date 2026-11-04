@@ -58,11 +58,11 @@
       "description": "rgb outputs only R G B of an RGBA image, rgba all four values"
     },
     {
-      "type": "RGBA/rgba",
+      "type": "rgba",
       "description": "output R G B A values"
     },
     {
-      "type": "RGB/rgb",
+      "type": "rgb",
       "description": "output only R G B values"
     }
   ],

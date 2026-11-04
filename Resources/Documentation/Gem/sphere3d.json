@@ -79,12 +79,20 @@
       "description": "nonzero turns alpha blending on"
     },
     {
-      "type": "set/setCartesian <float, float, float, float, float>",
+      "type": "set <float, float, float, float, float>",
       "description": "move a vertex: slice, stack, x, y, z"
     },
     {
-      "type": "setSph/setSpherical <float, float, float, float, float>",
+      "type": "setCartesian <float, float, float, float, float>",
+      "description": "same as 'set'"
+    },
+    {
+      "type": "setSph <float, float, float, float, float>",
       "description": "move a vertex in spherical coordinates: slice, stack, radius, azimuth, elevation"
+    },
+    {
+      "type": "setSpherical <float, float, float, float, float>",
+      "description": "same as 'setSph'"
     },
     {
       "type": "print",

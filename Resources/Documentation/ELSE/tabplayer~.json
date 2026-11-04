@@ -159,8 +159,12 @@
       "description": "sets sample rate of sample (default, Pd's sample rate)"
     },
     {
-      "type": "lagrange/spline",
-      "description": "set interpolation mode (default spline)"
+      "type": "lagrange",
+      "description": "sets to Lagrange interpolation"
+    },
+    {
+      "type": "spline",
+      "description": "sets to spline interpolation (default)"
     }
   ],
   "body": "[tabplayer~] plays arrays, it's more powerful than [tabplay~] as it has multichannel support and can play backwards and in different speeds. It can also loop."

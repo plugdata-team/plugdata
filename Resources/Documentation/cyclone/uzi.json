@@ -75,12 +75,20 @@
   "flags": [],
   "methods": [
     {
-      "type": "pause/break",
+      "type": "pause",
       "description": "stop banging/counting"
     },
     {
-      "type": "resume/continue",
+      "type": "break",
+      "description": "same as 'pause'"
+    },
+    {
+      "type": "resume",
       "description": "resume banging/counting"
+    },
+    {
+      "type": "continue",
+      "description": "same as 'resume'"
     },
     {
       "type": "offset <float>",
