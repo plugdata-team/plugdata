@@ -1571,8 +1571,7 @@ pd::Patch::Ptr PluginProcessor::loadPatch(URL const& patchURL)
     auto patchFile = patchURL.getLocalFile();
 
 #if JUCE_IOS
-    // Create input stream to allow scoped file access
-    auto inputStream = patchURL.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress));
+    OSUtils::startAccessingSecurityScopedURL(patchURL);
 #endif
 
     auto newPatch = openPatch(patchFile);

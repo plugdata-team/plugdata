@@ -920,6 +920,7 @@ public:
 #if JUCE_IOS
                 // Load bookmark to keep file access permissions from last open
                 patchURL.setBookmarkData(subTree.getProperty("bookmark", "").toString());
+                OSUtils::startAccessingSecurityScopedURL(patchURL);
 #endif
                 if (patchFile.existsAsFile()) {
                     editor->getTabComponent().openPatch(patchURL);

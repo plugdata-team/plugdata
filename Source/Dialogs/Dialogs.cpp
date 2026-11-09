@@ -994,6 +994,9 @@ static void launchOpenDialog(std::function<void(Array<URL>)> const& callback, bo
         [callback, lastFileId](FileChooser const& fileChooser) {
             Array<URL> resultURLs;
             for (auto const& url : fileChooser.getURLResults()) {
+#if JUCE_IOS
+                OSUtils::startAccessingSecurityScopedURL(url);
+#endif
                 if (url.isLocalFile() && url.getLocalFile().exists())
                     resultURLs.add(url);
             }
@@ -1053,7 +1056,14 @@ void Dialogs::showSaveDialog(std::function<void(URL)> const& callback, String co
         [callback, lastFileId](FileChooser const& fileChooser) {
             auto const result = fileChooser.getResult();
             auto parentDirectory = result.getParentDirectory();
-            if (parentDirectory.exists()) {
+#if JUCE_IOS
+            // The picker exported a file to the chosen location: that file is all we get access to, not the folder it's in
+            OSUtils::startAccessingSecurityScopedURL(resultURL);
+            bool const validLocation = result.existsAsFile();
+#else
+            bool const validLocation = parentDirectory.exists();
+#endif
+            if (validLocation) {
                 SettingsFile::getInstance()->setLastBrowserPathForId(lastFileId, parentDirectory);
                 callback(fileChooser.getURLResult());
                 Dialogs::fileChooser = nullptr;

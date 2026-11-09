@@ -106,6 +106,7 @@ struct OSUtils {
     static bool isIPad();
     static float getScreenCornerRadius();
     static bool addOpenURLMethodToDelegate();
+    static void startAccessingSecurityScopedURL(juce::URL const& url);
     static void showiOSNativeMenu(juce::ComponentPeer* peer, juce::String const& title, SmallArray<TouchPopupMenuItem> const& items, SmallArray<SmallArray<TouchPopupMenuItem>> const& sub, juce::Point<int> screenPosition);
 #endif
 };

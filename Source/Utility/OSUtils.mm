@@ -348,6 +348,33 @@ bool OSUtils::isIPad()
     return [UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad;
 }
 
+// Files the user picked outside our container (iCloud Drive, other apps) can't even be stat'ed without this.
+// Access stays on for the rest of the session: Pd opens the patch, its abstractions and later saves by path.
+void OSUtils::startAccessingSecurityScopedURL(juce::URL const& url)
+{
+    static NSMutableDictionary<NSString*, NSURL*>* accessedURLs = [[NSMutableDictionary alloc] init];
+
+    auto const bookmark = url.getBookmarkData();
+    if (bookmark.isEmpty())
+        return;
+
+    juce::MemoryOutputStream decoded;
+    if (!juce::Base64::convertFromBase64(decoded, bookmark))
+        return;
+
+    BOOL isStale = NO;
+    NSURL* resolved = [NSURL URLByResolvingBookmarkData:[NSData dataWithBytes:decoded.getData() length:decoded.getDataSize()]
+                                                options:0
+                                          relativeToURL:nil
+                                    bookmarkDataIsStale:&isStale
+                                                  error:nil];
+    if (!resolved || accessedURLs[resolved.path])
+        return;
+
+    if ([resolved startAccessingSecurityScopedResource])
+        accessedURLs[resolved.path] = resolved;
+}
+
 void OSUtils::showiOSNativeMenu(juce::ComponentPeer* peer, juce::String const& title, SmallArray<TouchPopupMenuItem> const& items, SmallArray<SmallArray<TouchPopupMenuItem>> const& sub, juce::Point<int> screenPosition)
 {
     static std::function<void(UIViewController*, UIView*, juce::ComponentPeer*, NSString*, SmallArray<TouchPopupMenuItem>, SmallArray<SmallArray<TouchPopupMenuItem>>, juce::Point<int>)> presentMenu;
