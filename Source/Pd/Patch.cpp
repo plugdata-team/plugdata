@@ -116,15 +116,26 @@ void Patch::savePatch(URL const& locationURL)
         canvas_dirty(patch.get(), 0);
 
 #if JUCE_IOS
-        auto patchText = getCanvasContent();
-        auto outputStream = locationURL.createOutputStream();
-
         // on iOS, saving with pd's normal method doesn't work
         // we need to use an outputstream on a URL
-        outputStream->write(patchText.toRawUTF8(), patchText.getNumBytesAsUTF8());
-        outputStream->flush();
+        auto const patchText = getCanvasContent();
+        auto const outputStream = locationURL.createOutputStream();
+        auto* fileStream = dynamic_cast<FileOutputStream*>(outputStream.get());
 
-        instance->logMessage("saved to: " + location.getFullPathName());
+        // The stream opens an existing file for appending
+        bool saved = fileStream && fileStream->openedOk() && fileStream->setPosition(0) && fileStream->truncate().wasOk()
+            && fileStream->write(patchText.toRawUTF8(), patchText.getNumBytesAsUTF8());
+        if (saved) {
+            fileStream->flush();
+            saved = fileStream->getStatus().wasOk();
+        }
+
+        if (saved) {
+            instance->logMessage("saved to: " + location.getFullPathName());
+        } else {
+            canvas_dirty(patch.get(), 1);
+            instance->logError("Couldn't save patch to: " + location.getFullPathName());
+        }
         canvas_rename(patch.get(), file, dir);
 #else
         pd::Interface::saveToFile(patch.get(), file, dir);
