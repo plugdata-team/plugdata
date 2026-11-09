@@ -129,10 +129,10 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     // if we are inside a DAW / host set up the border resizer now
     if (!ProjectInfo::isStandalone) {
         // NEVER touch pluginConstrainer outside of plugin mode!
-        pluginConstrainer.setMinimumSize(890, 660);
+        pluginConstrainer.setMinimumSize(minimumWidth, minimumHeight);
         setUseBorderResizer(true);
     } else {
-        constrainer.setMinimumSize(890, 660);
+        constrainer.setMinimumSize(minimumWidth, minimumHeight);
     }
 #endif
 

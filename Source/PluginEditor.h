@@ -208,11 +208,13 @@ private:
 public:
     std::unique_ptr<PluginMode> pluginMode;
 
+    static constexpr int toolbarHeight = 32;
+    static constexpr int minimumWidth = 580;
+    static constexpr int minimumHeight = 360;
+
 private:
     // Used by standalone to handle dragging the window
     WindowDragger windowDragger;
-
-    int const toolbarHeight = 32;
 
     MainToolbarButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, welcomePanelSearchButton, sidebarToggleButton;
     SettingsToolbarButton recentlyOpenedPanelSelector, libraryPanelSelector;
