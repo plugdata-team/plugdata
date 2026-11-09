@@ -738,6 +738,9 @@ bool Sidebar::areParamObjectsAllValid()
     for (auto const& obj : lastObjects)
         if (!obj)
             return false;
+    for (auto const& params : lastParameters)
+        if (!params.isValid())
+            return false;
     return true;
 }
 
@@ -807,8 +810,12 @@ void Sidebar::showSidebar(bool const show)
         else
             setBounds(0, getY(), newWidth, getHeight());
 
-        if (inspectorPtr && inspectorPtr->getParentComponent() == this && inspectorPtr->isVisible())
-            inspectorPtr->showParameters();
+        if (inspectorPtr && inspectorPtr->getParentComponent() == this && inspectorPtr->isVisible()) {
+            if (areParamObjectsAllValid())
+                inspectorPtr->showParameters();
+            else
+                clearInspector();
+        }
 
         if (extraSettingsButton)
             extraSettingsButton->setVisible(true);
