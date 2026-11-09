@@ -12,6 +12,7 @@
 // by a click are dismissed before moving on.
 
 #include "Components/ColourPicker.h"
+#include "Sidebar/Inspector.h"
 
 class InspectorTest : public PlugDataUnitTest
 {
@@ -131,8 +132,39 @@ private:
         c->mouseUp(e);
     }
 
+    // Retyping an object replaces its GUI. That frees the Values its parameter list points at,
+    // while the Object component the sidebar tracks stays alive.
+    void checkReplacedGui()
+    {
+        auto* sidebar = editor->getSidebarForPanel(Sidebar::InspectorPanel);
+        auto* obj = objects.empty() ? nullptr : objects[0].getComponent();
+        if (!cnv || !sidebar || !obj || !obj->gui)
+            return;
+
+        beginTest("Parameters of a replaced object GUI are dropped");
+
+        SmallArray<Component*> toShow = { obj };
+        SmallArray<ObjectParameters, 6> params = { obj->gui->getParameters() };
+        sidebar->showSidebar(true);
+        sidebar->forceShowParameters(toShow, params);
+        expect(params[0].isValid());
+
+        obj->setType("tgl");
+        expect(obj->gui != nullptr, "the object must have a new GUI");
+        expect(!params[0].isValid(), "the old parameter list must know its GUI is gone");
+
+        // Each of these used to follow the stale Value pointers
+        params[0].resetAll(*editor);
+        editor->inspectorPanel->showParameters();
+        expect(editor->inspectorPanel->isEmpty(), "the inspector must not rebuild from stale parameters");
+        sidebar->showSidebar(true);
+        sidebar->showPanel(Sidebar::InspectorPanel);
+    }
+
     void finish()
     {
+        checkReplacedGui();
+
         if (auto* sidebar = editor->getSidebarForPanel(Sidebar::InspectorPanel))
             sidebar->clearInspector();
 
