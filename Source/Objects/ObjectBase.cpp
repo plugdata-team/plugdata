@@ -362,6 +362,12 @@ std::pair<SmallString, bool> ObjectBase::getTypeFromClass(pd::WeakReference clas
             break;
         }
 
+        // Strip :gfx from pdlua gui class names
+        if(pdlua_is_lua_object(obj.get()))
+        {
+            return {className.upToLastOccurrenceOf(":gfx"), false};
+        }
+
         return {className, false};
     }
     return { };
