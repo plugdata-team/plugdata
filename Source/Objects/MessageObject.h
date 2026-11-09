@@ -317,7 +317,7 @@ public:
         auto const result = String::fromUTF8(text, size);
         freebytes(text, size);
 
-        return result.trimEnd();
+        return TextObjectHelper::trimEndKeepingEscapes(result);
     }
 
     void propertyChanged(Value& v) override

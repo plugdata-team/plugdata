@@ -1342,8 +1342,7 @@ void Object::hideEditor()
         cnv->hideSuggestions();
 
         // Get entered text, remove extra spaces at the end
-        auto newText = outgoingEditor->getText().trimEnd();
-        newText = TextObjectHelper::fixNewlines(newText);
+        auto newText = TextObjectHelper::fixNewlines(outgoingEditor->getText());
         newText = TextObjectHelper::fixMissingSpace(newText);
 
         outgoingEditor.reset();
