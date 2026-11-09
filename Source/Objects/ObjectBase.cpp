@@ -161,6 +161,7 @@ ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
     , object(parent)
     , cnv(parent->cnv)
     , pd(parent->cnv->pd)
+    , objectParameters(this)
     , propertyListener(this)
     , objectSizeListener(parent)
 {

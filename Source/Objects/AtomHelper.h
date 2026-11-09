@@ -50,6 +50,7 @@ public:
         , cnv(parent->cnv)
         , pd(parent->cnv->pd)
         , ptr(pointer)
+        , objectParameters(base)
     {
         objectParameters.addParamCombo("Font height", cDimensions, &fontSize, { "auto", "8", "10", "12", "16", "24", "36" });
         objectParameters.addParamReceiveSymbol(&receiveSymbol);

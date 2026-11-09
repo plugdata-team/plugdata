@@ -647,7 +647,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     }
 
     auto* editor = cnv->editor;
-    auto params = object && object->gui ? object->gui->getParameters() : ObjectParameters();
+    auto params = object && object->gui ? object->gui->getParameters() : ObjectParameters(nullptr);
 
     enum MenuOptions {
         Extra = 200,

@@ -486,6 +486,4 @@ public:
     Value initialise = SynchronousValue();
     Value sendSymbol = SynchronousValue();
     Value receiveSymbol = SynchronousValue();
-
-    ObjectParameters objectParameters;
 };

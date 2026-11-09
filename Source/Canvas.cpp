@@ -204,6 +204,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     , graphArea(nullptr)
     , pathUpdater(new ConnectionPathUpdater(this))
     , globalMouseListener(this)
+    , parameters(this)
 {
     selectedComponents.addChangeListener(this);
 
@@ -1506,7 +1507,7 @@ void Canvas::updateSidebarSelection()
         for (auto* object : lassoSelection) {
             if (!object->gui)
                 continue;
-            auto parameters = object->gui ? object->gui->getParameters() : ObjectParameters();
+            auto parameters = object->gui ? object->gui->getParameters() : ObjectParameters(nullptr);
             showOnSelect = object->gui && object->gui->showParametersWhenSelected();
             allParameters.add(parameters);
             toShow.add(object);

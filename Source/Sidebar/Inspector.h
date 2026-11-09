@@ -179,6 +179,14 @@ public:
 
     bool loadParameters(SmallArray<ObjectParameters, 6>& objectParameters)
     {
+        // A cached list can outlive the object its Value pointers belong to
+        for (auto const& parameters : objectParameters) {
+            if (!parameters.isValid()) {
+                objectParameters.clear();
+                break;
+            }
+        }
+
         properties = objectParameters;
 
         panel.clear();
