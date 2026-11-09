@@ -130,6 +130,10 @@ public:
         showMinimap = settingsFile->getPropertyAsValue("show_minimap");
         interfaceProperties.add(new PropertiesPanel::ComboComponent("Show minimap", showMinimap, { "Never", "When outside of patch", "Always" }));
 
+        // Can be turned off for accessibility: the popup doesn't work well with screen magnifiers
+        suggestionsEnabled.referTo(settingsFile->getPropertyAsValue("suggestions_enabled"));
+        interfaceProperties.add(new PropertiesPanel::BoolComponent("Show suggestions while typing", suggestionsEnabled, { "No", "Yes" }));
+
 #if !JUCE_IOS
         touchMode = settingsFile->getPropertyAsValue("touch_mode");
         interfaceProperties.add(new PropertiesPanel::BoolComponent("Enable touch mode", touchMode, { "No", "Yes" }));
@@ -191,6 +195,7 @@ public:
     Value centreResized;
     Value centreSidepanelButtons;
     Value showMinimap;
+    Value suggestionsEnabled;
     Value touchMode;
 
     Value openPatchesInWindow;
