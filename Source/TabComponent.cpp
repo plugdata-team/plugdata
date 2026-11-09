@@ -552,7 +552,7 @@ void TabComponent::openPatchFolder()
         } else if (pdFiles.size() != 0) {
             TouchPopupMenu patchChoiceMenu;
             for (int i = 0; i < pdFiles.size(); i++) {
-                patchChoiceMenu.addItem(pdFileNames[i], [this, resultURL, patchURL = URL(pdFiles[0])]() mutable {
+                patchChoiceMenu.addItem(pdFileNames[i], [this, resultURL, patchURL = URL(pdFiles[i])]() mutable {
                     patchURL.setBookmarkData(resultURL.getBookmarkData());
                     openPatch(patchURL);
                 });
