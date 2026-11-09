@@ -33,7 +33,7 @@
     {
       "type": "float",
       "description": "nonzero sets to abstraction mode",
-      "default": ""
+      "default": "0"
     }
   ],
   "flags": [],

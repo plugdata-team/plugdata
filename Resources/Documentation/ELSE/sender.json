@@ -41,13 +41,13 @@
   "arguments": [
     {
       "type": "float",
-      "description": "optional depth value",
+      "description": "depth level for dollar sign expansion in the names",
       "default": "0"
     },
     {
       "type": "list",
       "description": "up to two send names",
-      "default": "0"
+      "default": ""
     }
   ],
   "flags": [

@@ -16,7 +16,7 @@
         },
         {
           "type": "bang",
-          "description": "clears the receive names"
+          "description": "output the receive names"
         }
       ],
       "repeat": false
@@ -44,13 +44,13 @@
   ],
   "arguments": [
     {
-      "type": "optional depth value",
-      "description": "receive names",
-      "default": "1"
+      "type": "float",
+      "description": "depth level for dollar sign expansion in the names",
+      "default": "0"
     },
     {
       "type": "list",
-      "description": "receive names",
+      "description": "up to two receive names",
       "default": ""
     }
   ],

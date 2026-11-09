@@ -80,6 +80,10 @@
       "description": "sets an entire array to be used as a waveform"
     },
     {
+      "type": "channel <float>",
+      "description": "set the channel of a multichannel array to read"
+    },
+    {
       "type": "index <float>",
       "description": "nonzero sets index to read from"
     },

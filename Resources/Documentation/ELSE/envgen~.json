@@ -73,10 +73,6 @@
   ],
   "flags": [
     {
-      "name": "-exp <list>",
-      "description": "sets function with an extra exponential element for each segment"
-    },
-    {
       "name": "-init <float>",
       "description": "default 0"
     },

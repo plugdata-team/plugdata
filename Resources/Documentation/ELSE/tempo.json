@@ -100,6 +100,14 @@
       "description": "set tempo in bpm, hz or ms for the next beat"
     },
     {
+      "type": "tempo <float>",
+      "description": "set tempo (in bpm, Hz or ms, depending on mode)"
+    },
+    {
+      "type": "swing <float>",
+      "description": "set swing deviation in %"
+    },
+    {
       "type": "mul <float>",
       "description": "sets tempo subdivision"
     },

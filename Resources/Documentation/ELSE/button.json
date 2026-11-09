@@ -12,7 +12,7 @@
       "messages": [
         {
           "type": "bang",
-          "description": "when in bang mode, activates bang, change state otherwise"
+          "description": "outputs a bang in bang mode; outputs the current state without changing it in latch or toggle mode; ignored in click mode"
         },
         {
           "type": "float",

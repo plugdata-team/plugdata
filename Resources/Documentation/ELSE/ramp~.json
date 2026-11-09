@@ -83,7 +83,7 @@
     {
       "type": "float",
       "description": "maximum value",
-      "default": "1"
+      "default": "2^31 - 1"
     },
     {
       "type": "float",

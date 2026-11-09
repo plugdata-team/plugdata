@@ -78,6 +78,14 @@
       "description": "get one or more field values. The result appears as a list out the rightmost outlet."
     },
     {
+      "type": "set <field, value>",
+      "description": "set one or more fields of the current scalar"
+    },
+    {
+      "type": "nearest <float, float>",
+      "description": "point to the scalar nearest to the given (x, y) position"
+    },
+    {
       "type": "rewind",
       "description": "goes back to the head of the list and output its pointer (unless the end of list was reached)"
     },
@@ -96,6 +104,10 @@
     {
       "type": "send-window <anything>",
       "description": "send any message to the canvas containing the scalar"
+    },
+    {
+      "type": "window-name",
+      "description": "send the name of the containing canvas to the right outlet"
     },
     {
       "type": "equal <pointer>",

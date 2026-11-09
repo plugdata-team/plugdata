@@ -1,0 +1,98 @@
+{
+  "title": [
+    "streamout~"
+  ],
+  "description": "stream audio to an Icecast server",
+  "origin": "ELSE",
+  "categories": [
+    "Networking"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "left channel input"
+        },
+        {
+          "type": "float",
+          "description": "nonzero connects, zero disconnects"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "other channel inputs"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "connection status: 1 (connected) or 0 (disconnected)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "stream information"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of channels",
+      "default": "2"
+    },
+    {
+      "type": "float",
+      "description": "buffer size in units of 1024 samples",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "connect <symbol, float>",
+      "description": "set host name and port and connect"
+    },
+    {
+      "type": "disconnect",
+      "description": "disconnect from the server"
+    },
+    {
+      "type": "password <symbol>",
+      "description": "set server password"
+    },
+    {
+      "type": "mount <symbol>",
+      "description": "set mount point"
+    },
+    {
+      "type": "set <anything>",
+      "description": "set stream header info (title, artist, etc)"
+    },
+    {
+      "type": "codec <anything>",
+      "description": "set codec: 'vorbis <quality>' or 'vorbis <min, nom, max>'"
+    },
+    {
+      "type": "print",
+      "description": "print stream settings to the console"
+    }
+  ],
+  "body": "[streamout~] encodes its input as Ogg Vorbis and streams it to an Icecast server."
+}

@@ -43,6 +43,19 @@
       "description": "sets time value to samples (default is ms)"
     }
   ],
-  "methods": [],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clears the delay line (in mode)"
+    },
+    {
+      "type": "size <float>",
+      "description": "changes the delay size (in mode)"
+    },
+    {
+      "type": "freeze <float>",
+      "description": "nonzero freezes, zero unfreezes (in mode)"
+    }
+  ],
   "body": "[del~] sets and writes to a delay line if created as [del~ in] (default) and reads from it (with interpolation) if created as [del~ out]. It's quite similar to [delread~]/[delread4~], but with more features."
 }

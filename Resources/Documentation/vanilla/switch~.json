@@ -39,6 +39,11 @@
       "type": "float",
       "description": "up/down-sampling factor",
       "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "DSP computation offset in samples",
+      "default": "0"
     }
   ],
   "flags": [],

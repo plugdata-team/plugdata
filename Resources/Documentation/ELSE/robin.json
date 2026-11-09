@@ -32,7 +32,7 @@
   "arguments": [
     {
       "type": "float",
-      "description": "sets number of outlets",
+      "description": "sets number of outlets (max 4096)",
       "default": "1"
     }
   ],

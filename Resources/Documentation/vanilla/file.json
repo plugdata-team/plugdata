@@ -55,6 +55,11 @@
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "verbose <float>",
+      "description": "set verbosity on or off"
+    }
+  ],
   "body": "[file] gives access to the file system. Its first argument selects the function; without one it is [file handle], which reads and writes files as lists of bytes."
 }

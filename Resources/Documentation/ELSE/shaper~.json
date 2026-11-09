@@ -54,10 +54,6 @@
       "description": "normalization on <1> or off <0> (default 1)"
     },
     {
-      "name": "-fill <float>",
-      "description": "DC filter on <1> or off <0> (default 1)"
-    },
-    {
       "name": "-filter <float>",
       "description": "sets DC filter on <1> (default) or off <0>"
     }

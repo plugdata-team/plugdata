@@ -47,10 +47,6 @@
   ],
   "flags": [
     {
-      "name": "-font <symbol>",
-      "description": "default 'dejavu sans mono' or 'menlo' for mac"
-    },
-    {
       "name": "-ext",
       "description": "only output to outlet"
     }

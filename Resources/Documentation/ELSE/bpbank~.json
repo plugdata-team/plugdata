@@ -29,18 +29,7 @@
       "repeat": false
     }
   ],
-  "arguments": [
-    {
-      "type": "float",
-      "description": "number of bandpass filters",
-      "default": "1"
-    },
-    {
-      "type": "float",
-      "description": "ramp time in ms",
-      "default": "10"
-    }
-  ],
+  "arguments": [],
   "flags": [
     {
       "name": "-freq <list>",

@@ -14,6 +14,10 @@
         {
           "type": "float",
           "description": "Set and output number"
+        },
+        {
+          "type": "bang",
+          "description": "output the current value"
         }
       ],
       "repeat": false
@@ -33,6 +37,10 @@
   "arguments": [],
   "flags": [],
   "methods": [
+    {
+      "type": "set <float>",
+      "description": "set value without output"
+    },
     {
       "type": "size <float>",
       "description": "sets the GUI size"

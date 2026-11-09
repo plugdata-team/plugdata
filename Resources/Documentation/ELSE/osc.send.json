@@ -35,8 +35,13 @@
   ],
   "arguments": [
     {
-      "type": "anything",
-      "description": "address/port to connect to at load time",
+      "type": "symbol",
+      "description": "address to connect to (optional)",
+      "default": "localhost"
+    },
+    {
+      "type": "float",
+      "description": "port to connect to at load time",
       "default": ""
     }
   ],

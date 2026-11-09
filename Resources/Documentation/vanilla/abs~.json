@@ -29,13 +29,7 @@
       "repeat": false
     }
   ],
-  "arguments": [
-    {
-      "type": "float",
-      "description": "initial value",
-      "default": ""
-    }
-  ],
+  "arguments": [],
   "flags": [],
   "methods": [],
   "body": "The abs~ object passes nonnegative values unchanged, but replaces negative ones with their (positive) inverses."

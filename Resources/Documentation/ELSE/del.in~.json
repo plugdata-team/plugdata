@@ -52,5 +52,5 @@
       "description": "nonzero freezes, zero unfreezes"
     }
   ],
-  "body": "[del.in~] sets and writes to a delay line. Use [del.out~] to read it. This is quite similar to [delread~]/[delread4~], but with more features."
+  "body": "[del.in~] sets and writes to a delay line. Use [del.out~] to read it. This is quite similar to [delread~]/[delread4~], but with more features. Its delay size also sets the maximum delay time of a matching [del.out~]."
 }

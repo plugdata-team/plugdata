@@ -81,6 +81,10 @@
       "description": "clears memory"
     },
     {
+      "type": "restart",
+      "description": "restart the unrepeat series (keeps the histogram)"
+    },
+    {
       "type": "inc <float>",
       "description": "set index and increase occurrence by 1"
     },

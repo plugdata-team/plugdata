@@ -1,0 +1,63 @@
+{
+  "title": [
+    "lua"
+  ],
+  "description": "inline Lua scripting",
+  "origin": "ELSE",
+  "categories": [
+    "Logic"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "calls the in_<n>_<selector> function for this inlet"
+        },
+        {
+          "type": "load <symbol>",
+          "description": "load and run a Lua file"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "output from the Lua code"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "arguments": [
+    {
+      "type": "anything",
+      "description": "Lua code, after the first semicolon",
+      "default": ""
+    }
+  ],
+  "flags": [
+    {
+      "name": "-in <float>",
+      "description": "sets number of message inlets"
+    },
+    {
+      "name": "-sigin <float>",
+      "description": "sets number of signal inlets"
+    },
+    {
+      "name": "-out <float>",
+      "description": "sets number of message outlets"
+    },
+    {
+      "name": "-sigout <float>",
+      "description": "sets number of signal outlets"
+    }
+  ],
+  "methods": [],
+  "body": "[lua] runs Lua code typed directly into the object box, using the pdlua API. The flags set the iolets, and the code starts after the first semicolon; each semicolon becomes a line break. Define functions like in_1_float(self, f) to handle messages per inlet (in_n_<selector> handles every inlet), and dsp/perform to process signals."
+}

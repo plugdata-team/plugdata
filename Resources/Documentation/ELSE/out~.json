@@ -47,8 +47,12 @@
       "description": "sets slider (range is clipped to 0-1)"
     },
     {
-      "type": "<on/off>",
-      "description": "turns DSP Engine (Compute Audio) On or Off"
+      "type": "on",
+      "description": "turn DSP on"
+    },
+    {
+      "type": "off",
+      "description": "turn DSP off"
     },
     {
       "type": "mode <float>",

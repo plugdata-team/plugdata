@@ -43,8 +43,12 @@
   ],
   "methods": [
     {
-      "type": "<on/off>",
-      "description": "turns DSP Engine (Compute Audio) On or Off"
+      "type": "on",
+      "description": "turn DSP on"
+    },
+    {
+      "type": "off",
+      "description": "turn DSP off"
     },
     {
       "type": "mode <float>",

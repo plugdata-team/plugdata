@@ -67,9 +67,14 @@
   ],
   "arguments": [
     {
-      "type": "list",
-      "description": "real and imaginary part of coefficient",
-      "default": "0 0"
+      "type": "float",
+      "description": "filter coefficient (real part)",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "filter coefficient (imaginary part)",
+      "default": "0"
     }
   ],
   "flags": [],

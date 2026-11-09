@@ -50,15 +50,6 @@
         }
       ],
       "repeat": true
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "a 1 or 0 is sent when the fade in/out is finished"
-        }
-      ],
-      "repeat": false
     }
   ],
   "arguments": [

@@ -131,16 +131,16 @@
       "description": "start playing, optional <start in ms, end in ms, speed rate>"
     },
     {
-      "type": "<stop>",
-      "description": "stops playing and outputs 0 (cannot be resumed)"
+      "type": "stop",
+      "description": "stop playing (can't be resumed)"
     },
     {
-      "type": "<pause>",
-      "description": "pauses at a particular point (can be resumed)"
+      "type": "pause",
+      "description": "pause playing (can be resumed)"
     },
     {
-      "type": "<resume>",
-      "description": "resumes playing after being paused"
+      "type": "resume",
+      "description": "resume playing after a pause"
     },
     {
       "type": "loop <float>",

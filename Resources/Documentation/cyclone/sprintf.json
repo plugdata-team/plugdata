@@ -13,6 +13,14 @@
         {
           "type": "bang",
           "description": "formats the message with current input"
+        },
+        {
+          "type": "float/symbol",
+          "description": "set the first slot and output"
+        },
+        {
+          "type": "list",
+          "description": "set the slots from the first on and output"
         }
       ],
       "repeat": false
