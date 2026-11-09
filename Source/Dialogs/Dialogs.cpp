@@ -965,6 +965,9 @@ static void launchOpenDialog(std::function<void(Array<URL>)> const& callback, bo
 #if ENABLE_TESTING
     return; // Don't open file dialogs during testing
 #endif
+    if (Dialogs::fileChooser)
+        return;
+
     bool nativeDialog = SettingsFile::getInstance()->wantsNativeDialog();
     auto initialFile = lastFileId.isNotEmpty() ? SettingsFile::getInstance()->getLastBrowserPathForId(lastFileId) : ProjectInfo::appDataDir;
     if (!initialFile.exists())
@@ -1001,20 +1004,15 @@ static void launchOpenDialog(std::function<void(Array<URL>)> const& callback, bo
                     resultURLs.add(url);
             }
 
+            // Deletes fileChooser: released before the callback, which may open the next dialog
+            Dialogs::fileChooser = nullptr;
+
             if (!resultURLs.isEmpty()) {
-#if JUCE_IOS
-                // Create input streams to access the security scoped resources
-                SmallArray<std::unique_ptr<InputStream>> scopedAccessStreams;
-                for (auto const& url : resultURLs) {
-                    scopedAccessStreams.emplace_back(url.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress)));
-                }
-#endif
                 auto const result = resultURLs.getFirst().getLocalFile();
                 auto const lastDir = result.isDirectory() ? result : result.getParentDirectory();
                 SettingsFile::getInstance()->setLastBrowserPathForId(lastFileId, lastDir);
                 callback(resultURLs);
             }
-            Dialogs::fileChooser = nullptr;
         });
 }
 
@@ -1033,6 +1031,9 @@ void Dialogs::showSaveDialog(std::function<void(URL)> const& callback, String co
 #if ENABLE_TESTING
     return; // Don't open file dialogs during testing
 #endif
+    if (fileChooser)
+        return;
+
     bool nativeDialog = SettingsFile::getInstance()->wantsNativeDialog();
     auto initialFile = lastFileId.isNotEmpty() ? SettingsFile::getInstance()->getLastBrowserPathForId(lastFileId) : ProjectInfo::appDataDir;
     if (!initialFile.exists())
@@ -1055,18 +1056,16 @@ void Dialogs::showSaveDialog(std::function<void(URL)> const& callback, String co
     fileChooser->launchAsync(saveChooserFlags,
         [callback, lastFileId](FileChooser const& fileChooser) {
             auto const result = fileChooser.getResult();
-            auto parentDirectory = result.getParentDirectory();
+            auto const resultURL = fileChooser.getURLResult();
 #if JUCE_IOS
-            // The picker exported a file to the chosen location: that file is all we get access to, not the folder it's in
+            // The picker exported a file to the chosen location: we get access to that file, not to the folder it's in
             OSUtils::startAccessingSecurityScopedURL(resultURL);
-            bool const validLocation = result.existsAsFile();
-#else
-            bool const validLocation = parentDirectory.exists();
 #endif
-            if (validLocation) {
-                SettingsFile::getInstance()->setLastBrowserPathForId(lastFileId, parentDirectory);
-                callback(fileChooser.getURLResult());
-                Dialogs::fileChooser = nullptr;
+            Dialogs::fileChooser = nullptr;
+
+            if (result.existsAsFile() || result.getParentDirectory().exists()) {
+                SettingsFile::getInstance()->setLastBrowserPathForId(lastFileId, result.getParentDirectory());
+                callback(resultURL);
             }
         });
 }

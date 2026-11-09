@@ -1315,41 +1315,20 @@ void Instance::createPanel(int const type, char const* snd, char const* location
 
     if (type) {
         MessageManager::callAsync(
-            [this, obj = generateSymbol(snd)->s_thing, defaultFile, openMode, callback = SmallString(callbackName)]() mutable {
-                FileBrowserComponent::FileChooserFlags folderChooserFlags;
-
-                if (openMode <= 0) {
-                    folderChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles);
-                } else if (openMode == 1) {
-                    folderChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories);
-                } else {
-                    folderChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories | FileBrowserComponent::canSelectFiles | FileBrowserComponent::canSelectMultipleItems);
-                }
-
-                static std::unique_ptr<FileChooser> openChooser;
-                openChooser = std::make_unique<FileChooser>("Open...", defaultFile, "", SettingsFile::getInstance()->wantsNativeDialog());
-
-                openChooser->launchAsync(folderChooserFlags, [this, obj, callback](FileChooser const& fileChooser) {
-                    auto const files = fileChooser.getResults();
-                    if (files.isEmpty())
-                        return;
-
+            [this, obj, defaultFile, openMode, callback = SmallString(callbackName)]() mutable {
 #if JUCE_IOS
-                    // Create input streams to access the security scoped resource
-                    SmallArray<std::unique_ptr<InputStream>> scopedAccessStreams;
-                    for (auto& url : fileChooser.getURLResults()) {
-                        scopedAccessStreams.emplace_back(url.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress)));
-                    }
+                Component* dialogParent = dynamic_cast<AudioProcessor*>(this)->getActiveEditor();
+#else
+                Component* dialogParent = nullptr;
 #endif
-                    auto const parentDirectory = files.getFirst().getParentDirectory();
-                    SettingsFile::getInstance()->setLastBrowserPathForId("OpenPanel", parentDirectory);
+                SettingsFile::getInstance()->setLastBrowserPathForId("OpenPanel", defaultFile);
 
+                auto sendResults = [this, obj, callback](Array<URL> const& urls) {
                     lockAudioThread();
 
-                    SmallArray<t_atom> atoms(files.size());
-
+                    SmallArray<t_atom> atoms(urls.size());
                     for (int i = 0; i < atoms.size(); i++) {
-                        auto pathname = files[i].getFullPathName();
+                        auto pathname = urls[i].getLocalFile().getFullPathName();
 #if JUCE_WINDOWS
                         pathname = pathname.replaceCharacter('\\', '/');
 #endif
@@ -1357,10 +1336,14 @@ void Instance::createPanel(int const type, char const* snd, char const* location
                     }
 
                     pd_typedmess(obj, generateSymbol(callback), atoms.size(), atoms.data());
-
                     unlockAudioThread();
-                    openChooser.reset(nullptr);
-                });
+                };
+
+                // Pd's open modes: 0 opens a file, 1 a folder, 2 any number of files and folders
+                if (openMode >= 2)
+                    Dialogs::showMultiOpenDialog(sendResults, true, true, "", "OpenPanel", dialogParent);
+                else
+                    Dialogs::showOpenDialog([sendResults](URL const& url) { sendResults(Array<URL> { url }); }, openMode <= 0, openMode == 1, "", "OpenPanel", dialogParent);
             });
     } else {
         MessageManager::callAsync(
