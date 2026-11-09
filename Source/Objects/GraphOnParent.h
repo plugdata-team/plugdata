@@ -198,6 +198,7 @@ class GraphOnParent final : public ObjectBase {
     Value xRange = SynchronousValue();
     Value yRange = SynchronousValue();
     Value sizeProperty = SynchronousValue();
+    Value text = SynchronousValue();
 
     pd::Patch::Ptr subpatch;
     std::unique_ptr<Canvas> canvas;
@@ -217,6 +218,7 @@ public:
         resized();
 
         objectParameters.addParamSize(&sizeProperty);
+        objectParameters.addParamString("Object text", cGeneral, &text);
         objectParameters.addParamBool("Is graph", cGeneral, &isGraphChild, { "No", "Yes" });
         objectParameters.addParamBool("Hide name and arguments", cGeneral, &hideNameAndArgs, { "No", "Yes" });
         objectParameters.addParamRange("X range", cGeneral, &xRange, { 0, 100 });
@@ -252,6 +254,7 @@ public:
             yRange = VarArray { var(glist->gl_y2), var(glist->gl_y1) };
             sizeProperty = VarArray { var(glist->gl_pixwidth), var(glist->gl_pixheight) };
             getTicks()->update(glist.get());
+            text = getText().toString();
         }
 
         getTicks()->updateLabel(object);
@@ -663,6 +666,8 @@ public:
                 glist->gl_y1 = static_cast<float>(yRange.getValue().getArray()->getReference(1));
             }
             updateDrawables();
+        } else if (v.refersToSameSourceAs(text)) {
+            object->setType(text.toString());
         }
     }
 
