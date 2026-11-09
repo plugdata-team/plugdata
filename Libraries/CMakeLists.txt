@@ -276,13 +276,23 @@ if(WIN32)
 elseif(APPLE)
     set(LUAJIT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit/)
     if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
-        set(LUAJIT_BUILD_COMMAND sh -c
+        # Build a copy inside the build tree: an in-source build replaces the libluajit.a that macOS builds link against
+        set(LUAJIT_SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/luajit)
+        set(LUAJIT_COPY_COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit ${LUAJIT_SOURCE_DIR})
+        if(CMAKE_OSX_SYSROOT MATCHES "simulator")
+            set(LUAJIT_IOS_SDK iphonesimulator)
+            set(LUAJIT_IOS_TRIPLE "arm64-apple-ios${CMAKE_OSX_DEPLOYMENT_TARGET}-simulator")
+        else()
+            set(LUAJIT_IOS_SDK iphoneos)
+            set(LUAJIT_IOS_TRIPLE "arm64-apple-ios${CMAKE_OSX_DEPLOYMENT_TARGET}")
+        endif()
+        set(LUAJIT_IOS_SCRIPT
             [=[
             cd src &&
             make clean TARGET_SYS=iOS &&
-            ISDKP=$(xcrun --sdk iphoneos --show-sdk-path)
-            ICC=$(xcrun --sdk iphoneos --find clang)
-            ISDKF="-arch arm64 -isysroot $ISDKP"
+            ISDKP=$(xcrun --sdk @SDK@ --show-sdk-path)
+            ICC=$(xcrun --sdk @SDK@ --find clang)
+            ISDKF="-target @TRIPLE@ -isysroot $ISDKP"
             # Workaround: xcode's env variables makes it compile build tools for iOS, so we need to clear the environment and pass CC manually
             env -i PATH="/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin" \
                 HOME="$HOME" \
@@ -292,8 +302,10 @@ elseif(APPLE)
                 TARGET_SYS=iOS \
                 TARGET_FLAGS="$ISDKF" \
                 CROSS="$(dirname $ICC)/"
-            ]=]
-        )
+            ]=])
+        string(REPLACE "@SDK@" "${LUAJIT_IOS_SDK}" LUAJIT_IOS_SCRIPT "${LUAJIT_IOS_SCRIPT}")
+        string(REPLACE "@TRIPLE@" "${LUAJIT_IOS_TRIPLE}" LUAJIT_IOS_SCRIPT "${LUAJIT_IOS_SCRIPT}")
+        set(LUAJIT_BUILD_COMMAND sh -c "${LUAJIT_IOS_SCRIPT}")
     else()
         set(LUAJIT_BUILD_COMMAND
             sh -c
@@ -311,7 +323,11 @@ elseif(APPLE)
             ]=]
         )
     endif()
-    set(LUAJIT_LIBS ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit/src/libluajit.a)
+    if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
+        set(LUAJIT_LIBS ${LUAJIT_SOURCE_DIR}/src/libluajit.a)
+    else()
+        set(LUAJIT_LIBS ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit/src/libluajit.a)
+    endif()
 else()
     set(LUAJIT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit/)
     set(LUAJIT_BUILD_COMMAND ${MAKE_EXECUTABLE} -C src CFLAGS=-fPIC BUILDMODE=static)
@@ -320,6 +336,7 @@ endif()
 
 ExternalProject_Add(luajit_build
     SOURCE_DIR      ${LUAJIT_SOURCE_DIR}
+    DOWNLOAD_COMMAND ${LUAJIT_COPY_COMMAND}
     BUILD_IN_SOURCE TRUE
     CONFIGURE_COMMAND ""
     BUILD_COMMAND   ${LUAJIT_BUILD_COMMAND}
