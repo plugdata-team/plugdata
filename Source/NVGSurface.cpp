@@ -694,6 +694,9 @@ void NVGSurface::recordFrame()
             return;
         auto const isFullRepaint = damage.contains(bounds);
 
+        auto const deviceDamage = (damage.toFloat() * lastRenderScale).getSmallestIntegerContainer().getIntersection(Rectangle<int>(fbWidth, fbHeight));
+        invalidArea = (deviceDamage.toFloat() / lastRenderScale).getSmallestIntegerContainer().getIntersection(bounds);
+
         nanovg::setCurrentPixelScale(asyncNvg, devicePixelScale);
 
         // Render the damaged region into the persistent main framebuffer. The
@@ -725,11 +728,7 @@ void NVGSurface::recordFrame()
         // Restrict the backend flush to the damaged region so the rest of the
         // framebuffer keeps its previous contents (persistence). Coordinates are
         // in device pixels.
-        nanovg::nvgGlobalScissor(asyncNvg,
-            roundToInt(damage.getX() * lastRenderScale),
-            roundToInt(damage.getY() * lastRenderScale),
-            roundToInt(damage.getWidth() * lastRenderScale),
-            roundToInt(damage.getHeight() * lastRenderScale));
+        nanovg::nvgGlobalScissor(asyncNvg, deviceDamage.getX(), deviceDamage.getY(), deviceDamage.getWidth(), deviceDamage.getHeight());
 
         nanovg::nvgEndFrame(asyncNvg);
 
