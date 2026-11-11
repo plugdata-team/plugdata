@@ -66,6 +66,8 @@ public:
         samplerateValue.addListener(this);
         patchSizeValue.addListener(this);
         appTypeValue.addListener(this);
+        customBoardValue.addListener(this);
+        customLinkerValue.addListener(this);
 
         updatePropertiesEnabled();
     }

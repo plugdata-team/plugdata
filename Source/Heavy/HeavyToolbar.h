@@ -701,7 +701,10 @@ private:
         if (!hasToolchain())
             return;
 
-        auto content = std::make_unique<ExporterCallout>(getExporter(), [_this = SafePointer(this)] {
+        auto* currentExporter = getExporter();
+        currentExporter->onSettingsChanged = [this] { saveState(); };
+
+        auto content = std::make_unique<ExporterCallout>(currentExporter, [_this = SafePointer(this)] {
             if (_this)
                 _this->saveState();
         });

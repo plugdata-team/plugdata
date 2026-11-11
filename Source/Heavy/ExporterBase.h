@@ -33,6 +33,8 @@ struct ExporterBase : public Component
 
     bool blockDialog = false;
 
+    std::function<void()> onSettingsChanged;
+
 #if JUCE_WINDOWS
     static inline File const toolchainDir = ProjectInfo::appDataDir.getChildFile("Toolchain").getChildFile("usr");
     static inline String const exeSuffix = ".exe";
@@ -413,7 +415,10 @@ struct ExporterBase : public Component
                 validPatchSelected = true;
                 unsavedLabel.setVisible(canvasDirty);
             } else if (idx == 2 && !blockDialog) {
-                Dialogs::showOpenDialog([this](URL const& url) {
+                Dialogs::showOpenDialog([this, _this = SafePointer(this)](URL const& url) {
+                    if (!_this)
+                        return;
+
                     auto const result = url.getLocalFile();
                     if (result.existsAsFile()) {
                         patchFile = result;
@@ -424,12 +429,14 @@ struct ExporterBase : public Component
                         validPatchSelected = false;
                     }
                     unsavedLabel.setVisible(false);
+                    NullCheckedInvocation::invoke(onSettingsChanged);
                 },
                     true, false, "*.pd", "HeavyPatchLocation", nullptr);
             }
         }
 
         updateExportButton();
+        NullCheckedInvocation::invoke(onSettingsChanged);
     }
 
     // Not safe to call from the constructor: the export action is decided by the derived exporter
