@@ -1993,7 +1993,9 @@ void PluginProcessor::clearTextEditor(uint64_t const ptr)
 
 bool PluginProcessor::isTextEditorDialogShown(uint64_t const ptr)
 {
-    return textEditorDialogs.count(ptr) && textEditorDialogs[ptr]->isVisible();
+    // Closing a dialog leaves a null entry behind
+    auto const it = textEditorDialogs.find(ptr);
+    return it != textEditorDialogs.end() && it->second && it->second->isVisible();
 }
 
 void PluginProcessor::hideTextEditorDialog(uint64_t ptr)
@@ -2005,9 +2007,12 @@ void PluginProcessor::hideTextEditorDialog(uint64_t ptr)
 
 void PluginProcessor::raiseTextEditorDialog(uint64_t const ptr)
 {
-    if (textEditorDialogs.contains(ptr)) {
-        textEditorDialogs[ptr]->toFront(true);
-    }
+    MessageManager::callAsync([this, ptr] {
+        auto const it = textEditorDialogs.find(ptr);
+        if (it != textEditorDialogs.end() && it->second) {
+            it->second->toFront(true);
+        }
+    });
 }
 
 void PluginProcessor::showTextEditorDialog(uint64_t const ptr, SmallString const& title, std::function<void(String, uint64_t)> save, std::function<void(uint64_t)> close)

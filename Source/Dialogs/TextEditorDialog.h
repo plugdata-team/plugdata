@@ -972,7 +972,7 @@ public:
 
     void setMaximumLineWidth(int maxWidth, float viewScaleFactor);
 
-    String getText() const;
+    String getText(bool keepTrailingLineBreaks = false) const;
 
     /** Break up line to fit window width */
     SmallArray<GlyphArrangementArray::Entry> breakLine(String line);
@@ -1269,6 +1269,7 @@ public:
     void setFont(Font const& font);
 
     void setText(String const& text);
+    void appendText(String const& text);
     String getText() const;
 
     void translateView(float dy);
@@ -1839,7 +1840,7 @@ inline void TextDocument::replaceAll(String const& content)
     }
 }
 
-inline String TextDocument::getText() const
+inline String TextDocument::getText(bool const keepTrailingLineBreaks) const
 {
     String text;
     for (int i = 0; i < lines.size(); i++) {
@@ -1848,6 +1849,9 @@ inline String TextDocument::getText() const
             text += "\n";
         }
     }
+
+    if (keepTrailingLineBreaks)
+        return text.endsWith("\n") ? text.dropLastCharacters(1) : text;
 
     return text.trimCharactersAtEnd("\n\r");
 }
@@ -2405,6 +2409,12 @@ inline void PlugDataTextEditor::setText(String const& text)
 {
     document.replaceAll(text);
     repaint();
+}
+
+// Pd sends editor contents in chunks that often end a line, so don't let getText() trim that line break
+inline void PlugDataTextEditor::appendText(String const& text)
+{
+    setText(document.getText(true) + text);
 }
 
 inline String PlugDataTextEditor::getText() const

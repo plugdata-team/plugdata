@@ -496,7 +496,8 @@ void Instance::initialisePd(String& pdlua_version)
 
             break;
         }
-        case hash("cyclone_editor"): {
+        case hash("cyclone_editor"):
+        case hash("else_editor_open"): {
             auto const ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
             SmallString title;
 
@@ -566,22 +567,32 @@ void Instance::initialisePd(String& pdlua_version)
             static_cast<Instance*>(instance)->showTextEditorDialog(ptr, title, save, [](uint64_t) { });
             break;
         }
-        case hash("cyclone_editor_append"): {
+        case hash("cyclone_editor_append"):
+        case hash("else_editor_append"): {
             auto const ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
             auto const text = String::fromUTF8(atom_getsymbol(argv + 1)->s_name);
 
             static_cast<Instance*>(instance)->addTextToTextEditor(ptr, text);
             break;
         }
-        case hash("cyclone_editor_close"): {
+        case hash("cyclone_editor_close"):
+        case hash("else_editor_close"): {
             auto const ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
             static_cast<Instance*>(instance)->hideTextEditorDialog(ptr);
             break;
         }
         case hash("coll_check_open"): {
+            auto* inst = static_cast<Instance*>(instance);
             auto const ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
-            bool const open = static_cast<bool>(atom_getfloat(argv + 1));
-            bool const wasOpen = static_cast<Instance*>(instance)->isTextEditorDialogShown(ptr);
+            auto const fileHandle = reinterpret_cast<uint64_t>(argv[1].a_w.w_gpointer);
+            bool const open = static_cast<bool>(atom_getfloat(argv + 2));
+            bool const wasOpen = inst->isTextEditorDialogShown(fileHandle);
+
+            // [coll] raises or clears an open editor with Tk commands that don't reach us
+            if (wasOpen && open)
+                inst->raiseTextEditorDialog(fileHandle);
+            else if (wasOpen)
+                inst->clearTextEditor(fileHandle);
 
             StackArray<t_atom, 2> atoms;
             SETFLOAT(&atoms[0], wasOpen);
@@ -665,7 +676,8 @@ void Instance::initialisePd(String& pdlua_version)
             static_cast<Instance*>(instance)->hideTextEditorDialog(ptr);
             break;
         }
-        case hash("pdtk_textwindow_clear"): {
+        case hash("pdtk_textwindow_clear"):
+        case hash("else_editor_clear"): {
             auto const ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
             static_cast<Instance*>(instance)->clearTextEditor(ptr);
             break;
@@ -693,7 +705,8 @@ void Instance::initialisePd(String& pdlua_version)
             binbuf_free(b);
             break;
         }
-        case hash("pdtk_textwindow_raise"): {
+        case hash("pdtk_textwindow_raise"):
+        case hash("else_editor_raise"): {
             auto const ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
             static_cast<Instance*>(instance)->raiseTextEditorDialog(ptr);
             break;
@@ -703,6 +716,31 @@ void Instance::initialisePd(String& pdlua_version)
             static_cast<Instance*>(instance)->hideTextEditorDialog(ptr);
             break;
         }
+        case hash("fonts__output_fonts"): {
+            auto const* receiver = atom_getsymbol(argv)->s_name;
+            auto allTypefaces = Font::findAllTypefaceNames();
+            SmallArray<pd::Atom> fonts;
+            for(auto const& typefaceName : allTypefaces)
+            {
+                fonts.push_back(pd::Atom(gensym(typefaceName.toRawUTF8())));
+            }
+
+            static_cast<Instance*>(instance)->sendMessage(receiver, "_output_fonts", fonts);
+            break;
+        }
+        case hash("else_editor_check_open"): {
+            // ELSE objects ask Tk whether their editor window exists, and pass a message to send back for either answer
+            auto const ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
+            bool const isOpen = static_cast<Instance*>(instance)->isTextEditorDialogShown(ptr);
+            auto const* reply = atom_getsymbol(argv + (isOpen ? 1 : 2))->s_name;
+
+            auto* b = binbuf_new();
+            binbuf_text(b, reply, strlen(reply));
+            binbuf_eval(b, nullptr, 0, nullptr);
+            binbuf_free(b);
+            break;
+        }
+
         default:
             break;
         }

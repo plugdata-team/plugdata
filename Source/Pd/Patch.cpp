@@ -37,6 +37,10 @@ Patch::Patch(pd::WeakReference patchPtr, Instance* parentInstance, bool const ow
 {
     jassert(parentInstance);
     updateTitle();
+
+    // Otherwise object implementations only get created once an editor shows the patch
+    if (ownsPatch)
+        instance->updateObjectImplementations();
 }
 
 Patch::~Patch()

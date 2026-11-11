@@ -114,8 +114,7 @@ void Dialogs::appendTextToTextEditorDialog(Component* dialog, String const& text
     if (!dialog)
         return;
 
-    auto& editor = dynamic_cast<TextEditorDialog*>(dialog)->editor;
-    editor.setText(editor.getText() + text);
+    dynamic_cast<TextEditorDialog*>(dialog)->editor.appendText(text);
 }
 
 void Dialogs::showAskToSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String const& filename, std::function<void(int)> callback, int const margin, bool const withLogo)
