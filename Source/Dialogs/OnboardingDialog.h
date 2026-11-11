@@ -12,6 +12,7 @@
 #include "Utility/OSUtils.h"
 #include "Utility/SettingsFile.h"
 #include "Dialogs/Dialogs.h"
+#include "Components/PropertiesPanel.h"
 
 struct OnboardingMockupColours {
     Colour canvasBg, sidebarBg, toolbarBg, outline, objectBackground, objectOutline, canvasText, accent;
@@ -271,31 +272,9 @@ public:
     void paintCardContent(Graphics& g, Rectangle<float> bounds) override
     {
         auto labelArea = bounds.removeFromBottom(72.0f);
-        auto iconArea = bounds.reduced(34.0f);
 
-        auto textCol = findColour(PlugDataColour::panelTextColourId);
-        auto centre = iconArea.getCentre();
-
-        if (createMode) {
-            Path pencil;
-            pencil.startNewSubPath(centre.x - 24.0f, centre.y + 20.0f);
-            pencil.lineTo(centre.x + 16.0f, centre.y - 20.0f);
-            pencil.lineTo(centre.x + 26.0f, centre.y - 10.0f);
-            pencil.lineTo(centre.x - 14.0f, centre.y + 30.0f);
-            pencil.lineTo(centre.x - 28.0f, centre.y + 34.0f);
-            pencil.closeSubPath();
-            g.setColour(textCol);
-            g.fillPath(pencil);
-            g.setColour(textCol.withAlpha(0.35f));
-            g.drawLine(centre.x - 30.0f, centre.y + 35.0f, centre.x + 30.0f, centre.y + 35.0f, 2.0f);
-        } else {
-            Path tri;
-            tri.addTriangle(centre.x - 18.0f, centre.y - 30.0f,
-                            centre.x - 18.0f, centre.y + 30.0f,
-                            centre.x + 30.0f, centre.y);
-            g.setColour(textCol);
-            g.fillPath(tri);
-        }
+        Fonts::drawIcon(g, createMode ? Icons::Edit : Icons::PlayTriangle, bounds.toNearestInt(),
+                        findColour(PlugDataColour::panelTextColourId), 64);
 
         auto inner = labelArea.reduced(10.0f, 4.0f);
         g.setColour(findColour(PlugDataColour::panelTextColourId));
@@ -754,77 +733,6 @@ public:
     }
 };
 
-class OnboardingToggleRow final : public Component {
-public:
-    explicit OnboardingToggleRow(String rowLabel)
-        : label(std::move(rowLabel))
-    {
-        setMouseCursor(MouseCursor::PointingHandCursor);
-    }
-
-    bool getToggleState() const { return selected; }
-
-    void setToggleState(bool shouldBeSelected)
-    {
-        selected = shouldBeSelected;
-        repaint();
-    }
-
-    void mouseEnter(MouseEvent const&) override { hovered = true; repaint(); }
-    void mouseExit(MouseEvent const&) override { hovered = false; repaint(); }
-
-    void mouseUp(MouseEvent const& e) override
-    {
-        if (e.mouseWasDraggedSinceMouseDown())
-            return;
-
-        selected = !selected;
-        repaint();
-        if (onClick)
-            onClick();
-    }
-
-    void paint(Graphics& g) override
-    {
-        auto bounds = getLocalBounds().toFloat().reduced(1.0f);
-        auto const bg = findColour(PlugDataColour::panelForegroundColourId);
-        auto const outline = findColour(PlugDataColour::outlineColourId);
-        auto const text = findColour(PlugDataColour::panelTextColourId);
-        auto const accent = findColour(PlugDataColour::toolbarActiveColourId);
-
-        g.setColour(bg.contrasting(hovered ? 0.04f : 0.02f));
-        g.fillRoundedRectangle(bounds, 7.0f);
-        g.setColour(outline.withAlpha(hovered ? 0.9f : 0.55f));
-        g.drawRoundedRectangle(bounds, 7.0f, 1.0f);
-
-        auto textArea = bounds.toNearestInt().reduced(12, 0);
-        textArea.removeFromRight(62);
-        g.setColour(text);
-        g.setFont(Fonts::getSemiBoldFont().withHeight(13.0f));
-        g.drawText(label, textArea, Justification::centredLeft);
-
-        auto track = Rectangle<float>(0, 0, 44, 22)
-                         .withCentre({ bounds.getRight() - 34.0f, bounds.getCentreY() });
-        g.setColour(selected ? accent : findColour(PlugDataColour::panelBackgroundColourId));
-        g.fillRoundedRectangle(track, track.getHeight() * 0.5f);
-        g.setColour(selected ? accent.brighter(0.2f) : outline);
-        g.drawRoundedRectangle(track, track.getHeight() * 0.5f, 1.0f);
-
-        auto knob = Rectangle<float>(0, 0, 16, 16)
-                        .withCentre({ selected ? track.getRight() - 11.0f : track.getX() + 11.0f,
-                                      track.getCentreY() });
-        g.setColour(selected ? Colours::white : text.withAlpha(0.75f));
-        g.fillEllipse(knob);
-    }
-
-    std::function<void()> onClick;
-
-private:
-    String label;
-    bool selected = false;
-    bool hovered = false;
-};
-
 class OnboardingDisplayPage final : public OnboardingPage {
 public:
     OnboardingDisplayPage()
@@ -857,8 +765,19 @@ public:
         };
         scaleSlider.updateText();
 
+        touchMode = SettingsFile::getInstance()->getProperty<int>("touch_mode") != 0;
         addAndMakeVisible(touchToggle);
-        touchToggle.setToggleState(SettingsFile::getInstance()->getProperty<int>("touch_mode") != 0);
+    }
+
+    void paint(Graphics& g) override
+    {
+        OnboardingPage::paint(g);
+
+        auto const row = touchToggle.getBounds().toFloat().reduced(1.0f);
+        g.setColour(findColour(PlugDataColour::panelForegroundColourId).contrasting(0.02f));
+        g.fillRoundedRectangle(row, 7.0f);
+        g.setColour(findColour(PlugDataColour::outlineColourId).withAlpha(0.55f));
+        g.drawRoundedRectangle(row, 7.0f, 1.0f);
     }
 
     void resized() override
@@ -886,8 +805,7 @@ public:
     {
         SettingsFile::getInstance()->setProperty("open_patches_in_window", var(inWindows));
         SettingsFile::getInstance()->setGlobalScale((float)scaleSlider.getValue());
-        SettingsFile::getInstance()->setProperty("touch_mode",
-                                                 var(touchToggle.getToggleState()));
+        SettingsFile::getInstance()->setProperty("touch_mode", var(getValue<bool>(touchMode)));
     }
 
 private:
@@ -906,7 +824,8 @@ private:
 
     Label scaleLabel;
     Slider scaleSlider;
-    OnboardingToggleRow touchToggle { "Enable touch mode" };
+    Value touchMode;
+    PropertiesPanel::BoolComponent touchToggle { "Enable touch mode", touchMode, { "No", "Yes" } };
 };
 
 class OnboardingLinkCard final : public OnboardingCard {
@@ -947,14 +866,7 @@ public:
             g.drawLine(bubble.getX() + 18.0f, bubble.getBottom() - 11.0f,
                        bubble.getRight() - 18.0f, bubble.getBottom() - 11.0f, 2.0f);
         } else {
-            auto centre = iconArea.getCentre();
-            g.drawEllipse(Rectangle<float>(0, 0, 54, 54).withCentre(centre), 2.0f);
-            g.drawLine(centre.x, centre.y + 16.0f, centre.x, centre.y - 6.0f, 2.0f);
-            g.drawLine(centre.x, centre.y - 6.0f, centre.x - 12.0f, centre.y - 14.0f, 2.0f);
-            g.drawLine(centre.x, centre.y - 6.0f, centre.x + 12.0f, centre.y - 14.0f, 2.0f);
-            g.fillEllipse(centre.x - 4.0f, centre.y + 12.0f, 8.0f, 8.0f);
-            g.fillEllipse(centre.x - 16.0f, centre.y - 18.0f, 8.0f, 8.0f);
-            g.fillEllipse(centre.x + 8.0f, centre.y - 18.0f, 8.0f, 8.0f);
+            Fonts::drawIcon(g, Icons::Github, iconArea.toNearestInt(), accent, 60);
         }
 
         g.setColour(text);
