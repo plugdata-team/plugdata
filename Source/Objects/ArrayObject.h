@@ -235,15 +235,19 @@ public:
 
         if (cachedPath.isValid()) {
             auto const contentColour = getContentColour();
+            bool cacheHit;
             if (arrDrawMode == Points) {
                 nanovg::nvgFillColor(nvg, nanovg::nvgRGBA(contentColour.getRed(), contentColour.getGreen(), contentColour.getBlue(), contentColour.getAlpha()));
-                cachedPath.fill();
+                cacheHit = cachedPath.fill();
             } else {
                 nanovg::nvgStrokeColor(nvg, nanovg::nvgRGBA(contentColour.getRed(), contentColour.getGreen(), contentColour.getBlue(), contentColour.getAlpha()));
                 nanovg::nvgStrokeWidth(nvg, getLineWidth());
-                cachedPath.stroke();
+                cacheHit = cachedPath.stroke();
             }
-            return;
+            if (cacheHit)
+                return;
+
+            cachedPath.clear();
         }
 
         if (vec.not_empty()) {
