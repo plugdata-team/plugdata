@@ -269,18 +269,20 @@ public:
         void resized() override;
     };
 
-    class DirectoryPathComponent final : public PropertiesPanelProperty
+    class PathComponent final : public PropertiesPanelProperty
         , public Value::Listener {
         String label;
         SmallIconButton browseButton = SmallIconButton(Icons::Folder);
         Value property;
+        String fileExtension;
+        String lastFileId;
 
     public:
-        DirectoryPathComponent(String const& propertyName, Value const& value);
+        PathComponent(String const& propertyName, Value const& value, String const& extension = { }, String const& lastFileIdentifier = { });
 
         void valueChanged(Value& v) override;
 
-        void setPath(String path);
+        void browse();
 
         PropertiesPanelProperty* createCopy() override;
 

@@ -78,8 +78,10 @@ public:
             state = new DynamicObject();
 
         state->setProperty("selected_exporter", target);
-        if (exporter)
+        if (exporter) {
             exporter->getState(state);
+            saveBrowsedPatch(*state, *exporter);
+        }
 
         SettingsFile::getInstance()->setProperty("heavy_state", var(state.get()));
     }
@@ -90,8 +92,19 @@ public:
             exporter->blockDialog = true;
             exporter->setState(state);
             exporter->blockDialog = false;
+
+            if (getValue<int>(exporter->inputPatchValue) == 2) {
+                exporter->patchFile = File(state->getProperty("browsed_patch").toString());
+                exporter->validPatchSelected = exporter->patchFile.existsAsFile();
+            }
         }
         exporter->updateExportButton();
+    }
+
+    static void saveBrowsedPatch(DynamicObject& state, ExporterBase const& exporter)
+    {
+        if (getValue<int>(exporter.inputPatchValue) == 2 && exporter.validPatchSelected)
+            state.setProperty("browsed_patch", exporter.patchFile.getFullPathName());
     }
 
     ExporterSettingsPanel(PluginEditor* editor, ExportingProgressView* exportingView)
@@ -120,7 +133,11 @@ public:
         state->setProperty("selected_exporter", listBox.getSelectedRow());
         for (auto* view : views) {
             view->getState(state);
+            saveBrowsedPatch(*state, *view);
         }
+
+        if (auto const* selected = views[listBox.getSelectedRow()])
+            saveBrowsedPatch(*state, *selected);
         SettingsFile::getInstance()->setProperty("heavy_state", var(state.get()));
     }
 

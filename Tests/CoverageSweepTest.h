@@ -1829,8 +1829,8 @@ private:
             beginTest("Daisy exporter");
             DaisyExporter exporter(editor, exporterView.get());
             exerciseCommon(exporter);
-            exporter.customBoardDefinition = customBoard;
-            exporter.customLinker = customLinker;
+            exporter.customBoardValue = customBoard.getFullPathName();
+            exporter.customLinkerValue = customLinker.getFullPathName();
 
             for (int exportType = 1; exportType <= 4; ++exportType)
                 exporter.exportTypeValue = exportType;

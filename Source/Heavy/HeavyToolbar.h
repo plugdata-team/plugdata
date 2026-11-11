@@ -102,7 +102,6 @@ public:
     explicit HeavyToolbar(PluginEditor* parentEditor)
         : editor(parentEditor)
         , exportingView(new ExportingProgressView(false))
-        , target(ExporterSettingsPanel::getSelectedTarget())
     {
         exportingView->onStateChange = [this] {
             bool const verifying = verifyOutputDir != File();
@@ -154,9 +153,6 @@ public:
 
         if (auto* install = ToolchainInstall::getInstanceWithoutCreating())
             install->removeListener(this);
-
-        if (exporter)
-            saveState();
 
         exportingView->onStateChange = nullptr;
         exportingView->onStatusChange = nullptr;
@@ -362,7 +358,7 @@ private:
             g.strokePath(hint, PathStrokeType(1.0f, PathStrokeType::curved, PathStrokeType::rounded));
         }
 
-        Fonts::drawText(g, ExporterSettingsPanel::targets[target], getSectionBounds(Target).reduced(8, 0), colours.toolbarTextColour, 14, Justification::centred);
+        Fonts::drawText(g, ExporterSettingsPanel::targets[ExporterSettingsPanel::getSelectedTarget()], getSectionBounds(Target).reduced(8, 0), colours.toolbarTextColour, 14, Justification::centred);
 
         Fonts::drawIcon(g, Icons::ChrevronDownFilled, getSectionBounds(Settings).toNearestInt(), colours.toolbarTextColour, 12);
     }
@@ -586,17 +582,17 @@ private:
 
     ExporterBase* getExporter()
     {
-        if (!exporter) {
-            exporter.reset(ExporterSettingsPanel::createExporter(target, editor, exportingView.get()));
-            ExporterSettingsPanel::restoreState(exporter.get());
+        if (exporter && (isExporting() || exporter->getNumJobs() > 0))
+            return exporter.get();
 
-            // Quick export targets the opened patch, unless the saved settings already picked one
-            if (!exporter->validPatchSelected && editor->getCurrentCanvas())
-                exporter->inputPatchValue = 1;
+        target = ExporterSettingsPanel::getSelectedTarget();
+        exporter.reset(ExporterSettingsPanel::createExporter(target, editor, exportingView.get()));
+        ExporterSettingsPanel::restoreState(exporter.get());
 
-            // The run button exports here, so the panel doesn't need its own button
-            exporter->exportButton.setVisible(false);
-        }
+        if (!exporter->validPatchSelected && editor->getCurrentCanvas())
+            exporter->inputPatchValue = 1;
+
+        exporter->exportButton.setVisible(false);
 
         return exporter.get();
     }
@@ -623,21 +619,19 @@ private:
 
     void showTargetMenu()
     {
+        auto const selectedTarget = ExporterSettingsPanel::getSelectedTarget();
+
         PopupMenu menu;
         for (int i = 0; i < ExporterSettingsPanel::targets.size(); i++) {
-            menu.addItem(i + 1, ExporterSettingsPanel::targets[i], true, i == target);
+            menu.addItem(i + 1, ExporterSettingsPanel::targets[i], true, i == selectedTarget);
         }
 
         menu.showMenuAsync(PopupMenu::Options().withTargetScreenArea(localAreaToGlobal(getSectionBounds(Target).getSmallestIntegerContainer())),
             [_this = SafePointer(this)](int const result) {
-                if (!_this || !result || result - 1 == _this->target)
+                if (!_this || !result)
                     return;
 
-                _this->saveState();
-                _this->target = result - 1;
-                _this->exporter.reset();
-                _this->saveState();
-
+                ExporterSettingsPanel::saveState(nullptr, result - 1);
                 _this->repaint();
             });
     }
@@ -735,7 +729,7 @@ private:
     std::unique_ptr<ExporterBase> verifyExporter;
     File verifyOutputDir;
 
-    int target;
+    int target = 0;
     Section hoveredSection = None;
 
     bool needsToolchain = false;

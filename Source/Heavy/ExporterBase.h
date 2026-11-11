@@ -230,12 +230,15 @@ struct ExporterBase : public Component
         exportTypeOverride = exportType;
 
         if (getExportAction() == Export) {
-            Dialogs::showSaveDialog([this](URL const& url) {
+            Dialogs::showSaveDialog([_this = SafePointer(this)](URL const& url) {
+                if (!_this)
+                    return;
+
                 auto const result = url.getLocalFile();
                 if (result.getParentDirectory().exists()) {
-                    startExport(result);
+                    _this->startExport(result);
                 } else {
-                    exportTypeOverride = 0;
+                    _this->exportTypeOverride = 0;
                 }
             },
                 "", "HeavyExport", nullptr, true);

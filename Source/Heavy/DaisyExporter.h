@@ -14,10 +14,11 @@ public:
     Value samplerateValue = SynchronousValue(var(4));
     Value patchSizeValue = SynchronousValue(var(1));
     Value appTypeValue = SynchronousValue(var(0));
+    Value customBoardValue = SynchronousValue(String());
+    Value customLinkerValue = SynchronousValue(String());
 
-    File customBoardDefinition;
-    File customLinker;
-
+    PropertiesPanel::PathComponent* boardFileProperty;
+    PropertiesPanel::PathComponent* linkerFileProperty;
     PropertiesPanelProperty* usbMidiProperty;
     PropertiesPanelProperty* appTypeProperty;
     PropertiesPanelProperty* debugPrintProperty;
@@ -32,6 +33,8 @@ public:
 
         PropertiesArray properties;
         properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, { "Pod", "Petal", "Patch", "Patch.Init()", "Field", "Versio", "Terrarium", "Hothouse", "Simple", "Custom JSON..." }));
+        boardFileProperty = new PropertiesPanel::PathComponent("Board file", customBoardValue, "*.json", "DaisyCustomBoard");
+        properties.add(boardFileProperty);
         properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, getExportTypes()));
         usbMidiProperty = new PropertiesPanel::BoolComponent("USB MIDI", usbMidiValue, { "No", "Yes" });
         properties.add(usbMidiProperty);
@@ -44,6 +47,8 @@ public:
         properties.add(samplerateProperty);
         patchSizeProperty = new PropertiesPanel::ComboComponent("Patch size", patchSizeValue, { "Small", "Big", "Big + SDRAM", "Huge", "Huge + SDRAM", "Custom Linker..." });
         properties.add(patchSizeProperty);
+        linkerFileProperty = new PropertiesPanel::PathComponent("Linker file", customLinkerValue, "*.lds", "DaisyCustomLinker");
+        properties.add(linkerFileProperty);
         appTypeProperty = new PropertiesPanel::ComboComponent("App type", appTypeValue, { "NONE", "SRAM", "QSPI" });
         properties.add(appTypeProperty);
 
@@ -61,6 +66,8 @@ public:
         samplerateValue.addListener(this);
         patchSizeValue.addListener(this);
         appTypeValue.addListener(this);
+
+        updatePropertiesEnabled();
     }
 
     StringArray getExportTypes() const override
@@ -88,14 +95,14 @@ public:
         state->setProperty("project_copyright_value", getValue<String>(projectCopyrightValue));
         state->setProperty("export_type_value", getValue<int>(exportTypeValue));
         state->setProperty("target_board_value", getValue<int>(targetBoardValue));
-        state->setProperty("custom_board_definition_value", customBoardDefinition.getFullPathName());
+        state->setProperty("custom_board_definition_value", getValue<String>(customBoardValue));
         state->setProperty("usb_midi_value", getValue<int>(usbMidiValue));
         state->setProperty("debug_print_value", getValue<int>(debugPrintValue));
         state->setProperty("blocksize_value", getValue<int>(blocksizeValue));
         state->setProperty("samplerate_value", getValue<int>(samplerateValue));
         state->setProperty("patch_size_value", getValue<int>(patchSizeValue));
         state->setProperty("app_type_value", getValue<int>(appTypeValue));
-        state->setProperty("custom_linker_value", customLinker.getFullPathName());
+        state->setProperty("custom_linker_value", getValue<String>(customLinkerValue));
         globalState->setProperty("daisy", state);
     }
 
@@ -109,20 +116,18 @@ public:
         projectCopyrightValue = state->getProperty("project_copyright_value");
         exportTypeValue = state->getProperty("export_type_value");
         targetBoardValue = state->getProperty("target_board_value");
-        customBoardDefinition = File(state->getProperty("custom_board_definition_value"));
+        customBoardValue = state->getProperty("custom_board_definition_value");
         usbMidiValue = state->getProperty("usb_midi_value");
         debugPrintValue = state->getProperty("debug_print_value");
         blocksizeValue = state->getProperty("blocksize_value");
         samplerateValue = state->getProperty("samplerate_value");
         patchSizeValue = state->getProperty("patch_size_value");
         appTypeValue = state->getProperty("app_type_value");
-        customLinker = File(state->getProperty("custom_linker_value"));
+        customLinkerValue = state->getProperty("custom_linker_value");
     }
 
-    void valueChanged(Value& v) override
+    void updatePropertiesEnabled()
     {
-        ExporterBase::valueChanged(v);
-
         bool const flashingBootloader = getValue<int>(exportTypeValue) == 4;
         debugPrintProperty->setEnabled(!flashingBootloader);
         blocksizeProperty->setEnabled(!flashingBootloader);
@@ -132,10 +137,20 @@ public:
         bool const debugPrint = getValue<int>(debugPrintValue);
         usbMidiProperty->setEnabled(!debugPrint && !flashingBootloader);
 
-        // need to actually hide this property until needed
-        int const patchSize = getValue<int>(patchSizeValue);
-        appTypeProperty->setEnabled(patchSize == 6 && !flashingBootloader);
+        boardFileProperty->setEnabled(getValue<int>(targetBoardValue) == 10);
 
+        // need to actually hide these properties until needed
+        bool const customLinker = getValue<int>(patchSizeValue) == 6;
+        linkerFileProperty->setEnabled(customLinker && !flashingBootloader);
+        appTypeProperty->setEnabled(customLinker && !flashingBootloader);
+    }
+
+    void valueChanged(Value& v) override
+    {
+        ExporterBase::valueChanged(v);
+        updatePropertiesEnabled();
+
+        int const patchSize = getValue<int>(patchSizeValue);
 
         if (patchSize == 1) {
             appTypeValue.setValue(1);
@@ -145,39 +160,11 @@ public:
             appTypeValue.setValue(3);
         }
 
-        if (v.refersToSameSourceAs(targetBoardValue)) {
-            int const idx = getValue<int>(targetBoardValue);
+        if (v.refersToSameSourceAs(targetBoardValue) && getValue<int>(targetBoardValue) == 10 && !blockDialog)
+            boardFileProperty->browse();
 
-            // Custom board option
-            if (idx == 10 && !blockDialog) {
-                Dialogs::showOpenDialog([this](URL const& url) {
-                    auto const result = url.getLocalFile();
-                    if (result.existsAsFile()) {
-                        customBoardDefinition = result;
-                    } else {
-                        customBoardDefinition = File();
-                    }
-                },
-                    true, false, "*.json", "DaisyCustomBoard", nullptr);
-            }
-        }
-
-        if (v.refersToSameSourceAs(patchSizeValue)) {
-            int const idx = getValue<int>(patchSizeValue);
-
-            // Custom linker option
-            if (idx == 6 && !blockDialog) {
-                Dialogs::showOpenDialog([this](URL const& url) {
-                    auto const result = url.getLocalFile();
-                    if (result.existsAsFile()) {
-                        customLinker = result;
-                    } else {
-                        customLinker = File();
-                    }
-                },
-                    true, false, "*.lds", "DaisyCustomLinker", nullptr);
-            }
-        }
+        if (v.refersToSameSourceAs(patchSizeValue) && patchSize == 6 && !blockDialog)
+            linkerFileProperty->browse();
     }
 
     bool hasDfuError()
@@ -276,7 +263,7 @@ public:
         var metaDaisy(new DynamicObject());
 
         if (board == "custom") {
-            metaDaisy.getDynamicObject()->setProperty("board_file", customBoardDefinition.getFullPathName());
+            metaDaisy.getDynamicObject()->setProperty("board_file", customBoardValue.toString());
         } else if (extra_boards.contains(board)) {
             metaDaisy.getDynamicObject()->setProperty("board_file", toolchainDir.getChildFile("etc").getChildFile(board + ".json").getFullPathName());
         } else {
@@ -328,7 +315,7 @@ public:
                 toolchainDir.getChildFile("etc").getChildFile("linkers").getChildFile("qspi_linker_sdram.lds").getFullPathName());
             metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_QSPI");
         } else if (size == 6) {
-            metaDaisy.getDynamicObject()->setProperty("linker_script", customLinker.getFullPathName());
+            metaDaisy.getDynamicObject()->setProperty("linker_script", customLinkerValue.toString());
             if (appType == 2) {
                 metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_SRAM");
             } else if (appType == 3) {
