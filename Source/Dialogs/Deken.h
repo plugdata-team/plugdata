@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <regex>
 #include "Utility/OSUtils.h"
 
 struct Spinner final : public Component
@@ -70,7 +71,7 @@ struct PackageSorter {
 
     static int compareElements(ValueTree const& first, ValueTree const& second)
     {
-        return first.getType().toString().compare(second.getType().toString());
+        return first.getProperty("Name").toString().compare(second.getProperty("Name").toString());
     }
 };
 
@@ -204,14 +205,21 @@ public:
             filesystem.createDirectory();
         }
 
-        if (pkgInfo.existsAsFile()) {
-            auto const newTree = ValueTree::fromXml(pkgInfo.loadFileAsString());
-            if (newTree.isValid() && newTree.getType() == Identifier("pkg_info")) {
-                packageState = newTree;
-            }
+        if (auto const savedState = loadPackageInfo(pkgInfo); savedState.isValid()) {
+            packageState = savedState;
         }
 
         packageState.addListener(this);
+    }
+
+    // Older versions used each package's name as its XML tag. Names like "freeverb~" aren't valid XML, so
+    // those registries failed to load. Rewrite such tags to <package Name="..."> before parsing.
+    static ValueTree loadPackageInfo(File const& file)
+    {
+        static const std::regex oldEntryTag(R"(<(?![?!/]|(?:pkg_info|package)[\s/>])([^\s/>]+))");
+        auto const xml = std::regex_replace(file.loadFileAsString().toStdString(), oldEntryTag, "<package Name=\"$1\"");
+        auto const state = ValueTree::fromXml(String::fromUTF8(xml.c_str()));
+        return state.hasType("pkg_info") ? state : ValueTree();
     }
 
     ~PackageManager() override
@@ -336,7 +344,9 @@ public:
 
     void addPackageToRegister(PackageInfo const& info, String const& path)
     {
-        auto pkgEntry = ValueTree(info.name);
+        // Don't use the name as the type: it becomes the XML tag, and names like "freeverb~" aren't valid XML
+        auto pkgEntry = ValueTree("package");
+        pkgEntry.setProperty("Name", info.name, nullptr);
         pkgEntry.setProperty("ID", info.packageId, nullptr);
         pkgEntry.setProperty("Author", info.author, nullptr);
         pkgEntry.setProperty("Timestamp", info.timestamp, nullptr);
@@ -636,7 +646,7 @@ public:
             PackageSorter::sort(packageManager->packageState);
 
             for (auto child : packageManager->packageState) {
-                auto const name = child.getType().toString();
+                auto const name = child.getProperty("Name").toString();
                 auto const description = child.getProperty("Description").toString();
                 auto const timestamp = child.getProperty("Timestamp").toString();
                 auto const url = child.getProperty("URL").toString();
@@ -922,6 +932,7 @@ private:
             addToPathButton.onClick = [this] {
                 auto state = packageState.getChildWithProperty("ID", packageInfo.packageId);
                 state.setProperty("AddToPath", var(addToPathButton.getToggleState()), nullptr);
+                SettingsFile::getInstance()->triggerSettingsChange("paths");
             };
 
             addToPathButton.setClickingTogglesState(true);
