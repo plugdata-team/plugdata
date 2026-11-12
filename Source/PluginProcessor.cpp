@@ -832,9 +832,6 @@ void PluginProcessor::processBlockBypassed(AudioBuffer<float>& buffer, MidiBuffe
 
     // It's better to keep sending blocks into Pd, so messaging can still work and there are no gaps in the users' audio stream
     processBlock(bypassBuffer, midiBuffer);
-
-    for (int ch = 0; ch < getTotalNumOutputChannels(); ch++)
-        buffer.clear(ch, 0, buffer.getNumSamples());
 }
 
 void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiBuffer)
