@@ -90,7 +90,11 @@ struct Decompress {
     static bool extractTar(uint8_t const* data, size_t size, File const& destRoot)
     {
         // Convert destination root to fs::path
+#if JUCE_WINDOWS
+        fs::path destPath(destRoot.getFullPathName().toWideCharPointer());
+#else
         fs::path destPath(destRoot.getFullPathName().toStdString());
+#endif
 
         size_t offset = 0;
         std::string longLinkName;         // For GNU tar @@LongLink entries
@@ -210,7 +214,11 @@ struct Decompress {
                 continue;
             }
 
+#if JUCE_WINDOWS
+            fs::path outPath = destPath / String::fromUTF8(name.c_str()).toWideCharPointer();
+#else
             fs::path outPath = destPath / name;
+#endif
 
             try {
                 if (typeFlag == '5') {

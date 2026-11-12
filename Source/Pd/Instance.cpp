@@ -1344,7 +1344,7 @@ void Instance::createPanel(int const type, char const* snd, char const* location
 
     auto* obj = generateSymbol(snd)->s_thing;
 
-    auto defaultFile = File(location);
+    auto defaultFile = File(String::fromUTF8(location));
     if (!defaultFile.exists()) {
         defaultFile = SettingsFile::getInstance()->getLastBrowserPathForId("OpenPanel");
         if (!defaultFile.exists())

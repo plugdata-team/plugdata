@@ -144,7 +144,7 @@ bool OSUtils::createJunction(std::string from, std::string to)
 bool OSUtils::createHardLink(std::string from, std::string to)
 {
     try {
-        fs::create_hard_link(from, to);
+        fs::create_hard_link(juce::String::fromUTF8(to.c_str()).toWideCharPointer(), juce::String::fromUTF8(from.c_str()).toWideCharPointer());
     } catch (...) {
         return false;
     }
@@ -157,21 +157,21 @@ bool OSUtils::runAsAdmin(std::string command, std::string parameters, juce::Comp
 {
 
     HWND hWnd = (HWND)peer->getNativeHandle();
-    auto lpFile = (LPCTSTR)command.c_str();
-    auto lpParameters = (LPCTSTR)parameters.c_str();
+    auto const file = juce::String::fromUTF8(command.c_str());
+    auto const params = juce::String::fromUTF8(parameters.c_str());
 
     BOOL retval;
-    SHELLEXECUTEINFO sei;
+    SHELLEXECUTEINFOW sei;
     ZeroMemory(&sei, sizeof(sei));
 
-    sei.cbSize = sizeof(SHELLEXECUTEINFO);
+    sei.cbSize = sizeof(SHELLEXECUTEINFOW);
     sei.hwnd = hWnd;
     sei.fMask = SEE_MASK_NOASYNC | SEE_MASK_NO_CONSOLE;
-    sei.lpVerb = TEXT("runas");
-    sei.lpFile = lpFile;
-    sei.lpParameters = lpParameters;
+    sei.lpVerb = L"runas";
+    sei.lpFile = file.toWideCharPointer();
+    sei.lpParameters = params.toWideCharPointer();
     sei.nShow = SW_SHOWNORMAL;
-    retval = ShellExecuteEx(&sei);
+    retval = ShellExecuteExW(&sei);
 
     return (bool)retval;
 }
@@ -450,7 +450,7 @@ SmallArray<fs::path> iterateDirectoryPaths(juce::File const& directory, bool con
             for (auto const& dirEntry : recursiveDirIterFromJuceFile(directory)) {
                 auto const isDir = dirEntry.is_directory();
                 if ((isDir && !onlyFiles) || !isDir) {
-                    result.add(dirEntry.path().string());
+                    result.add(dirEntry.path());
                 }
 
                 if (maximum > 0 && result.size() >= maximum)
@@ -483,7 +483,11 @@ SmallArray<juce::File> OSUtils::iterateDirectory(juce::File const& directory, bo
     auto paths = iterateDirectoryPaths(directory, recursive, onlyFiles, maximum);
     auto files = SmallArray<juce::File>();
     for (auto& path : paths) {
+#ifdef _WIN32
+        files.add(juce::File(juce::String(path.c_str())));
+#else
         files.add(juce::File(path.string()));
+#endif
     }
 
     return files;
