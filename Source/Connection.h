@@ -108,6 +108,8 @@ public:
 
     bool isMouseHovering() const { return isHovering; }
 
+    float getPathWidth() const;
+
     StringArray getMessageFormated() const;
 
 private:
@@ -142,8 +144,6 @@ private:
     // Recomputes the component bounds to enclose the current path, expanded by the
     // stroke thickness. Used for hit detection and drawing the reconnect handles.
     void updateBounds();
-
-    float getPathWidth() const;
 
     Path path;
 

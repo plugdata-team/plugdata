@@ -7,6 +7,7 @@
 #include "Constants.h"
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
+#include "DetectiveMode.h"
 #include "Components/PropertiesPanel.h"
 
 class OverlayDisplaySettings final : public Component
@@ -158,7 +159,7 @@ public:
     void valueChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(debugModeValue)) {
-            set_plugdata_debugging_enabled(getValue<bool>(debugModeValue));
+            DetectiveMode::updatePdDebugging();
         }
     }
 

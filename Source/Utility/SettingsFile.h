@@ -149,6 +149,8 @@ private:
         { "limiter_threshold", var(1) },
         { "protected", var(true) },
         { "debug_connections", var(true) },
+        { "detective_mode", var(false) },
+        { "detective_speed", var(1.0f) },
         { "internal_synth", var(0) },
         { "grid_enabled", var(true) },
         { "grid_type", var(6) },

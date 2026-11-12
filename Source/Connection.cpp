@@ -571,7 +571,8 @@ StringArray Connection::getMessageFormated() const
 void Connection::mouseEnter(MouseEvent const& e)
 {
     isHovering = true;
-    if (plugdata_debugging_enabled()) {
+    // The message tooltip belongs to the "Debug" option. Pd's debugging can also be on for Detective Mode alone
+    if (plugdata_debugging_enabled() && SettingsFile::getInstance()->getProperty<bool>("debug_connections")) {
         Point<float> nearest;
         getPath().getNearestPoint(cnv->getLocalPoint(this, e.position), nearest);
         cnv->editor->connectionMessageDisplay->setConnection(this, cnv->localPointToGlobal(nearest).roundToInt().translated(20, 15));

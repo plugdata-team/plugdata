@@ -36,6 +36,7 @@ class ToolbarSource;
 struct PlugDataLook;
 class PluginEditor;
 class ConnectionMessageDisplay;
+class DetectiveMode;
 class Object;
 class PluginProcessor final : public AudioProcessor
     , public pd::Instance
@@ -209,6 +210,7 @@ public:
     OwnedArray<PluginEditor> openedEditors;
 
     AtomicValue<ConnectionMessageDisplay*, Sequential> connectionListener = nullptr;
+    std::unique_ptr<DetectiveMode> detectiveMode;
     std::unique_ptr<Autosave> autosave;
 
 private:

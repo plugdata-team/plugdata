@@ -8,6 +8,7 @@
 
 #include "PluginEditor.h"
 #include "Canvas.h"
+#include "DetectiveMode.h"
 #include "Standalone/PlugDataWindow.h"
 
 class PluginMode final : public Component
@@ -152,7 +153,7 @@ public:
             editor->getTopLevelComponent()->sendLookAndFeelChange();
         }
 
-        set_plugdata_debugging_enabled(SettingsFile::getInstance()->getProperty<bool>("debug_connections"));
+        DetectiveMode::updatePdDebugging();
         // set_plugdata_activity_enabled already gets reset by updateOverlays() when we recreate the canvas
     }
 

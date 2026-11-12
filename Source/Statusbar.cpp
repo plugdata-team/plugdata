@@ -205,6 +205,26 @@ private:
     Mode mode = Edit;
 };
 
+// Turns Detective Mode on and off. Lit up while it's on, like the edit mode button
+class DetectiveModeButton final : public TextButton {
+public:
+    DetectiveModeButton()
+        : TextButton("Detective")
+    {
+        setClickingTogglesState(true);
+    }
+
+    void paint(Graphics& g) override
+    {
+        auto const& colours = getThemeColours(*this);
+        auto const colour = getToggleState() ? colours.toolbarActiveColour : colours.toolbarTextColour;
+
+        g.setColour(isMouseOver() ? colour.brighter(0.8f) : colour);
+        g.setFont(Fonts::getSemiBoldFont().withHeight(14.0f));
+        g.drawText(getButtonText(), getLocalBounds(), Justification::centred);
+    }
+};
+
 class ZoomLabel final : public Component
     , public SettableTooltipClient {
 public:
@@ -467,6 +487,19 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
         editor->showCalloutBox(std::move(modePicker), editModeGroup->chevron.getScreenBounds());
     };
 
+    detectiveModeButton = std::make_unique<DetectiveModeButton>();
+    detectiveModeButton->getToggleStateValue().referTo(SettingsFile::getInstance()->getPropertyAsValue("detective_mode"));
+    detectiveModeButton->setTooltip("Detective Mode: watch messages travel along connections, in the order Pd sends them");
+    addAndMakeVisible(*detectiveModeButton);
+
+    detectiveSpeedSlider = std::make_unique<Slider>(Slider::LinearHorizontal, Slider::NoTextBox);
+    detectiveSpeedSlider->setRange(0.1, 5.0, 0.1);
+    detectiveSpeedSlider->getValueObject().referTo(SettingsFile::getInstance()->getPropertyAsValue("detective_speed"));
+    detectiveSpeedSlider->setDoubleClickReturnValue(true, 1.0);
+    detectiveSpeedSlider->setTooltip("Detective Mode speed");
+    // Usable whether Detective Mode is on or off, so the speed can be set before turning it on
+    addAndMakeVisible(*detectiveSpeedSlider);
+
     zoomSelector->setTooltip("Zoom level");
     zoomSelector->setMenuTooltip("Zoom options");
     gridGroup->setTooltip("Toggle grid", "Grid settings");
@@ -546,6 +579,17 @@ void Statusbar::resized()
     b.removeFromLeft(spacing);
 
     editModeGroup->setBounds(b.removeFromRight(84));
+
+    // The Detective Mode controls only take room that's left over, so a narrow status bar keeps its mode button
+    int const detectiveButtonWidth = 72 + extraTouchWidth;
+    detectiveModeButton->setVisible(b.getWidth() >= detectiveButtonWidth);
+    if (detectiveModeButton->isVisible())
+        detectiveModeButton->setBounds(b.removeFromLeft(detectiveButtonWidth));
+
+    detectiveSpeedSlider->setVisible(detectiveModeButton->isVisible() && b.getWidth() >= 90 + spacing);
+    if (detectiveSpeedSlider->isVisible())
+        detectiveSpeedSlider->setBounds(b.removeFromLeft(90));
+    b.removeFromLeft(spacing);
 
     touchSelectionHelper->setBounds(b.withSizeKeepingCentre(touchSelectionHelper->getIdealWidth(), getHeight()));
 }

@@ -17,6 +17,7 @@ class LatencyDisplayButton;
 class ZoomLabel;
 class StatusbarButtonGroup;
 class EditModeButton;
+class DetectiveModeButton;
 class TouchSelectionHelper;
 
 class Statusbar;
@@ -54,6 +55,8 @@ private:
     std::unique_ptr<StatusbarButtonGroup> gridGroup;
     std::unique_ptr<StatusbarButtonGroup> overlayGroup;
     std::unique_ptr<EditModeButton> editModeGroup;
+    std::unique_ptr<DetectiveModeButton> detectiveModeButton;
+    std::unique_ptr<Slider> detectiveSpeedSlider;
     std::unique_ptr<TouchSelectionHelper> touchSelectionHelper;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Statusbar)

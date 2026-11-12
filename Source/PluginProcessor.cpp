@@ -26,6 +26,7 @@
 
 #include "Utility/Presets.h"
 #include "Canvas.h"
+#include "DetectiveMode.h"
 #include "PluginMode.h"
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
@@ -190,6 +191,8 @@ PluginProcessor::PluginProcessor()
 
     objectLibrary = std::make_unique<pd::Library>(this);
 
+    detectiveMode = std::make_unique<DetectiveMode>(this);
+
     setLatencySamples(pd::Instance::getBlockSize());
     settingsFile->startChangeListener();
 
@@ -201,6 +204,9 @@ PluginProcessor::PluginProcessor()
 
 PluginProcessor::~PluginProcessor()
 {
+    // Stop tracing messages before the patches go
+    detectiveMode.reset();
+
     // Deleting the pd instance in ~PdInstance() will also free all the Pd patches
     patches.clear();
 

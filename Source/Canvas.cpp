@@ -12,6 +12,7 @@
 #include "Canvas.h"
 #include "Object.h"
 #include "Connection.h"
+#include "DetectiveMode.h"
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
@@ -719,6 +720,10 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             renderAllObjects(nvg, invalidRegion);
             renderAllConnections(nvg, invalidRegion);
         }
+
+        // Detective Mode's message goes over all objects and cables
+        if (auto const* detectiveMode = pd->detectiveMode.get())
+            detectiveMode->render(this, nvg, invalidRegion);
     }
 
     for (auto* connection : connectionsBeingCreated) {
