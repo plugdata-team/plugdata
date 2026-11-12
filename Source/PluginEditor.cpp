@@ -46,6 +46,7 @@
 #include "Sidebar/SearchPanel.h"
 #include "Sidebar/Palettes.h"
 #include "Sidebar/ReferencePanel.h"
+#include "Sidebar/ConnectionDebugPanel.h"
 
 #if ENABLE_TESTING
 void runTests(PluginEditor* editor);
@@ -264,6 +265,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     searchPanel = std::make_unique<SearchPanel>(this);
     palettePanel = std::make_unique<Palettes>(this);
     referencePanel = std::make_unique<ReferencePanel>(this);
+    debugPanel = std::make_unique<ConnectionDebugPanel>(this);
     inspectorPanel = std::make_unique<Inspector>();
     commandInput = std::make_unique<CommandInput>(this);
 
@@ -271,7 +273,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         return std::make_unique<Sidebar>(s, &p, this,
             consolePanel.get(), browserPanel.get(), automationPanel.get(),
             searchPanel.get(), palettePanel.get(), referencePanel.get(),
-            inspectorPanel.get(), commandInput.get());
+            debugPanel.get(), inspectorPanel.get(), commandInput.get());
     };
     leftSidebar = makeSidebar(Sidebar::Side::Left);
     rightSidebar = makeSidebar(Sidebar::Side::Right);
@@ -295,6 +297,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     loadAssignment(Sidebar::PatchSearchPanel, Sidebar::Side::Right);
     loadAssignment(Sidebar::PalettePanel, Sidebar::Side::Right);
     loadAssignment(Sidebar::ObjectReferencePanel, Sidebar::Side::Right);
+    loadAssignment(Sidebar::DebugPanel, Sidebar::Side::Right);
     loadAssignment(Sidebar::InspectorPanel, Sidebar::Side::Right);
 
     int const leftW = settings->getProperty<int> ("left_sidebar_width");

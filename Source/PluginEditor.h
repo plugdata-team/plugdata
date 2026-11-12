@@ -43,6 +43,7 @@ class DocumentationBrowser;
 class AutomationPanel;
 class SearchPanel;
 class ReferencePanel;
+class ConnectionDebugPanel;
 class Palettes;
 class Inspector;
 class CommandInput;
@@ -164,6 +165,7 @@ public:
     std::unique_ptr<SearchPanel> searchPanel;
     std::unique_ptr<Palettes> palettePanel;
     std::unique_ptr<ReferencePanel> referencePanel;
+    std::unique_ptr<ConnectionDebugPanel> debugPanel;
     std::unique_ptr<Inspector> inspectorPanel;
     std::unique_ptr<CommandInput> commandInput;
 

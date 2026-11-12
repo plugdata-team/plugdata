@@ -24,6 +24,7 @@ using namespace juce::gl;
 #include "CanvasViewport.h"
 #include "Pd/Patch.h"
 #include "Components/ConnectionMessageDisplay.h"
+#include "Sidebar/ConnectionDebugPanel.h"
 
 Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
     : NVGComponent(this)
@@ -483,6 +484,9 @@ void Connection::setSelected(bool const shouldBeSelected)
         // This is so resize handles can easily be hit when the connection is selected
         setAlwaysOnTop(shouldBeSelected);
         repaint();
+
+        if (selectedFlag && cnv->editor->debugPanel)
+            cnv->editor->debugPanel->setConnection(this);
     }
 }
 

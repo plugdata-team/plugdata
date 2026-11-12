@@ -18,6 +18,7 @@ class DocumentationBrowser;
 class AutomationPanel;
 class SearchPanel;
 class ReferencePanel;
+class ConnectionDebugPanel;
 class PluginProcessor;
 class CommandInput;
 class Palettes;
@@ -112,6 +113,7 @@ public:
         PatchSearchPanel,
         PalettePanel,
         ObjectReferencePanel,
+        DebugPanel,
         InspectorPanel,
         NumSidePanels
     };
@@ -126,6 +128,7 @@ public:
         SearchPanel* searchPanel,
         Palettes* palettePanel,
         ReferencePanel* referencePanel,
+        ConnectionDebugPanel* debugPanel,
         Inspector* inspector,
         CommandInput* commandInput);
 
@@ -216,6 +219,7 @@ private:
     SearchPanel* searchPanelPtr = nullptr;
     Palettes* palettePanelPtr = nullptr;
     ReferencePanel* referencePanelPtr = nullptr;
+    ConnectionDebugPanel* debugPanelPtr = nullptr;
     Inspector* inspectorPtr = nullptr;
     CommandInput* commandInputPtr = nullptr;
 
@@ -229,7 +233,7 @@ private:
     std::unique_ptr<Component> resetInspectorButton;
 
     StringArray panelDisplayNames {
-        "Console", "Documentation Browser", "Automation Parameters", "Search", "Palettes", "Object Reference", "Inspector"
+        "Console", "Documentation Browser", "Automation Parameters", "Search", "Palettes", "Object Reference", "Detective Mode", "Inspector"
     };
 
     struct PanelEntry {

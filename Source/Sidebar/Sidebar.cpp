@@ -25,6 +25,7 @@
 #include "SearchPanel.h"
 #include "Palettes.h"
 #include "ReferencePanel.h"
+#include "ConnectionDebugPanel.h"
 
 String Sidebar::panelIdToString(SidePanel id)
 {
@@ -41,6 +42,8 @@ String Sidebar::panelIdToString(SidePanel id)
         return "palette";
     case ObjectReferencePanel:
         return "reference";
+    case DebugPanel:
+        return "debug";
     case InspectorPanel:
         return "inspector";
     default:
@@ -62,6 +65,8 @@ Sidebar::SidePanel Sidebar::panelFromString(String const& s, SidePanel fallback)
         return PalettePanel;
     if (s == "reference")
         return ObjectReferencePanel;
+    if (s == "debug")
+        return DebugPanel;
     if (s == "inspector")
         return InspectorPanel;
     return fallback;
@@ -88,6 +93,7 @@ Sidebar::Sidebar(Side sideIn, PluginProcessor* instance, PluginEditor* parent,
     SearchPanel* search,
     Palettes* palette,
     ReferencePanel* reference,
+    ConnectionDebugPanel* debug,
     Inspector* insp,
     CommandInput* cmdInput)
     : side(sideIn)
@@ -98,6 +104,7 @@ Sidebar::Sidebar(Side sideIn, PluginProcessor* instance, PluginEditor* parent,
     , searchPanelPtr(search)
     , palettePanelPtr(palette)
     , referencePanelPtr(reference)
+    , debugPanelPtr(debug)
     , inspectorPtr(insp)
     , commandInputPtr(cmdInput)
 {
@@ -154,6 +161,9 @@ void Sidebar::addPanel(SidePanel panel)
         break;
     case ObjectReferencePanel:
         icon = Icons::Help;
+        break;
+    case DebugPanel:
+        icon = Icons::Message;
         break;
     case InspectorPanel:
         icon = Icons::Info;
@@ -547,8 +557,8 @@ bool Sidebar::isShowingInspector() const
 
 bool Sidebar::canAutoShowInspector() const
 {
-    // Search and reference panels use object selection for their own purpose, so don't cover them with the inspector
-    return inspectorAutoShow && !(hasCurrentPanel && (currentPanel == PatchSearchPanel || currentPanel == ObjectReferencePanel));
+    // Search, reference and Detective Mode panels use the selection for their own purpose, so don't cover them with the inspector
+    return inspectorAutoShow && !(hasCurrentPanel && (currentPanel == PatchSearchPanel || currentPanel == ObjectReferencePanel || currentPanel == DebugPanel));
 }
 
 bool Sidebar::refreshInspectorVisibility(bool const allowManualShow)
@@ -697,6 +707,10 @@ void Sidebar::showPanel(SidePanel const panelToShow)
     case ObjectReferencePanel:
         if (hasPanel(ObjectReferencePanel) && referencePanelPtr)
             setPanelVis(referencePanelPtr, ObjectReferencePanel);
+        break;
+    case DebugPanel:
+        if (hasPanel(DebugPanel) && debugPanelPtr)
+            setPanelVis(debugPanelPtr, DebugPanel);
         break;
     case InspectorPanel:
         if (hasPanel(InspectorPanel) && inspectorPtr && inspectorHasParameters) {
@@ -1004,6 +1018,8 @@ Component* Sidebar::getPanelComponent(SidePanel id) const
         return palettePanelPtr;
     case ObjectReferencePanel:
         return referencePanelPtr;
+    case DebugPanel:
+        return debugPanelPtr;
     case InspectorPanel:
         return inspectorPtr;
     default:
