@@ -210,6 +210,10 @@ private:
     void renderBackendFrame();
     void presentFramebuffer(int viewWidth, int viewHeight);
     void requestBackendRender();
+#if JUCE_LINUX || JUCE_BSD
+    bool isWindowViewable();
+    void pollUntilViewable();
+#endif
 
 #if PLUGDATA_NVG_FRAME_TIME_OVERLAY
     void drawFrameTimeOverlay(int viewWidth, int viewHeight, float scale);
@@ -240,6 +244,10 @@ private:
     Rectangle<int> invalidArea;          // damage accumulated since the last recorded frame (message thread)
     Rectangle<int> inFlightDamage;       // damage of the last recorded frame, re-folded if it gets coalesced
     Rectangle<int> currentBounds;
+#if JUCE_LINUX || JUCE_BSD
+    bool windowViewable = true;          // whether the window can be seen (see isWindowViewable)
+    uint32 lastViewableCheck = 0;
+#endif
     AtomicValue<bool> frameReadyForReplay { false };
     AtomicValue<int> recordedFramebufferWidth { 0 };
     AtomicValue<int> recordedFramebufferHeight { 0 };

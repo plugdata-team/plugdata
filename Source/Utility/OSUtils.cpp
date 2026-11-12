@@ -249,6 +249,26 @@ void OSUtils::updateLinuxWindowConstraints(juce::ComponentPeer* peer)
     }
 }
 
+bool OSUtils::isLinuxWindowViewable(juce::ComponentPeer* peer)
+{
+    // When X can't be asked (no window yet, Wayland, no connection), say it's viewable, so drawing goes on
+    if (peer == nullptr || isWaylandWindow(peer))
+        return true;
+
+    auto* display = juce::XWindowSystem::getInstance()->getDisplay();
+    auto const window = reinterpret_cast<::Window>(peer->getNativeHandle());
+    if (display == nullptr || window == 0)
+        return true;
+
+    // Viewable means the window and all the windows it sits in are mapped
+    juce::XWindowSystemUtilities::ScopedXLock xLock;
+    XWindowAttributes attributes;
+    if (!XGetWindowAttributes(display, window, &attributes))
+        return true;
+
+    return attributes.map_state == IsViewable;
+}
+
 bool OSUtils::isLinuxWindowMaximised(ComponentPeer* peer)
 {
     if (isWaylandWindow(peer))

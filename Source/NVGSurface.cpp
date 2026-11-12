@@ -526,6 +526,37 @@ void NVGSurface::scheduleRender()
     triggerAsyncUpdate();
 }
 
+#if JUCE_LINUX || JUCE_BSD
+// A host can hide its plugin window by unmapping it, and X doesn't tell the windows inside it (ours),
+// so we'd keep drawing into a window that can't be seen. Ask X whether ours is viewable: every 200 ms
+// while it is, and every 50 ms while it isn't, until it's back. Then draw all of it: its content
+// wasn't kept while it was hidden. This also covers a minimised standalone window
+bool NVGSurface::isWindowViewable()
+{
+    auto const now = Time::getMillisecondCounter();
+    if (windowViewable && now - lastViewableCheck < 200)
+        return true;
+    lastViewableCheck = now;
+
+    bool const wasViewable = windowViewable;
+    windowViewable = OSUtils::isLinuxWindowViewable(getPeer());
+    if (windowViewable && !wasViewable)
+        invalidateAll();
+    else if (!windowViewable && wasViewable)
+        pollUntilViewable();
+
+    return windowViewable;
+}
+
+void NVGSurface::pollUntilViewable()
+{
+    Timer::callAfterDelay(50, [_this = SafePointer(this)] {
+        if (_this && !_this->isWindowViewable())
+            _this->pollUntilViewable();
+    });
+}
+#endif
+
 void NVGSurface::requestBackendRender()
 {
 #if NANOVG_METAL_IMPLEMENTATION
@@ -655,6 +686,12 @@ void NVGSurface::recordFrame()
     snapshotEditorSize();
     if (bounds.isEmpty())
         return;
+
+#if JUCE_LINUX || JUCE_BSD
+    // Don't draw frames nobody can see. The damage keeps adding up until the window can be seen again
+    if (!isWindowViewable())
+        return;
+#endif
 
 #if NANOVG_METAL_IMPLEMENTATION
     updateRenderScale();
