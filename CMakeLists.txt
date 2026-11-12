@@ -766,6 +766,17 @@ copy_binarydata(plugdata_AAX)
 copy_binarydata(plugdata_fx_AAX)
 endif()
 
+# Linux plugins: don't export the symbols of the static libraries we link (LuaJIT, libstdc++, ...), and bind
+# our own calls to our own code. Otherwise a host that exports the same names wins: Ardour exports its own
+# Lua, so pdlua's Lua calls ended up in Ardour's Lua and crashed the host while loading plugdata
+if(UNIX AND NOT APPLE)
+    foreach(target plugdata_VST3 plugdata_fx_VST3 plugdata_CLAP plugdata_fx_CLAP plugdata_LV2 plugdata_fx_LV2)
+        if(TARGET ${target})
+            target_link_options(${target} PRIVATE "LINKER:-Bsymbolic" "LINKER:--exclude-libs,ALL")
+        endif()
+    endforeach()
+endif()
+
 target_include_directories(plugdata_core PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/BinaryData)
 
 target_include_directories(plugdata_standalone PUBLIC ${PLUGDATA_INCLUDE_DIRECTORY})
