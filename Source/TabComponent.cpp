@@ -162,7 +162,7 @@ public:
         g.setColour(colours.toolbarTextColour);
 
         g.setFont(font);
-        g.drawText(text, textBounds.withPosition(10, 10), Justification::centred, false);
+        g.drawText(text, pill, Justification::centred, false);
 
         return { image, scale };
     }
@@ -731,7 +731,7 @@ Canvas* TabComponent::createNewWindow(Canvas* cnv)
     newWindow->setVisible(true);
 
     auto const patch = cnv->refCountedPatch;
-    closeTab(cnv);
+    closeTab(cnv, false);
 
     patch->windowIndex = newEditor->editorIndex;
 
@@ -1265,7 +1265,7 @@ void TabComponent::closeTab(Canvas* cnv, bool const sendVisMessage)
     }
 
     canvases.removeObject(cnv);
-    patch->setVisible(false);
+    if(sendVisMessage) patch->setVisible(false);
 
     pd->patches.remove_one(patch, [](auto const& ptr1, auto const& ptr2) {
         return *ptr1 == *ptr2;
