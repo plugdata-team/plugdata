@@ -837,6 +837,9 @@ void Sidebar::forceShowParameters(SmallArray<Component*>& objects, SmallArray<Ob
         inspectorManuallyShown = true;
 
     showParameters(objects, params, true);
+
+    if (inspectorHasParameters && !isShowingInspector())
+        showPanel(InspectorPanel);
 }
 
 void Sidebar::showParameters(SmallArray<Component*>& objects, SmallArray<ObjectParameters, 6>& params, bool const showOnSelect)
