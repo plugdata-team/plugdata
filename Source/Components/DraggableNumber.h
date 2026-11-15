@@ -39,6 +39,7 @@ protected:
     bool resetOnCommandClick : 1 = false;
     bool wasReset : 1 = false;
     bool showEllipses : 1 = true;
+    bool mixed : 1 = false; // shows "(mixed)" instead of the number until it's clicked or edited
     double valueToResetTo = 0.0;
     double valueToRevertTo = 0.0;
     int maxPrecision = 6;
@@ -115,6 +116,8 @@ public:
     bool keyPressed(KeyPress const& key) override;
 
     void setValue(double newValue, NotificationType notification = sendNotification, bool clip = true);
+
+    void setMixed(bool isMixed);
 
     double getValue() const;
 

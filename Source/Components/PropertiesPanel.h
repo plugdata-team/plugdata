@@ -28,6 +28,9 @@ public:
 
     virtual PropertiesPanelProperty* createCopy() { return nullptr; }
 
+    // The Inspector calls this when the selected objects have different values for this property
+    virtual void showMixed() { }
+
     void setHideLabel(bool const labelHidden)
     {
         hideLabel = labelHidden;
@@ -133,6 +136,9 @@ public:
 
         PropertiesPanelProperty* createCopy() override;
 
+        // nothing is selected when the objects differ, so say why
+        void showMixed() override { comboBox.setTextWhenNothingSelected("(mixed)"); }
+
         StringArray items;
         ComboBox comboBox;
     };
@@ -154,6 +160,9 @@ public:
         void setFont(String const& fontName);
 
         void resized() override;
+
+        // the font is empty when the objects differ, so say why
+        void showMixed() override { comboBox.setTextWhenNothingSelected("(mixed)"); }
 
     private:
         void valueChanged(Value& value) override;
@@ -192,10 +201,14 @@ public:
 
         void valueChanged(Value& v) override;
 
+        // neither segment is selected while the objects differ, and a click on either applies it
+        void showMixed() override;
+
     protected:
         StringArray textOptions;
         Value toggleStateValue;
         bool isOnOffPair = false; // "No"/"Yes" or "Off"/"On": the "on" segment takes the selection colour
+        bool mixed = false;
     };
 
     // Square swatch that opens the colour picker, next to an editable hex code
@@ -220,14 +233,19 @@ public:
         void mouseMove(MouseEvent const& e) override;
         void mouseExit(MouseEvent const& e) override;
 
+        // a crossed-out swatch and "(mixed)" while the objects differ, until a colour is picked or typed
+        void showMixed() override;
+
     private:
         Rectangle<float> getSwatchBounds() const;
+        bool isCompleteHexCode(String const& text) const;
 
         Value currentColour;
         Value colour;
         Label hexValueEditor;
         bool isMouseOverSwatch = false;
         bool allowAlpha;
+        bool mixed = false;
     };
 
     class RangeComponent final : public PropertiesPanelProperty
@@ -237,6 +255,7 @@ public:
         DraggableNumber minLabel, maxLabel;
 
         float min, max;
+        bool mixed = false;
 
     public:
         RangeComponent(String const& propertyName, Value const& value, bool integerMode);
@@ -254,6 +273,9 @@ public:
         void resized() override;
 
         void valueChanged(Value& v) override;
+
+        // both numbers show "(mixed)" while the objects differ, until either is set
+        void showMixed() override;
     };
 
     class FilePathComponent final : public PropertiesPanelProperty {
@@ -310,6 +332,22 @@ public:
         String icon;
     };
 
+    // A label that reports Return with the typed text even when it's unchanged, which a plain Label doesn't
+    class CommitLabel final : public Label {
+    public:
+        std::function<void(String const&)> onReturnKey;
+
+    protected:
+        void textEditorReturnKeyPressed(TextEditor& editor) override
+        {
+            auto const text = editor.getText();
+            SafePointer<CommitLabel> const safeThis(this);
+            Label::textEditorReturnKeyPressed(editor);
+            if (safeThis && onReturnKey)
+                onReturnKey(text);
+        }
+    };
+
     template<typename T>
     class EditableComponent final : public PropertiesPanelProperty
         , public Value::Listener {
@@ -317,6 +355,8 @@ public:
         String allowedCharacters = "";
         double min, max;
         bool limit;
+        bool mixed = false; // see showMixed()
+        bool typed = false; // something was typed since the editor opened: clicking away also commits
 
     public:
         std::unique_ptr<Component> label;
@@ -351,6 +391,7 @@ public:
                 draggableNumber->setPrecision(3);
 
                 draggableNumber->onValueChange = [this](double const newValue) {
+                    mixed = false;
                     if (limit) {
                         property = clampValue(newValue);
                     } else {
@@ -359,6 +400,9 @@ public:
                 };
 
                 draggableNumber->onReturnKey = [this](double const newValue) {
+                    if (mixed && !typed) // clicked in and away again: the objects keep their own values
+                        return;
+                    mixed = false;
                     if (limit) {
                         property = clampValue(newValue);
                     } else {
@@ -366,33 +410,87 @@ public:
                     }
                 };
 
+                // A click or drag that set nothing leaves the objects as they were, so show "(mixed)" again
+                draggableNumber->dragEnd = [this, draggableNumber] {
+                    if (mixed)
+                        draggableNumber->setMixed(true);
+                };
+                draggableNumber->onEditorHide = draggableNumber->dragEnd;
+
                 property.addListener(this);
-                draggableNumber->onEditorShow = [draggableNumber] {
+                draggableNumber->onEditorShow = [this, draggableNumber] {
+                    typed = false;
                     auto* editor = draggableNumber->getCurrentTextEditor();
                     editor->setBorder(getInlineEditorBorder());
                     editor->setJustification(Justification::centredLeft);
                 };
+                draggableNumber->onTextChange = [this] {
+                    typed = true;
+                };
             } else {
-                auto* labelComp = new Label();
+                auto* labelComp = new CommitLabel();
                 label = std::unique_ptr<Label>(labelComp);
                 labelComp->setEditable(true, false);
                 labelComp->getTextValue().referTo(property);
                 labelComp->setFont(Font(FontOptions(14.5f)));
 
                 labelComp->onEditorShow = [this, labelComp] {
+                    typed = false;
                     auto* editor = labelComp->getCurrentTextEditor();
                     editor->setBorder(getInlineEditorBorder());
                     editor->setJustification(Justification::centredLeft);
+                    editor->onTextChange = [this] {
+                        typed = true;
+                    };
+                    if (mixed)
+                        editor->setTextToShowWhenEmpty("(mixed)", labelComp->findColour(Label::textColourId).withAlpha(0.55f));
 
                     if (allowedCharacters.isNotEmpty()) {
                         editor->setInputRestrictions(0, allowedCharacters);
                     }
+                };
+
+                // A typed text is a change from the empty "(mixed)" field, and the label sets it on all the
+                // objects. Typing and deleting it all again sets them all to empty; clicking in and away (which
+                // the label also treats as Return) leaves them as they are.
+                labelComp->onTextChange = [this] {
+                    mixed = false;
+                    repaint();
+                };
+                labelComp->onReturnKey = [this](String const& text) {
+                    if (!mixed || !typed)
+                        return;
+                    mixed = false;
+                    property = text;
+                    repaint();
                 };
             }
 
             addAndMakeVisible(label.get());
 
             label->addMouseListener(this, true);
+        }
+
+        // The selected objects differ: a number shows "(mixed)" over the first object's value, which a drag starts
+        // from; a text field is empty, with "(mixed)" in its place
+        void showMixed() override
+        {
+            mixed = true;
+            if constexpr (std::is_arithmetic_v<T>)
+                reinterpret_cast<DraggableNumber*>(label.get())->setMixed(true);
+            repaint();
+        }
+
+        void paintOverChildren(Graphics& g) override
+        {
+            if constexpr (!std::is_arithmetic_v<T>) {
+                auto const* labelComp = static_cast<Label const*>(label.get());
+                if (mixed && labelComp->getText().isEmpty() && !labelComp->isBeingEdited()) {
+                    g.setFont(labelComp->getFont());
+                    g.setColour(labelComp->findColour(Label::textColourId).withAlpha(0.55f));
+                    g.drawText("(mixed)", labelComp->getBorderSize().subtractedFrom(labelComp->getBounds()), labelComp->getJustificationType(), true);
+                }
+            }
         }
 
         // A float stored in a var becomes a double, which prints as e.g. 0.6000000238.

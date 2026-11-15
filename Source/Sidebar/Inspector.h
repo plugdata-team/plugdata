@@ -8,6 +8,36 @@
 #include "Components/PropertiesPanel.h"
 
 class Inspector final : public Component {
+    // The value shown for a property of several selected objects. While their values differ, the first write is
+    // passed on even if it's the value already shown (the first object's), so committing it reaches every object.
+    // A plain juce::Value drops a write that changes nothing.
+    class MixedValueSource final : public Value::ValueSource {
+    public:
+        explicit MixedValueSource(var const& initialValue)
+            : value(initialValue)
+        {
+        }
+
+        var getValue() const override { return value; }
+
+        void setValue(var const& newValue) override
+        {
+            if (!mixed && newValue.equalsWithSameType(value))
+                return;
+
+            mixed = false;
+            value = newValue;
+            sendChangeMessage(false);
+        }
+
+        // Only once the field exists: fields write back the value they're given while they're set up
+        void setMixed(bool const isMixed) { mixed = isMixed; }
+
+    private:
+        var value;
+        bool mixed = false;
+    };
+
     class PropertyRedirector final : public Value::Listener {
     public:
         explicit PropertyRedirector(Inspector* parent)
@@ -15,10 +45,18 @@ class Inspector final : public Component {
         {
         }
 
-        Value* addProperty(Value* controllerValue, SmallArray<Value*> const& attachedValues, bool const mixedShowsNothing = false)
+        Value* addProperty(Value* controllerValue, SmallArray<Value*> const& attachedValues, var const& shownWhenMixed, bool& isMixed)
         {
-            auto* property = properties.add(new Property(this, controllerValue, attachedValues, mixedShowsNothing));
+            auto* property = properties.add(new Property(this, controllerValue, attachedValues, shownWhenMixed));
+            isMixed = property->mixed;
             return &property->baseValue;
+        }
+
+        // Call once the field for the last added property is built
+        void fieldCreated()
+        {
+            if (auto* property = properties.getLast())
+                property->source->setMixed(property->mixed);
         }
 
         void clearProperties()
@@ -28,24 +66,27 @@ class Inspector final : public Component {
 
     private:
         struct Property {
-            Property(PropertyRedirector* parent, Value* controllerValue, SmallArray<Value*> const& attachedValues, bool const mixedShowsNothing)
+            Property(PropertyRedirector* parent, Value* controllerValue, SmallArray<Value*> const& attachedValues, var const& shownWhenMixed)
                 : redirector(parent)
                 , values(attachedValues)
             {
                 values.add(controllerValue);
 
-                // A choice the selected objects don't share shows as none: showing the first object's choice
-                // would make picking that choice for all of them do nothing
+                // Do the selected objects differ? Then the field shows "(mixed)", with either nothing behind it
+                // (shownWhenMixed), so that whatever is picked or typed is a change, or the first object's value,
+                // which a dragged number starts from
                 auto shown = controllerValue->getValue();
-                if (mixedShowsNothing) {
-                    for (auto const* value : values) {
-                        if (value->getValue() != shown) {
-                            shown = 0;
-                            break;
-                        }
+                for (auto const* value : values) {
+                    if (value->getValue() != shown) {
+                        mixed = true;
+                        break;
                     }
                 }
-                baseValue.setValue(shown);
+                if (mixed && !shownWhenMixed.isVoid())
+                    shown = shownWhenMixed;
+
+                source = new MixedValueSource(shown);
+                baseValue.referTo(Value(source));
                 baseValue.addListener(redirector);
             }
 
@@ -57,6 +98,8 @@ class Inspector final : public Component {
             PropertyRedirector* redirector;
             Value baseValue;
             SmallArray<Value*> values;
+            MixedValueSource* source = nullptr; // owned by baseValue
+            bool mixed = false;
         };
 
         void valueChanged(Value& v) override
@@ -264,8 +307,15 @@ public:
                         newPanel->setPreferredHeight(32);
                         panels.add(newPanel);
                     } else {
-                        auto const* redirectedProperty = redirector.addProperty(value, otherValues, type == tCombo);
+                        // While the objects differ, a choice, a text or a font starts out empty; other fields keep the
+                        // first object's value behind "(mixed)"
+                        auto const shownWhenMixed = type == tCombo ? var(0) : type == tString || type == tFont ? var(String()) : var();
+                        bool mixed = false;
+                        auto const* redirectedProperty = redirector.addProperty(value, otherValues, shownWhenMixed, mixed);
                         auto newPanel = createPanel(type, name, redirectedProperty, options, clip, min, max);
+                        if (mixed)
+                            newPanel->showMixed();
+                        redirector.fieldCreated();
                         newPanel->setPreferredHeight(32);
                         panels.add(newPanel);
                     }

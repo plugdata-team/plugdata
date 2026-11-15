@@ -403,7 +403,7 @@ static void drawControlHover(Graphics& g, PlugDataColours const& colours, Rectan
 void PropertiesPanel::BoolComponent::paint(Graphics& g)
 {
     auto const& colours = getThemeColours(*this);
-    auto const selectedIndex = static_cast<int>(getValue<bool>(toggleStateValue));
+    auto const selectedIndex = mixed ? -1 : static_cast<int>(getValue<bool>(toggleStateValue));
     bool const isOver = isMouseOver();
 
     if (!isEnabled())
@@ -469,12 +469,14 @@ void PropertiesPanel::BoolComponent::mouseUp(MouseEvent const& e)
     if (!isRealClickEvent(e))
         return;
 
-    // Select the clicked segment
+    // Select the clicked segment. While the objects differ, either segment applies, even the first object's state.
     bool const currentState = getValue<bool>(toggleStateValue);
     bool const newState = e.position.x >= getControlBounds().getCentreX();
 
-    if (newState != currentState)
+    if (mixed || newState != currentState) {
+        mixed = false;
         toggleStateValue.setValue(newState);
+    }
 
     repaint();
 }
@@ -483,6 +485,12 @@ void PropertiesPanel::BoolComponent::valueChanged(Value& v)
 {
     if (v.refersToSameSourceAs(toggleStateValue))
         repaint();
+}
+
+void PropertiesPanel::BoolComponent::showMixed()
+{
+    mixed = true;
+    repaint();
 }
 
 PropertiesPanel::ColourComponent::ColourComponent(String const& propertyName, Value const& value, bool canHaveAlpha)
@@ -505,9 +513,16 @@ PropertiesPanel::ColourComponent::ColourComponent(String const& propertyName, Va
         editor->setBorder({ 0, 0, 4, 2 });
         editor->setJustification(Justification::centred);
         editor->setInputRestrictions(allowAlpha ? 9 : 7, "#0123456789ABCDEFabcdef");
+        if (mixed) {
+            editor->setText({}, false);
+            editor->setTextToShowWhenEmpty("(mixed)", getThemeColours(*this).panelTextColour.withAlpha(0.55f));
+        }
     };
 
     hexValueEditor.onEditorHide = [this] {
+        if (mixed) // onTextChange decides
+            return;
+
         if (allowAlpha) {
             colour = hexValueEditor.getText().substring(1).toLowerCase();
         } else {
@@ -521,6 +536,15 @@ PropertiesPanel::ColourComponent::ColourComponent(String const& propertyName, Va
             colour = hexValueEditor.getText().substring(1).toLowerCase();
         } else {
             colour = String("ff") + hexValueEditor.getText().substring(1).toLowerCase();
+        }
+
+        // While the objects differ, a complete hex code applies to all of them, with Return or a click away;
+        // anything else leaves them as they are
+        if (mixed) {
+            if (isCompleteHexCode(hexValueEditor.getText()))
+                currentColour.setValue(colourToVar(Colour::fromString(colour.toString())));
+            else
+                hexValueEditor.setText("(mixed)", dontSendNotification);
         }
     };
 
@@ -569,17 +593,24 @@ void PropertiesPanel::ColourComponent::paint(Graphics& g)
 
     drawControlTrack(g, colours, getControlBounds());
 
-    if (allowAlpha && !colour.isOpaque()) {
-        Path swatchShape;
-        swatchShape.addRoundedRectangle(swatchBounds, Corners::defaultCornerRadius - 2.0f);
+    if (mixed) {
+        // The selected objects have different colours: an empty swatch, crossed out
+        drawControlThumb(g, colours, swatchBounds, Colours::transparentBlack, isMouseOverSwatch ? 0.45f : 0.2f);
+        g.setColour(colours.panelTextColour.withAlpha(0.45f));
+        g.drawLine(Line<float>(swatchBounds.getBottomLeft(), swatchBounds.getTopRight()).withShortenedStart(3.0f).withShortenedEnd(3.0f), 1.0f);
+    } else {
+        if (allowAlpha && !colour.isOpaque()) {
+            Path swatchShape;
+            swatchShape.addRoundedRectangle(swatchBounds, Corners::defaultCornerRadius - 2.0f);
 
-        Graphics::ScopedSaveState saveState(g);
-        g.reduceClipRegion(swatchShape);
-        g.fillCheckerBoard(swatchBounds, 4.5f, 4.5f, Colours::white, Colours::lightgrey);
+            Graphics::ScopedSaveState saveState(g);
+            g.reduceClipRegion(swatchShape);
+            g.fillCheckerBoard(swatchBounds, 4.5f, 4.5f, Colours::white, Colours::lightgrey);
+        }
+
+        // Stronger outline than the segmented thumb, so light swatches stay visible on light themes and dark ones on dark themes
+        drawControlThumb(g, colours, swatchBounds, colour, isMouseOverSwatch ? 0.45f : 0.2f);
     }
-
-    // Stronger outline than the segmented thumb, so light swatches stay visible on light themes and dark ones on dark themes
-    drawControlThumb(g, colours, swatchBounds, colour, isMouseOverSwatch ? 0.45f : 0.2f);
 
     if (!isEnabled())
         g.endTransparencyLayer();
@@ -590,9 +621,26 @@ void PropertiesPanel::ColourComponent::paint(Graphics& g)
 void PropertiesPanel::ColourComponent::valueChanged(Value& v)
 {
     if (v.refersToSameSourceAs(currentColour)) {
+        if (mixed) {
+            mixed = false;
+            hexValueEditor.removeColour(Label::textColourId);
+        }
         updateHexValue();
         repaint();
     }
+}
+
+void PropertiesPanel::ColourComponent::showMixed()
+{
+    mixed = true;
+    hexValueEditor.setColour(Label::textColourId, getThemeColours(*this).panelTextColour.withAlpha(0.55f));
+    hexValueEditor.setText("(mixed)", dontSendNotification);
+    repaint();
+}
+
+bool PropertiesPanel::ColourComponent::isCompleteHexCode(String const& text) const
+{
+    return text.startsWithChar('#') && text.length() == (allowAlpha ? 9 : 7) && text.substring(1).containsOnly("0123456789ABCDEFabcdef");
 }
 
 void PropertiesPanel::ColourComponent::mouseDown(MouseEvent const& e)
@@ -658,7 +706,12 @@ PropertiesPanel::RangeComponent::RangeComponent(String const& propertyName, Valu
     maxLabel.setText(String(max), dontSendNotification);
     maxLabel.setPrecision(3);
 
+    // Setting either number sets both on all the selected objects (the other one as the first object's),
+    // so neither is "(mixed)" any more
     auto setMinimum = [this](float const value) {
+        mixed = false;
+        minLabel.setMixed(false);
+        maxLabel.setMixed(false);
         min = value;
         VarArray const arr = { min, max };
         // maxLabel.setMinimum(min + 1e-5f);
@@ -666,6 +719,9 @@ PropertiesPanel::RangeComponent::RangeComponent(String const& propertyName, Valu
     };
 
     auto setMaximum = [this](float const value) {
+        mixed = false;
+        minLabel.setMixed(false);
+        maxLabel.setMixed(false);
         max = value;
         VarArray const arr = { min, max };
         // minLabel.setMaximum(max - 1e-5f);
@@ -681,7 +737,21 @@ PropertiesPanel::RangeComponent::RangeComponent(String const& propertyName, Valu
         label->onEditorShow = [label] {
             label->getCurrentTextEditor()->setBorder(getInlineEditorBorder());
         };
+
+        // a click or drag that set nothing: back to "(mixed)"
+        label->dragEnd = [this, label] {
+            if (mixed)
+                label->setMixed(true);
+        };
+        label->onEditorHide = label->dragEnd;
     }
+}
+
+void PropertiesPanel::RangeComponent::showMixed()
+{
+    mixed = true;
+    minLabel.setMixed(true);
+    maxLabel.setMixed(true);
 }
 
 PropertiesPanel::RangeComponent::~RangeComponent()

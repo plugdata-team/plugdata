@@ -170,8 +170,15 @@ static void copyColourIfSpecified(DraggableNumber const& l, TextEditor& ed, int 
         ed.setColour(targetColourID, l.findColour(colourID));
 }
 
+void DraggableNumber::setMixed(bool const isMixed)
+{
+    mixed = isMixed;
+    repaint();
+}
+
 void DraggableNumber::showEditor()
 {
+    mixed = false;
     if (!editor) {
         editor.reset(new TextEditor());
         copyAllExplicitColoursTo(*editor);
@@ -342,6 +349,10 @@ void DraggableNumber::mouseDown(MouseEvent const& e)
 {
     if (editor)
         return;
+
+    // A click on "(mixed)" shows the number underneath, which a drag then starts from
+    if (mixed)
+        setMixed(false);
 
     onInteraction(true);
 
@@ -532,6 +543,13 @@ void DraggableNumber::paint(Graphics& g)
 
     if (!editor) {
         auto const textArea = border.subtractedFrom(getLocalBounds()).toFloat();
+        if (mixed) {
+            g.setFont(font);
+            g.setColour(textColour.withAlpha(0.55f));
+            g.drawText("(mixed)", textArea, Justification::centredLeft, true);
+            return;
+        }
+
         auto numberText = currentValue;
         auto extraNumberText = String();
         auto const numDecimals = numberText.fromFirstOccurrenceOf(".", false, false).length();
@@ -565,6 +583,9 @@ void DraggableNumber::paint(Graphics& g)
 
 void DraggableNumber::mouseMove(MouseEvent const& e)
 {
+    if (mixed)
+        return;
+
     int const oldHoverPosition = hoveredDecimal;
     hoveredDecimal = getDecimalAtPosition(e.x, &hoveredDecimalPosition);
 
