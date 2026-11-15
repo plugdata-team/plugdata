@@ -121,6 +121,8 @@ public:
     bool keyPressed(KeyPress const& key) override;
     void valueChanged(Value& v) override;
 
+    void updateGraphBounds();
+
     void tabChanged();
 
     void hideAllActiveEditors();
@@ -239,6 +241,8 @@ public:
     Value yRange = SynchronousValue();
     Value patchWidth = SynchronousValue();
     Value patchHeight = SynchronousValue();
+    Value graphPosition = SynchronousValue();
+    Value graphSize = SynchronousValue();
 
     Value zoomScale;
 

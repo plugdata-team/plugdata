@@ -28,6 +28,7 @@
 #include "CoverageSweepTest.h"
 #include "AddObjectMenuTest.h"
 #include "SaveOverwriteTest.h"
+#include "SubpatchTabTest.h"
 
 // Settings come from environment variables, or from TestConfig.json in the app data directory,
 // because an AUv3 extension never sees our environment. "<NAME>_<wrapper>" (e.g.
@@ -143,6 +144,7 @@ void runTests(PluginEditor* editor)
         CoverageSweepTest coverageSweepTest(editor);
         AddObjectMenuTest addObjectMenuTest(editor);
         SaveOverwriteTest saveOverwriteTest(editor);
+        SubpatchTabTest subpatchTabTest(editor);
         ObjectFuzzTest objectFuzzer(editor);
         HelpFileFuzzTest helpfileFuzzer(editor);
         HelpFileErrorTest helpfileErrorTest(editor);
@@ -150,6 +152,7 @@ void runTests(PluginEditor* editor)
         PlugDataTestRunner runner(logFile);
 
         Array<UnitTest*> tests = { &saveOverwriteTest,
+            &subpatchTabTest,
             &saveCloseRaceTest,
             &abstractionReloadRaceTest,
             &danglingBindingTest,
