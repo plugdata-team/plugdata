@@ -3,9 +3,20 @@
 #include "Dialogs/Dialogs.h"
 #include "Components/BouncingViewport.h"
 
-class Autosave final : public Timer
-    , public AsyncUpdater
+class Autosave final : public MultiTimer
     , public Value::Listener {
+
+    enum {
+        SaveTimer,
+        CollectTimer
+    };
+
+    // What the audio thread hands over for a dirty patch. Turning it into text and storing it happens on the message thread
+    struct SavedPatch {
+        t_binbuf* content;
+        t_symbol* dir;
+        t_symbol* name;
+    };
 
     static inline auto const autoSaveFile = ProjectInfo::appDataDir.getChildFile(".autosave");
     static inline auto autoSaveTree = ValueTree("Autosave");
@@ -13,7 +24,9 @@ class Autosave final : public Timer
     Value autosaveEnabled;
 
     PluginProcessor* pd;
-    moodycamel::ReaderWriterQueue<std::pair<String, String>> autoSaveQueue;
+    String const tempDirectory = File::getSpecialLocation(File::tempDirectory).getFullPathName().replace("\\", "/");
+    moodycamel::ReaderWriterQueue<SavedPatch> autoSaveQueue = moodycamel::ReaderWriterQueue<SavedPatch>(64);
+    std::atomic<bool> savePending = false;
 
 public:
     explicit Autosave(PluginProcessor* procesor)
@@ -35,6 +48,14 @@ public:
         autosaveInterval.referTo(SettingsFile::getInstance()->getPropertyAsValue("autosave_interval"));
         autosaveInterval.addListener(this);
         updateAutosaveInterval();
+    }
+
+    ~Autosave() override
+    {
+        pd->setThis();
+        SavedPatch saved;
+        while (autoSaveQueue.try_dequeue(saved))
+            binbuf_free(saved.content);
     }
 
     // Call this whenever we load a file
@@ -72,7 +93,7 @@ private:
     void updateAutosaveInterval()
     {
         auto const interval = jlimit(1, 60, getValue<int>(autosaveInterval));
-        startTimer(1000 * 60 * interval);
+        startTimer(SaveTimer, 1000 * 60 * interval);
     }
 
     void valueChanged(Value& v) override
@@ -82,56 +103,68 @@ private:
         }
     }
 
-    void timerCallback() override
+    void timerCallback(int const timerID) override
     {
+        if (timerID == CollectTimer) {
+            collect();
+            return;
+        }
+
         if (!getValue<bool>(autosaveEnabled))
             return;
 
-        auto patches = pd->patches;
-        // Hold patches in lambda capture so refcount can't become 0 (?)
-        pd->enqueueFunctionAsync([_this = WeakReference(this), patches] {
+        savePending = true;
+        pd->enqueueFunctionAsync([_this = WeakReference(this)] {
             if (_this) {
                 _this->save();
             }
         });
+
+        // The audio thread can't wake us up without posting a message, so we look for its result ourselves
+        startTimer(CollectTimer, 100);
     }
 
+    // Runs on the audio thread: only do what needs the patch here, and don't allocate for the hand-off
     void save()
     {
         for (auto const& patch : pd->patches) {
-            auto const* patchPtr = patch->getPointer().get();
-            if (!patchPtr || !patchPtr->gl_dirty)
+            auto* cnv = patch->getRawPointer();
+
+            // Only dirty top-level patches
+            if (!cnv || cnv->gl_owner || !cnv->gl_dirty || patch->openInPluginMode)
                 continue;
 
-            // Check if patch is a root canvas
-            for (auto const* x = pd_getcanvaslist(); x; x = x->gl_next) {
-                if (x == patchPtr) {
+            auto* dir = canvas_getdir(cnv);
+            if (isInternalPatch(dir->s_name))
+                continue;
 
-                    auto patchFile = patch->getPatchFile();
-
-                    // Simple way to filter out plugdata default patches which we don't want to save.
-                    if (!isInternalPatch(patchFile) && !patch->openInPluginMode) {
-                        autoSaveQueue.enqueue({ patchFile.getFullPathName(), patch->getCanvasContent() });
-                    }
-
-                    triggerAsyncUpdate();
-                    break;
-                }
-            }
+            auto* content = pd::Interface::getCanvasBinbuf(cnv);
+            if (!autoSaveQueue.try_enqueue(SavedPatch { content, dir, cnv->gl_name }))
+                binbuf_free(content);
         }
+
+        savePending = false;
     }
 
-    static bool isInternalPatch(File const& patch)
+    // Simple way to filter out plugdata default patches which we don't want to save.
+    bool isInternalPatch(char const* dir) const
     {
-        auto const pathName = patch.getFullPathName().replace("\\", "/");
-        return pathName.contains("Documents/plugdata/Abstractions") || pathName.contains("Documents/plugdata/Documentation") || pathName.contains("Documents/plugdata/Extra") || patch.getParentDirectory() == File::getSpecialLocation(File::tempDirectory);
+        return std::strstr(dir, "Documents/plugdata/Abstractions") || std::strstr(dir, "Documents/plugdata/Documentation") || std::strstr(dir, "Documents/plugdata/Extra") || tempDirectory.equalsIgnoreCase(dir);
     }
 
-    void handleAsyncUpdate() override
+    void collect()
     {
-        std::pair<String, String> pathAndContent;
-        while (autoSaveQueue.try_dequeue(pathAndContent)) {
-            auto& [path, content] = pathAndContent;
+        // Read this before emptying the queue, otherwise we could stop while the last patches are still on their way
+        bool const finished = !savePending;
+
+        pd->setThis();
+
+        bool changed = false;
+        SavedPatch saved;
+        while (autoSaveQueue.try_dequeue(saved)) {
+            auto const path = File(String::fromUTF8(saved.dir->s_name)).getChildFile(String::fromUTF8(saved.name->s_name)).getFullPathName();
+            auto const content = pd::Interface::getBinbufText(saved.content);
+            changed = true;
 
             // Make sure we get current time in the correct format used by the OS for file modification time
             auto tempFile = File::createTempFile("temp_time_test");
@@ -170,9 +203,14 @@ private:
             }
         }
 
-        autoSaveFile.replaceWithText("");
-        FileOutputStream ostream(autoSaveFile);
-        autoSaveTree.writeToStream(ostream);
+        if (changed) {
+            autoSaveFile.replaceWithText("");
+            FileOutputStream ostream(autoSaveFile);
+            autoSaveTree.writeToStream(ostream);
+        }
+
+        if (finished)
+            stopTimer(CollectTimer);
     }
 
     friend class AutosaveHistoryComponent;
