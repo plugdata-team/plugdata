@@ -1070,7 +1070,12 @@ struct ScalarObject final : public ObjectBase {
 
         if (auto scalar = obj.get<t_scalar>()) {
             auto* templ = template_findbyname(scalar->sc_template);
+            if (!templ)
+                return;
             auto const* templatecanvas = template_findcanvas(templ);
+            // Saved scalar data may outlive the canvas containing its struct.
+            if (!templatecanvas)
+                return;
             t_float baseX, baseY;
             scalar_getbasexy(scalar.get(), &baseX, &baseY);
             auto* data = scalar->sc_vec;

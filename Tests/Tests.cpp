@@ -6,6 +6,7 @@
 #include "SaveCloseRaceTest.h"
 #include "AbstractionReloadRaceTest.h"
 #include "DanglingBindingTest.h"
+#include "ScalarTemplateTest.h"
 #include "UIClickThroughTest.h"
 #include "EditActionStressTest.h"
 #include "TabSplitStressTest.h"
@@ -131,6 +132,7 @@ void runTests(PluginEditor* editor)
         SaveCloseRaceTest saveCloseRaceTest(editor);
         AbstractionReloadRaceTest abstractionReloadRaceTest(editor);
         DanglingBindingTest danglingBindingTest(editor);
+        ScalarTemplateTest scalarTemplateTest(editor);
         UIClickThroughTest uiClickThroughTest(editor);
         EditActionStressTest editActionStressTest(editor);
         TabSplitStressTest tabSplitStressTest(editor);
@@ -165,6 +167,7 @@ void runTests(PluginEditor* editor)
             &saveCloseRaceTest,
             &abstractionReloadRaceTest,
             &danglingBindingTest,
+            &scalarTemplateTest,
             &decompressTest,
             &markupDisplayTest,
             &stateRoundTripTest,
