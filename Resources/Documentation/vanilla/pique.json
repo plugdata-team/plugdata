@@ -12,7 +12,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "number of FFT points, table name for real part, table name forimaginary part and maximum number of peaks to report"
+          "description": "FFT size, real and imaginary table names, and maximum number of peaks"
         }
       ],
       "repeat": false

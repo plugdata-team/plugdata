@@ -12,7 +12,7 @@
       "messages": [
         {
           "type": "float/signal",
-          "description": "0 to non-0: starts and loops. Non-0 to 0: loop is off"
+          "description": "0 to nonzero: starts and loops. Nonzero to 0: loop is off"
         },
         {
           "type": "bang",
@@ -65,12 +65,12 @@
     {
       "type": "float",
       "description": "loop end",
-      "default": "2\u02c632 - 1"
+      "default": "2^32 - 1"
     },
     {
       "type": "float",
       "description": "sample size",
-      "default": "2\u02c632 - 1"
+      "default": "2^32 - 1"
     }
   ],
   "flags": [],
@@ -92,7 +92,7 @@
       "description": "continues after being paused"
     },
     {
-      "type": "loop <f,f>",
+      "type": "loop <float, float>",
       "description": "sets sustain loop range in samples <start, end>"
     },
     {

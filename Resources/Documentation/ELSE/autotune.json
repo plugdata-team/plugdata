@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "float",
+          "type": "float/list",
           "description": "MIDI pitch to be retuned"
         }
       ],
@@ -31,7 +31,7 @@
     {
       "messages": [
         {
-          "type": "float",
+          "type": "float/list",
           "description": "retuned MIDI pitch"
         }
       ],
@@ -48,7 +48,7 @@
   "flags": [
     {
       "name": "-base <float>",
-      "description": "base MIDI pitch\ndefault: 60"
+      "description": "base MIDI pitch (default 60)"
     }
   ],
   "methods": [
@@ -58,7 +58,7 @@
     },
     {
       "type": "bypass <float>",
-      "description": "non-0 sets to bypass mode"
+      "description": "nonzero sets to bypass mode"
     }
   ],
   "body": "[autotune] receives a scale as a list of steps in cents and a base MIDI pitch value (default 60). It then retunes incoming MIDI pitches to the closest step in the scale."

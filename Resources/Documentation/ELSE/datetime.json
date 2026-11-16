@@ -24,7 +24,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "time: hour, min, sec at bang or seed value via seed message"
+          "description": "time: hour, min, sec"
         }
       ],
       "repeat": false
@@ -41,11 +41,6 @@
   ],
   "arguments": [],
   "flags": [],
-  "methods": [
-    {
-      "type": "seed",
-      "description": "get number of seconds since the beginning of the month to use it as a seed value"
-    }
-  ],
+  "methods": [],
   "body": "[datetime] gives us current/local date (right outlet) and time (left outlet) as lists."
 }

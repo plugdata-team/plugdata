@@ -12,7 +12,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "signal value to clip"
         }
       ],
@@ -41,7 +41,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "the clipped signal"
         }
       ],
@@ -62,5 +62,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[clip~] restricts a signal to lie between two limits, set by the arguments or the right inlets."
 }

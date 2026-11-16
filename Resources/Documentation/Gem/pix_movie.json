@@ -13,6 +13,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "bang",
+          "description": "output the film's info on the second outlet again"
         }
       ],
       "repeat": false
@@ -54,6 +58,15 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "texture info: ID, x ratio, y ratio, type, upside-down flag"
+        }
+      ],
+      "repeat": false
     }
   ],
   "arguments": [
@@ -64,6 +77,51 @@
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "auto <float>",
+      "description": "nonzero plays the film automatically, at that speed"
+    },
+    {
+      "type": "backend <anything>",
+      "description": "use only the given backends, in that order"
+    },
+    {
+      "type": "colorspace <symbol>",
+      "description": "color space: RGBA, YUV or Grey"
+    },
+    {
+      "type": "driver <anything>",
+      "description": "use the given driver (backend)"
+    },
+    {
+      "type": "loader <anything>",
+      "description": "use only the given backends, in that order"
+    },
+    {
+      "type": "mode <float>",
+      "description": "same as rectangle"
+    },
+    {
+      "type": "open <anything>",
+      "description": "open a film: file name, optional color space"
+    },
+    {
+      "type": "quality <float>",
+      "description": "texture filtering: 0 GL_NEAREST, 1 GL_LINEAR"
+    },
+    {
+      "type": "rectangle <float>",
+      "description": "nonzero uses rectangle textures if available"
+    },
+    {
+      "type": "repeat <float>",
+      "description": "texture wrapping: 0 clamp to the edge, 1 repeat"
+    },
+    {
+      "type": "thread <float>",
+      "description": "nonzero loads in a separate thread"
+    }
+  ],
   "body": ""
 }

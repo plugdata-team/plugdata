@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "phase signal to multiply"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "frequency multiplier"
         }
       ],
@@ -31,7 +31,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "multiplied phase signal"
         }
       ],
@@ -40,7 +40,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "impulse at period transitions"
         }
       ],

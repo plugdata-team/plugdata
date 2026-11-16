@@ -2,7 +2,7 @@
   "title": [
     "ambientRGB"
   ],
-  "description": "ambient coloring with RGB values",
+  "description": "set the ambient color of the material, per channel",
   "origin": "Gem",
   "categories": [
     "Graphics"

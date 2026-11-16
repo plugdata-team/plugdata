@@ -48,7 +48,7 @@
   "flags": [
     {
       "name": "-exp <float>",
-      "description": "sets exponential factor\ndefault: 1"
+      "description": "sets exponential factor (default 1)"
     }
   ],
   "methods": [

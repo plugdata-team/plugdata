@@ -12,16 +12,12 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "frequency in Hz (negative values accepted)"
         },
         {
           "type": "list",
           "description": "3 floats sets 'a', 'b' and y[n-1]"
-        },
-        {
-          "type": "set <float, float>",
-          "description": "<channel, freq> set a single frequency channel"
         }
       ],
       "repeat": false
@@ -31,7 +27,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "cusp map chaotic signal"
         }
       ],
@@ -52,7 +48,7 @@
     {
       "type": "float",
       "description": "sets 'b'",
-      "default": "0.19"
+      "default": "1.9"
     },
     {
       "type": "float",
@@ -66,6 +62,15 @@
       "description": "sets multichannel output with a list of frequencies"
     }
   ],
-  "methods": [],
+  "methods": [
+    {
+      "type": "set <float, float>",
+      "description": "<channel, freq> set a single frequency channel"
+    },
+    {
+      "type": "coeffs <list>",
+      "description": "up to 3 floats set 'a', 'b' and y[n-1]"
+    }
+  ],
   "body": "[cusp~] is a chaotic generator using the difference equation;\ny[n] = a - b * sqrt(abs(y[n-1]))\nThe output rate of the equation is given in Hz (default: Nyquist).\nObject based on SuperCollider's \"CuspN\" UGEN."
 }

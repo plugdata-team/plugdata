@@ -264,14 +264,21 @@ static constexpr ResourceInfo resources[] = {{
 
 inline juce::File getResourceFile() {{
 #if JUCE_IOS
-    auto destFile = juce::File::getContainerForSecurityApplicationGroupIdentifier("group.com.plugdata.plugdata").getChildFile("plugdata-resources.bin");
-    if (juce::PluginHostType::getPluginLoadedAs() != juce::AudioProcessor::wrapperType_AudioUnitv3) {{
-        auto srcFile = juce::File::getSpecialLocation(juce::File::currentExecutableFile).getParentDirectory().getChildFile("plugdata-resources.bin");
-        if(srcFile.existsAsFile())
-            srcFile.moveFileTo(destFile);
-        return srcFile;
-    }}
-    return destFile;
+    static juce::File const resourceFile = [] {{
+        auto const executableDir = juce::File::getSpecialLocation(juce::File::currentExecutableFile).getParentDirectory();
+        auto const sharedFile = juce::File::getContainerForSecurityApplicationGroupIdentifier("group.com.plugdata.plugdata").getChildFile("plugdata-resources.bin");
+
+        if (juce::PluginHostType::getPluginLoadedAs() != juce::AudioProcessor::wrapperType_AudioUnitv3) {{
+            auto const bundledFile = executableDir.getChildFile("plugdata-resources.bin");
+            if (bundledFile.existsAsFile() && (sharedFile.getSize() != bundledFile.getSize() || sharedFile.getLastModificationTime() != bundledFile.getLastModificationTime()))
+                bundledFile.copyFileTo(sharedFile);
+            return bundledFile;
+        }}
+
+        auto const appBundleFile = executableDir.getParentDirectory().getParentDirectory().getChildFile("plugdata-resources.bin");
+        return appBundleFile.createInputStream() != nullptr ? appBundleFile : sharedFile;
+    }}();
+    return resourceFile;
 #elif JUCE_MAC
     // Inside a .lproj folder, because codesign seals files in there as optional (see package-macOS.sh)
     if (juce::PluginHostType::getPluginLoadedAs() != juce::AudioProcessor::wrapperType_LV2)

@@ -12,7 +12,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "incoming signal to graph"
         },
         {
@@ -27,47 +27,47 @@
   "arguments": [],
   "flags": [
     {
-      "name": "-size <f>",
-      "description": "FFT size (min 128)\ndefault: 1024"
+      "name": "-size <float>",
+      "description": "FFT size (min 128) (default 1024)"
     },
     {
-      "name": "-db <f>",
-      "description": "non-0 sets to dB amp scale\ndefault: linear"
+      "name": "-db <float>",
+      "description": "nonzero sets to dB amp scale (default linear)"
     },
     {
-      "name": "-log <f>",
-      "description": "non-0 sets to log frequency scale\ndefault: linear"
+      "name": "-log <float>",
+      "description": "nonzero sets to log frequency scale (default linear)"
     },
     {
-      "name": "-dim <f,f>",
-      "description": "set horizontal/vertical dimensions\ndefault: 300 140"
+      "name": "-dim <float, float>",
+      "description": "set horizontal/vertical dimensions (default 300 140)"
     },
     {
       "name": "-rate <float>",
-      "description": "sets graph rate in ms\ndefault: 100"
+      "description": "sets graph rate in ms (default 100)"
     }
   ],
   "methods": [
     {
-      "type": "size <f>",
+      "type": "size <float>",
       "description": "sets FFT size"
     },
     {
-      "type": "db <f>",
-      "description": "non-0 sets to dB amp scale"
+      "type": "db <float>",
+      "description": "nonzero sets to dB amp scale"
     },
     {
-      "type": "log <f>",
-      "description": "non-0 sets to log frequency scale"
+      "type": "log <float>",
+      "description": "nonzero sets to log frequency scale"
     },
     {
-      "type": "dim <f,f>",
+      "type": "dim <float, float>",
       "description": "set horizontal/vertical dimensions"
     },
     {
-      "type": "rate <f>",
+      "type": "rate <float>",
       "description": "sets graph rate in ms"
     }
   ],
-  "body": "[spectrograph~] is an abstraction for visualizing FFT amplitudes from 0Hz to Nyquist. It uses a Hann table for the analysis."
+  "body": "[spectrograph~] is an abstraction for visualizing FFT amplitudes from 0 Hz to Nyquist. It uses a Hann table for the analysis."
 }

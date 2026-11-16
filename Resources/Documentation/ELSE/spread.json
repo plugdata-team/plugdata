@@ -11,8 +11,8 @@
     {
       "messages": [
         {
-          "type": "float",
-          "description": "input value to spread"
+          "type": "float/list",
+          "description": "value(s) to spread"
         }
       ],
       "repeat": false
@@ -38,8 +38,8 @@
   ],
   "flags": [
     {
-      "name": "-mode <f>",
-      "description": "sets mode, 0 and 1 (in reverse to [moses])\ndefault: 0"
+      "name": "-mode <float>",
+      "description": "sets mode, 0 and 1 (in reverse to [moses]) (default 0)"
     }
   ],
   "methods": [
@@ -48,7 +48,7 @@
       "description": "replace arguments"
     },
     {
-      "type": "mode <f>",
+      "type": "mode <float>",
       "description": "sets mode"
     }
   ],

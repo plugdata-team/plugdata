@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "input to sample and hold"
         },
         {
@@ -24,7 +24,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "gate signal"
         }
       ],
@@ -35,7 +35,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "sampled and held signal"
         }
       ],
@@ -67,7 +67,7 @@
   ],
   "methods": [
     {
-      "type": "set <f>",
+      "type": "set <float>",
       "description": "set the held value"
     },
     {

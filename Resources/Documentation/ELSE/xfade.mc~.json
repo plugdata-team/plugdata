@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "multichannel input (A)"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "multichannel input (B)"
         }
       ],
@@ -29,7 +29,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "mix value from -1 (A) to 1 (B)"
         }
       ],
@@ -40,7 +40,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "crossfaded output"
         }
       ],
@@ -54,7 +54,17 @@
       "default": "0"
     }
   ],
-  "flags": [],
-  "methods": [],
+  "flags": [
+    {
+      "name": "-lin",
+      "description": "sets crossfade to linear"
+    }
+  ],
+  "methods": [
+    {
+      "type": "lin <float>",
+      "description": "nonzero sets to linear crossfade"
+    }
+  ],
   "body": "[xfade.mc~] performs an equal power crossfade between two multichannel sources."
 }

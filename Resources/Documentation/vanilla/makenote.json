@@ -79,5 +79,5 @@
       "description": "flush hanging note on messages"
     }
   ],
-  "body": ""
+  "body": "[makenote] makes MIDI-style note-on/note-off pairs: for each incoming pitch, it outputs a note-on with the current velocity and schedules a matching note-off (velocity 0) after the duration. 'stop' sends the pending note-offs right away, and 'clear' forgets them."
 }

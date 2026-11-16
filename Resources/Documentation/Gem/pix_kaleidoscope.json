@@ -1,6 +1,6 @@
 {
   "title": [
-    "kaleidoscope"
+    "pix_kaleidoscope"
   ],
   "description": "kaleidoscope effect",
   "origin": "Gem",
@@ -13,6 +13,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns processing on (default 1)"
         }
       ],
       "repeat": false
@@ -39,7 +43,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "normalized x and y centre coordinates of the of the segment of the input image. (0-1)"
+          "description": "center of the input segment: x y, normalized (default 0.5 0.5)"
         }
       ],
       "repeat": false
@@ -57,7 +61,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "normalized x and y centre coordinates of the of the segments in the output image. (0-1)"
+          "description": "center of the output segments: x y, normalized (default 0.5 0.5)"
         }
       ],
       "repeat": false
@@ -66,7 +70,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "reflection line proportion, controls the relative sizes of each pair of adjacent segments in the output image (0-1)"
+          "description": "reflection line proportion: relative size of adjacent segments (0 to 1)"
         }
       ],
       "repeat": false
@@ -94,6 +98,15 @@
   ],
   "arguments": [],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "outputAng <float>",
+      "description": "rotation of the output segments, in degrees"
+    },
+    {
+      "type": "sourceAng <float>",
+      "description": "rotation of the input segment, in degrees"
+    }
+  ],
   "body": ""
 }

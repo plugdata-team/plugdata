@@ -2,7 +2,7 @@
   "title": [
     "GEMglVertex2f"
   ],
-  "description": "specify a two-dimensional vertex with single-precision coordinates",
+  "description": "specify a vertex",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the x-coordinate of the vertex."
+          "description": "x coordinate of the vertex"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the y-coordinate of the vertex."
+          "description": "y coordinate of the vertex"
         }
       ],
       "repeat": false
@@ -50,16 +50,16 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the x-coordinate of the vertex.",
+      "description": "x coordinate of the vertex",
       "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the y-coordinate of the vertex.",
+      "description": "y coordinate of the vertex",
       "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglVertex2f] calls glVertex2f() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glVertex in the OpenGL reference."
 }

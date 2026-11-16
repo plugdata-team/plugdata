@@ -60,5 +60,5 @@
     }
   ],
   "methods": [],
-  "body": ""
+  "body": "[text insert] inserts a line into a text, before the line number set by the argument or the middle inlet. The text is named by the argument or the right inlet, or found through a pointer with -s."
 }

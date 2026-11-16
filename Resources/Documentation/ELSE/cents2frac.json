@@ -37,7 +37,12 @@
       "default": "1000, min 10"
     }
   ],
-  "flags": [],
+  "flags": [
+    {
+      "name": "-list",
+      "description": "sets to list mode (output fraction as a list)"
+    }
+  ],
   "methods": [
     {
       "type": "res <float>",

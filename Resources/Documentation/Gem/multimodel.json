@@ -16,6 +16,15 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "number of the model to render"
+        }
+      ],
+      "repeat": false
     }
   ],
   "outlets": [
@@ -27,14 +36,80 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "information on request: the loader backends"
+        }
+      ],
+      "repeat": false
     }
   ],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "file name pattern, with * where the number goes",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "first number",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "last number",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "step between the numbers",
+      "default": "1"
+    }
+  ],
   "flags": [],
   "methods": [
     {
-      "type": "open <symbol> <float> <float> <float>",
-      "description": "load models with a specified file name pattern, base number, top number, and skip rate."
+      "type": "open <symbol, float, float, float>",
+      "description": "load models with a specified file name pattern, base number, top number, and skip rate"
+    },
+    {
+      "type": "backend <anything>",
+      "description": "use only the given backends, in that order"
+    },
+    {
+      "type": "draw <symbol>",
+      "description": "drawing style: default, point, line or fill"
+    },
+    {
+      "type": "group <float>",
+      "description": "draw only this group of the model (0 draws all)"
+    },
+    {
+      "type": "loader <anything>",
+      "description": "use only the given backends, in that order"
+    },
+    {
+      "type": "material <float>",
+      "description": "nonzero uses the material information from the .mtl file"
+    },
+    {
+      "type": "rescale <float>",
+      "description": "nonzero normalizes the models (set this before opening them)"
+    },
+    {
+      "type": "revert <float>",
+      "description": "nonzero reverts the faces"
+    },
+    {
+      "type": "smooth <float>",
+      "description": "smoothing: 0 flat to 1 smooth (default 0.5)"
+    },
+    {
+      "type": "texture <float>",
+      "description": "texture mapping: 0 linear, 1 sphere map, 2 UV (default)"
     }
   ],
   "body": ""

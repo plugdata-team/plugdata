@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "audio signal to be filtered"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "resonant frequency in Hz"
         }
       ],
@@ -70,5 +70,5 @@
       "description": "clear filter's memory"
     }
   ],
-  "body": "Vcf~ is a resonant bandpass and lowpass filter that takes either a control or an audio signal to set center frequency, which may thus change continuously in time as in an analog voltage controlled filter (and unlike 'bp~' and 'lop~' that only take control values"
+  "body": "Vcf~ is a resonant bandpass and lowpass filter that takes either a control or an audio signal to set center frequency, which may thus change continuously in time as in an analog voltage controlled filter (and unlike 'bp~' and 'lop~' that only take control values). The \"Q\" or filter sharpness is still only set by control messages.\n\nVcf~ is implemented as a one-pole complex filter with outlets for the real and imaginary value. These may be used as bandpass and lowpass filter outputs, or combined to allow other possibilities."
 }

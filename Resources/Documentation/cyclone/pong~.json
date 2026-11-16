@@ -67,24 +67,20 @@
   "flags": [
     {
       "name": "@mode",
-      "description": "sets mode (<fold>, <wrap>, <clip> or <none>)\ndefault: 0"
+      "description": "sets mode (<fold>, <wrap>, <clip> or <none>) (default 0)"
     },
     {
-      "name": "@range <f, f>",
-      "description": "sets low and high range values\ndefault: 0, 1"
+      "name": "@range <float, float>",
+      "description": "sets low and high range values (default 0, 1)"
     }
   ],
   "methods": [
     {
-      "type": "mode <float>",
-      "description": "0 (fold), 1 (wrap), 2 (clip), 3 (none)"
+      "type": "mode <float/symbol>",
+      "description": "sets the mode: fold (0), wrap (1), clip (2) or none (3)"
     },
     {
-      "type": "low <symbol>",
-      "description": "<fold>, <wrap>, <clip> or <none>"
-    },
-    {
-      "type": "range <f, f>",
+      "type": "range <float, float>",
       "description": "sets low and high range values"
     }
   ],

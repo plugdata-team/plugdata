@@ -12,12 +12,12 @@
     {
       "messages": [
         {
-          "type": "coef <list>",
-          "description": "list of coefficients as taken by [biquad~]"
+          "type": "bang",
+          "description": "outputs the coefficients"
         },
         {
           "type": "list",
-          "description": "list of poles coordinates"
+          "description": "pole coordinates as re/im pairs, or 2 poles then 2 zeros as 8 values"
         }
       ],
       "repeat": false
@@ -26,15 +26,99 @@
       "messages": [
         {
           "type": "list",
-          "description": "list of zeros coordinates"
+          "description": "zero coordinates as re/im pairs"
         }
       ],
       "repeat": false
     }
   ],
-  "outlets": [],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "5 coefficients in [biquad~] order"
+        }
+      ],
+      "repeat": false
+    }
+  ],
   "arguments": [],
-  "flags": [],
-  "methods": [],
+  "flags": [
+    {
+      "name": "-size <float>",
+      "description": "sets width and height in pixels (default 200)"
+    },
+    {
+      "name": "-savestate <float>",
+      "description": "nonzero sets to save state mode (default 0)"
+    },
+    {
+      "name": "-bgcolor <float, float, float>",
+      "description": "background color in RGB"
+    },
+    {
+      "name": "-fgcolor <float, float, float>",
+      "description": "axis and unit circle color in RGB"
+    },
+    {
+      "name": "-polecolor <float, float, float>",
+      "description": "pole color in RGB (default 220 40 40)"
+    },
+    {
+      "name": "-zerocolor <float, float, float>",
+      "description": "zero color in RGB (default 40 40 220)"
+    },
+    {
+      "name": "-usetheme <float>",
+      "description": "nonzero uses Pd's theme colors instead of the colors set here (default 1)"
+    },
+    {
+      "name": "-transparent",
+      "description": "makes the background transparent"
+    }
+  ],
+  "methods": [
+    {
+      "type": "coeff <list>",
+      "description": "sets the plot from 5 [biquad~] coefficients"
+    },
+    {
+      "type": "set <list>",
+      "description": "same as the list message"
+    },
+    {
+      "type": "size <float>",
+      "description": "sets width and height in pixels"
+    },
+    {
+      "type": "savestate <float>",
+      "description": "nonzero sets to save state mode"
+    },
+    {
+      "type": "bgcolor <float, float, float>",
+      "description": "sets background color in RGB"
+    },
+    {
+      "type": "fgcolor <float, float, float>",
+      "description": "sets axis and unit circle color in RGB"
+    },
+    {
+      "type": "polecolor <float, float, float>",
+      "description": "sets pole color in RGB"
+    },
+    {
+      "type": "zerocolor <float, float, float>",
+      "description": "sets zero color in RGB"
+    },
+    {
+      "type": "usetheme <float>",
+      "description": "nonzero uses Pd's theme colors instead of the colors set here"
+    },
+    {
+      "type": "transparent <float>",
+      "description": "nonzero makes the background transparent"
+    }
+  ],
   "body": "[zbiplot] plots the biquad coefficients as poles and zeros on the Z-Plane."
 }

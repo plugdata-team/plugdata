@@ -21,7 +21,34 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the s, t, r, and q texture coordinates."
+          "description": "s texture coordinate"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "t texture coordinate"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "r texture coordinate"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "q texture coordinate"
         }
       ],
       "repeat": false
@@ -41,11 +68,26 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the s, t, r, and q texture coordinates.",
-      "default": ""
+      "description": "s texture coordinate",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "t texture coordinate",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "r texture coordinate",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "q texture coordinate",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglTexCoord4f] calls glTexCoord4f() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glTexCoord in the OpenGL reference."
 }

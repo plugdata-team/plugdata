@@ -17,7 +17,11 @@
         },
         {
           "type": "list",
-          "description": "<f,f> \u2014 target, number of beats; <f,f,f> \u2014 start, target, number of beats"
+          "description": "target and number of beats, or start, target and number of beats"
+        },
+        {
+          "type": "bang",
+          "description": "triggers the object after a 'set' message"
         }
       ],
       "repeat": false

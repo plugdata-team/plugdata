@@ -13,6 +13,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns processing on (default 1)"
         }
       ],
       "repeat": false
@@ -54,6 +58,14 @@
     {
       "type": "blobSize <float>",
       "description": "minimum relative size of a blob"
+    },
+    {
+      "type": "blobs <float>",
+      "description": "maximum number of blobs to detect"
+    },
+    {
+      "type": "thresh <float>",
+      "description": "luminance threshold for blob pixels, 0 to 1"
     }
   ],
   "body": ""

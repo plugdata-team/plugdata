@@ -23,7 +23,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "non-0 if connection is open, zero otherwise"
+          "description": "nonzero if connection is open, zero otherwise"
         }
       ],
       "repeat": false
@@ -67,5 +67,5 @@
       "description": "sends messages over the network"
     }
   ],
-  "body": ""
+  "body": "[netsend] sends messages over the network to a [netreceive] object or other software, over TCP by default or UDP with -u. 'connect' takes a host name or address and a port, 'send' sends a message, and the left outlet is 1 while connected. With -b, messages are sent as lists of bytes."
 }

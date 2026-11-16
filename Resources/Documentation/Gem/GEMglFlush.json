@@ -32,5 +32,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglFlush] calls glFlush() each time a gemlist passes through it. See glFlush in the OpenGL reference."
 }

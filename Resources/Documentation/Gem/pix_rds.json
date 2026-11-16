@@ -13,6 +13,19 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "float",
+          "description": "stereogram method: 0 crosseyed, 1 walleyed"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "stride: distance of the stereogram's repeat, in pixels"
         }
       ],
       "repeat": false
@@ -45,6 +58,10 @@
     {
       "type": "stride <float>",
       "description": "stride distance"
+    },
+    {
+      "type": "seed <float>",
+      "description": "seed of the random dots"
     }
   ],
   "body": ""

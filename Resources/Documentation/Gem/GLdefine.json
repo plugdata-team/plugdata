@@ -2,7 +2,7 @@
   "title": [
     "GLdefine"
   ],
-  "description": "Gets the value of an OpenGL constant.",
+  "description": "get the value of an OpenGL constant",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -12,16 +12,11 @@
       "messages": [
         {
           "type": "bang",
-          "description": "Trigger to retrieve the OpenGL constant value"
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
+          "description": "output the value again"
+        },
         {
-          "type": "message",
-          "description": "Name of the OpenGL constant (e.g., GL_LINES or GL_POLYGON)"
+          "type": "anything",
+          "description": "name of an OpenGL constant (GL_LINES): output its value"
         }
       ],
       "repeat": false
@@ -32,13 +27,19 @@
       "messages": [
         {
           "type": "float",
-          "description": ""
+          "description": "value of the constant"
         }
       ],
       "repeat": false
     }
   ],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "name of an OpenGL constant, e.g. GL_LINES or GL_POLYGON",
+      "default": ""
+    }
+  ],
   "flags": [],
   "methods": [],
   "body": ""

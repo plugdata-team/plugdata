@@ -114,8 +114,7 @@ void Dialogs::appendTextToTextEditorDialog(Component* dialog, String const& text
     if (!dialog)
         return;
 
-    auto& editor = dynamic_cast<TextEditorDialog*>(dialog)->editor;
-    editor.setText(editor.getText() + text);
+    dynamic_cast<TextEditorDialog*>(dialog)->editor.appendText(text);
 }
 
 void Dialogs::showAskToSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String const& filename, std::function<void(int)> callback, int const margin, bool const withLogo)
@@ -198,32 +197,30 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
         touchMenu.addSubMenu("Select Theme", themeMenu);
 
         TouchPopupMenu workspaceMenu;
-        workspaceMenu.addItem("Import workspace", [editor]() mutable {
-            static auto openChooser = std::make_unique<FileChooser>("Choose file to open", SettingsFile::getInstance()->getLastBrowserPathForId("WorkspacePath"), "*.pdproj", SettingsFile::getInstance()->wantsNativeDialog());
-
-            openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, [editor](FileChooser const& f) {
-                auto file = f.getResult();
-                if (file != File { }) {
-                    MemoryBlock block;
-                    file.loadFileAsData(block);
-                    editor->processor.setStateInformation(block.getData(), block.getSize());
-                    SettingsFile::getInstance()->setLastBrowserPathForId("WorkspacePath", file.getParentDirectory());
-                }
-            });
+        workspaceMenu.addItem("Import workspace", [editor] {
+            Dialogs::showOpenDialog([editor = Component::SafePointer(editor)](URL const& url) {
+                MemoryBlock state;
+                if (editor && url.getLocalFile().loadFileAsData(state))
+                    editor->processor.setStateInformation(state.getData(), static_cast<int>(state.getSize()));
+            },
+                true, false, "*.pdproj", "WorkspacePath", editor);
         });
 
-        workspaceMenu.addItem("Export workspace", [editor]() mutable {
-            static auto saveChooser = std::make_unique<FileChooser>("Choose save location", SettingsFile::getInstance()->getLastBrowserPathForId("WorkspacePath"), "*.pdproj", SettingsFile::getInstance()->wantsNativeDialog());
+        workspaceMenu.addItem("Export workspace", [editor] {
+            Dialogs::showSaveDialog([editor = Component::SafePointer(editor)](URL const& url) {
+                if (!editor)
+                    return;
 
-            saveChooser->launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles, [editor](FileChooser const& f) {
-                auto const file = f.getResult().withFileExtension(".pdproj");
-                if (file != File { } && file.getParentDirectory().exists()) {
-                    MemoryBlock destData;
-                    editor->processor.getStateInformation(destData);
-                    file.replaceWithData(destData.getData(), destData.getSize());
-                    SettingsFile::getInstance()->setLastBrowserPathForId("WorkspacePath", file.getParentDirectory());
-                }
-            });
+                MemoryBlock state;
+                editor->processor.getStateInformation(state);
+
+                // Write through the URL: on iOS it carries our access to the file. Its stream appends, so empty the file first
+                auto const target = url.getLocalFile().hasFileExtension("pdproj") ? url : URL(url.getLocalFile().withFileExtension(".pdproj"));
+                auto const stream = target.createOutputStream();
+                if (auto* file = dynamic_cast<FileOutputStream*>(stream.get()); file && file->setPosition(0) && file->truncate().wasOk())
+                    file->write(state.getData(), state.getSize());
+            },
+                "*.pdproj", "WorkspacePath", editor, false, "Workspace");
         });
         touchMenu.addSubMenu("Workspace", workspaceMenu);
 
@@ -647,7 +644,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     }
 
     auto* editor = cnv->editor;
-    auto params = object && object->gui ? object->gui->getParameters() : ObjectParameters();
+    auto params = object && object->gui ? object->gui->getParameters() : ObjectParameters(nullptr);
 
     enum MenuOptions {
         Extra = 200,
@@ -960,11 +957,14 @@ void Dialogs::dismissFileDialog()
     fileChooser.reset(nullptr);
 }
 
-void Dialogs::showOpenDialog(std::function<void(URL)> const& callback, bool const canSelectFiles, bool const canSelectDirectories, String const& extension, String const& lastFileId, Component* parentComponent)
+static void launchOpenDialog(std::function<void(Array<URL>)> const& callback, bool const canSelectFiles, bool const canSelectDirectories, bool const canSelectMultiple, String const& extension, String const& lastFileId, Component* parentComponent)
 {
 #if ENABLE_TESTING
     return; // Don't open file dialogs during testing
 #endif
+    if (Dialogs::fileChooser)
+        return;
+
     bool nativeDialog = SettingsFile::getInstance()->wantsNativeDialog();
     auto initialFile = lastFileId.isNotEmpty() ? SettingsFile::getInstance()->getLastBrowserPathForId(lastFileId) : ProjectInfo::appDataDir;
     if (!initialFile.exists())
@@ -977,9 +977,9 @@ void Dialogs::showOpenDialog(std::function<void(URL)> const& callback, bool cons
     }
 
 #if JUCE_IOS
-    fileChooser = std::make_unique<FileChooser>(fileChooserText, initialFile, "*", nativeDialog, false, parentComponent);
+    Dialogs::fileChooser = std::make_unique<FileChooser>(fileChooserText, initialFile, "*", nativeDialog, false, parentComponent);
 #else
-    fileChooser = std::make_unique<FileChooser>(fileChooserText, initialFile, extension, nativeDialog, false, nullptr);
+    Dialogs::fileChooser = std::make_unique<FileChooser>(fileChooserText, initialFile, extension, nativeDialog, false, nullptr);
 #endif
     auto openChooserFlags = FileBrowserComponent::openMode;
 
@@ -987,23 +987,40 @@ void Dialogs::showOpenDialog(std::function<void(URL)> const& callback, bool cons
         openChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(openChooserFlags | FileBrowserComponent::canSelectFiles);
     if (canSelectDirectories)
         openChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(openChooserFlags | FileBrowserComponent::canSelectDirectories);
+    if (canSelectMultiple)
+        openChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(openChooserFlags | FileBrowserComponent::canSelectMultipleItems);
 
-    fileChooser->launchAsync(openChooserFlags,
+    Dialogs::fileChooser->launchAsync(openChooserFlags,
         [callback, lastFileId](FileChooser const& fileChooser) {
-            auto const result = fileChooser.getResult();
-            auto const resultURL = fileChooser.getURLResult();
-
-            auto const lastDir = result.isDirectory() ? result : result.getParentDirectory();
-            if (result.exists()) {
+            Array<URL> resultURLs;
+            for (auto const& url : fileChooser.getURLResults()) {
 #if JUCE_IOS
-                // Create an input stream to access the security scoped resource
-                auto scopedAccessStream = resultURL.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress));
+                OSUtils::startAccessingSecurityScopedURL(url);
 #endif
-                SettingsFile::getInstance()->setLastBrowserPathForId(lastFileId, lastDir);
-                callback(resultURL);
+                if (url.isLocalFile() && url.getLocalFile().exists())
+                    resultURLs.add(url);
             }
+
+            // Deletes fileChooser: released before the callback, which may open the next dialog
             Dialogs::fileChooser = nullptr;
+
+            if (!resultURLs.isEmpty()) {
+                auto const result = resultURLs.getFirst().getLocalFile();
+                auto const lastDir = result.isDirectory() ? result : result.getParentDirectory();
+                SettingsFile::getInstance()->setLastBrowserPathForId(lastFileId, lastDir);
+                callback(resultURLs);
+            }
         });
+}
+
+void Dialogs::showOpenDialog(std::function<void(URL)> const& callback, bool const canSelectFiles, bool const canSelectDirectories, String const& extension, String const& lastFileId, Component* parentComponent)
+{
+    launchOpenDialog([callback](Array<URL> const& urls) { callback(urls.getFirst()); }, canSelectFiles, canSelectDirectories, false, extension, lastFileId, parentComponent);
+}
+
+void Dialogs::showMultiOpenDialog(std::function<void(Array<URL>)> const& callback, bool const canSelectFiles, bool const canSelectDirectories, String const& extension, String const& lastFileId, Component* parentComponent)
+{
+    launchOpenDialog(callback, canSelectFiles, canSelectDirectories, true, extension, lastFileId, parentComponent);
 }
 
 void Dialogs::showSaveDialog(std::function<void(URL)> const& callback, String const& extension, String const& lastFileId, Component* parentComponent, bool const directoryMode, String const& defaultFileName)
@@ -1011,6 +1028,9 @@ void Dialogs::showSaveDialog(std::function<void(URL)> const& callback, String co
 #if ENABLE_TESTING
     return; // Don't open file dialogs during testing
 #endif
+    if (fileChooser)
+        return;
+
     bool nativeDialog = SettingsFile::getInstance()->wantsNativeDialog();
     auto initialFile = lastFileId.isNotEmpty() ? SettingsFile::getInstance()->getLastBrowserPathForId(lastFileId) : ProjectInfo::appDataDir;
     if (!initialFile.exists())
@@ -1033,11 +1053,16 @@ void Dialogs::showSaveDialog(std::function<void(URL)> const& callback, String co
     fileChooser->launchAsync(saveChooserFlags,
         [callback, lastFileId](FileChooser const& fileChooser) {
             auto const result = fileChooser.getResult();
-            auto parentDirectory = result.getParentDirectory();
-            if (parentDirectory.exists()) {
-                SettingsFile::getInstance()->setLastBrowserPathForId(lastFileId, parentDirectory);
-                callback(fileChooser.getURLResult());
-                Dialogs::fileChooser = nullptr;
+            auto const resultURL = fileChooser.getURLResult();
+#if JUCE_IOS
+            // The picker exported a file to the chosen location: we get access to that file, not to the folder it's in
+            OSUtils::startAccessingSecurityScopedURL(resultURL);
+#endif
+            Dialogs::fileChooser = nullptr;
+
+            if (result.existsAsFile() || result.getParentDirectory().exists()) {
+                SettingsFile::getInstance()->setLastBrowserPathForId(lastFileId, result.getParentDirectory());
+                callback(resultURL);
             }
         });
 }

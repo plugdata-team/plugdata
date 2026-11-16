@@ -41,16 +41,21 @@
   "arguments": [
     {
       "type": "float",
-      "description": "optional depth value",
+      "description": "depth level for dollar sign expansion in the names",
       "default": "0"
     },
     {
       "type": "list",
       "description": "up to two send names",
-      "default": "0"
+      "default": ""
     }
   ],
-  "flags": [],
+  "flags": [
+    {
+      "name": "-local",
+      "description": "sets locality within the same window"
+    }
+  ],
   "methods": [],
   "body": "[sender] is much like vanilla's [send], but can have up to two names and at load time can expand dollar symbols according to parent patches."
 }

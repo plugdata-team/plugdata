@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "signal to be gated"
         }
       ],
@@ -31,7 +31,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "gated signal"
         }
       ],
@@ -58,7 +58,7 @@
   "flags": [
     {
       "name": "-size <float>",
-      "description": "sets analysis window size in samples\ndefault: 512"
+      "description": "sets analysis window size in samples (default 512)"
     }
   ],
   "methods": [],

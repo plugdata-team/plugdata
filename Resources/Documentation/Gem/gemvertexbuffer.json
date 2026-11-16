@@ -29,44 +29,118 @@
       "repeat": false
     }
   ],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of vertices (powers of two may be faster)",
+      "default": ""
+    }
+  ],
   "flags": [],
   "methods": [
     {
-      "type": "position / posX / posY / posZ",
-      "description": "update vertex positions from tables"
+      "type": "draw <symbol>",
+      "description": "drawing style: default, line, fill, point, or a GL primitive (linestrip, tri, tristrip, quad, ...)"
     },
     {
-      "type": "color / colorR / colorG / colorB / colorA",
-      "description": "update vertex colors from tables"
+      "type": "position <symbol, float>",
+      "description": "read vertex positions from a table (x y z interleaved), with an optional offset"
     },
     {
-      "type": "normal / normalX / normalY / normalZ",
-      "description": "update vertex normals from tables"
+      "type": "posX <symbol, float>",
+      "description": "read the x of the vertex positions from a table"
     },
     {
-      "type": "texture / textureU / textureV",
-      "description": "update vertex texcoords from tables"
+      "type": "posY <symbol, float>",
+      "description": "read the y of the vertex positions from a table"
+    },
+    {
+      "type": "posZ <symbol, float>",
+      "description": "read the z of the vertex positions from a table"
+    },
+    {
+      "type": "color <symbol, float>",
+      "description": "read vertex colors from a table (r g b a interleaved), with an optional offset"
+    },
+    {
+      "type": "colorR <symbol, float>",
+      "description": "read the red channel of the vertex colors from a table"
+    },
+    {
+      "type": "colorG <symbol, float>",
+      "description": "read the green channel of the vertex colors from a table"
+    },
+    {
+      "type": "colorB <symbol, float>",
+      "description": "read the blue channel of the vertex colors from a table"
+    },
+    {
+      "type": "colorA <symbol, float>",
+      "description": "read the alpha channel of the vertex colors from a table"
+    },
+    {
+      "type": "texture <symbol, float>",
+      "description": "read texture coordinates from a table (u v interleaved)"
+    },
+    {
+      "type": "textureU <symbol, float>",
+      "description": "read the u of the texture coordinates from a table"
+    },
+    {
+      "type": "textureV <symbol, float>",
+      "description": "read the v of the texture coordinates from a table"
+    },
+    {
+      "type": "normal <symbol, float>",
+      "description": "read vertex normals from a table (x y z interleaved)"
+    },
+    {
+      "type": "normalX <symbol, float>",
+      "description": "read the x of the normals from a table"
+    },
+    {
+      "type": "normalY <symbol, float>",
+      "description": "read the y of the normals from a table"
+    },
+    {
+      "type": "normalZ <symbol, float>",
+      "description": "read the z of the normals from a table"
+    },
+    {
+      "type": "position_enable <float>",
+      "description": "nonzero uses the position data, 0 ignores it"
+    },
+    {
+      "type": "color_enable <float>",
+      "description": "nonzero uses the color data, 0 ignores it"
+    },
+    {
+      "type": "texture_enable <float>",
+      "description": "nonzero uses the texture coordinates, 0 ignores them"
+    },
+    {
+      "type": "normal_enable <float>",
+      "description": "nonzero uses the normals, 0 ignores them"
+    },
+    {
+      "type": "attribute_enable <float>",
+      "description": "nonzero uses the shader attributes, 0 ignores them"
+    },
+    {
+      "type": "attribute <symbol, symbol, float>",
+      "description": "add or update a shader attribute: name, table and optional offset"
     },
     {
       "type": "resize <float>",
       "description": "change the number of vertices to use"
     },
     {
-      "type": "draw_range <float> <float>",
+      "type": "draw_range <float, float>",
       "description": "set the range for partial draw"
     },
     {
       "type": "program <float>",
-      "description": "set the ID for GLSL program."
-    },
-    {
-      "type": "position_enable <float>, color_enable <float>, texture_enable <float>, normal_enable <float>, attribute_enable <float>",
-      "description": "enable/disable the use of position, color, texture, normal, and attribute data"
-    },
-    {
-      "type": "attribute <name> <table> (offset)",
-      "description": "add attribute/update attribute from table"
+      "description": "set the ID for GLSL program"
     },
     {
       "type": "reset_attributes",
@@ -75,6 +149,38 @@
     {
       "type": "print_attributes",
       "description": "print active attributes"
+    },
+    {
+      "type": "width <float>",
+      "description": "line width for the line drawing styles (default 1)"
+    },
+    {
+      "type": "blend <float>",
+      "description": "nonzero turns alpha blending on"
+    },
+    {
+      "type": "colVBO_enable <float>",
+      "description": "nonzero uses the color data"
+    },
+    {
+      "type": "disable <anything>",
+      "description": "ignore the named data: position, color, texture, normal or attribute"
+    },
+    {
+      "type": "enable <anything>",
+      "description": "use the named data: position, color, texture, normal or attribute"
+    },
+    {
+      "type": "normVBO_enable <float>",
+      "description": "nonzero uses the normals"
+    },
+    {
+      "type": "posVBO_enable <float>",
+      "description": "nonzero uses the position data"
+    },
+    {
+      "type": "texVBO_enable <float>",
+      "description": "nonzero uses the texture coordinates"
     }
   ],
   "body": ""

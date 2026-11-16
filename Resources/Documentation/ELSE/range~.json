@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "signal",
           "description": "input signal to analyze"
         },
         {

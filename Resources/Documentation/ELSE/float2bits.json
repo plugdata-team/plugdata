@@ -37,7 +37,7 @@
       "messages": [
         {
           "type": "anything",
-          "description": "a list of bits when receiving a bang or \"signal\", \"exponent\" and \"mantissa\" values when receiving a 'split' message"
+          "description": "list of bits, or sign, exponent and mantissa after a 'split' message"
         }
       ],
       "repeat": false

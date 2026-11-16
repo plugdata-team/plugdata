@@ -41,5 +41,5 @@
       "description": "set list without output"
     }
   ],
-  "body": ""
+  "body": "[listbox] is a list box: it shows and outputs a list of numbers and symbols. You can type a new list, or click and drag one of its numbers to change it. 'set' changes the contents without output, and a bang outputs them."
 }

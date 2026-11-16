@@ -12,7 +12,7 @@
       "messages": [
         {
           "type": "list/signals",
-          "description": "sets frequency in hertz or MIDI"
+          "description": "sets frequency in Hz or MIDI"
         }
       ],
       "repeat": false
@@ -110,6 +110,10 @@
       "description": "set interpolation mode to lagrange"
     },
     {
+      "name": "-mc <list>",
+      "description": "sets multichannel output with a list of frequencies"
+    },
+    {
       "name": "-n <list>",
       "description": "sets number of x and y slices"
     },
@@ -132,16 +136,16 @@
       "description": "sets a single frequency channel"
     },
     {
-      "type": "n <float> <float>",
+      "type": "n <float, float>",
       "description": "sets number of x and y slices to scan through"
     },
     {
       "type": "midi <float>",
-      "description": "non zero sets to frequency input in MIDI pitch"
+      "description": "nonzero sets to frequency input in MIDI pitch"
     },
     {
       "type": "soft <flaot>",
-      "description": "non zero sets to soft sync mode"
+      "description": "nonzero sets to soft sync mode"
     },
     {
       "type": "none",

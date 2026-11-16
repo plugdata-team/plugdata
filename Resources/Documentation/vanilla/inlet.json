@@ -23,5 +23,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": "Inlets/outlets are used to receive and get information on a patch window. This can be an abstraction or a subpatch."
+  "body": "[inlet] creates an inlet on the box of the subpatch or abstraction it is in, and outputs the messages that come into it. Inlets are ordered from left to right by their position."
 }

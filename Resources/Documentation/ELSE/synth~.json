@@ -12,7 +12,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "midi note messages, pitch and velocity"
+          "description": "MIDI note messages, pitch and velocity"
         },
         {
           "type": "anything",
@@ -71,7 +71,7 @@
     },
     {
       "type": "mc <float>",
-      "description": "non zero sets to multichannel output"
+      "description": "nonzero sets to multichannel output"
     }
   ],
   "body": "The [synth~] object loads synth abstractions that follow a simple template. It is just a wrapper over [clone] and [mono]/[voices] but may provide some convenience, specially to newbies. One convenience is the ability to open/load different abstractions in runtime. The arguments are abstraction name and number of voices. If no arguments are given, a default and simple abstraction is loaded as a template and basis to build new synths. Clicking on the object opens the loaded abstration. Shift click opens a panel to choose an abstraction."

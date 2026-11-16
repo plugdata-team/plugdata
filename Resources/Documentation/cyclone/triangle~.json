@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "phase input signal"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "variable duty (peak position) from 1 to 0"
         }
       ],
@@ -47,12 +47,12 @@
   ],
   "flags": [
     {
-      "name": "lo <float>",
-      "description": "lowest point\ndefault: 1"
+      "name": "@lo <float>",
+      "description": "lowest point (default -1)"
     },
     {
-      "name": "hi <float>",
-      "description": "highest point\ndefault: 1"
+      "name": "@hi <float>",
+      "description": "highest point (default 1)"
     }
   ],
   "methods": [

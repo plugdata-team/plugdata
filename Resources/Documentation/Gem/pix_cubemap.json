@@ -1,0 +1,115 @@
+{
+  "title": [
+    "pix_cubemap"
+  ],
+  "description": "build a cube map texture from six images",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns texturing on"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": "image for the X- face"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": "image for the Y+ face"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": "image for the Y- face"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": "image for the Z+ face"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": "image for the Z- face"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "texture info: ID, x ratio, y ratio, type, upside-down flag"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "quality <float>",
+      "description": "texture filtering: 0 GL_NEAREST, 1 GL_LINEAR"
+    },
+    {
+      "type": "repeat <float>",
+      "description": "texture wrapping: 0 clamp to the edge, 1 repeat"
+    },
+    {
+      "type": "env <float>",
+      "description": "texture environment mode"
+    },
+    {
+      "type": "texunit <float>",
+      "description": "texture unit to bind the texture to (for shaders)"
+    },
+    {
+      "type": "map <float>",
+      "description": "texture coordinate mapping"
+    }
+  ],
+  "body": "[pix_cubemap] takes the X+ face from the gemlist on its left inlet and the other five faces from its other inlets. Gem marks it as experimental: it prints \"this object is likely to vanish\" when created."
+}

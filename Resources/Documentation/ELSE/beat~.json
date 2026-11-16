@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "input to analyze"
         }
       ],
@@ -49,11 +49,11 @@
   "flags": [
     {
       "name": "-mode <float>",
-      "description": "set mode\ndefault: 0"
+      "description": "set mode (default 0)"
     },
     {
       "name": "-silence <float>",
-      "description": "set silence level\ndefault: -70"
+      "description": "set silence level (default -70)"
     }
   ],
   "methods": [

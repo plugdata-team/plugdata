@@ -27,6 +27,7 @@ __declspec(dllimport) void canvas_click(t_canvas* x, t_floatarg xpos, t_floatarg
 void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 void canvas_click(t_canvas* x, t_floatarg xpos, t_floatarg ypos, t_floatarg shift, t_floatarg ctrl, t_floatarg alt);
 #endif
+int pdlua_is_lua_object(t_pd* x);
 }
 
 #include "AllGuis.h"
@@ -160,6 +161,7 @@ ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
     , object(parent)
     , cnv(parent->cnv)
     , pd(parent->cnv->pd)
+    , objectParameters(this)
     , propertyListener(this)
     , objectSizeListener(parent)
 {
@@ -292,9 +294,7 @@ void ObjectBase::sendMessage(SmallString const& message, SmallArray<pd::Atom> co
         }
     } else {
         pd->enqueueFunctionAsync<t_pd>(ptr, [pd = this->pd, m = message, a = args](t_pd* obj) {
-            sys_lock();
             pd->sendDirectMessage(obj, m, std::move(a));
-            sys_unlock();
         });
     }
 }
@@ -361,6 +361,12 @@ std::pair<SmallString, bool> ObjectBase::getTypeFromClass(pd::WeakReference clas
                 return {"hradio", false};
         default:
             break;
+        }
+
+        // Strip :gfx from pdlua gui class names
+        if(pdlua_is_lua_object(obj.get()))
+        {
+            return {className.upToLastOccurrenceOf(":gfx"), false};
         }
 
         return {className, false};
@@ -551,20 +557,23 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
     // This will ensure the object is still valid at this point, and also locks the audio thread to make sure it will remain valid
     hash32 name;
     bool isNonPatchable = false;
+    bool isLuaObject = false;
+    bool hasLuaGui = false;
     if (auto checked = ptr.get<t_gobj>()) {
         name = hash(pd::Interface::getObjectClassName(checked.cast<t_pd>()));
         isNonPatchable = !pd::Interface::checkObject(checked.get());
+        // Check the class itself, not its name: other libraries can have a class with the same name as a lua class
+        isLuaObject = pdlua_is_lua_object(checked.cast<t_pd>());
+        hasLuaGui = isLuaObject && checked.cast<t_pdlua>()->has_gui;
     } else {
         return nullptr;
     }
 
-    if (parent->cnv->pd->isLuaClass(name)) {
-        if (auto checked = ptr.get<t_gobj>()) {
-            if (checked.cast<t_pdlua>()->has_gui) {
-                return new LuaObject(ptr, parent);
-            } else {
-                return new LuaTextObject(ptr, parent);
-            }
+    if (isLuaObject) {
+        if (hasLuaGui) {
+            return new LuaObject(ptr, parent);
+        } else {
+            return new LuaTextObject(ptr, parent);
         }
     }
     // check if object is a patcher object, or something else
@@ -635,23 +644,24 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
         }
         case hash("canvas"):
         case hash("graph"): {
+            enum class Kind { Unknown, Array, Graph, Subpatch } kind = Kind::Unknown;
             if (auto checked = ptr.get<t_gobj>()) {
                 auto const* canvas = checked.cast<t_canvas>();
-                if (checked.cast<t_canvas>()->gl_list) {
-                    t_class* c = canvas->gl_list->g_pd;
-                    if (c && c->c_name && String::fromUTF8(c->c_name->s_name) == "array") {
-                        return new ArrayObject(ptr, parent);
-                    } else if (canvas->gl_isgraph) {
-                        return new GraphOnParent(ptr, parent);
-                    } else { // abstraction or subpatch
-                        return new SubpatchObject(ptr, parent);
-                    }
+                t_class* c = canvas->gl_list ? canvas->gl_list->g_pd : nullptr;
+                if (c && c->c_name && String::fromUTF8(c->c_name->s_name) == "array") {
+                    kind = Kind::Array;
                 } else if (canvas->gl_isgraph) {
-                    return new GraphOnParent(ptr, parent);
-                } else {
-                    return new SubpatchObject(ptr, parent);
+                    kind = Kind::Graph;
+                } else { // abstraction or subpatch
+                    kind = Kind::Subpatch;
                 }
             }
+            if (kind == Kind::Array)
+                return new ArrayObject(ptr, parent);
+            if (kind == Kind::Graph)
+                return new GraphOnParent(ptr, parent);
+            if (kind == Kind::Subpatch)
+                return new SubpatchObject(ptr, parent);
         }
         case hash("array define"):
             return new ArrayDefineObject(ptr, parent);

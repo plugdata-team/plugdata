@@ -461,24 +461,30 @@ public:
                     newUntitledPalette.setProperty("Name", var("Untitled palette"), nullptr);
                     newPalette(newUntitledPalette);
                 } else if (result == 2) {
-                    Dialogs::showOpenDialog([this](URL const& url) {
-                        auto const result = url.getLocalFile();
-                        if (!result.exists())
-                            return;
+                    Dialogs::showMultiOpenDialog([this](Array<URL> const& urls) {
+                        for (auto const& url : urls) {
+                            auto const result = url.getLocalFile();
+                            if (!result.exists())
+                                continue;
 
-                        auto const paletteText = result.loadFileAsString();
-                        ValueTree importedPalette;
+                            auto const paletteText = result.loadFileAsString();
+                            ValueTree importedPalette;
 
-                        var paletteContent = JSON::fromString(paletteText);
-                        if(paletteContent.isObject())
-                        {
-                            importedPalette = paletteFromJSON(paletteContent);
+                            var paletteContent = JSON::fromString(paletteText);
+                            if(paletteContent.isObject())
+                            {
+                                importedPalette = paletteFromJSON(paletteContent);
+                            }
+                            else {
+                                importedPalette = ValueTree::fromXml(paletteText);
+                            }
+
+                            if (!importedPalette.isValid())
+                                continue;
+
+                            importedPalette.setProperty("Name", var(result.getFileNameWithoutExtension()), nullptr);
+                            newPalette(importedPalette);
                         }
-                        else {
-                            importedPalette = ValueTree::fromXml(paletteText);
-                        }
-                        importedPalette.setProperty("Name", var(result.getFileNameWithoutExtension()), nullptr);
-                        newPalette(importedPalette);
                     },
                         true, false, "*.pdpalette", "PaletteLocation", getTopLevelComponent());
                 }
@@ -950,7 +956,6 @@ private:
                 { "brane", "#X obj 0 0 brane.m~" },
                 { "sfont", "#X obj 0 0 sfont.m~" },
                 { "adsr", "#X obj 0 0 adsr.m~" },
-                { "instrument", "#X obj 0 0 instrument.m~" },
             } },
         { "Filters",
             {

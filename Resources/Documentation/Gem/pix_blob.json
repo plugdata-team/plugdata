@@ -13,6 +13,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns processing on (default 1)"
         }
       ],
       "repeat": false
@@ -21,7 +25,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "mode (0=gray, 1=red, 2=green, 3=blue, 4=alpha)"
+          "description": "channel to weigh by: 0 grey (default), 1 red, 2 green, 3 blue, 4 alpha"
         }
       ],
       "repeat": false
@@ -30,7 +34,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "colour weights"
+          "description": "custom channel weights: R G B (A)"
         }
       ],
       "repeat": false
@@ -45,9 +49,42 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "x of the center of gravity (0 to 1)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "y of the center of gravity (0 to 1)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "total weight of the image (0 to 1)"
+        }
+      ],
+      "repeat": false
     }
   ],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "channel to weigh by (one number), or channel weights R G B (A)",
+      "default": "0"
+    }
+  ],
   "flags": [],
   "methods": [],
   "body": ""

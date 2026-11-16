@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "central frequency in Hz"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "excitation signal"
         }
       ],
@@ -29,7 +29,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "t60 decay time in ms (resonance)"
         }
       ],
@@ -40,7 +40,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "resonator/filtered signal"
         }
       ],

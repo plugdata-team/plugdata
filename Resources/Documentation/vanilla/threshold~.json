@@ -13,7 +13,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "signal to analyze and trigger from"
         }
       ],
@@ -23,7 +23,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "non-0 sets internal state to 'high', 'low' otherwise"
+          "description": "nonzero sets internal state to 'high', 'low' otherwise"
         }
       ],
       "repeat": false

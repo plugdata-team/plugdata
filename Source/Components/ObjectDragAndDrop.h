@@ -105,6 +105,14 @@ public:
         instance->grabKeyboardFocus();
     }
 
+    // Drops the object that is attached to the mouse when its editor goes away, so the timer
+    // doesn't reach a deleted editor, and the static instance isn't left for shutdown to clean up
+    static void dismiss(PluginEditor const* parent)
+    {
+        if (instance && instance->editor == parent)
+            instance.reset(nullptr);
+    }
+
     void timerCallback() override
     {
         auto const screenPos = Desktop::getMousePosition();

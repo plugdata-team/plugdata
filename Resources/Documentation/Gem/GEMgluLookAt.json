@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the position of the eye point."
+          "description": "x of the eye point"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the position of the reference point."
+          "description": "y of the eye point"
         }
       ],
       "repeat": false
@@ -39,7 +39,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the direction of the up vector."
+          "description": "z of the eye point"
         }
       ],
       "repeat": false
@@ -48,7 +48,52 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the direction of the eye-to-object vector."
+          "description": "x of the reference point"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "y of the reference point"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "z of the reference point"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "x of the up vector"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "y of the up vector"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "z of the up vector"
         }
       ],
       "repeat": false
@@ -65,29 +110,8 @@
       "repeat": false
     }
   ],
-  "arguments": [
-    {
-      "type": "float",
-      "description": "Specifies the position of the eye point.",
-      "default": "0"
-    },
-    {
-      "type": "float",
-      "description": "Specifies the position of the reference point.",
-      "default": "0"
-    },
-    {
-      "type": "float",
-      "description": "Specifies the direction of the up vector.",
-      "default": "1"
-    },
-    {
-      "type": "float",
-      "description": "Specifies the direction of the eye-to-object vector.",
-      "default": "0"
-    }
-  ],
+  "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMgluLookAt] calls gluLookAt() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See gluLookAt in the OpenGL reference."
 }

@@ -13,6 +13,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "float",
+          "description": "nonzero starts capturing, 0 stops"
         }
       ],
       "repeat": false
@@ -32,7 +36,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "info"
+          "description": "device information, and the answers to queries such as enumProps"
         }
       ],
       "repeat": false
@@ -43,31 +47,15 @@
   "methods": [
     {
       "type": "colorspace <symbol>",
-      "description": "decodes the current film into the specified colorspace, if supported by the backend."
+      "description": "decodes the current film into the specified colorspace, if supported by the backend"
     },
     {
-      "type": "device <number>",
-      "description": "the number of the input device"
-    },
-    {
-      "type": "device <symbol>",
-      "description": "the file path to the input device"
-    },
-    {
-      "type": "dimen <float> <float>",
+      "type": "dimen <float, float>",
       "description": "set various dimensions for the image"
     },
     {
       "type": "enumerate",
       "description": "list all devices to the console"
-    },
-    {
-      "type": "driver <float>",
-      "description": "switch between different drivers, e.g. v4l, ieee1394, etc."
-    },
-    {
-      "type": "driver <symbol>",
-      "description": "switch between different drivers, e.g. v4l, v4l2, dv..."
     },
     {
       "type": "dialog",
@@ -76,6 +64,74 @@
     {
       "type": "enumProps",
       "description": "interact with driver/device properties"
+    },
+    {
+      "type": "device <anything>",
+      "description": "input device: its number, or its file path"
+    },
+    {
+      "type": "driver <anything>",
+      "description": "switch driver: its number or name (v4l2, avf, ...)"
+    },
+    {
+      "type": "backend <anything>",
+      "description": "use only the given backends"
+    },
+    {
+      "type": "applyProps",
+      "description": "apply the properties stored with setProps"
+    },
+    {
+      "type": "async <float>",
+      "description": "nonzero grabs frames asynchronously"
+    },
+    {
+      "type": "channel <anything>",
+      "description": "input channel, and the tuner frequency"
+    },
+    {
+      "type": "clearProps",
+      "description": "forget the properties stored with setProps"
+    },
+    {
+      "type": "close",
+      "description": "close the device"
+    },
+    {
+      "type": "color <anything>",
+      "description": "color space: RGBA, YUV or Grey"
+    },
+    {
+      "type": "get <anything>",
+      "description": "query the named properties; the values come out of the right outlet"
+    },
+    {
+      "type": "mode <anything>",
+      "description": "video mode or norm of the device"
+    },
+    {
+      "type": "norm <symbol>",
+      "description": "video norm: PAL, NTSC, SECAM, ..."
+    },
+    {
+      "type": "open <anything>",
+      "description": "open a device: name or number, optionally a driver"
+    },
+    {
+      "type": "quality <float>",
+      "description": "texture filtering: 0 GL_NEAREST, 1 GL_LINEAR"
+    },
+    {
+      "type": "reset",
+      "description": "reset the device"
+    },
+    {
+      "type": "set <anything>",
+      "description": "set a device property: name and value"
+    },
+    {
+      "type": "setProps <anything>",
+      "description": "store properties (name value ...) to use from the next open on"
     }
   ],
   "body": ""

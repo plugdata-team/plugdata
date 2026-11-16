@@ -13,7 +13,12 @@
         {
           "type": "float",
           "description": "raw MIDI data"
-        },
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
         {
           "type": "float",
           "description": "MIDI channel"
@@ -28,10 +33,15 @@
         {
           "type": "anything",
           "description": "Cooked MIDI data"
-        },
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
         {
           "type": "float",
-          "description": "MIDI channel"
+          "description": "MIDI Channel"
         }
       ],
       "repeat": false
@@ -44,7 +54,17 @@
       "default": "0"
     }
   ],
-  "flags": [],
-  "methods": [],
+  "flags": [
+    {
+      "name": "-ext",
+      "description": "only listen to external input source"
+    }
+  ],
+  "methods": [
+    {
+      "type": "ext <float>",
+      "description": "nonzero sets to listen only to external input source"
+    }
+  ],
   "body": "[midi.in] sends \"cooked\" MIDI data instead of \"raw\" data like [midiin] with MIDI data type symbol, values and channel (but a note output is sent as a simple numeric list). It can take a raw MIDI input via its inlet but it also listens to your connected MIDI device."
 }

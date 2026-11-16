@@ -43,5 +43,5 @@
       "description": "set the table name"
     }
   ],
-  "body": ""
+  "body": "[tabread4] reads values from an array with four-point polynomial interpolation, so fractional indexes give values in between the elements. Indexes should range from 1 to the array size minus 2 for the interpolation to be meaningful. 'set' changes the array."
 }

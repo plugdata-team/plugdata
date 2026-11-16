@@ -20,8 +20,8 @@
     {
       "messages": [
         {
-          "type": "signal",
-          "description": "inlets alternate between input position and spread parameter for each channel"
+          "type": "float/signal",
+          "description": "alternating position and spread inlets, a pair per channel"
         }
       ],
       "repeat": true
@@ -52,11 +52,11 @@
   ],
   "flags": [
     {
-      "name": "index",
+      "name": "-index",
       "description": "sets to indexed mode"
     },
     {
-      "name": "circular",
+      "name": "-circular",
       "description": "sets to circular mode"
     }
   ],

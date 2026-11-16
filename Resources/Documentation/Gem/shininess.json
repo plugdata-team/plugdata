@@ -2,7 +2,7 @@
   "title": [
     "shininess"
   ],
-  "description": "aets the shininess of the material",
+  "description": "sets the shininess of the material",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -12,7 +12,7 @@
       "messages": [
         {
           "type": "gemlist",
-          "description": "gemlist"
+          "description": ""
         }
       ],
       "repeat": false
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Shininess value (0 - 128)"
+          "description": "shininess, 0 to 128"
         }
       ],
       "repeat": false
@@ -32,7 +32,7 @@
       "messages": [
         {
           "type": "gemlist",
-          "description": "gemlist"
+          "description": ""
         }
       ],
       "repeat": false
@@ -41,7 +41,7 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Shininess value (0 - 128)",
+      "description": "shininess, 0 to 128",
       "default": "0"
     }
   ],

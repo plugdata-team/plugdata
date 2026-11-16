@@ -40,7 +40,7 @@
     {
       "messages": [
         {
-          "type": "float/bang",
+          "type": "bang/float",
           "description": "counter output or bangs in bang mode"
         }
       ],
@@ -50,7 +50,7 @@
   "arguments": [
     {
       "type": "float",
-      "description": "<f> \u2014 number of iterations, <f f f> \u2014 start, end, step",
+      "description": "one float sets the number of iterations, three set start, end and step",
       "default": "1"
     },
     {
@@ -67,11 +67,11 @@
   "flags": [
     {
       "name": "-offset <float>",
-      "description": "sets offset value\ndefault: 0"
+      "description": "sets offset value (default 0)"
     },
     {
       "name": "-step <float>",
-      "description": "sets counter step value\ndefault: 1"
+      "description": "sets counter step value (default 1)"
     },
     {
       "name": "-b <float>",

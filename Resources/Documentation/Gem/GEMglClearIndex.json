@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the index used when the color index buffers are cleared."
+          "description": "index used when the color index buffers are cleared"
         }
       ],
       "repeat": false
@@ -41,11 +41,11 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the index used when the color index buffers are cleared.",
+      "description": "index used when the color index buffers are cleared",
       "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglClearIndex] calls glClearIndex() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glClearIndex in the OpenGL reference."
 }

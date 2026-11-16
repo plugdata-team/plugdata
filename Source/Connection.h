@@ -256,7 +256,7 @@ public:
             setBounds({});
             return;
         }
-        setBounds(path.getBounds().expanded(3.0f).getSmallestIntegerContainer());
+        setBounds(path.getBounds().expanded(4.0f).getSmallestIntegerContainer());
     }
 
     void mouseDrag(MouseEvent const& e) override

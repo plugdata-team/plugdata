@@ -11,12 +11,16 @@
     {
       "messages": [
         {
-          "type": "bang",
+          "type": "gemlist",
           "description": ""
         },
         {
-          "type": "list <float> <float>",
-          "description": ""
+          "type": "bang",
+          "description": "output the color at the current position"
+        },
+        {
+          "type": "list",
+          "description": "x and y position, then output"
         }
       ],
       "repeat": false
@@ -25,7 +29,7 @@
       "messages": [
         {
           "type": "gemlist",
-          "description": ""
+          "description": "the image to read from"
         }
       ],
       "repeat": false
@@ -34,7 +38,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "xpos in the image"
+          "description": "x position in the image (0 to 1)"
         }
       ],
       "repeat": false
@@ -43,7 +47,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "ypos in the image"
+          "description": "y position in the image (0 to 1)"
         }
       ],
       "repeat": false
@@ -53,8 +57,8 @@
     {
       "messages": [
         {
-          "type": "-",
-          "description": "dead outlet for legacy reasons"
+          "type": "gemlist",
+          "description": "passed on unchanged"
         }
       ],
       "repeat": false
@@ -63,7 +67,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "RGB value (normalized 0..1)"
+          "description": "RGB value at the position (0 to 1)"
         }
       ],
       "repeat": false
@@ -72,7 +76,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "grey value (normalized 0..1)"
+          "description": "grey value at the position (0 to 1)"
         }
       ],
       "repeat": false
@@ -81,12 +85,12 @@
   "arguments": [
     {
       "type": "float",
-      "description": "xpos",
+      "description": "x position (0 to 1)",
       "default": ""
     },
     {
       "type": "float",
-      "description": "ypos",
+      "description": "y position (0 to 1)",
       "default": ""
     }
   ],
@@ -94,11 +98,11 @@
   "methods": [
     {
       "type": "normalize <float>",
-      "description": "normalize 0|1: normalization mode (0=none, 1=normalized. default=1)"
+      "description": "nonzero takes positions from 0 to 1, 0 in pixels (default 1)"
     },
     {
       "type": "quality <float>",
-      "description": "quality 0|1: interpolation mode (0=none, 1=2D. default=0)"
+      "description": "0 takes the nearest pixel, 1 interpolates (default 0)"
     }
   ],
   "body": ""

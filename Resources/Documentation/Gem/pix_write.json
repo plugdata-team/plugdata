@@ -2,7 +2,7 @@
   "title": [
     "pix_write"
   ],
-  "description": "Make a snapshot of the frame-buffer and write it to a file",
+  "description": "make a snapshot of the framebuffer and write it to a file",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -13,6 +13,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "bang",
+          "description": "write the current frame to a file"
         }
       ],
       "repeat": false
@@ -47,20 +51,41 @@
       "repeat": false
     }
   ],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "x offset of the grabbed area, in pixels",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "y offset of the grabbed area, in pixels",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "width of the grabbed area, in pixels",
+      "default": "window width"
+    },
+    {
+      "type": "float",
+      "description": "height of the grabbed area, in pixels",
+      "default": "window height"
+    }
+  ],
   "flags": [],
   "methods": [
     {
-      "type": "file <float>",
-      "description": "set type/quality (0 = TIFF, >0 = JPG)"
+      "type": "file <anything>",
+      "description": "base file name and/or type: 0 TIFF, above 0 JPEG with that quality"
     },
     {
-      "type": "file <symbol>",
-      "description": "set basefilename, and type = TIFF"
+      "type": "auto <float>",
+      "description": "nonzero writes every frame"
     },
     {
-      "type": "file <symbol> <float>",
-      "description": "set basefilename and type/quality"
+      "type": "color_format <float>",
+      "description": "color format of the file: 1 grey, 3 RGB or 4 RGBA"
     }
   ],
   "body": ""

@@ -87,12 +87,16 @@
   "flags": [],
   "methods": [
     {
-      "type": "symbol",
-      "description": "draw [line|fill|point]"
+      "type": "draw <symbol>",
+      "description": "drawing style: line, fill or point"
     },
     {
-      "type": "draw [line|fill|point]",
-      "description": ""
+      "type": "width <float>",
+      "description": "line width for the line drawing styles (default 1)"
+    },
+    {
+      "type": "blend <float>",
+      "description": "nonzero turns alpha blending on"
     }
   ],
   "body": ""

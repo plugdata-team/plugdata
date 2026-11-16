@@ -32,7 +32,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "track number & duration (when receiving the `next` message)"
+          "description": "track number & duration (when receiving the next message)"
         }
       ],
       "repeat": false

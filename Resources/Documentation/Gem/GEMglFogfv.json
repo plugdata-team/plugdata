@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the fog parameter to be set."
+          "description": "single-valued fog parameter"
         }
       ],
       "repeat": false
@@ -29,8 +29,8 @@
     {
       "messages": [
         {
-          "type": "float",
-          "description": "Specifies the value of the parameter."
+          "type": "list",
+          "description": "list of values for the fog parameter"
         }
       ],
       "repeat": false
@@ -50,16 +50,16 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the fog parameter to be set.",
-      "default": "GL_FOG_MODE"
+      "description": "single-valued fog parameter",
+      "default": "0"
     },
     {
-      "type": "float",
-      "description": "Specifies the value of the parameter.",
-      "default": "GL_EXP"
+      "type": "list",
+      "description": "list of values for the fog parameter",
+      "default": ""
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglFogfv] calls glFogfv() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. GL constants are numbers here: [GLdefine] turns a name like GL_LINES into its value. See glFog in the OpenGL reference."
 }

@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies what kind of primitives to render."
+          "description": "what kind of primitives to render"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the starting index in the enabled arrays."
+          "description": "starting index in the enabled arrays"
         }
       ],
       "repeat": false
@@ -39,7 +39,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the number of indices to be rendered."
+          "description": "number of indices to be rendered"
         }
       ],
       "repeat": false
@@ -59,21 +59,21 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies what kind of primitives to render.",
-      "default": "GL_TRIANGLES"
-    },
-    {
-      "type": "float",
-      "description": "Specifies the starting index in the enabled arrays.",
+      "description": "what kind of primitives to render",
       "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the number of indices to be rendered.",
+      "description": "starting index in the enabled arrays",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "number of indices to be rendered",
       "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglDrawArrays] calls glDrawArrays() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. GL constants are numbers here: [GLdefine] turns a name like GL_LINES into its value. See glDrawArrays in the OpenGL reference."
 }

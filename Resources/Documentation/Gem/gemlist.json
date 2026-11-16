@@ -2,7 +2,7 @@
   "title": [
     "gemlist"
   ],
-  "description": "Store a gemlist.",
+  "description": "store a gemlist",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -12,16 +12,11 @@
       "messages": [
         {
           "type": "gemlist",
-          "description": ""
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
+          "description": "store the gemlist and pass it on"
+        },
         {
           "type": "bang",
-          "description": ""
+          "description": "output the stored gemlist"
         }
       ],
       "repeat": false
@@ -30,7 +25,7 @@
       "messages": [
         {
           "type": "gemlist",
-          "description": ""
+          "description": "store the gemlist without passing it on"
         }
       ],
       "repeat": false
@@ -49,6 +44,19 @@
   ],
   "arguments": [],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "draw <anything>",
+      "description": "drawing style of the stored gemlist: default, line, fill, point or a GL constant"
+    },
+    {
+      "type": "lighting <float>",
+      "description": "nonzero turns lighting on in the stored gemlist"
+    },
+    {
+      "type": "ticktime <float>",
+      "description": "time between frames in ms, stored in the gemlist"
+    }
+  ],
   "body": ""
 }

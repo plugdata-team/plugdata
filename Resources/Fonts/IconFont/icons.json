@@ -114,6 +114,8 @@
     { "names": ["ShowXY"], "file": "custom/gui/ShowXY.svg" },
     { "names": ["Record"], "fluent": "record_24_filled" },
     { "names": ["AudioSettings"], "fluent": "speaker_settings_24_filled" },
+    { "names": ["Github"], "file": "custom/gui/Github.svg" },
+    { "names": ["PlayTriangle"], "fluent": "play_24_filled" },
 
     "OBJECT ICONS",
 

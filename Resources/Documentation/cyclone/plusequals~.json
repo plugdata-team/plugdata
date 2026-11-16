@@ -4,7 +4,7 @@
     "+=~",
     "cyclone/+=~"
   ],
-  "description": "each sample is the sum of all previous input samples",
+  "description": "signal accumulator",
   "origin": "cyclone",
   "categories": [
     "Signal Math"
@@ -26,7 +26,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "signal different than 0 resets initial stored value to 0"
         }
       ],

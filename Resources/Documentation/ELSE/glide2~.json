@@ -12,7 +12,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "incoming signal to smooth out"
         }
       ],
@@ -21,7 +21,7 @@
     {
       "messages": [
         {
-          "type": "float",
+          "type": "float/signals",
           "description": "ramp-up time in ms"
         }
       ],
@@ -30,7 +30,7 @@
     {
       "messages": [
         {
-          "type": "float",
+          "type": "float/signals",
           "description": "ramp-down time in ms"
         }
       ],
@@ -41,7 +41,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "smoothed out/filtered signal"
         }
       ],
@@ -63,7 +63,7 @@
   "flags": [
     {
       "name": "-exp <float>",
-      "description": "sets exponential factor\ndefault: 1 - linear"
+      "description": "sets exponential factor (default 1 - linear)"
     }
   ],
   "methods": [

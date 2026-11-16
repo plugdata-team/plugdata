@@ -14,12 +14,16 @@
     {
       "messages": [
         {
-          "type": "signal",
-          "description": "signal value to convert to float"
+          "type": "signals",
+          "description": "signal value(s) to convert to float(s)"
         },
         {
           "type": "bang",
           "description": "syncs the conversion rate"
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns on, zero turns off"
         }
       ],
       "repeat": false
@@ -38,8 +42,8 @@
     {
       "messages": [
         {
-          "type": "float",
-          "description": "converted float"
+          "type": "list",
+          "description": "converted float(s) from signal(s)"
         }
       ],
       "repeat": false
@@ -60,17 +64,13 @@
   "flags": [
     {
       "name": "-off",
-      "description": "turns it off\ndefault: on"
+      "description": "turns it off (default on)"
     }
   ],
   "methods": [
     {
       "type": "set <float>",
       "description": "sets the time without syncing"
-    },
-    {
-      "type": "float",
-      "description": "turns on (non-0) or off (0)"
     },
     {
       "type": "start",

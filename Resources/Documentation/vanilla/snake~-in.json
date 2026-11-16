@@ -3,7 +3,7 @@
     "snake~",
     "snake_in~"
   ],
-  "description": "multichannel signal",
+  "description": "combine mono signals into a multichannel signal",
   "origin": "vanilla",
   "categories": [
     "Mixing and Routing",
@@ -13,7 +13,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "mono input to merge into a multichannel signal"
         }
       ],
@@ -40,5 +40,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": "ssssssssss"
+  "body": "[snake~ in] combines mono signals into one multichannel signal, one channel per inlet. The argument sets the number of channels."
 }

@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "freq"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "trigger"
         }
       ],
@@ -29,7 +29,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "decay"
         }
       ],
@@ -38,7 +38,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "cutoff"
         }
       ],
@@ -47,7 +47,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "in"
         }
       ],
@@ -68,5 +68,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[pluck.m~] is a MERDA module wrapper around [pluck~], a plucked string. It can be played via MIDI, with a number of voices (1 by default), or with signals for pitch and trigger. CV inputs set the decay time in ms and the filter cutoff in Hz, and the right inlet takes a signal to excite the string."
 }

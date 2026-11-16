@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "left input signal"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "right input signal"
         }
       ],
@@ -92,5 +92,5 @@
       "description": "clears delay buffers"
     }
   ],
-  "body": "[mono.rev~] is a stereo input/output reverb abstraction, a variant of [mono.rev~] with two independent reverb channels."
+  "body": "[stereo.rev~] is a stereo input/output reverb abstraction, a variant of [mono.rev~] with two independent reverb channels."
 }

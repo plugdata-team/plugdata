@@ -49,6 +49,24 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "vertical \"mouse wheel\" scrolling delta"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "horizontal \"mouse wheel\" scrolling delta"
+        }
+      ],
+      "repeat": false
     }
   ],
   "arguments": [],

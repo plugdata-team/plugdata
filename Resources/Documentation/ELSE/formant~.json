@@ -1,0 +1,79 @@
+{
+  "title": [
+    "formant~"
+  ],
+  "description": "formant oscillator",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list/signals",
+          "description": "fundamental frequency (f0) in Hz"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "center/formant frequency"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "bandwidth"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "formant oscillator signal(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "fundamental frequency",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "formant frequency",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "bandwidth",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "cf <list>",
+      "description": "list of center frequencies"
+    },
+    {
+      "type": "bw <list>",
+      "description": "list of bandwidths"
+    }
+  ],
+  "body": "[formant~] is a formant oscillator based on SuperCollider's Formant UGen. You specify the fundamental (f0) frequency, the center (or formant) frequency and the bandwidth (around the center frequency). All these parameters are in Hz. This technique is used to synthesize vocal sounds. The object has support for multichannels."
+}

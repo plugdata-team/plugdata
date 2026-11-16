@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the target texture."
+          "description": "target texture"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the level-of-detail number. Level 0 is the base image level. Level n is the nth mipmap reduction image."
+          "description": "level-of-detail number"
         }
       ],
       "repeat": false
@@ -39,7 +39,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the xoffset parameter. The lower left corner of the texture image is (xoffset, 0)."
+          "description": "texel offset within the texture array"
         }
       ],
       "repeat": false
@@ -48,7 +48,25 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the x, y, and width parameters, which specify a subregion of the framebuffer."
+          "description": "window x of the left end of the row of pixels to copy"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "window y of the row of pixels to copy"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "width of the texture subimage"
         }
       ],
       "repeat": false
@@ -68,26 +86,36 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the target texture.",
-      "default": "GL_TEXTURE_1D"
-    },
-    {
-      "type": "float",
-      "description": "Specifies the level-of-detail number. Level 0 is the base image level. Level n is the nth mipmap reduction image.",
+      "description": "target texture",
       "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the xoffset parameter. The lower left corner of the texture image is (xoffset, 0).",
+      "description": "level-of-detail number",
       "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the x, y, and width parameters, which specify a subregion of the framebuffer.",
-      "default": "[0, 0, 0]"
+      "description": "texel offset within the texture array",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "window x of the left end of the row of pixels to copy",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "window y of the row of pixels to copy",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "width of the texture subimage",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglCopyTexSubImage1D] calls glCopyTexSubImage1D() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. GL constants are numbers here: [GLdefine] turns a name like GL_LINES into its value. See glCopyTexSubImage1D in the OpenGL reference."
 }

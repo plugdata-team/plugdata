@@ -12,7 +12,7 @@
       "messages": [
         {
           "type": "anything",
-          "description": "any message type. Messages with more than one element outputs each element to a different outlet"
+          "description": "message to cycle through the outlets, one element per outlet"
         }
       ],
       "repeat": false
@@ -37,7 +37,7 @@
     },
     {
       "type": "float",
-      "description": "mode: Non-0 sets to \"event sensitive mode",
+      "description": "mode: Nonzero sets to \"event sensitive mode",
       "default": "0"
     }
   ],

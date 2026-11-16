@@ -2,7 +2,7 @@
   "title": [
     "GEMglTexEnvf"
   ],
-  "description": "set texture environment parameters (floating-point version)",
+  "description": "set texture environment parameters",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the texture environment target."
+          "description": "texture environment"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the texture environment parameter to set."
+          "description": "symbolic name of a single-valued texture environment parameter"
         }
       ],
       "repeat": false
@@ -39,7 +39,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the value to set the specified parameter."
+          "description": "texture environment value, e.g. GL_MODULATE, GL_DECAL or GL_REPLACE"
         }
       ],
       "repeat": false
@@ -59,21 +59,21 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the texture environment target.",
-      "default": ""
+      "description": "texture environment",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the texture environment parameter to set.",
-      "default": ""
+      "description": "symbolic name of a single-valued texture environment parameter",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the value to set the specified parameter.",
-      "default": ""
+      "description": "texture environment value, e.g. GL_MODULATE, GL_DECAL or GL_REPLACE",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglTexEnvf] calls glTexEnvf() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. GL constants are numbers here: [GLdefine] turns a name like GL_LINES into its value. See glTexEnv in the OpenGL reference."
 }

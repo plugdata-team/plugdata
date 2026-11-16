@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the depth value used when the depth buffer is cleared."
+          "description": "depth value used when the depth buffer is cleared"
         }
       ],
       "repeat": false
@@ -41,11 +41,11 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the depth value used when the depth buffer is cleared.",
+      "description": "depth value used when the depth buffer is cleared",
       "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglClearDepth] calls glClearDepth() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glClearDepth in the OpenGL reference."
 }

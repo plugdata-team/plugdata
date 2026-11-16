@@ -27,17 +27,30 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "information on request: properties, loader backends"
+        }
+      ],
+      "repeat": false
     }
   ],
   "arguments": [
     {
-      "type": "<symbol>",
+      "type": "symbol",
       "description": "name of an OBJ-file to be loaded",
       "default": ""
     }
   ],
   "flags": [],
   "methods": [
+    {
+      "type": "draw <symbol>",
+      "description": "drawing style: default, point, line or fill"
+    },
     {
       "type": "open <symbol>",
       "description": "load an obj-file"
@@ -47,7 +60,7 @@
       "description": "normalize the model (must be set PRIOR to opening a model)"
     },
     {
-      "type": "material<float>",
+      "type": "material <float>",
       "description": "use material-information (from the mtl file)"
     },
     {
@@ -69,6 +82,50 @@
     {
       "type": "loader <symbol>",
       "description": "choose which backend to use first to open the model"
+    },
+    {
+      "type": "backend <symbol>",
+      "description": "choose which backend to use first to open the model"
+    },
+    {
+      "type": "width <float>",
+      "description": "line width for the line drawing styles (default 1)"
+    },
+    {
+      "type": "blend <float>",
+      "description": "nonzero turns alpha blending on"
+    },
+    {
+      "type": "applyProps",
+      "description": "apply the properties stored with setProps"
+    },
+    {
+      "type": "clearProps",
+      "description": "forget the properties stored with setProps"
+    },
+    {
+      "type": "enumProps",
+      "description": "list the properties the backend supports, on the right outlet"
+    },
+    {
+      "type": "get <anything>",
+      "description": "query the named properties; the values come out of the right outlet"
+    },
+    {
+      "type": "groups <anything>",
+      "description": "draw only the listed groups of the model"
+    },
+    {
+      "type": "set <anything>",
+      "description": "set a backend property: name and value"
+    },
+    {
+      "type": "setProps <anything>",
+      "description": "store properties (name value ...) to use from the next open on"
+    },
+    {
+      "type": "type <float>",
+      "description": "drawing style as a GL primitive number"
     }
   ],
   "body": ""

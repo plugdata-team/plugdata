@@ -32,7 +32,7 @@
       "messages": [
         {
           "type": "bang",
-          "description": "pre-render"
+          "description": "before the objects below it render"
         }
       ],
       "repeat": false
@@ -41,7 +41,7 @@
       "messages": [
         {
           "type": "bang",
-          "description": "post-render"
+          "description": "after the objects below it rendered"
         }
       ],
       "repeat": false

@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "signal to be filtered"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "central frequency in Hz"
         }
       ],
@@ -29,8 +29,17 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "filter resonance (Q)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "feedback value (from -1 to 1)"
         }
       ],
       "repeat": false
@@ -40,7 +49,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "filtered signal"
         }
       ],
@@ -50,7 +59,7 @@
   "arguments": [
     {
       "type": "float",
-      "description": "order from 2 to 64",
+      "description": "order from 2 to 128",
       "default": "2"
     },
     {
@@ -62,9 +71,35 @@
       "type": "float",
       "description": "filter Q",
       "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "feedback from -1 to 1",
+      "default": "0"
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "n <float>",
+      "description": "sets order (needs to be multiple of 2)"
+    },
+    {
+      "type": "freq <list>",
+      "description": "center frequency in Hz for each channel"
+    },
+    {
+      "type": "reson <list>",
+      "description": "filter resonance for each channel"
+    },
+    {
+      "type": "clear",
+      "description": "clears filter's memory if you blow it up"
+    },
+    {
+      "type": "bypass <float>",
+      "description": "1 (bypasses input signal) or 0 (doesn't bypass)"
+    }
+  ],
   "body": "[allpass.filt~] is an allpass filter whose order can be set via the first argument (must be a multiple of 2). This is an abstraction that stacks many [allpass.2nd~] objects in cascade."
 }

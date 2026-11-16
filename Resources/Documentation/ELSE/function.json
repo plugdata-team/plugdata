@@ -58,11 +58,11 @@
       "description": "default none"
     },
     {
-      "name": "-bgcolor <f, f, f>",
+      "name": "-bgcolor <float, float, float>",
       "description": ""
     },
     {
-      "name": "-fgcolor <f, f, f>",
+      "name": "-fgcolor <float, float, float>",
       "description": ""
     },
     {
@@ -79,7 +79,7 @@
     },
     {
       "name": "-savestate",
-      "description": "save object state\ndefault: 0"
+      "description": "save object state (default 0)"
     },
     {
       "name": "-set <list>",
@@ -120,11 +120,11 @@
       "description": "sets width"
     },
     {
-      "type": "fgcolor <f, f, f>",
+      "type": "fgcolor <float, float, float>",
       "description": "sets RGB color of foreground"
     },
     {
-      "type": "bgcolor <f, f, f>",
+      "type": "bgcolor <float, float, float>",
       "description": "sets RGB color of background"
     },
     {
@@ -137,7 +137,7 @@
     },
     {
       "type": "savestate <float>",
-      "description": "non-0 will save object state"
+      "description": "nonzero will save object state"
     }
   ],
   "body": "[function] is a breakpoints function GUI, mainly used with [function~] or [envgen~]. You can click and drag on it or send it lists."

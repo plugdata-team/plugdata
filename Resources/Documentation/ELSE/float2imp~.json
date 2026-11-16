@@ -12,7 +12,7 @@
     {
       "messages": [
         {
-          "type": "float",
+          "type": "float/list",
           "description": "set impulse value and generate impulse"
         },
         {
@@ -25,7 +25,7 @@
     {
       "messages": [
         {
-          "type": "float",
+          "type": "float/list",
           "description": "set impulse value"
         }
       ],

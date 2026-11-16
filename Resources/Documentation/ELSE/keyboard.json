@@ -16,7 +16,7 @@
           "description": "MIDI Note value"
         },
         {
-          "type": "list <f,f>",
+          "type": "list <float, float>",
           "description": "MIDI Note and Velocity values"
         }
       ],
@@ -36,7 +36,7 @@
     {
       "messages": [
         {
-          "type": "list <f,f>",
+          "type": "list <float, float>",
           "description": "MIDI Note and Velocity values"
         }
       ],
@@ -47,35 +47,35 @@
   "flags": [
     {
       "name": "-width <float>",
-      "description": "width in pixels\ndefault: 17"
+      "description": "width in pixels (default 17)"
     },
     {
       "name": "-height <float>",
-      "description": "height in pixels\ndefault: 80"
+      "description": "height in pixels (default 80)"
     },
     {
       "name": "-oct <float>",
-      "description": "number of octaves\ndefault: 4"
+      "description": "number of octaves (default 4)"
     },
     {
       "name": "-lowc <float>",
-      "description": "number of lowest C\ndefault: 3 - that is \"C3"
+      "description": "number of the lowest C (default 3, that is \"C3\")"
     },
     {
       "name": "-tgl",
-      "description": "sets to toggle mode\ndefault: non toggle"
+      "description": "sets to toggle mode (default non toggle)"
     },
     {
       "name": "-norm <float>",
-      "description": "velocity normalization value\ndefault: 0"
+      "description": "velocity normalization value (default 0)"
     },
     {
       "name": "-send <symbol>",
-      "description": "sets send symbol\ndefault: 'empty'"
+      "description": "sets send symbol (default 'empty')"
     },
     {
       "name": "-receive <symbol>",
-      "description": "sets receive symbol\ndefault: 'empty'"
+      "description": "sets receive symbol (default 'empty')"
     }
   ],
   "methods": [
@@ -90,6 +90,14 @@
     {
       "type": "set <float, float>",
       "description": "set note (pitch/velocity) without output"
+    },
+    {
+      "type": "play <list>",
+      "description": "flush notes and plays a list of Note On keys"
+    },
+    {
+      "type": "show <list>",
+      "description": "flush notes and sets a list of Note On keys"
     },
     {
       "type": "width <float>",

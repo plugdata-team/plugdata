@@ -3,13 +3,23 @@
     "receive",
     "r"
   ],
-  "description": "outputs received messages",
+  "description": "receive messages without patch cords",
   "origin": "vanilla",
   "categories": [
     "UI",
     "Mixing and Routing"
   ],
-  "inlets": [],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "sets the receive name (if created without arguments)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
   "outlets": [
     {
       "messages": [
@@ -30,5 +40,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": "The [receive] object gets messages directly from [send] or other objects like [list store], [float], [int] and [value] via a `send` method."
+  "body": "The [receive] object gets messages directly from [send] or other objects like [list store], [float], [int] and [value] via a 'send' method."
 }

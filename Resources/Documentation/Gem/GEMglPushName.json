@@ -2,7 +2,7 @@
   "title": [
     "GEMglPushName"
   ],
-  "description": "push a name onto the name stack",
+  "description": "push and pop the name stack",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies a name to be pushed onto the name stack."
+          "description": "name that will be pushed onto the name stack"
         }
       ],
       "repeat": false
@@ -41,11 +41,11 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies a name to be pushed onto the name stack.",
-      "default": ""
+      "description": "name that will be pushed onto the name stack",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglPushName] calls glPushName() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glPushName in the OpenGL reference."
 }

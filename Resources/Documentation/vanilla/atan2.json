@@ -42,14 +42,8 @@
       "repeat": false
     }
   ],
-  "arguments": [
-    {
-      "type": "float",
-      "description": "initialize value of right inlet",
-      "default": "0"
-    }
-  ],
+  "arguments": [],
   "flags": [],
   "methods": [],
-  "body": "The atan2 version takes an (x, y"
+  "body": "[atan2] takes an (x, y) pair and gives you an output between -pi and pi. It also takes a bang in the left inlet to evaluate the operation with the previously set values."
 }

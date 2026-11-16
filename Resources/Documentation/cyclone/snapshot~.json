@@ -3,7 +3,7 @@
     "snapshot~",
     "cyclone/snapshot~"
   ],
-  "description": "converted sample from input",
+  "description": "convert signal samples to floats",
   "origin": "cyclone",
   "categories": [
     "Converters"
@@ -21,7 +21,7 @@
         },
         {
           "type": "float",
-          "description": "turns interval-based reports on (non-0) or off (0)"
+          "description": "turns interval-based reports on (nonzero) or off (0)"
         }
       ],
       "repeat": false
@@ -62,11 +62,11 @@
   "flags": [
     {
       "name": "@active <float>",
-      "description": "sets interval based report on <1> / off <0>\ndefault: 0"
+      "description": "sets interval based report on <1> / off <0> (default 0)"
     },
     {
       "name": "@interval <float>",
-      "description": "sets interval in ms\ndefault: 0 - stopped"
+      "description": "sets interval in ms (default 0 - stopped)"
     }
   ],
   "methods": [
@@ -79,11 +79,11 @@
       "description": "stops interval-based reporting"
     },
     {
-      "type": "offset <f>",
+      "type": "offset <float>",
       "description": "sets sample offset within block"
     },
     {
-      "type": "sampleinterval <f>",
+      "type": "sampleinterval <float>",
       "description": "sets time interval in samples"
     }
   ],

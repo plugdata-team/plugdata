@@ -47,5 +47,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[hv.osc~] is a band-limited oscillator with sine, saw or square shapes. It uses polynomial band-limited steps (PolyBLEP) to reduce aliasing without wavetables; the output can get a bit noisy at high frequencies."
 }

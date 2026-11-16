@@ -11,6 +11,10 @@
     {
       "messages": [
         {
+          "type": "signal",
+          "description": "first channel to record"
+        },
+        {
           "type": "start",
           "description": "start recording"
         },
@@ -20,7 +24,7 @@
         },
         {
           "type": "float",
-          "description": "non-0 starts playing, 0 stops"
+          "description": "nonzero starts recording, 0 stops"
         }
       ],
       "repeat": false
@@ -28,8 +32,8 @@
     {
       "messages": [
         {
-          "type": "signal",
-          "description": "signal inputs to record for each channel"
+          "type": "float/signal",
+          "description": "next channel to record"
         }
       ],
       "repeat": true
@@ -58,7 +62,16 @@
       "default": "1"
     }
   ],
-  "flags": [],
+  "flags": [
+    {
+      "name": "-fade <float>",
+      "description": "sets fade time (default 10)"
+    },
+    {
+      "name": "-maxtime <float>",
+      "description": "sets maximum recording time in ms (default 0)"
+    }
+  ],
   "methods": [
     {
       "type": "set <symbol>",
@@ -66,7 +79,7 @@
     },
     {
       "type": "rate <float>",
-      "description": "sets sample rate"
+      "description": "sets the file's sample rate (default Pd's)"
     },
     {
       "type": "fade <float>",
@@ -74,7 +87,7 @@
     },
     {
       "type": "maxtime <float>",
-      "description": "sets maximum recording in ms"
+      "description": "sets maximum recording time in ms"
     }
   ],
   "body": "[rec.file~] is a convenient abstraction based on [writesf~], so it records sample files that you can load with other objects, such as [sample~], [play.file~], [player~] and others."

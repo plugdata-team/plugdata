@@ -20,6 +20,16 @@ private:
         allObjects.removeString("about.MERDA");
         
         //allObjects.removeRange(allObjects.size() - 250, 250);
+
+        // Set PLUGDATA_OBJECT_FILTER to comma-separated parts of the object names you want to test
+        auto const filter = StringArray::fromTokens(SystemStats::getEnvironmentVariable("PLUGDATA_OBJECT_FILTER", {}), ",", "");
+        if (!filter.isEmpty()) {
+            for (int i = allObjects.size(); --i >= 0;) {
+                if (std::none_of(filter.begin(), filter.end(), [&](String const& token) { return allObjects[i].contains(token); }))
+                    allObjects.remove(i);
+            }
+        }
+
         createAndFuzzObject(cnv, allObjects, true);
     }
 
@@ -97,11 +107,11 @@ private:
                 while ((pos = methodName.find('<', pos)) != std::string::npos)
                 {
                     size_t end = methodName.find('>', pos + 1);
-                    if (end != std::string::npos)
-                    {
-                        expectedArgTypes.add(methodName.substr(pos, end - pos + 1));
-                        pos = end + 1;
-                    }
+                    if (end == std::string::npos)
+                        break; // Unterminated "<type" in the docs
+
+                    expectedArgTypes.add(methodName.substr(pos, end - pos + 1));
+                    pos = end + 1;
                 }
                 for (const auto& argType : expectedArgTypes)
                 {
@@ -170,8 +180,10 @@ private:
             lastY = 0;
         }
 
-        Timer::callAfterDelay(2, [this, cnv, allObjects, fuzzIncorrectly](){
-            createAndFuzzObject(cnv, allObjects, fuzzIncorrectly);
+        // With symbol fuzzing on, alternate between valid and invalid arguments, so both paths get exercised
+        // (valid arguments include symbols as well)
+        Timer::callAfterDelay(2, [this, cnv, allObjects](){
+            createAndFuzzObject(cnv, allObjects, !fuzzWithSymbols() || rng.nextBool());
         });
     }
 };

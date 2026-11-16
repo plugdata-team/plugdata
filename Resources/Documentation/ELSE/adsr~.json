@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "gate value"
         },
         {
@@ -28,7 +28,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "signal retrigger via impulses and gates"
         }
       ],
@@ -37,7 +37,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "attack time in ms"
         }
       ],
@@ -46,7 +46,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "decay time in ms"
         }
       ],
@@ -55,7 +55,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "sustain amplitude (ratio to gate value)"
         }
       ],
@@ -64,8 +64,17 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "release time in ms"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "time multiplier"
         }
       ],
       "repeat": false
@@ -75,7 +84,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "envelope signal"
         }
       ],
@@ -116,16 +125,21 @@
       "type": "float",
       "description": "curve parameter",
       "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "time multiplier",
+      "default": "1"
     }
   ],
   "flags": [
     {
       "name": "-curve <float>",
-      "description": "sets curve parameters\ndefault: 1"
+      "description": "sets curve parameters (default 1)"
     },
     {
       "name": "-lin",
-      "description": "sets to linear mode\ndefault: log"
+      "description": "sets to linear mode (default log)"
     },
     {
       "name": "-lag",
@@ -134,9 +148,25 @@
     {
       "name": "-rel",
       "description": "sets to immediate release mode"
+    },
+    {
+      "name": "-norm",
+      "description": "normalizes gates/trigger to 1"
+    },
+    {
+      "name": "-minsus <float>",
+      "description": "zero or above sets minimum sustain time (default -1)"
+    },
+    {
+      "name": "-maxsus <float>",
+      "description": "zero or above sets maximum sustain time (default -1)"
     }
   ],
   "methods": [
+    {
+      "type": "norm <float>",
+      "description": "nonzero normalizes gates/impulses to 1"
+    },
     {
       "type": "curve <float>",
       "description": "sets log curve parameter"
@@ -160,6 +190,14 @@
     {
       "type": "retrigger",
       "description": "retrigger at control rate"
+    },
+    {
+      "type": "minsus <float>",
+      "description": "zero or above sets minimum sustain time"
+    },
+    {
+      "type": "maxsus <float>",
+      "description": "zero or above sets maximum sustain time"
     }
   ],
   "body": "[adsr~] is an attack/decay/sustain/release gated envelope. At gate on (transition from 0 to any value), the attack ramp is generated, then a decay ramp goes to the sustain point (specified as a ratio of the gate value). At gate off (transition from any value to 0), [adsr~] goes to 0 at the specified release time in ms."

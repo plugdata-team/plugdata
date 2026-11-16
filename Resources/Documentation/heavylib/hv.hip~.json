@@ -2,7 +2,7 @@
   "title": [
     "hv.hip~"
   ],
-  "description": "Highpass variant with signal controlled cutoff (rpole~).",
+  "description": "highpass variant of [rpole~] with signal-controlled cutoff",
   "origin": "heavylib",
   "categories": [
     "Filters"
@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "input signal"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "frequency"
         }
       ],
@@ -41,5 +41,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[hv.hip~] is a variant of [hip~] with a signal-controlled cutoff frequency. Like [hip~], it has no effect when the cutoff is above the sample rate divided by 2 pi."
 }

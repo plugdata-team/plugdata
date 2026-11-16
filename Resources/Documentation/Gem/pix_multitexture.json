@@ -46,6 +46,23 @@
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "dimen <float, float>",
+      "description": "size of the textures: width, height"
+    },
+    {
+      "type": "mode <float>",
+      "description": "same as rectangle"
+    },
+    {
+      "type": "rectangle <float>",
+      "description": "nonzero uses rectangle textures if available"
+    },
+    {
+      "type": "texunit <float, float>",
+      "description": "bind a texture to a texture unit: texture number, unit"
+    }
+  ],
   "body": ""
 }

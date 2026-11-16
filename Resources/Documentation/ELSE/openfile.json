@@ -29,7 +29,7 @@
   "flags": [
     {
       "name": "-h <anything>",
-      "description": "sets to hyperlink (GUI) mode, 1st element is file to open and name to display, further arguments overwrite display."
+      "description": "sets to hyperlink (GUI) mode, 1st element is file to open and name to display, further arguments overwrite display"
     }
   ],
   "methods": [

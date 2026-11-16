@@ -13,6 +13,10 @@
         {
           "type": "float",
           "description": "raw MIDI input"
+        },
+        {
+          "type": "list",
+          "description": "same as \"note\" message"
         }
       ],
       "repeat": false
@@ -31,7 +35,7 @@
     {
       "messages": [
         {
-          "type": "anything",
+          "type": "signal",
           "description": "right output signal of stereo output"
         }
       ],
@@ -61,11 +65,11 @@
     },
     {
       "name": "-ch <float>",
-      "description": "set the number of channels\ndefault: 16"
+      "description": "set the number of channels (default 16)"
     },
     {
       "name": "-g <float>",
-      "description": "set the gain, 0-1\ndefault: 0.4"
+      "description": "set the gain, 0-1 (default 0.4)"
     }
   ],
   "methods": [
@@ -74,7 +78,7 @@
       "description": "loads soundfont file (.sf2/.sf3 extensions implied)"
     },
     {
-      "type": "note <f, f, f>",
+      "type": "note <float, float, float>",
       "description": "key, velocity, channel"
     },
     {
@@ -82,35 +86,35 @@
       "description": "same as note"
     },
     {
-      "type": "ctl <f, f, f>",
+      "type": "ctl <float, float, float>",
       "description": "controller number, value, channel"
     },
     {
-      "type": "bend <f, f>",
+      "type": "bend <float, float>",
       "description": "pitch bend value, channel"
     },
     {
-      "type": "touch <f, f,>",
+      "type": "touch <float, float>",
       "description": "value, channel"
     },
     {
-      "type": "polytouch <f, f, f>",
+      "type": "polytouch <float, float, float>",
       "description": "key, value, channel"
     },
     {
-      "type": "pgm <f, f>",
+      "type": "pgm <float, float>",
       "description": "program number, channel"
     },
     {
-      "type": "bank <f, f>",
+      "type": "bank <float, float>",
       "description": "bank number, channel"
     },
     {
-      "type": "transp <f, f>",
+      "type": "transp <float, float>",
       "description": "cents, channel"
     },
     {
-      "type": "pan <f, f>",
+      "type": "pan <float, float>",
       "description": "pan value, channel"
     },
     {
@@ -130,8 +134,12 @@
       "description": "prints soundfont info on terminal"
     },
     {
+      "type": "dump",
+      "description": "outputs soundfont information on rightmost outlet"
+    },
+    {
       "type": "verbose <float>",
-      "description": "non-0 sets verbose mode"
+      "description": "nonzero sets verbose mode"
     },
     {
       "type": "remap <list>",

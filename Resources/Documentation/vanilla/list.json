@@ -12,7 +12,7 @@
       "messages": [
         {
           "type": "anything",
-          "description": "set messages to concatenate to a second list and output (a bang is\na zero element list)"
+          "description": "first list: output with the second appended, a bang is empty"
         }
       ],
       "repeat": false
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "anything",
-          "description": "set messages to append to the first list (a bang is a zero element\nlist and clears it)"
+          "description": "second list to append, a bang clears it"
         }
       ],
       "repeat": false
@@ -41,11 +41,11 @@
   "arguments": [
     {
       "type": "symbol",
-      "description": "'sets the function of [list], possible values: append, prepend, store,\nsplit, trim, length, fromsymbol and tosymbol. The default value is ''append'''",
-      "default": ""
+      "description": "function of [list]: append, prepend, store, split, trim, length, fromsymbol or tosymbol",
+      "default": "append"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": "Short for \"list append\""
+  "body": "[list] on its own is [list append]. Its first argument selects another function: append, prepend, store, split, trim, length, fromsymbol or tosymbol."
 }

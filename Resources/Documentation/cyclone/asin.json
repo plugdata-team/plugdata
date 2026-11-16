@@ -42,5 +42,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": "Use [asin~] to output the arc-sine of a given number."
+  "body": "[asin] outputs the arc-sine of a given number."
 }

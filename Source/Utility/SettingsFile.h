@@ -192,6 +192,7 @@ private:
         { "palettes_version", var(1) },
         { "audio_setup", var(new DynamicObject()) },
         { "window_size", var(Array<var> { 1000, 660 }) },
+        { "suggestions_enabled", var(true) },
         { "suggestions_size", var(Array<var> { 560, 240 }) },
         { "sidebar_panel_console", var("right") },
         { "sidebar_panel_doc", var("right") },

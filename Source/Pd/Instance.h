@@ -75,6 +75,8 @@ public:
     }
 
     Atom(t_atom const* atom)
+        : type(FLOAT)
+        , value(0)
     {
         if (atom->a_type == A_FLOAT) {
             type = FLOAT;
@@ -219,9 +221,6 @@ public:
     void unregisterWeakReference(void* ptr, pd_weak_reference const* ref);
     void clearWeakReferences(void* ptr);
 
-    static void registerLuaClass(char const* object);
-    static bool isLuaClass(hash32 objectNameHash);
-
     virtual void updateConsole(SmallString const& message, bool isWarning, int numMessages, bool newWarning) = 0;
 
     virtual void titleChanged() = 0;
@@ -332,7 +331,6 @@ private:
     moodycamel::ConcurrentQueue<Message> guiMessageQueue = moodycamel::ConcurrentQueue<Message>(64);
 
     std::unique_ptr<FileChooser> openChooser;
-    static inline auto luaClasses = UnorderedSet<hash32>(); // Keep track of class names that correspond to pdlua objects
 protected:
     struct internal;
 

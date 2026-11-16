@@ -61,5 +61,5 @@
       "description": "add a dollar-sign symbol that starts with a float"
     }
   ],
-  "body": ""
+  "body": "[msg] is a message box: it holds one or more messages and sends them out when clicked or when it gets a message, replacing $1, $2... with the elements of that message. Messages after a semicolon go to the receive name given by their first element. 'set' replaces the contents, and 'add', 'add2', 'addcomma' and 'addsemi' append to them."
 }

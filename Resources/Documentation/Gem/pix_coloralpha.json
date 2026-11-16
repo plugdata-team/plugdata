@@ -3,7 +3,7 @@
     "pix_coloralpha",
     "pix_colouralpha"
   ],
-  "description": "",
+  "description": "set the alpha channel of an image from its colors",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -14,6 +14,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns processing on (default 1)"
         }
       ],
       "repeat": false
@@ -30,13 +34,7 @@
       "repeat": false
     }
   ],
-  "arguments": [
-    {
-      "type": "float",
-      "description": "turn on/off",
-      "default": "1"
-    }
-  ],
+  "arguments": [],
   "flags": [],
   "methods": [],
   "body": ""

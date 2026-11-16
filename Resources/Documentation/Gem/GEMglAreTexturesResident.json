@@ -20,17 +20,8 @@
     {
       "messages": [
         {
-          "type": "float",
-          "description": "Specifies the number of texture names to be queried."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Specifies an array containing the texture names to be queried."
+          "type": "list",
+          "description": "list of texture IDs"
         }
       ],
       "repeat": false
@@ -41,7 +32,25 @@
       "messages": [
         {
           "type": "gemlist",
-          "description": "Returns an array indicating whether each corresponding texture is resident."
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "nonzero if all textures are resident"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "residence status of each texture"
         }
       ],
       "repeat": false
@@ -49,22 +58,12 @@
   ],
   "arguments": [
     {
-      "type": "float",
-      "description": "Specifies the number of texture names to be queried.",
-      "default": "0"
-    },
-    {
-      "type": "float",
-      "description": "Specifies an array containing the texture names to be queried.",
-      "default": "[]"
-    },
-    {
-      "type": "float",
-      "description": "Returns an array indicating whether each corresponding texture is resident.",
-      "default": "[]"
+      "type": "list",
+      "description": "list of texture IDs",
+      "default": ""
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglAreTexturesResident] calls glAreTexturesResident() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glAreTexturesResident in the OpenGL reference."
 }

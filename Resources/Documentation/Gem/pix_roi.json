@@ -13,6 +13,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns processing on (default 1)"
         }
       ],
       "repeat": false
@@ -32,22 +36,22 @@
   "arguments": [
     {
       "type": "float",
-      "description": "x1",
+      "description": "x of the lower left corner (0 to 1)",
       "default": ""
     },
     {
       "type": "float",
-      "description": "y1",
+      "description": "y of the lower left corner (0 to 1)",
       "default": ""
     },
     {
       "type": "float",
-      "description": "x2",
+      "description": "x of the upper right corner (0 to 1)",
       "default": ""
     },
     {
       "type": "float",
-      "description": "y2",
+      "description": "y of the upper right corner (0 to 1)",
       "default": ""
     }
   ],

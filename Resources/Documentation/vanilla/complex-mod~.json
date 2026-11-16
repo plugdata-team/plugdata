@@ -12,7 +12,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "real part of signal input"
         }
       ],
@@ -21,7 +21,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "imaginary part of signal input"
         }
       ],
@@ -41,7 +41,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "frequency shifted side band"
         }
       ],
@@ -50,7 +50,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "opposite side band (shifted in reverse)"
         }
       ],

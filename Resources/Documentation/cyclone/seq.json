@@ -109,5 +109,5 @@
       "description": "continues playing"
     }
   ],
-  "body": "[seq] plays/records raw MIDI streams and can save/read MIDI sequence files. All tracks of a multi-track midi file are merged into one."
+  "body": "[seq] plays/records raw MIDI streams and can save/read MIDI sequence files. All tracks of a multi-track MIDI file are merged into one."
 }

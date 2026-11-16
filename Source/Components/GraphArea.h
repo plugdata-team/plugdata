@@ -136,6 +136,7 @@ public:
             cnv->gl_ymargin = getY() - canvas->canvasOrigin.y + 4;
         }
 
+        canvas->updateGraphBounds();
         canvas->updateDrawables();
     }
 

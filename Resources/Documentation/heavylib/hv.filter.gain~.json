@@ -75,5 +75,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[hv.filter.gain~] is a filter with a selectable type (highshelf, lowshelf or peak) and frequency, Q and gain settings. It updates its coefficients at signal rate, to avoid clicks when sweeping the controls."
 }

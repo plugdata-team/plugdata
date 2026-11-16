@@ -3,7 +3,7 @@
     "pix_2grey",
     "pix_2gray"
   ],
-  "description": "",
+  "description": "convert an image to greyscale, keeping its color space",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -14,6 +14,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns processing on (default 1)"
         }
       ],
       "repeat": false

@@ -144,7 +144,7 @@ bool OSUtils::createJunction(std::string from, std::string to)
 bool OSUtils::createHardLink(std::string from, std::string to)
 {
     try {
-        fs::create_hard_link(from, to);
+        fs::create_hard_link(juce::String::fromUTF8(to.c_str()).toWideCharPointer(), juce::String::fromUTF8(from.c_str()).toWideCharPointer());
     } catch (...) {
         return false;
     }
@@ -157,21 +157,21 @@ bool OSUtils::runAsAdmin(std::string command, std::string parameters, juce::Comp
 {
 
     HWND hWnd = (HWND)peer->getNativeHandle();
-    auto lpFile = (LPCTSTR)command.c_str();
-    auto lpParameters = (LPCTSTR)parameters.c_str();
+    auto const file = juce::String::fromUTF8(command.c_str());
+    auto const params = juce::String::fromUTF8(parameters.c_str());
 
     BOOL retval;
-    SHELLEXECUTEINFO sei;
+    SHELLEXECUTEINFOW sei;
     ZeroMemory(&sei, sizeof(sei));
 
-    sei.cbSize = sizeof(SHELLEXECUTEINFO);
+    sei.cbSize = sizeof(SHELLEXECUTEINFOW);
     sei.hwnd = hWnd;
     sei.fMask = SEE_MASK_NOASYNC | SEE_MASK_NO_CONSOLE;
-    sei.lpVerb = TEXT("runas");
-    sei.lpFile = lpFile;
-    sei.lpParameters = lpParameters;
+    sei.lpVerb = L"runas";
+    sei.lpFile = file.toWideCharPointer();
+    sei.lpParameters = params.toWideCharPointer();
     sei.nShow = SW_SHOWNORMAL;
-    retval = ShellExecuteEx(&sei);
+    retval = ShellExecuteExW(&sei);
 
     return (bool)retval;
 }
@@ -247,6 +247,26 @@ void OSUtils::updateLinuxWindowConstraints(juce::ComponentPeer* peer)
         const auto physicalBounds = x11->getWindowBounds(window, 0);
         x11->updateSizeHints(window, *peer, physicalBounds);
     }
+}
+
+bool OSUtils::isLinuxWindowViewable(juce::ComponentPeer* peer)
+{
+    // When X can't be asked (no window yet, Wayland, no connection), say it's viewable, so drawing goes on
+    if (peer == nullptr || isWaylandWindow(peer))
+        return true;
+
+    auto* display = juce::XWindowSystem::getInstance()->getDisplay();
+    auto const window = reinterpret_cast<::Window>(peer->getNativeHandle());
+    if (display == nullptr || window == 0)
+        return true;
+
+    // Viewable means the window and all the windows it sits in are mapped
+    juce::XWindowSystemUtilities::ScopedXLock xLock;
+    XWindowAttributes attributes;
+    if (!XGetWindowAttributes(display, window, &attributes))
+        return true;
+
+    return attributes.map_state == IsViewable;
 }
 
 bool OSUtils::isLinuxWindowMaximised(ComponentPeer* peer)
@@ -334,6 +354,15 @@ bool OSUtils::isLinuxWindowMaximised(ComponentPeer* peer)
     }
 
     return (state & WINDOW_STATE_MAXIMIZED) != 0;
+}
+
+bool OSUtils::isLinuxWindowMaximisedOrTiled(ComponentPeer* peer)
+{
+    // On X11 the window manager doesn't tell us about tiling, we only see the maximised state
+    if (isWaylandWindow(peer))
+        return juce::isWaylandWindowMaximisedOrTiled(*peer);
+
+    return isLinuxWindowMaximised(peer);
 }
 
 void OSUtils::maximiseLinuxWindow(ComponentPeer* peer, bool shouldBeMaximised)
@@ -450,7 +479,7 @@ SmallArray<fs::path> iterateDirectoryPaths(juce::File const& directory, bool con
             for (auto const& dirEntry : recursiveDirIterFromJuceFile(directory)) {
                 auto const isDir = dirEntry.is_directory();
                 if ((isDir && !onlyFiles) || !isDir) {
-                    result.add(dirEntry.path().string());
+                    result.add(dirEntry.path());
                 }
 
                 if (maximum > 0 && result.size() >= maximum)
@@ -483,7 +512,11 @@ SmallArray<juce::File> OSUtils::iterateDirectory(juce::File const& directory, bo
     auto paths = iterateDirectoryPaths(directory, recursive, onlyFiles, maximum);
     auto files = SmallArray<juce::File>();
     for (auto& path : paths) {
+#ifdef _WIN32
+        files.add(juce::File(juce::String(path.c_str())));
+#else
         files.add(juce::File(path.string()));
+#endif
     }
 
     return files;

@@ -2,7 +2,7 @@
   "title": [
     "surface3d"
   ],
-  "description": "Renders a 3d bicubic curve.",
+  "description": "renders a 3D bicubic surface",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -18,12 +18,7 @@
       "repeat": false
     },
     {
-      "messages": [
-        {
-          "type": "unused",
-          "description": "unused"
-        }
-      ],
+      "messages": [],
       "repeat": false
     }
   ],
@@ -48,16 +43,16 @@
   "flags": [],
   "methods": [
     {
-      "type": "res <float> <float>",
-      "description": "Change the subdivision of the displayed curve."
+      "type": "res <float, float>",
+      "description": "Change the subdivision of the displayed curve"
     },
     {
-      "type": "grid <float> <float>",
-      "description": "Change the size of the control matrix."
+      "type": "grid <float, float>",
+      "description": "Change the size of the control matrix"
     },
     {
-      "type": "set <float> <float> <float> <float>",
-      "description": "Set the position of a control point."
+      "type": "set <float, float, float, float, float>",
+      "description": "move a control point: column, row, x, y, z"
     },
     {
       "type": "normal <float>",
@@ -65,7 +60,15 @@
     },
     {
       "type": "draw <symbol>",
-      "description": "line, fill or point"
+      "description": "drawing style: default, line, fill, point, line1 to line4, or control_point, control_line(1/2), control_fill"
+    },
+    {
+      "type": "width <float>",
+      "description": "line width for the line drawing styles (default 1)"
+    },
+    {
+      "type": "blend <float>",
+      "description": "nonzero turns alpha blending on"
     }
   ],
   "body": ""

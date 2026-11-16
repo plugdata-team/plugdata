@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "real part of the complex signal in cartesian form"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "imaginary part of the complex signal in cartesian form"
         }
       ],
@@ -31,7 +31,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "amplitude output of the polar form"
         }
       ],
@@ -40,7 +40,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "phase in radians (-pi to pi) output of the polar form"
         }
       ],

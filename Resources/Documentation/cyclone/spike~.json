@@ -2,7 +2,7 @@
   "title": [
     "spike~"
   ],
-  "description": "report zero to non-0 transition intervals",
+  "description": "report zero to nonzero transition intervals",
   "origin": "cyclone",
   "categories": [
     "Analysis"
@@ -36,7 +36,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "interval in ms since last 0 to non-0 transition"
+          "description": "interval in ms since last 0 to nonzero transition"
         }
       ],
       "repeat": false
@@ -45,5 +45,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": "[spike~] reports intervals of zero to non-0 transitions from the signal input. The refractory period is set at the second inlet, which defines how soon after detecting a transition the spike~ object will report the next instance."
+  "body": "[spike~] reports intervals of zero to nonzero transitions from the signal input. The refractory period is set at the second inlet, which defines how soon after detecting a transition the spike~ object will report the next instance."
 }

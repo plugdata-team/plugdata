@@ -13,15 +13,10 @@
         {
           "type": "gemlist",
           "description": ""
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
+        },
         {
           "type": "bang",
-          "description": "grab/release"
+          "description": "grab or release the vertex nearest to the position"
         }
       ],
       "repeat": false
@@ -30,7 +25,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "size"
+          "description": "size of the square"
         }
       ],
       "repeat": false
@@ -39,7 +34,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "height"
+          "description": "height of the pull"
         }
       ],
       "repeat": false
@@ -48,7 +43,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "posX (centered)"
+          "description": "x position (centered)"
         }
       ],
       "repeat": false
@@ -57,7 +52,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "posY (centered)"
+          "description": "y position (centered)"
         }
       ],
       "repeat": false
@@ -76,32 +71,38 @@
   ],
   "arguments": [
     {
-      "type": "bang",
-      "description": "grab/release",
-      "default": ""
+      "type": "float",
+      "description": "number of grid segments along x",
+      "default": "32"
     },
     {
       "type": "float",
-      "description": "size",
-      "default": ""
-    },
-    {
-      "type": "float",
-      "description": "height",
-      "default": ""
-    },
-    {
-      "type": "float",
-      "description": "posX (centered)",
-      "default": ""
-    },
-    {
-      "type": "float",
-      "description": "posY (centered)",
-      "default": ""
+      "description": "number of grid segments along y",
+      "default": "32"
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "draw <symbol>",
+      "description": "drawing style: default, point, line or fill"
+    },
+    {
+      "type": "width <float>",
+      "description": "line width for the line drawing styles (default 1)"
+    },
+    {
+      "type": "blend <float>",
+      "description": "nonzero turns alpha blending on"
+    },
+    {
+      "type": "drag <float>",
+      "description": "drag of the rubber"
+    },
+    {
+      "type": "spring <float>",
+      "description": "spring constant of the rubber"
+    }
+  ],
   "body": ""
 }

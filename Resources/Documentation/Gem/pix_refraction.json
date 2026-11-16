@@ -16,7 +16,7 @@
         },
         {
           "type": "float",
-          "description": "apply/don't apply"
+          "description": "nonzero turns processing on (default 1)"
         }
       ],
       "repeat": false
@@ -46,11 +46,11 @@
     },
     {
       "type": "mag <float>",
-      "description": ""
+      "description": "nonzero allows magnification"
     },
     {
       "type": "refract <float>",
-      "description": ""
+      "description": "refraction factor"
     }
   ],
   "body": ""

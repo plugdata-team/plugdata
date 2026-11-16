@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "input value to log function"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "set base value of the log function"
         }
       ],
@@ -31,7 +31,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "output of log function"
         }
       ],

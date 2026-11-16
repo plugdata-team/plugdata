@@ -21,6 +21,11 @@
   ],
   "arguments": [],
   "flags": [],
-  "methods": [],
-  "body": ""
+  "methods": [
+    {
+      "type": "add <symbol, anything>",
+      "description": "add a scalar for this template to the named window (prefixed with 'pd', as in 'pd-data'), optionally followed by field names and values"
+    }
+  ],
+  "body": "[template] is the old name of [struct], which defines a data structure template and its fields. Use [struct] instead."
 }

@@ -51,5 +51,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": "div and mod do integer division, where div outputs the integer quotient and mod outputs the remainder (modulus"
+  "body": "[%] outputs the remainder of a division, like [mod], but acts differently for negative inputs (and might act variously depending on CPU design). It is provided for back compatibility."
 }

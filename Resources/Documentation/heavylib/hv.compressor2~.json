@@ -12,7 +12,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "left channel input"
         }
       ],
@@ -21,7 +21,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "right channel input"
         }
       ],

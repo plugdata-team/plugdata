@@ -1,0 +1,89 @@
+{
+  "title": [
+    "modelfiler"
+  ],
+  "description": "load a 3D model into tables",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "messages below"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "vertices <float>: number of vertices copied to the tables"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "read <symbol>",
+      "description": "read a model file"
+    },
+    {
+      "type": "position <list>",
+      "description": "tables for the vertex positions: one (x y z interleaved) or three"
+    },
+    {
+      "type": "color <list>",
+      "description": "tables for the vertex colors: one (r g b a interleaved) or four"
+    },
+    {
+      "type": "normal <list>",
+      "description": "tables for the vertex normals: one (x y z interleaved) or three"
+    },
+    {
+      "type": "texture <list>",
+      "description": "tables for the texture coordinates: one (u v interleaved) or two"
+    },
+    {
+      "type": "backend <anything>",
+      "description": "backends to try first when reading the model"
+    },
+    {
+      "type": "clearProps",
+      "description": "forget the properties stored with setProps"
+    },
+    {
+      "type": "enumProps",
+      "description": "list the properties the backend supports, on the right outlet"
+    },
+    {
+      "type": "get <anything>",
+      "description": "query the named properties; the values come out of the right outlet"
+    },
+    {
+      "type": "loader <anything>",
+      "description": "use only the given backends, in that order"
+    },
+    {
+      "type": "open <symbol>",
+      "description": "same as read"
+    },
+    {
+      "type": "set <anything>",
+      "description": "set a backend property: name and value"
+    },
+    {
+      "type": "setProps <anything>",
+      "description": "store properties (name value ...) to use from the next open on"
+    }
+  ],
+  "body": "[modelfiler] reads a model and copies its vertex data into arrays, for [gemvertexbuffer] for example."
+}

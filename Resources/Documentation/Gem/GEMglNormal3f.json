@@ -2,7 +2,7 @@
   "title": [
     "GEMglNormal3f"
   ],
-  "description": "set the current normal vector with three single-precision values",
+  "description": "set the current normal vector",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,25 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the x, y, and z components of the current normal vector."
+          "description": "x coordinate of the new normal"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "y coordinate of the new normal"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "z coordinate of the new normal"
         }
       ],
       "repeat": false
@@ -41,11 +59,21 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the x, y, and z components of the current normal vector.",
-      "default": "0.0"
+      "description": "x coordinate of the new normal",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "y coordinate of the new normal",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "z coordinate of the new normal",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglNormal3f] calls glNormal3f() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glNormal in the OpenGL reference."
 }

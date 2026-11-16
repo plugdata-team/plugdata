@@ -15,6 +15,10 @@
           "description": ""
         },
         {
+          "type": "float",
+          "description": "nonzero turns processing on (default 1)"
+        },
+        {
           "type": "bang",
           "description": "set the current frame as \"background"
         }

@@ -36,7 +36,12 @@
       "default": "2"
     }
   ],
-  "flags": [],
+  "flags": [
+    {
+      "name": "-z",
+      "description": "add zeros for missing elements"
+    }
+  ],
   "methods": [],
   "body": "[lace] interleaves two or more lists. A bang is considered an empty list."
 }

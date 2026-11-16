@@ -12,7 +12,16 @@
       "messages": [
         {
           "type": "gemlist",
-          "description": ""
+          "description": "particle system (from [part_head])"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "gravity vector: x, y and z"
         }
       ],
       "repeat": false
@@ -32,17 +41,17 @@
   "arguments": [
     {
       "type": "float",
-      "description": "gravitation vector x",
+      "description": "x of the gravity vector",
       "default": ""
     },
     {
       "type": "float",
-      "description": "gravitation vector y",
+      "description": "y of the gravity vector",
       "default": ""
     },
     {
       "type": "float",
-      "description": "gravitation vector z",
+      "description": "z of the gravity vector",
       "default": ""
     }
   ],

@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the lower left corner of the scissor box."
+          "description": "x of the lower left corner of the scissor box, in pixels"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the lower left corner of the scissor box."
+          "description": "y of the lower left corner of the scissor box, in pixels"
         }
       ],
       "repeat": false
@@ -39,7 +39,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the width and height of the scissor box."
+          "description": "width of the scissor box"
         }
       ],
       "repeat": false
@@ -48,7 +48,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the width and height of the scissor box."
+          "description": "height of the scissor box"
         }
       ],
       "repeat": false
@@ -68,26 +68,26 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the lower left corner of the scissor box.",
-      "default": ""
+      "description": "x of the lower left corner of the scissor box, in pixels",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the lower left corner of the scissor box.",
-      "default": ""
+      "description": "y of the lower left corner of the scissor box, in pixels",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the width and height of the scissor box.",
-      "default": ""
+      "description": "width of the scissor box",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the width and height of the scissor box.",
-      "default": ""
+      "description": "height of the scissor box",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglScissor] calls glScissor() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glScissor in the OpenGL reference."
 }

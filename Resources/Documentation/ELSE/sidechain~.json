@@ -1,0 +1,93 @@
+{
+  "title": [
+    "sidechain~"
+  ],
+  "description": "sidechain compression",
+  "origin": "ELSE",
+  "categories": [
+    "Effects",
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "input signal"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "control signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "ducked signal alone or mixed with control signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "threshold in dB",
+      "default": "-60"
+    },
+    {
+      "type": "float",
+      "description": "attenuation ratio",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "attack time in ms",
+      "default": "10"
+    },
+    {
+      "type": "float",
+      "description": "release time in ms",
+      "default": "10"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-mix",
+      "description": "mixes with control signal"
+    }
+  ],
+  "methods": [
+    {
+      "type": "thresh <float>",
+      "description": "sets threshold in dB"
+    },
+    {
+      "type": "ratio <float>",
+      "description": "sets attenuation ratio"
+    },
+    {
+      "type": "attack <float>",
+      "description": "sets attack time in ms"
+    },
+    {
+      "type": "release <float>",
+      "description": "sets release time in ms"
+    },
+    {
+      "type": "mix <float>",
+      "description": "nonzero mixes with control signal"
+    }
+  ],
+  "body": "[sidechain~] is an abstraction that performs sidechain compression, so it attenuates an input signal according to the level of a control signal (a.k.a. 'key signal' or side chain input). Usually you mix the compressed signal with the side chain input, and there's a flag for that. There's support for multichannels."
+}

@@ -2,7 +2,7 @@
   "title": [
     "pix_draw"
   ],
-  "description": "draw pixels on the screen without doing any texture mapping.",
+  "description": "draw pixels on the screen without doing any texture mapping",
   "origin": "Gem",
   "categories": [
     "Graphics"

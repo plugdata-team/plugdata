@@ -64,12 +64,20 @@
     {
       "name": "-seed <float>",
       "description": "seed value"
+    },
+    {
+      "name": "-n <float>",
+      "description": "snumber of elements to output (default: 1)"
     }
   ],
   "methods": [
     {
       "type": "seed <float>",
       "description": "a float sets seed, no float sets a unique internal"
+    },
+    {
+      "type": "n <float>",
+      "description": "set number of elements to output"
     }
   ],
   "body": "[rand.f] generates random float values for a given range when triggered with a bang. Use the seed message if you want a reproducible output."

@@ -1,6 +1,6 @@
 {
   "title": [
-    "newWaves"
+    "newWave"
   ],
   "description": "renders a waving square (mass-spring-system)",
   "origin": "Gem",
@@ -13,6 +13,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "bang",
+          "description": "advance the wave simulation by one step"
         }
       ],
       "repeat": false
@@ -21,7 +25,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "size (dimX & dimY)"
+          "description": "size of the square: x and y"
         }
       ],
       "repeat": false
@@ -30,7 +34,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "height"
+          "description": "height of the wave"
         }
       ],
       "repeat": false
@@ -39,7 +43,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "action"
+          "description": "reset to a shape, 1 to 10: flat, spike, walls, hole, blocks, hills"
         }
       ],
       "repeat": false
@@ -59,52 +63,73 @@
   "arguments": [
     {
       "type": "float",
-      "description": "X grid resolution",
-      "default": "3"
+      "description": "grid resolution in x, 3 or more",
+      "default": "10"
     },
     {
       "type": "float",
-      "description": "Y grid resolution",
-      "default": "X value"
+      "description": "grid resolution in y",
+      "default": "same as x"
+    },
+    {
+      "type": "float",
+      "description": "height of the wave",
+      "default": "1"
     }
   ],
   "flags": [],
   "methods": [
     {
-      "type": "K1",
-      "description": "weight factor"
+      "type": "draw <symbol>",
+      "description": "drawing style: default, point, line or fill"
     },
     {
-      "type": "D1",
+      "type": "K1 <float>",
+      "description": "weight factor (spring constant)"
+    },
+    {
+      "type": "D1 <float>",
       "description": "damping factor"
     },
     {
-      "type": "K2",
-      "description": "weight factor"
+      "type": "K2 <float>",
+      "description": "weight factor (spring constant)"
     },
     {
-      "type": "D2",
+      "type": "D2 <float>",
       "description": "damping factor"
     },
     {
-      "type": "K3",
-      "description": "weight factor"
+      "type": "K3 <float>",
+      "description": "weight factor (spring constant)"
     },
     {
-      "type": "D3",
+      "type": "D3 <float>",
       "description": "damping factor"
     },
     {
-      "type": "position <float> <float> <float>",
-      "description": "clamp the node at (X Y) to a certain height and release it"
+      "type": "position <float, float, float>",
+      "description": "clamp the node at x y to a height z, until released"
     },
     {
       "type": "noise <float>",
-      "description": "add a random force ( -val < force < +val) to all nodes"
+      "description": "add a random force between -value and value to all nodes"
     },
     {
-      "type": "force <float> <float> <float>",
-      "description": "apply a force of value of arg3 onto the wave at position (arg1, arg2)"
+      "type": "force <float, float, float>",
+      "description": "apply a force of value z to the wave at x y"
+    },
+    {
+      "type": "width <float>",
+      "description": "line width for the line drawing styles (default 1)"
+    },
+    {
+      "type": "blend <float>",
+      "description": "nonzero turns alpha blending on"
+    },
+    {
+      "type": "texture <float>",
+      "description": "texture coordinate mode, 0 or above"
     }
   ],
   "body": ""

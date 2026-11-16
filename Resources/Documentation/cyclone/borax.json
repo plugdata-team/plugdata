@@ -12,7 +12,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "midi note number"
+          "description": "MIDI note number"
         }
       ],
       "repeat": false

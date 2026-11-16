@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "message number to replace or add (if greater than the number of messages)"
+          "description": "message number to replace, or to add if past the end"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "element number to start replacing, or replace whole message if negative"
+          "description": "element to start replacing at, negative replaces the whole message"
         }
       ],
       "repeat": false
@@ -74,5 +74,5 @@
     }
   ],
   "methods": [],
-  "body": ""
+  "body": "[text set] replaces a line of a text, or adds one when the line number is past the end. With an element number, it replaces only part of the line, starting at that element. The text is named by the argument or the right inlet, or found through a pointer with -s."
 }

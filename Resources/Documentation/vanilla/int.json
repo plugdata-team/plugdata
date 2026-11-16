@@ -3,7 +3,7 @@
     "int",
     "i"
   ],
-  "description": "the stored integer value",
+  "description": "truncate floats and store an integer",
   "origin": "vanilla",
   "categories": [
     "Data Math"
@@ -61,5 +61,5 @@
       "description": "send the stored value to a [receive] or [value] object that has the same name as the symbol (no output)"
     }
   ],
-  "body": ""
+  "body": "[int] stores an integer: a float in the left inlet is truncated, stored and output, a float in the right inlet is stored without output, and a bang outputs the stored value. It can also be used to truncate floats to integers."
 }

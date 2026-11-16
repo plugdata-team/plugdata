@@ -2,7 +2,7 @@
   "title": [
     "pix_backlight"
   ],
-  "description": "radially displace pixels depending on their luminance value, producing a backlighting effect",
+  "description": "displace pixels outward by their luminance, for a backlight effect",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -13,6 +13,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns processing on (default 1)"
         }
       ],
       "repeat": false
@@ -21,7 +25,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "scale-factor"
+          "description": "scale factor (default 0.5)"
         }
       ],
       "repeat": false
@@ -30,7 +34,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "floor"
+          "description": "floor (default 0)"
         }
       ],
       "repeat": false
@@ -39,7 +43,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "ceiling"
+          "description": "ceiling (default 1)"
         }
       ],
       "repeat": false
@@ -59,7 +63,7 @@
   "arguments": [
     {
       "type": "float",
-      "description": "scale-factor",
+      "description": "scale factor",
       "default": "0.5"
     },
     {

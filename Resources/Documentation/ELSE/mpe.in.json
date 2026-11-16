@@ -32,8 +32,13 @@
       "messages": [
         {
           "type": "list",
-          "description": "voice number, type and data\nend:"
-        },
+          "description": "voice number, data type and data"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
         {
           "type": "float",
           "description": "port number"
@@ -52,7 +57,7 @@
   "flags": [
     {
       "name": "-ext",
-      "description": "only listen to external input source\ndefault: log"
+      "description": "only listen to external input source (default log)"
     }
   ],
   "methods": [

@@ -469,7 +469,7 @@ public:
 
     void update() override
     {
-        if (auto const s = scalar.getRaw<t_scalar>()) {
+        if (auto s = scalar.get<t_scalar>()) {
             if (!s->sc_template)
                 return;
 
@@ -672,7 +672,7 @@ public:
     void update() override
     {
         Path toDraw;
-        if (auto const s = scalar.getRaw<t_scalar>()) {
+        if (auto s = scalar.get<t_scalar>()) {
 
             if (!s->sc_template)
                 return;
@@ -967,7 +967,8 @@ public:
 
     void updateSubplots()
     {
-        auto* s = scalar.getRaw<t_scalar>();
+        auto scalarLock = scalar.get<t_scalar>();
+        auto* s = scalarLock.get();
 
         if (!s || !s->sc_template)
             return;

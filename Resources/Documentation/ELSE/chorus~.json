@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "input to chorus"
         }
       ],
@@ -49,7 +49,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "chorus output"
         }
       ],

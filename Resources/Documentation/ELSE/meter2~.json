@@ -12,7 +12,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "left incoming signal channels to be vu-metered"
         }
       ],
@@ -21,7 +21,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "right incoming signal channels to be vu-metered"
         }
       ],
@@ -32,7 +32,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "left incoming signals are passed through"
         }
       ],
@@ -41,7 +41,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "right incoming signals are passed through"
         }
       ],

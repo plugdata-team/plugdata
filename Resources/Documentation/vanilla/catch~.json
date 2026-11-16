@@ -8,7 +8,12 @@
     "Mixing and Routing",
     "Audio I/O"
   ],
-  "inlets": [],
+  "inlets": [
+    {
+      "messages": [],
+      "repeat": false
+    }
+  ],
   "outlets": [
     {
       "messages": [
@@ -39,5 +44,5 @@
       "description": "sets number of channels"
     }
   ],
-  "body": "Any number of throw~ objects can add into one catch~ object (but two catch~ objects cannot share the same name"
+  "body": "Any number of throw~ objects can add into one catch~ object (but two catch~ objects cannot share the same name).\n\nNote: the [throw~] objects have to be sorted before the [catch~] in the DSP chain, or else you'll never get less than a block's delay."
 }

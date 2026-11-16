@@ -1,0 +1,110 @@
+{
+  "title": [
+    "camera"
+  ],
+  "description": "move a camera through the scene",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        },
+        {
+          "type": "bang",
+          "description": "move one step and output the position, view and up vectors"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "camera position, view point and up vector: 9 values"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "forward <float>",
+      "description": "nonzero moves forward on each bang"
+    },
+    {
+      "type": "reverse <float>",
+      "description": "nonzero moves backward on each bang"
+    },
+    {
+      "type": "left <float>",
+      "description": "nonzero turns left on each bang"
+    },
+    {
+      "type": "right <float>",
+      "description": "nonzero turns right on each bang"
+    },
+    {
+      "type": "up <float>",
+      "description": "nonzero turns up on each bang"
+    },
+    {
+      "type": "down <float>",
+      "description": "nonzero turns down on each bang"
+    },
+    {
+      "type": "speed <float>",
+      "description": "speed of the movements"
+    },
+    {
+      "type": "distance <float>",
+      "description": "distance from the view point"
+    },
+    {
+      "type": "hAngle <float>",
+      "description": "horizontal angle, in degrees"
+    },
+    {
+      "type": "vAngle <float>",
+      "description": "vertical angle, in degrees"
+    },
+    {
+      "type": "lookX <float>",
+      "description": "x of the view point"
+    },
+    {
+      "type": "lookY <float>",
+      "description": "y of the view point"
+    },
+    {
+      "type": "lookZ <float>",
+      "description": "z of the view point"
+    },
+    {
+      "type": "mode <float>",
+      "description": "0 local mode, 1 gemwin mode (inverts the turning directions)"
+    },
+    {
+      "type": "reset",
+      "description": "reset the camera"
+    }
+  ],
+  "body": ""
+}

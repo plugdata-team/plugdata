@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "input value to exp function"
         }
       ],
@@ -22,7 +22,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "output of exp function"
         }
       ],

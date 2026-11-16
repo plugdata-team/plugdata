@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "size <float>",
+          "type": "float",
           "description": "number of elements in a group"
         }
       ],
@@ -50,13 +50,13 @@
   "arguments": [
     {
       "type": "float",
-      "description": "number of outlets from 2-512 (default 2), there's an extra outlet for the extra elements",
-      "default": ""
+      "description": "number of outlets from 2-512 (there's an extra outlet for the extra elements)",
+      "default": "2"
     },
     {
       "type": "float",
-      "description": "elements number size per outlet (default 1)",
-      "default": ""
+      "description": "elements number size per outlet",
+      "default": "1"
     }
   ],
   "flags": [],

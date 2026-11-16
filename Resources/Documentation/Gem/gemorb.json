@@ -1,0 +1,60 @@
+{
+  "title": [
+    "gemorb"
+  ],
+  "description": "stand-in for Gem's removed SpaceOrb interface",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "ignored"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "position: x y z"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "rotation: x y z"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "button states"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "serial port the SpaceOrb was on",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "Gem no longer supports this hardware: the abstraction is a stand-in that does nothing, so old patches still load."
+}

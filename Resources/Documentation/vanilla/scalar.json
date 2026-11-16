@@ -2,7 +2,7 @@
   "title": [
     "scalar"
   ],
-  "description": "create a scalar datum \n  default: [scalar define]",
+  "description": "create a scalar datum",
   "origin": "vanilla",
   "categories": [
     "Data Structures"

@@ -23,5 +23,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[hv.pinknoise~] outputs pink noise."
 }

@@ -2,7 +2,7 @@
   "title": [
     "GEMglEnd"
   ],
-  "description": "end the definition of a vertex, primitive, or pixel group",
+  "description": "delimit the vertices of a primitive or a group of like primitives",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -32,5 +32,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglEnd] calls glEnd() each time a gemlist passes through it. See glBegin in the OpenGL reference."
 }

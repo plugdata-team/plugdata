@@ -53,8 +53,17 @@
       "default": "1000"
     }
   ],
-  "flags": [],
+  "flags": [
+    {
+      "name": "-norm",
+      "description": "normalizes gates/trigger to 1"
+    }
+  ],
   "methods": [
+    {
+      "type": "norm <float>",
+      "description": "nonzero normalizes gates/impulses to 1"
+    },
     {
       "type": "clear",
       "description": "clears filter's memory"

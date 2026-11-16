@@ -1,0 +1,89 @@
+{
+  "title": [
+    "deque"
+  ],
+  "description": "store messages and output via fifo/lifo",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "outputs and removes a message"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "input messages to be stacked"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "the stored message"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "number of stored messages"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "sets order, <fifo> (default) or <lifo>",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "dump",
+      "description": "outputs all messages and clears them"
+    },
+    {
+      "type": "clear",
+      "description": "clears the stack"
+    },
+    {
+      "type": "n",
+      "description": "outputs number of elements in right outlet"
+    },
+    {
+      "type": "fifo",
+      "description": "set order to 'fifo'"
+    },
+    {
+      "type": "lifo",
+      "description": "set order to 'lifo'"
+    },
+    {
+      "type": "show",
+      "description": "opens [text] window"
+    },
+    {
+      "type": "hide",
+      "description": "closes [text] window"
+    }
+  ],
+  "body": "[deque] is a double-ended queue, so it can be 'fifo' - a first in first out, or 'queue' (the default) - or 'lifo' - last in first out, or 'stack'. It stores Pd messages on the right inlet, which get output and removed via bang messages."
+}

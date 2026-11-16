@@ -31,7 +31,17 @@
       "repeat": false
     }
   ],
-  "outlets": [],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "list with removed elements"
+        }
+      ],
+      "repeat": false
+    }
+  ],
   "arguments": [
     {
       "type": "list",

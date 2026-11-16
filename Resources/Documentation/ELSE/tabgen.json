@@ -12,7 +12,7 @@
       "messages": [
         {
           "type": "anything",
-          "description": "commands to generate functions (details in [pd examples])"
+          "description": "commands to generate functions"
         }
       ],
       "repeat": false
@@ -39,7 +39,7 @@
   "flags": [
     {
       "name": "-ms",
-      "description": "set table size to ms\ndefault: points"
+      "description": "set table size to ms (default points)"
     }
   ],
   "methods": [

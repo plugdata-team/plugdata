@@ -13,10 +13,10 @@
       "messages": [
         {
           "type": "list",
-          "description": "first number selects instance; rest of the list is sent to that instance's inlet"
+          "description": "instance number, then the message for that instance"
         },
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "signal sent to all instances"
         }
       ],
@@ -27,12 +27,12 @@
     {
       "messages": [
         {
-          "type": "data outlets",
-          "description": "output with a prepended instance number"
+          "type": "anything",
+          "description": "output of an instance, with its number prepended"
         },
         {
-          "type": "signal outlets",
-          "description": "output from all instances either as multichannel signal or summed into mono signal"
+          "type": "signals",
+          "description": "output of all instances, as a multichannel signal or summed"
         }
       ],
       "repeat": true
@@ -62,7 +62,7 @@
     },
     {
       "name": "-s <float>",
-      "description": "sets starting voice number\ndefault: 0"
+      "description": "sets starting voice number (default 0)"
     },
     {
       "name": "-di",
@@ -103,5 +103,5 @@
       "description": "sends a message to all instances' inlet"
     }
   ],
-  "body": "clone creates any number of instances of a desired abstraction (a patch loaded as an object in another patch"
+  "body": "clone creates any number of instances of a desired abstraction (a patch loaded as an object in another patch). Within each copy, \"$1\" is set to the instance number. These count from 0 unless the \"-s\" option sets another start, and the \"-x\" option leaves \"$1\" out. You can pass additional arguments to the copies, which appear as $2 and onward (or $1 and onward with the \"-x\" option).\n\nclone's inlets and outlets correspond to those of the contained patch, and may be signal and/or control inlets and outlets. You can click on the clone object to see the first of the created instances.\n\nControl inlets forward a message to the instance whose number starts it, or use the 'next', 'this', 'set' and 'all' prefixes to pick instances. Signal inlets can get non float messages with the 'fwd' prefix in the same way, but signals are sent to all the instances. Signal outlets output the sum of all instances' outputs, and control outlets forward messages with the number of the instance prepended to them.\n\nFor backward compatibility, you can also invoke this as \"clone 16 clone-abstraction\", swapping the abstraction name and the number of voices."
 }

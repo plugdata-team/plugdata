@@ -1,0 +1,93 @@
+{
+  "title": [
+    "textextruded"
+  ],
+  "description": "render a line of text as extruded 3D letters",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        },
+        {
+          "type": "list",
+          "description": "render the list as text"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "font size in points (default 20)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "text metrics: bbox, bboxline, ascender, descender, height"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "initial text",
+      "default": "gem"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "font <symbol>",
+      "description": "load a TrueType font"
+    },
+    {
+      "type": "text <anything>",
+      "description": "render the given text"
+    },
+    {
+      "type": "string <anything>",
+      "description": "render the text given as a list of unicode code points"
+    },
+    {
+      "type": "depth <float>",
+      "description": "extrusion depth"
+    },
+    {
+      "type": "justify <float, float>",
+      "description": "horizontal and vertical justification"
+    },
+    {
+      "type": "linedist <float>",
+      "description": "distance between lines"
+    },
+    {
+      "type": "precision <float>",
+      "description": "precision of the outlines"
+    }
+  ],
+  "body": ""
+}

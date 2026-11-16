@@ -56,5 +56,5 @@
     }
   ],
   "methods": [],
-  "body": "[pd.link] allows you to communicate to/from different Pd instances over local network, as different versions and even forks of Pure Data (such as plugdata). It works like [send]/[receive] (or [else/sender]/[else/receiver]) as it just needs a symbol address. It works via network but it's simpler as it doesn't require network or OSC configuration! It also allows you to communicate to a [pd~] subprocess."
+  "body": "[pdlink] allows you to communicate to/from different Pd instances over local network, as different versions and even forks of Pure Data (such as plugdata). It works like [send]/[receive] (or [else/sender]/[else/receiver]) as it just needs a symbol address. It works via network but it's simpler as it doesn't require network or OSC configuration! It also allows you to communicate to a [pd~] subprocess."
 }

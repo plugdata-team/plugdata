@@ -43,8 +43,36 @@
   ],
   "flags": [
     {
+      "name": "-chars <float>",
+      "description": "fixed number of characters (default 0 - not fixed)"
+    },
+    {
+      "name": "-refresh <float>",
+      "description": "redraw period and flash time in ms (default 100)"
+    },
+    {
       "name": "-noflash",
-      "description": "prevents flashing when getting data."
+      "description": "prevents flashing when getting data"
+    },
+    {
+      "name": "-notheme",
+      "description": "don't use Pd's color from theme"
+    },
+    {
+      "name": "-transparent",
+      "description": "makes the background transparent"
+    },
+    {
+      "name": "-bgcolor <float, float, float>",
+      "description": "background color in RGB (default 224 224 224)"
+    },
+    {
+      "name": "-flashcolor <float, float, float>",
+      "description": "flash color in RGB (default 74 79 81)"
+    },
+    {
+      "name": "-fgcolor <float, float, float>",
+      "description": "text color in RGB (default 64 64 64)"
     }
   ],
   "methods": [],

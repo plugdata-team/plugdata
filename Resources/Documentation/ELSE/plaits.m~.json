@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "freq"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "trigger"
         }
       ],
@@ -29,7 +29,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "level"
         }
       ],
@@ -38,7 +38,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "fm"
         }
       ],
@@ -47,7 +47,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "timbre"
         }
       ],
@@ -56,7 +56,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "harmonics"
         }
       ],
@@ -65,7 +65,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "morph"
         }
       ],
@@ -95,5 +95,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[plaits.m~] is a MERDA module wrapper around [plaits~], a macro oscillator with many synthesis models, made polyphonic and easier to use. It can be played via MIDI or with signals for pitch, trigger and level. The other inlets modulate FM, timbre, harmonics and morph through attenuverters; connecting to them activates the modulation automatically."
 }

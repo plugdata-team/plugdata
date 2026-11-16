@@ -3,7 +3,7 @@
     "pix_grey",
     "pix_gray"
   ],
-  "description": "",
+  "description": "convert an image to the Grey color space",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -14,6 +14,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns the conversion on (default 1)"
         }
       ],
       "repeat": false
@@ -30,13 +34,7 @@
       "repeat": false
     }
   ],
-  "arguments": [
-    {
-      "type": "float",
-      "description": "turn conversion on/off",
-      "default": "1"
-    }
-  ],
+  "arguments": [],
   "flags": [],
   "methods": [],
   "body": ""

@@ -38,7 +38,7 @@
     },
     {
       "type": "float",
-      "description": "non-0 sets to random gate value mode",
+      "description": "nonzero sets to random gate value mode",
       "default": "0"
     }
   ],
@@ -49,7 +49,7 @@
     },
     {
       "name": "-ch <float>",
-      "description": "number of output channels\ndefault: 1"
+      "description": "number of output channels (default 1)"
     },
     {
       "name": "-mc <list>",
@@ -59,7 +59,7 @@
   "methods": [
     {
       "type": "rand <float>",
-      "description": "non-0 sets to random gate value mode"
+      "description": "nonzero sets to random gate value mode"
     },
     {
       "type": "seed <float>",

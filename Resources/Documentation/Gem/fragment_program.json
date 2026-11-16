@@ -29,12 +29,30 @@
       "repeat": false
     }
   ],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "file to load the ARB fragment program from",
+      "default": ""
+    }
+  ],
   "flags": [],
   "methods": [
     {
-      "type": "open <filename>",
-      "description": "fragment shader program to load"
+      "type": "open <symbol>",
+      "description": "load the ARB fragment program from the file with the given name"
+    },
+    {
+      "type": "param <float, float, float, float, float>",
+      "description": "set a program environment parameter: index and 4 values"
+    },
+    {
+      "type": "parameter <float, float, float, float, float>",
+      "description": "same as param"
+    },
+    {
+      "type": "print",
+      "description": "print information about ARB fragment program support"
     }
   ],
   "body": ""

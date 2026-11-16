@@ -62,11 +62,11 @@
   "flags": [
     {
       "name": "-size <float>",
-      "description": "sets table size\ndefault: 128"
+      "description": "sets table size (default 128)"
     },
     {
       "name": "-embed",
-      "description": "embeds histogram data with the patch\ndefault: don't"
+      "description": "embeds histogram data with the patch (default don't)"
     }
   ],
   "methods": [
@@ -88,7 +88,7 @@
     },
     {
       "type": "embed <float>",
-      "description": "non-0 embeds histogram data with the patch"
+      "description": "nonzero embeds histogram data with the patch"
     },
     {
       "type": "size <float>",

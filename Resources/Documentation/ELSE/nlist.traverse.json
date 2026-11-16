@@ -1,0 +1,69 @@
+{
+  "title": [
+    "nlist.traverse"
+  ],
+  "description": "traverse a nested list",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "traverses through nested list's indexes"
+        },
+        {
+          "type": "float",
+          "description": "traverses through a given level"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "set name of nested list"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "nested list's indexes"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "level of the traversal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "nested list name to bind to",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "name <symbol>",
+      "description": "set name of nested list"
+    }
+  ],
+  "body": "[nlist.traverse] traverses through the indexes of a nested list. A bang goes from top to lower levels (and the level is given on the right outlet), while a float restricts to a given level."
+}

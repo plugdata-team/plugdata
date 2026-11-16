@@ -1,0 +1,56 @@
+{
+  "title": [
+    "||~"
+  ],
+  "description": "logical OR for signals",
+  "origin": "vanilla",
+  "categories": [
+    "Logic",
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "one or more channels to the left side of operation"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "one or more channels to the right side of operation"
+        },
+        {
+          "type": "float",
+          "description": "sets the right side value, floats only with an argument"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "one or more channels with the result of the operation"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initializes right inlet's value and impedes signal connections",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[||~] performs a logical OR on signals: for each sample, it outputs 1 if the left or the right input is nonzero, and 0 if both are zero."
+}

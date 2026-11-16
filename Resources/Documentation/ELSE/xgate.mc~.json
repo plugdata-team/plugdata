@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal(s)",
+          "type": "signals",
           "description": "input signal to route"
         },
         {
@@ -26,7 +26,7 @@
     {
       "messages": [
         {
-          "type": "signal(s)",
+          "type": "signals",
           "description": "routed output"
         }
       ],
@@ -55,6 +55,10 @@
     {
       "type": "time <float>",
       "description": "crossfade time in ms"
+    },
+    {
+      "type": "n <float>",
+      "description": "set number of output channels"
     }
   ],
   "body": "[xgate.mc~] routes to a channel output in a multichannel connection."

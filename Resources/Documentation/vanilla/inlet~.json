@@ -15,6 +15,10 @@
         {
           "type": "float",
           "description": "set default value for no signal connected"
+        },
+        {
+          "type": "anything",
+          "description": "any other message may be forwarded to right outlet"
         }
       ],
       "repeat": false
@@ -49,5 +53,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[inlet~] creates a signal inlet on the box of the subpatch or abstraction it is in, and outputs the signal that comes into it. Other messages to that inlet come out its right outlet, and a float sets the value used when no signal is connected. In a subpatch with a different sample rate, the argument sets the resampling method."
 }

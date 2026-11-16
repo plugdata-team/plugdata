@@ -13,8 +13,21 @@
     {
       "messages": [
         {
-          "type": "signal",
-          "description": "impulse input"
+          "type": "float/signal",
+          "description": "impulses to pass to one of the outlets"
+        },
+        {
+          "type": "list",
+          "description": "updates the probabilities when created with more than one"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "chance in % of an impulse going left, with one or no argument"
         }
       ],
       "repeat": false
@@ -41,7 +54,7 @@
   "flags": [
     {
       "name": "-seed <float>",
-      "description": "seed value\ndefault: unique internal"
+      "description": "seed value (default unique internal)"
     }
   ],
   "methods": [

@@ -46,14 +46,14 @@
     },
     {
       "type": "symbol",
-      "description": "no arg: as decimal, \"x\": hex, \"m\": < 128 \u2014 decimal / > \u2014 hex, \"a\": only symbols",
+      "description": "display format: none for decimal, \"x\" for hex, \"m\" for decimal below 128 and hex above, \"a\" for symbols only",
       "default": ""
     }
   ],
   "flags": [
     {
       "name": "@precision <float>",
-      "description": "decimal precision for floats\ndefault: 4"
+      "description": "decimal precision for floats (default 4)"
     }
   ],
   "methods": [

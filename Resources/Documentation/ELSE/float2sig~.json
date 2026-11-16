@@ -14,8 +14,8 @@
     {
       "messages": [
         {
-          "type": "float",
-          "description": "float value to convert to signal"
+          "type": "float/list",
+          "description": "value(s) to convert to signal(s)"
         }
       ],
       "repeat": false

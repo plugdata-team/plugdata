@@ -198,6 +198,7 @@ class GraphOnParent final : public ObjectBase {
     Value xRange = SynchronousValue();
     Value yRange = SynchronousValue();
     Value sizeProperty = SynchronousValue();
+    Value text = SynchronousValue();
 
     pd::Patch::Ptr subpatch;
     std::unique_ptr<Canvas> canvas;
@@ -217,23 +218,55 @@ public:
         resized();
 
         objectParameters.addParamSize(&sizeProperty);
+        objectParameters.addParamString("Object text", cGeneral, &text);
         objectParameters.addParamBool("Is graph", cGeneral, &isGraphChild, { "No", "Yes" });
         objectParameters.addParamBool("Hide name and arguments", cGeneral, &hideNameAndArgs, { "No", "Yes" });
         objectParameters.addParamRange("X range", cGeneral, &xRange, { 0, 100 });
         objectParameters.addParamRange("Y range", cGeneral, &yRange, { -1, 1 });
 
         // There is a possibility that a donecanvasdialog message is sent inbetween the initialisation in pd and the initialisation of the plugdata object, making it possible to miss this message. This especially tends to happen if the messagebox is connected to a loadbang.
-        // By running another update call asynchrounously, we can still respond to the new state
+        checkGraphState();
+    }
+
+    ~GraphOnParent() override
+    {
+        if (getValue<bool>(isGraphChild)) {
+            closeOpenedSubpatchers();
+        }
+    }
+
+    void checkGraphState()
+    {
         MessageManager::callAsync([_this = SafePointer(this)] {
             if (!_this)
                 return;
+
+            bool isGraph = true;
             if (auto glist = _this->ptr.get<t_canvas>()) {
-                if (!glist->gl_isgraph) {
-                    _this->cnv->setSelected(_this->object, false);
-                    if (auto* s = _this->object->editor->getSidebarForPanel(Sidebar::InspectorPanel))
-                        s->hideParameters();
-                    _this->object->setType(_this->getText().toString(), _this->ptr);
+                isGraph = glist->gl_isgraph;
+            } else {
+                return;
+            }
+
+            _this->setParameterExcludingListener(_this->isGraphChild, isGraph); // for destructor check
+
+            for (auto* editor : _this->pd->getEditors()) {
+                for (auto* canvas : editor->getCanvases()) {
+                    if (canvas->patch == *_this->subpatch && getValue<bool>(canvas->isGraphChild) != isGraph) {
+                        canvas->isGraphChild = isGraph;
+                    }
                 }
+            }
+
+            if (!isGraph) {
+                auto* object = _this->object;
+                _this->canvas->isGraphChild = false;
+                if (_this->cnv->getLassoSelection().isSelected(object)) {
+                    if (auto* s = object->editor->getSidebarForPanel(Sidebar::InspectorPanel))
+                        s->hideParameters();
+                }
+                _this->cnv->setSelected(object, false);
+                object->setType(_this->getText().toString(), _this->ptr);
             }
         });
     }
@@ -252,10 +285,12 @@ public:
             yRange = VarArray { var(glist->gl_y2), var(glist->gl_y1) };
             sizeProperty = VarArray { var(glist->gl_pixwidth), var(glist->gl_pixheight) };
             getTicks()->update(glist.get());
+            text = getText().toString();
         }
 
         getTicks()->updateLabel(object);
         updateCanvas();
+        checkGraphState();
     }
 
     GraphTicks* getTicks()
@@ -433,13 +468,6 @@ public:
 
         if (auto glist = ptr.get<t_glist>()) {
             setParameterExcludingListener(sizeProperty, VarArray { var(glist->gl_pixwidth), var(glist->gl_pixheight) });
-        }
-    }
-
-    ~GraphOnParent() override
-    {
-        if (getValue<bool>(isGraphChild)) {
-            closeOpenedSubpatchers();
         }
     }
 
@@ -631,26 +659,10 @@ public:
             repaint();
         } else if (v.refersToSameSourceAs(isGraphChild)) {
             int const isGraph = getValue<bool>(isGraphChild);
-
             if (auto glist = ptr.get<t_glist>()) {
                 canvas_setgraph(glist.get(), isGraph + 2 * (isGraph && glist->gl_hidetext), 0);
             }
-
-            if (!isGraph) {
-                MessageManager::callAsync([_this = SafePointer(this)] {
-                    if (!_this)
-                        return;
-
-                    _this->cnv->setSelected(_this->object, false);
-                    if (auto* s = _this->object->editor->getSidebarForPanel(Sidebar::InspectorPanel))
-                        s->hideParameters();
-
-                    _this->object->setType(_this->getText().toString(), _this->ptr);
-                });
-            } else {
-                updateCanvas();
-                repaint();
-            }
+            checkGraphState();
         } else if (v.refersToSameSourceAs(xRange)) {
             if (auto glist = ptr.get<t_canvas>()) {
                 glist->gl_x1 = static_cast<float>(xRange.getValue().getArray()->getReference(0));
@@ -663,6 +675,8 @@ public:
                 glist->gl_y1 = static_cast<float>(yRange.getValue().getArray()->getReference(1));
             }
             updateDrawables();
+        } else if (v.refersToSameSourceAs(text)) {
+            object->setType(text.toString());
         }
     }
 

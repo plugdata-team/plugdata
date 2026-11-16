@@ -3,7 +3,7 @@
     "value",
     "v"
   ],
-  "description": "sets variable value",
+  "description": "share a number between objects by name",
   "origin": "vanilla",
   "categories": [
     "Mixing and Routing",

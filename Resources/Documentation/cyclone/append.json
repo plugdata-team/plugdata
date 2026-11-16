@@ -3,7 +3,7 @@
     "append",
     "cyclone/append"
   ],
-  "description": "the combined message",
+  "description": "append a message to the end of the input",
   "origin": "cyclone",
   "categories": [
     "Data Management"

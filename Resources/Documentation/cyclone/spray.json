@@ -47,11 +47,16 @@
     },
     {
       "type": "float",
-      "description": "non-0 \u2014 output list mode",
+      "description": "nonzero sets to list output mode",
       "default": "0"
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "offset <float>",
+      "description": "sets an offset to the outlet number"
+    }
+  ],
   "body": "[spray] accepts lists where the 1st value indicates the outlet number (starting at 0) and the 2nd element (float or symbol) is sent to that outlet - when not in list mode, subsequent elements are sent to subsequent outlets to the right, other wise (in list mode) the whole list is output at that outlet."
 }

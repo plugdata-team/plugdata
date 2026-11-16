@@ -12,17 +12,8 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "the signal to be averaged"
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float/signal",
-          "description": "number of last samples to apply the average to"
         }
       ],
       "repeat": false
@@ -32,7 +23,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "the RMS over the time window"
         }
       ],
@@ -53,7 +44,7 @@
     },
     {
       "name": "-lin",
-      "description": "sets output to linear\ndefault: dBFS"
+      "description": "sets output to linear (default dBFS)"
     }
   ],
   "methods": [
@@ -62,12 +53,16 @@
       "description": "clears buffer's memory"
     },
     {
+      "type": "n <float>",
+      "description": "'n' number of last samples to apply the average to (the filter is cleared when changed)"
+    },
+    {
       "type": "size <float>",
       "description": "sets new maximum size and clears buffer's memory"
     },
     {
       "type": "lin",
-      "description": "non zero sets to linear output"
+      "description": "nonzero sets to linear output"
     }
   ],
   "body": "[mov.rms~] gives you a running/moving RMS (Root Mean Square) over a time window of samples. At each sample, the RMS of the last 'n' sample is given."

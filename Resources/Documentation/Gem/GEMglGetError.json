@@ -22,8 +22,17 @@
     {
       "messages": [
         {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
           "type": "float",
-          "description": "Returns the error code."
+          "description": "error code (0 is GL_NO_ERROR)"
         }
       ],
       "repeat": false
@@ -32,5 +41,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglGetError] calls glGetError() each time a gemlist passes through it. See glGetError in the OpenGL reference."
 }

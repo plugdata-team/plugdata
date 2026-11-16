@@ -162,7 +162,7 @@ public:
         g.setColour(colours.toolbarTextColour);
 
         g.setFont(font);
-        g.drawText(text, textBounds.withPosition(10, 10), Justification::centred, false);
+        g.drawText(text, pill, Justification::centred, false);
 
         return { image, scale };
     }
@@ -481,9 +481,11 @@ Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch, bool const warnIfA
         }
     }
 
+    pd->lockAudioThread();
     pd->patches.add_unique(existingPatch, [](auto const& ptr1, auto const& ptr2) {
         return *ptr1 == *ptr2;
     });
+    pd->unlockAudioThread();
 
     existingPatch->splitViewIndex = activeSplitIndex;
     existingPatch->windowIndex = editor->editorIndex;
@@ -552,7 +554,7 @@ void TabComponent::openPatchFolder()
         } else if (pdFiles.size() != 0) {
             TouchPopupMenu patchChoiceMenu;
             for (int i = 0; i < pdFiles.size(); i++) {
-                patchChoiceMenu.addItem(pdFileNames[i], [this, resultURL, patchURL = URL(pdFiles[0])]() mutable {
+                patchChoiceMenu.addItem(pdFileNames[i], [this, resultURL, patchURL = URL(pdFiles[i])]() mutable {
                     patchURL.setBookmarkData(resultURL.getBookmarkData());
                     openPatch(patchURL);
                 });
@@ -731,7 +733,7 @@ Canvas* TabComponent::createNewWindow(Canvas* cnv)
     newWindow->setVisible(true);
 
     auto const patch = cnv->refCountedPatch;
-    closeTab(cnv);
+    closeTab(cnv, false);
 
     patch->windowIndex = newEditor->editorIndex;
 
@@ -1265,11 +1267,13 @@ void TabComponent::closeTab(Canvas* cnv, bool const sendVisMessage)
     }
 
     canvases.removeObject(cnv);
-    patch->setVisible(false);
+    if(sendVisMessage) patch->setVisible(false);
 
+    pd->lockAudioThread();
     pd->patches.remove_one(patch, [](auto const& ptr1, auto const& ptr2) {
         return *ptr1 == *ptr2;
     });
+    pd->unlockAudioThread();
 
     pd->updateObjectImplementations();
 

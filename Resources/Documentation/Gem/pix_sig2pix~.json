@@ -1,0 +1,99 @@
+{
+  "title": [
+    "pix_sig2pix~"
+  ],
+  "description": "convert signals to images",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        },
+        {
+          "type": "signal",
+          "description": "red channel"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "green channel"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "blue channel"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "alpha channel"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "width of the image",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "height of the image",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "dimen <float, float>",
+      "description": "size of the image: width, height"
+    },
+    {
+      "type": "mode <symbol>",
+      "description": "how the signals fill the image: clear (default), fill, line or waterfall"
+    },
+    {
+      "type": "type <symbol>",
+      "description": "data type of the image: BYTE, FLOAT or DOUBLE"
+    },
+    {
+      "type": "colorspace <symbol>",
+      "description": "color space of the image: Grey, YUV or RGBA"
+    },
+    {
+      "type": "upsidedown <float>",
+      "description": "nonzero flips the image vertically"
+    }
+  ],
+  "body": ""
+}

@@ -12,5 +12,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[graph] is a subpatch with 'graph on parent' enabled: a rectangular region of its contents shows on the parent patch, displaying GUIs, comments, arrays or data structure scalars. Arrays put from the Put menu live in a graph."
 }

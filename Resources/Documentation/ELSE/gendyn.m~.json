@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "pitch"
         }
       ],
@@ -22,7 +22,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "audio out"
         }
       ],
@@ -32,5 +32,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[gendyn.m~] is a MERDA module wrapper around [gendyn~], a dynamic stochastic synthesis generator, with a pitch input. Its controls set the bandwidth in cents around the input frequency, the number of points in the waveform, the interpolation type and the maximum frequency and amplitude steps."
 }

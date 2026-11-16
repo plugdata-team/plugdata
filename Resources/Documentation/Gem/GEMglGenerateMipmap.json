@@ -2,7 +2,7 @@
   "title": [
     "GEMglGenerateMipmap"
   ],
-  "description": "generate mipmaps for a specified texture target",
+  "description": "generate mipmaps for a texture",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the target texture."
+          "description": "texture target, e.g. GL_TEXTURE_2D"
         }
       ],
       "repeat": false
@@ -40,12 +40,12 @@
   ],
   "arguments": [
     {
-      "type": "float",
-      "description": "Specifies the target texture.",
-      "default": "GL_TEXTURE_2D"
+      "type": "float/symbol",
+      "description": "texture target, e.g. GL_TEXTURE_2D",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglGenerateMipmap] calls glGenerateMipmap() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. Its creation arguments also take GL constants by name; its inlets only take their values."
 }

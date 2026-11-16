@@ -39,7 +39,9 @@ struct OSUtils {
     static bool isWaylandWindow(juce::ComponentPeer* peer);
     static void maximiseLinuxWindow(juce::ComponentPeer* peer, bool shouldBeMaximised);
     static bool isLinuxWindowMaximised(juce::ComponentPeer* peer);
+    static bool isLinuxWindowMaximisedOrTiled(juce::ComponentPeer* peer);
     static void updateLinuxWindowConstraints(juce::ComponentPeer* peer);
+    static bool isLinuxWindowViewable(juce::ComponentPeer* peer); // false while it, or a window it's in, is hidden
 #elif JUCE_MAC
     static void setWindowMovable(juce::ComponentPeer* peer, bool canMove);
     static void enableInsetTitlebarButtons(juce::ComponentPeer* peer, bool enabled);
@@ -106,6 +108,7 @@ struct OSUtils {
     static bool isIPad();
     static float getScreenCornerRadius();
     static bool addOpenURLMethodToDelegate();
+    static void startAccessingSecurityScopedURL(juce::URL const& url);
     static void showiOSNativeMenu(juce::ComponentPeer* peer, juce::String const& title, SmallArray<TouchPopupMenuItem> const& items, SmallArray<SmallArray<TouchPopupMenuItem>> const& sub, juce::Point<int> screenPosition);
 #endif
 };

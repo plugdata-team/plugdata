@@ -13,7 +13,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "input signal"
+          "description": "value to glide to"
         }
       ],
       "repeat": false
@@ -32,8 +32,8 @@
     {
       "messages": [
         {
-          "type": "signal",
-          "description": "glided signal"
+          "type": "float",
+          "description": "glided value"
         }
       ],
       "repeat": false
@@ -49,11 +49,11 @@
   "flags": [
     {
       "name": "-exp <float>",
-      "description": "sets exponential factor\ndefault: 1 - linear"
+      "description": "sets exponential factor (default 1 - linear)"
     },
     {
       "name": "-rate <float>",
-      "description": "sets refresh rate in ms (minimum 1)\ndefault: 5"
+      "description": "sets refresh rate in ms (minimum 1) (default 5)"
     }
   ],
   "methods": [

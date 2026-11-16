@@ -41,27 +41,27 @@
   "flags": [
     {
       "name": "-open <symbol>",
-      "description": "sets file name to open\ndefault: empty"
+      "description": "sets file name to open (default empty)"
     },
     {
       "name": "-send <symbol>",
-      "description": "sets send symbol\ndefault: empty"
+      "description": "sets send symbol (default empty)"
     },
     {
       "name": "-receive <symbol>",
-      "description": "sets receive symbol\ndefault: empty"
+      "description": "sets receive symbol (default empty)"
     },
     {
       "name": "-outline",
-      "description": "sets to outline mode\ndefault: no outline"
+      "description": "sets to outline mode (default no outline)"
     },
     {
       "name": "-size",
-      "description": "sets to \"report size\" mode\ndefault: no report"
+      "description": "sets to \"report size\" mode (default no report)"
     },
     {
       "name": "-latch",
-      "description": "sets to \"latch\" mode\ndefault: \"bang\" mode"
+      "description": "sets to \"latch\" mode (default \"bang\" mode)"
     }
   ],
   "methods": [
@@ -70,20 +70,20 @@
       "description": "open an image file named by the symbol"
     },
     {
-      "type": "set <symbol>",
-      "description": "same as open, but pd doesn't ask to save changes"
-    },
-    {
       "type": "latch <float>",
-      "description": "non-0 sets to latch mode"
+      "description": "nonzero sets to latch mode"
     },
     {
       "type": "outline <float>",
-      "description": "non-0 sets to outline mode"
+      "description": "nonzero sets to outline mode"
     },
     {
       "type": "size <float>",
-      "description": "non-0 sets to report size mode"
+      "description": "nonzero sets to report size mode"
+    },
+    {
+      "type": "offset <float, float>",
+      "description": "set offset x/y coords"
     },
     {
       "type": "send <symbol>",

@@ -2,7 +2,7 @@
   "title": [
     "GEMglFeedbackBuffer"
   ],
-  "description": "returns information about primitive groups in the feedback buffer",
+  "description": "controls feedback mode",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the size of the buffer."
+          "description": "maximum number of values that can be written into buffer"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the type of data to be returned."
+          "description": "what is returned for each vertex, e.g. GL_3D"
         }
       ],
       "repeat": false
@@ -50,16 +50,16 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the size of the buffer.",
+      "description": "maximum number of values that can be written into buffer",
       "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the type of data to be returned.",
-      "default": "GL_3D_COLOR"
+      "description": "what is returned for each vertex, e.g. GL_3D",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglFeedbackBuffer] calls glFeedbackBuffer() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glFeedbackBuffer in the OpenGL reference."
 }

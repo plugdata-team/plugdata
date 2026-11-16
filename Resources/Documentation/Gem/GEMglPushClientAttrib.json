@@ -2,7 +2,7 @@
   "title": [
     "GEMglPushClientAttrib"
   ],
-  "description": "push and save client attribute state",
+  "description": "push and pop the client attribute stack",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies which groups of client attributes to save."
+          "description": "mask that indicates which attributes to save"
         }
       ],
       "repeat": false
@@ -41,11 +41,11 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies which groups of client attributes to save.",
-      "default": ""
+      "description": "mask that indicates which attributes to save",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglPushClientAttrib] calls glPushClientAttrib() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glPushClientAttrib in the OpenGL reference."
 }

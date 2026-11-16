@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the name of the display list to be executed."
+          "description": "integer name of the display list to be executed"
         }
       ],
       "repeat": false
@@ -41,11 +41,11 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the name of the display list to be executed.",
+      "description": "integer name of the display list to be executed",
       "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglCallList] calls glCallList() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glCallList in the OpenGL reference."
 }

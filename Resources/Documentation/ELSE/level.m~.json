@@ -1,0 +1,36 @@
+{
+  "title": [
+    "level.m~"
+  ],
+  "description": "gain module",
+  "origin": "MERDA",
+  "categories": [
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "audio in"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "audio out"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[level.m~] is a MERDA module that sets the gain of its input in dB, the module version of [level~]. It takes multichannel inputs."
+}

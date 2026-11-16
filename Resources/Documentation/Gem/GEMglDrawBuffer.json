@@ -2,7 +2,7 @@
   "title": [
     "GEMglDrawBuffer"
   ],
-  "description": "specify color buffers to draw into",
+  "description": "specify which color buffers are to be drawn into",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the color buffer."
+          "description": "up to four color buffers to be drawn into"
         }
       ],
       "repeat": false
@@ -40,12 +40,12 @@
   ],
   "arguments": [
     {
-      "type": "float",
-      "description": "Specifies the color buffer.",
-      "default": "GL_BACK"
+      "type": "float/symbol",
+      "description": "up to four color buffers to be drawn into",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglDrawBuffer] calls glDrawBuffer() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. Its creation arguments also take GL constants by name; its inlets only take their values. See glDrawBuffer in the OpenGL reference."
 }

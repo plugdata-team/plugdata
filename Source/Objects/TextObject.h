@@ -76,24 +76,32 @@ struct TextObjectHelper {
         return std::make_unique<TextObjectBoundsConstrainer>(object);
     }
 
-    static String fixNewlines(String text)
+    static String trimEndKeepingEscapes(String const& text)
     {
-        // Don't want \r
-        text = text.replace("\r", "");
+        auto trimmed = text.trimEnd();
 
-        // Temporarily use \r to represent a real newline in pd
-        text = text.replace(";\n", "\r");
+        int slashes = 0;
+        for (int i = trimmed.length() - 1; i >= 0 && trimmed[i] == '\\'; --i)
+            slashes++;
+        if (slashes % 2 == 1 && trimmed.length() < text.length())
+            trimmed += text[trimmed.length()];
 
-        // Remove \n
-        text = text.replace("\n", " ");
+        return trimmed;
+    }
 
-        // Replace the real newlines with \n
-        text = text.replace("\r", ";\n");
+    // Pd only keeps a line break after a semicolon, any other line break is just a separator
+    static String fixNewlines(String const& text)
+    {
+        auto const lines = StringArray::fromLines(text);
 
-        // Remove whitespace from end
-        text = text.trimEnd();
+        String result;
+        for (int i = 0; i < lines.size(); i++) {
+            if (i > 0)
+                result << (lines[i - 1].endsWithChar(';') ? "\n" : " ");
+            result << lines[i];
+        }
 
-        return text;
+        return trimEndKeepingEscapes(result);
     }
 
     static String fixMissingSpace(String text)

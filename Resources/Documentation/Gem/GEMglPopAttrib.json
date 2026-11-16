@@ -2,7 +2,7 @@
   "title": [
     "GEMglPopAttrib"
   ],
-  "description": "restore the state of the attribute stack",
+  "description": "push and pop the server attribute stack",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -32,5 +32,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglPopAttrib] calls glPopAttrib() each time a gemlist passes through it. See glPushAttrib in the OpenGL reference."
 }

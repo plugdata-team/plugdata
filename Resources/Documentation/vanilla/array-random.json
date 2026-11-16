@@ -88,5 +88,5 @@
       "description": "sets random seed"
     }
   ],
-  "body": "array as weighted probabilities"
+  "body": "[array random] treats an array as weighted probabilities: a bang outputs a random index, where indices with higher values come out more often. A seed makes the output repeatable."
 }

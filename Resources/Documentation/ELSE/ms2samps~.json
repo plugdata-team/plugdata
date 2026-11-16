@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "time value in ms"
         }
       ],
@@ -22,7 +22,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "converted value in number of samples"
         }
       ],
@@ -32,5 +32,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": "[ms2samps] is a simple abstraction that converts time values from ms to number of samples. \nConversion expression: samps = ms * samplerate/1000."
+  "body": "[ms2samps~] is a simple abstraction that converts time values from ms to number of samples. \nConversion expression: samps = ms * samplerate/1000."
 }

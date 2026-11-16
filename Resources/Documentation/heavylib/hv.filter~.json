@@ -66,5 +66,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[hv.filter~] is a filter with a selectable type (allpass, lowpass, highpass, bandpass1, bandpass2 or notch) and frequency and Q settings. It updates its coefficients at signal rate, to avoid clicks when sweeping the controls."
 }

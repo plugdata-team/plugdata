@@ -2,7 +2,7 @@
   "title": [
     "GEMglRasterPos2s"
   ],
-  "description": "set the current raster position",
+  "description": "specify the raster position for pixel operations",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the x, y, and z window coordinates."
+          "description": "x coordinate of the raster position"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the x, y, and z window coordinates."
+          "description": "y coordinate of the raster position"
         }
       ],
       "repeat": false
@@ -50,16 +50,16 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the x, y, and z window coordinates.",
-      "default": ""
+      "description": "x coordinate of the raster position",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the x, y, and z window coordinates.",
-      "default": ""
+      "description": "y coordinate of the raster position",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglRasterPos2s] calls glRasterPos2s() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glRasterPos in the OpenGL reference."
 }

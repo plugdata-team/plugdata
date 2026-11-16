@@ -61,5 +61,5 @@
       "description": "goes to a position index in the sequence (from 1)"
     }
   ],
-  "body": "When receiving a signal trigger (0 to non-0 transition) or a bang, [impseq~] sends an impulse from a given sequence."
+  "body": "When receiving a signal trigger (0 to nonzero transition) or a bang, [impseq~] sends an impulse from a given sequence."
 }

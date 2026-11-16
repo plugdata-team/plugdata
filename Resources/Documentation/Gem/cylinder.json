@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "size"
+          "description": "size of the cylinder"
         }
       ],
       "repeat": false
@@ -50,7 +50,7 @@
   "arguments": [
     {
       "type": "float",
-      "description": "size",
+      "description": "size of the cylinder",
       "default": ""
     },
     {
@@ -60,6 +60,19 @@
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "draw <symbol>",
+      "description": "drawing style: default, line, fill or point"
+    },
+    {
+      "type": "width <float>",
+      "description": "line width for the line drawing styles (default 1)"
+    },
+    {
+      "type": "blend <float>",
+      "description": "nonzero turns alpha blending on"
+    }
+  ],
   "body": ""
 }

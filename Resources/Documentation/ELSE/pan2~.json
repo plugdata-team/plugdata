@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "signal input"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "pan value: from -1 (L) to 1 (R)"
         }
       ],
@@ -31,7 +31,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "left channel"
         }
       ],
@@ -40,7 +40,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "right channel"
         }
       ],
@@ -55,6 +55,11 @@
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "pan <list>",
+      "description": "pan value(s) from -1 (L) to 1 (R)"
+    }
+  ],
   "body": "[pan2~] performs an equal power (sin/cos) panning."
 }

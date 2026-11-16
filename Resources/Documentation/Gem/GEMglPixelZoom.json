@@ -2,7 +2,7 @@
   "title": [
     "GEMglPixelZoom"
   ],
-  "description": "set pixel zoom factors for read pixels",
+  "description": "specify the pixel zoom factors",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the x and y zoom factors."
+          "description": "x zoom factor for pixel write operations"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the x and y zoom factors."
+          "description": "y zoom factor for pixel write operations"
         }
       ],
       "repeat": false
@@ -50,16 +50,16 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the x and y zoom factors.",
-      "default": "1.0"
+      "description": "x zoom factor for pixel write operations",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the x and y zoom factors.",
-      "default": "1.0"
+      "description": "y zoom factor for pixel write operations",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglPixelZoom] calls glPixelZoom() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glPixelZoom in the OpenGL reference."
 }

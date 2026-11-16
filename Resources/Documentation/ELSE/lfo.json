@@ -54,17 +54,17 @@
   "arguments": [
     {
       "type": "float",
-      "description": "sets frequency in Hz (default 0)",
+      "description": "sets frequency in Hz",
       "default": "0"
     },
     {
       "type": "float",
-      "description": "sets initial phase from 0 - 1 (default 0)",
+      "description": "sets initial phase from 0 - 1",
       "default": "0"
     },
     {
       "type": "float",
-      "description": "sets refresh rate in ms (default 5)",
+      "description": "sets refresh rate in ms",
       "default": "5"
     }
   ],

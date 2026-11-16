@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal/float",
+          "type": "signal",
           "description": "value representing dBFS amplitude"
         }
       ],
@@ -32,5 +32,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": "[atodb~] takes any given signal representing a dBFS amplitude value and outputs a signal which is a linear amplitude conversion of the input."
+  "body": "[dbtoa~] converts a signal representing a dBFS amplitude value into a linear amplitude signal."
 }

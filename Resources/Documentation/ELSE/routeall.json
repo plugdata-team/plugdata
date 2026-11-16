@@ -32,7 +32,7 @@
       "messages": [
         {
           "type": "anything",
-          "description": "if an input message matches an argument, the corresponding outlet sends that message"
+          "description": "the input message, at each outlet whose argument it matches"
         }
       ],
       "repeat": true

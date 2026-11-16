@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "flanger input"
         }
       ],
@@ -49,7 +49,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "flanger output"
         }
       ],
@@ -76,9 +76,30 @@
   "flags": [
     {
       "name": "-tri",
-      "description": "sets waveform to triangular\ndefault: sine"
+      "description": "sets waveform to triangular (default sine)"
+    },
+    {
+      "name": "-width <float>",
+      "description": "set delay width/amplitude (default 10)"
+    },
+    {
+      "name": "-delay <float>",
+      "description": "set minimum delay (default 1)"
     }
   ],
-  "methods": [],
+  "methods": [
+    {
+      "type": "width <float>",
+      "description": "set delay width/amplitude"
+    },
+    {
+      "type": "delay <float>",
+      "description": "set minimum delay"
+    },
+    {
+      "type": "tri <float>",
+      "description": "nonzero sets triangular waveform"
+    }
+  ],
   "body": "[flanger~] is a simple flanger FX object."
 }

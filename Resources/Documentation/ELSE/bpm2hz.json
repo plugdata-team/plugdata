@@ -1,0 +1,51 @@
+{
+  "title": [
+    "bpm2hz"
+  ],
+  "description": "convert bpm to Hz",
+  "origin": "ELSE",
+  "categories": [
+    "Converters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "BPM value(s)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/symbol",
+          "description": "beat length"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "Hz value(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float/symbol",
+      "description": "beat length (as decimal or fraction)",
+      "default": "1/4"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[bpm2hz] converts from BPM to Hz according to a beat length (default 1/4). You can change the beat length via the argument or right inlet."
+}

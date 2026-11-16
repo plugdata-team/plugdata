@@ -14,6 +14,10 @@
         {
           "type": "float/list",
           "description": "input to operator"
+        },
+        {
+          "type": "anything",
+          "description": "an operator symbol sets the operation"
         }
       ],
       "repeat": false
@@ -21,7 +25,7 @@
     {
       "messages": [
         {
-          "type": "float",
+          "type": "list",
           "description": "secondary operator value (ignored for bitnot)"
         }
       ],
@@ -42,7 +46,7 @@
   "arguments": [
     {
       "type": "symbol",
-      "description": "operator: see [pd set] for all options",
+      "description": "operator: +, -, *, /, !-, !/, %, pow, log, max, min, ==, !=, <, >, <=, >=, &&, ||, !, &, |, ^, ~, << or >>",
       "default": "+"
     },
     {
@@ -52,11 +56,6 @@
     }
   ],
   "flags": [],
-  "methods": [
-    {
-      "type": "<symbol>",
-      "description": "operator see [pd set] for all options"
-    }
-  ],
+  "methods": [],
   "body": "[op] provides many operators and is most useful for lists, as there are objects in Pd Vanilla for all these operations."
 }

@@ -39,5 +39,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": "By default a block is 64 samples but this can be changed with the block~ object."
+  "body": "[tabreceive~] continuously outputs one block from an array every DSP cycle, such as one written by [tabsend~]. A block is 64 samples by default, which [block~] can change."
 }

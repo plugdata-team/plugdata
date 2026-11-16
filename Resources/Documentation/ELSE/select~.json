@@ -21,7 +21,7 @@
     {
       "messages": [
         {
-          "type": "signal(s)",
+          "type": "float/signals",
           "description": "input signals to select from"
         }
       ],
@@ -32,7 +32,7 @@
     {
       "messages": [
         {
-          "type": "signal(s)",
+          "type": "signals",
           "description": "the selected input"
         }
       ],

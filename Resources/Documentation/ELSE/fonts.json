@@ -1,0 +1,41 @@
+{
+  "title": [
+    "fonts"
+  ],
+  "description": "report available fonts",
+  "origin": "ELSE",
+  "categories": [
+    "UI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "outputs all system fonts"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "symbol/list",
+          "description": "available fonts or pd's font info list"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "pdfont",
+      "description": "report Pd's font information (font name and style)"
+    }
+  ],
+  "body": "The [fonts] object outputs all of your available fonts in your system. A 'pdfont' message outputs a list with Pd's font information (font name and style)."
+}

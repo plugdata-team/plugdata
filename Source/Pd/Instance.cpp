@@ -255,7 +255,7 @@ struct Instance::internal {
 };
 
 Instance::Instance()
-    : messageDispatcher(std::make_unique<MessageDispatcher>())
+    : messageDispatcher(std::make_unique<MessageDispatcher>(*this))
     , consoleMessageHandler(std::make_unique<ConsoleMessageHandler>(this))
 {
     pd::Setup::initialisePd();
@@ -496,7 +496,8 @@ void Instance::initialisePd(String& pdlua_version)
 
             break;
         }
-        case hash("cyclone_editor"): {
+        case hash("cyclone_editor"):
+        case hash("else_editor_open"): {
             auto const ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
             SmallString title;
 
@@ -566,22 +567,32 @@ void Instance::initialisePd(String& pdlua_version)
             static_cast<Instance*>(instance)->showTextEditorDialog(ptr, title, save, [](uint64_t) { });
             break;
         }
-        case hash("cyclone_editor_append"): {
+        case hash("cyclone_editor_append"):
+        case hash("else_editor_append"): {
             auto const ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
             auto const text = String::fromUTF8(atom_getsymbol(argv + 1)->s_name);
 
             static_cast<Instance*>(instance)->addTextToTextEditor(ptr, text);
             break;
         }
-        case hash("cyclone_editor_close"): {
+        case hash("cyclone_editor_close"):
+        case hash("else_editor_close"): {
             auto const ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
             static_cast<Instance*>(instance)->hideTextEditorDialog(ptr);
             break;
         }
         case hash("coll_check_open"): {
+            auto* inst = static_cast<Instance*>(instance);
             auto const ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
-            bool const open = static_cast<bool>(atom_getfloat(argv + 1));
-            bool const wasOpen = static_cast<Instance*>(instance)->isTextEditorDialogShown(ptr);
+            auto const fileHandle = reinterpret_cast<uint64_t>(argv[1].a_w.w_gpointer);
+            bool const open = static_cast<bool>(atom_getfloat(argv + 2));
+            bool const wasOpen = inst->isTextEditorDialogShown(fileHandle);
+
+            // [coll] raises or clears an open editor with Tk commands that don't reach us
+            if (wasOpen && open)
+                inst->raiseTextEditorDialog(fileHandle);
+            else if (wasOpen)
+                inst->clearTextEditor(fileHandle);
 
             StackArray<t_atom, 2> atoms;
             SETFLOAT(&atoms[0], wasOpen);
@@ -665,7 +676,8 @@ void Instance::initialisePd(String& pdlua_version)
             static_cast<Instance*>(instance)->hideTextEditorDialog(ptr);
             break;
         }
-        case hash("pdtk_textwindow_clear"): {
+        case hash("pdtk_textwindow_clear"):
+        case hash("else_editor_clear"): {
             auto const ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
             static_cast<Instance*>(instance)->clearTextEditor(ptr);
             break;
@@ -693,7 +705,8 @@ void Instance::initialisePd(String& pdlua_version)
             binbuf_free(b);
             break;
         }
-        case hash("pdtk_textwindow_raise"): {
+        case hash("pdtk_textwindow_raise"):
+        case hash("else_editor_raise"): {
             auto const ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
             static_cast<Instance*>(instance)->raiseTextEditorDialog(ptr);
             break;
@@ -703,6 +716,31 @@ void Instance::initialisePd(String& pdlua_version)
             static_cast<Instance*>(instance)->hideTextEditorDialog(ptr);
             break;
         }
+        case hash("fonts__output_fonts"): {
+            auto const* receiver = atom_getsymbol(argv)->s_name;
+            auto allTypefaces = Font::findAllTypefaceNames();
+            SmallArray<pd::Atom> fonts;
+            for(auto const& typefaceName : allTypefaces)
+            {
+                fonts.push_back(pd::Atom(gensym(typefaceName.toRawUTF8())));
+            }
+
+            static_cast<Instance*>(instance)->sendMessage(receiver, "_output_fonts", fonts);
+            break;
+        }
+        case hash("else_editor_check_open"): {
+            // ELSE objects ask Tk whether their editor window exists, and pass a message to send back for either answer
+            auto const ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
+            bool const isOpen = static_cast<Instance*>(instance)->isTextEditorDialogShown(ptr);
+            auto const* reply = atom_getsymbol(argv + (isOpen ? 1 : 2))->s_name;
+
+            auto* b = binbuf_new();
+            binbuf_text(b, reply, strlen(reply));
+            binbuf_eval(b, nullptr, 0, nullptr);
+            binbuf_free(b);
+            break;
+        }
+
         default:
             break;
         }
@@ -737,7 +775,7 @@ void Instance::initialisePd(String& pdlua_version)
         auto const extra = ProjectInfo::appDataDir.getChildFile("Extra");
         StackArray<char, 1000> vers;
         vers[0] = 0;
-        pd::Setup::initialisePdLua(extra.getFullPathName().getCharPointer(), vers.data(), 1000, &registerLuaClass);
+        pd::Setup::initialisePdLua(extra.getFullPathName().getCharPointer(), vers.data(), 1000);
         if (vers[0])
             pdlua_version = vers.data();
     }
@@ -1227,9 +1265,14 @@ void Instance::sendMessagesFromQueue()
     libpd_set_instance(static_cast<t_pdinstance*>(instance));
 
     std::function<void()> callback;
-    while (functionQueue.try_dequeue(callback)) {
+    if (!functionQueue.try_dequeue(callback))
+        return;
+
+    lockAudioThread();
+    do {
         callback();
-    }
+    } while (functionQueue.try_dequeue(callback));
+    unlockAudioThread();
 }
 
 Patch::Ptr Instance::openPatch(File const& toOpen)
@@ -1301,7 +1344,7 @@ void Instance::createPanel(int const type, char const* snd, char const* location
 
     auto* obj = generateSymbol(snd)->s_thing;
 
-    auto defaultFile = File(location);
+    auto defaultFile = File(String::fromUTF8(location));
     if (!defaultFile.exists()) {
         defaultFile = SettingsFile::getInstance()->getLastBrowserPathForId("OpenPanel");
         if (!defaultFile.exists())
@@ -1310,41 +1353,20 @@ void Instance::createPanel(int const type, char const* snd, char const* location
 
     if (type) {
         MessageManager::callAsync(
-            [this, obj = generateSymbol(snd)->s_thing, defaultFile, openMode, callback = SmallString(callbackName)]() mutable {
-                FileBrowserComponent::FileChooserFlags folderChooserFlags;
-
-                if (openMode <= 0) {
-                    folderChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles);
-                } else if (openMode == 1) {
-                    folderChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories);
-                } else {
-                    folderChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories | FileBrowserComponent::canSelectFiles | FileBrowserComponent::canSelectMultipleItems);
-                }
-
-                static std::unique_ptr<FileChooser> openChooser;
-                openChooser = std::make_unique<FileChooser>("Open...", defaultFile, "", SettingsFile::getInstance()->wantsNativeDialog());
-
-                openChooser->launchAsync(folderChooserFlags, [this, obj, callback](FileChooser const& fileChooser) {
-                    auto const files = fileChooser.getResults();
-                    if (files.isEmpty())
-                        return;
-
+            [this, obj, defaultFile, openMode, callback = SmallString(callbackName)]() mutable {
 #if JUCE_IOS
-                    // Create input streams to access the security scoped resource
-                    SmallArray<std::unique_ptr<InputStream>> scopedAccessStreams;
-                    for (auto& url : fileChooser.getURLResults()) {
-                        scopedAccessStreams.emplace_back(url.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress)));
-                    }
+                Component* dialogParent = dynamic_cast<AudioProcessor*>(this)->getActiveEditor();
+#else
+                Component* dialogParent = nullptr;
 #endif
-                    auto const parentDirectory = files.getFirst().getParentDirectory();
-                    SettingsFile::getInstance()->setLastBrowserPathForId("OpenPanel", parentDirectory);
+                SettingsFile::getInstance()->setLastBrowserPathForId("OpenPanel", defaultFile);
 
+                auto sendResults = [this, obj, callback](Array<URL> const& urls) {
                     lockAudioThread();
 
-                    SmallArray<t_atom> atoms(files.size());
-
+                    SmallArray<t_atom> atoms(urls.size());
                     for (int i = 0; i < atoms.size(); i++) {
-                        auto pathname = files[i].getFullPathName();
+                        auto pathname = urls[i].getLocalFile().getFullPathName();
 #if JUCE_WINDOWS
                         pathname = pathname.replaceCharacter('\\', '/');
 #endif
@@ -1352,10 +1374,14 @@ void Instance::createPanel(int const type, char const* snd, char const* location
                     }
 
                     pd_typedmess(obj, generateSymbol(callback), atoms.size(), atoms.data());
-
                     unlockAudioThread();
-                    openChooser.reset(nullptr);
-                });
+                };
+
+                // Pd's open modes: 0 opens a file, 1 a folder, 2 any number of files and folders
+                if (openMode >= 2)
+                    Dialogs::showMultiOpenDialog(sendResults, true, true, "", "OpenPanel", dialogParent);
+                else
+                    Dialogs::showOpenDialog([sendResults](URL const& url) { sendResults(Array<URL> { url }); }, openMode <= 0, openMode == 1, "", "OpenPanel", dialogParent);
             });
     } else {
         MessageManager::callAsync(
@@ -1416,16 +1442,6 @@ void Instance::clearObjectImplementationsForPatch(pd::Patch const* p)
     if (auto patch = p->getPointer()) {
         objectImplementations->clearObjectImplementationsForPatch(patch.get());
     }
-}
-
-void Instance::registerLuaClass(char const* className)
-{
-    luaClasses.insert(hash(className));
-}
-
-bool Instance::isLuaClass(hash32 const objectNameHash)
-{
-    return luaClasses.contains(objectNameHash);
 }
 
 } // namespace pd

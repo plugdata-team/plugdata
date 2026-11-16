@@ -15,8 +15,8 @@
           "description": ""
         },
         {
-          "type": "list <float> <float>",
-          "description": "set parameter arg1 to value of arg2"
+          "type": "anything",
+          "description": "<name> <value>: set a parameter by name"
         }
       ],
       "repeat": false
@@ -24,8 +24,8 @@
     {
       "messages": [
         {
-          "type": "<type>",
-          "description": "depending on the settable parameter"
+          "type": "anything",
+          "description": "value of parameter $nth, of the type the plugin expects"
         }
       ],
       "repeat": true
@@ -53,6 +53,10 @@
   "methods": [
     {
       "type": "open",
+      "description": "load another plugin"
+    },
+    {
+      "type": "load <symbol>",
       "description": "load another plugin"
     }
   ],

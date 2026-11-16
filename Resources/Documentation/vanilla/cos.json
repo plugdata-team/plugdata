@@ -32,5 +32,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": "Unlike the signal version cos~, control-rate trigonometric functions take inputs in radians."
+  "body": "[cos] outputs the cosine of its input, an angle in radians. Unlike the signal object [cos~], which takes its input in cycles (0 to 1), the control-rate trigonometric functions use radians."
 }

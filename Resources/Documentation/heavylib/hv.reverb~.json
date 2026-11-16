@@ -78,5 +78,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[hv.reverb~] is a reverb with mono input and stereo output. Its right inlet takes messages that set the feedback, the dry and wet gains, low and high cut filters, the crossover frequency and damping."
 }

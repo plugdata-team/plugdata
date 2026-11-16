@@ -13,6 +13,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns processing on (default 1)"
         }
       ],
       "repeat": false
@@ -32,19 +36,19 @@
   "arguments": [
     {
       "type": "float",
-      "description": "xsize",
+      "description": "width to resize to",
       "default": ""
     },
     {
       "type": "float",
-      "description": "ysize",
+      "description": "height to resize to",
       "default": ""
     }
   ],
   "flags": [],
   "methods": [
     {
-      "type": "dimen <float> <float>",
+      "type": "dimen <float, float>",
       "description": "change the resize dimensions"
     }
   ],

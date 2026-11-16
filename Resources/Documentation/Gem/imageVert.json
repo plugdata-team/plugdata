@@ -1,6 +1,6 @@
 {
   "title": [
-    "imagevert"
+    "imageVert"
   ],
   "description": "map luminance to height",
   "origin": "Gem",
@@ -13,6 +13,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns processing on (default 1)"
         }
       ],
       "repeat": false

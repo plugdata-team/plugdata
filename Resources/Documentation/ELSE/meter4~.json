@@ -12,7 +12,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "incoming signal channels to be vu-metered"
         }
       ],
@@ -23,7 +23,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "incoming signals are passed through"
         }
       ],

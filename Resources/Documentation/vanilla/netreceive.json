@@ -32,7 +32,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "number of open connections for TCP connections (TCP only)"
+          "description": "number of open connections (TCP only)"
         }
       ],
       "repeat": false
@@ -41,7 +41,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "address and port (if -f flag is given)"
+          "description": "address and port (only with the -f flag)"
         }
       ],
       "repeat": false
@@ -83,5 +83,5 @@
       "description": "sends messages back to connected netsend objects"
     }
   ],
-  "body": ""
+  "body": "[netreceive] listens on a network port for messages from [netsend] objects or other software, over TCP by default or UDP with -u, and outputs them. With TCP, the middle outlet reports the number of open connections, and 'send' sends messages back to them. With -b, messages are received as lists of bytes."
 }

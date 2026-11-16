@@ -4,7 +4,7 @@
     ">~",
     "cyclone/>~"
   ],
-  "description": "1 or 0 (depending on the result of the comparison)",
+  "description": "signal greater-than comparison",
   "origin": "cyclone",
   "categories": [
     "Signal Math",

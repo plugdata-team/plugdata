@@ -2,7 +2,7 @@
   "title": [
     "GEMglLighti"
   ],
-  "description": "set the value of a light source parameter",
+  "description": "set light source parameters",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the light source."
+          "description": "light to set: GL_LIGHT0, GL_LIGHT1, ..."
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the light source parameter."
+          "description": "light parameter to set, e.g. GL_SPOT_CUTOFF"
         }
       ],
       "repeat": false
@@ -39,7 +39,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the parameter value."
+          "description": "value to set the light parameter to"
         }
       ],
       "repeat": false
@@ -59,21 +59,21 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the light source.",
-      "default": "GL_LIGHT0"
+      "description": "light to set: GL_LIGHT0, GL_LIGHT1, ...",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the light source parameter.",
-      "default": "GL_SPOT_EXPONENT"
+      "description": "light parameter to set, e.g. GL_SPOT_CUTOFF",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the parameter value.",
+      "description": "value to set the light parameter to",
       "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglLighti] calls glLighti() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. GL constants are numbers here: [GLdefine] turns a name like GL_LINES into its value. See glLight in the OpenGL reference."
 }

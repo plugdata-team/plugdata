@@ -411,7 +411,7 @@ public:
                 auto* inputPort = new DynamicObject();
                 inputPort->setProperty("name", device->getName());
                 inputPort->setProperty("port", inputPorts.index_of_address(port) - 1);
-                midiOutputs.add(var(inputPort));
+                midiInputs.add(var(inputPort));
             }
         }
     }

@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "cutoff/center frequency in Hz"
         }
       ],
@@ -29,7 +29,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "Q/resonance (0-1)"
         }
       ],
@@ -110,5 +110,5 @@
       "description": "sets frequency mode to radians"
     }
   ],
-  "body": "[svf~] implements Chamberlin's state-variable filter algorithm, which outputs lowpass, highpass, bandpass, and band reject (notch) simultaneously in parallel (in this order from left to right)."
+  "body": "[svf~] implements Chamberlin's state-variable filter algorithm, which outputs lowpass, highpass, bandpass, and bandstop (notch) simultaneously in parallel (in this order from left to right)."
 }

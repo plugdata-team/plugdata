@@ -13,6 +13,10 @@
         {
           "type": "symbol",
           "description": "file to locate using Pd's search-paths"
+        },
+        {
+          "type": "list <symbol, float>",
+          "description": "file name and patch depth level to search"
         }
       ],
       "repeat": false
@@ -33,6 +37,10 @@
         {
           "type": "float",
           "description": "when there's an error creating the directory"
+        },
+        {
+          "type": "symbol",
+          "description": "the input symbol if file isn't located"
         }
       ],
       "repeat": false

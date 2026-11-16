@@ -46,5 +46,5 @@
     }
   ],
   "methods": [],
-  "body": ""
+  "body": "[text delete] deletes a line of a text, given its number (0 for the first); a negative number deletes all lines. The text is named by the argument or the right inlet, or found through a pointer with -s."
 }

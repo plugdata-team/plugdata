@@ -21,7 +21,25 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the x, y, and z offsets for the translation."
+          "description": "x coordinate of the translation vector"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "y coordinate of the translation vector"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "z coordinate of the translation vector"
         }
       ],
       "repeat": false
@@ -41,11 +59,21 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the x, y, and z offsets for the translation.",
-      "default": ""
+      "description": "x coordinate of the translation vector",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "y coordinate of the translation vector",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "z coordinate of the translation vector",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglTranslatef] calls glTranslatef() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glTranslate in the OpenGL reference."
 }

@@ -60,7 +60,7 @@
     {
       "type": "float",
       "description": "initialize split point",
-      "default": ""
+      "default": "0"
     }
   ],
   "flags": [],

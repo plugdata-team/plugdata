@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "input index of the vector/block being processed"
         }
       ],
@@ -29,7 +29,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "the signal vector/block to smooth/filter"
         }
       ],
@@ -57,15 +57,15 @@
   "flags": [],
   "methods": [
     {
-      "type": "rampsmooth <f, f>",
+      "type": "rampsmooth <float, float>",
       "description": "linear ramp mode, values are <up, down> time"
     },
     {
-      "type": "slide <f, f>",
+      "type": "slide <float, float>",
       "description": "logarithmic ramp mode, values are <up, down> time"
     },
     {
-      "type": "deltaclio <f, f>",
+      "type": "deltaclip <float, float>",
       "description": "change limited mode, values are <up, down> limit"
     },
     {

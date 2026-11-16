@@ -7,17 +7,7 @@
   "categories": [
     "Graphics"
   ],
-  "inlets": [
-    {
-      "messages": [
-        {
-          "type": "non-used",
-          "description": ""
-        }
-      ],
-      "repeat": false
-    }
-  ],
+  "inlets": [],
   "outlets": [
     {
       "messages": [
@@ -67,13 +57,18 @@
   ],
   "arguments": [
     {
-      "type": "float",
-      "description": "x-normalization",
+      "type": "symbol",
+      "description": "optional: name of the context (window) to listen to",
       "default": ""
     },
     {
       "type": "float",
-      "description": "y-normalization",
+      "description": "x-normalization: the x position is scaled to 0 to this value",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "y-normalization: the y position is scaled to 0 to this value",
       "default": ""
     }
   ],

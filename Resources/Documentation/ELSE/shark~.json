@@ -1,0 +1,83 @@
+{
+  "title": [
+    "shark~"
+  ],
+  "description": "sharktooth oscillator",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list/signals",
+          "description": "frequency in Hz or MIDI"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "phase sync (resets internal phase)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "phase offset (modulation input)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "sharktooth wave signal(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "frequency in MIDI pitch or Hz",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "initial phase offset",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-midi",
+      "description": "sets frequency input in MIDI pitch (default Hz)"
+    },
+    {
+      "name": "-soft",
+      "description": "sets to soft sync mode (default hard)"
+    }
+  ],
+  "methods": [
+    {
+      "type": "midi <float>",
+      "description": "nonzero sets to frequency input in MIDI pitch"
+    },
+    {
+      "type": "soft <float>",
+      "description": "nonzero sets to soft sync mode"
+    }
+  ],
+  "body": "[shark~] is a sharktooth waveform oscillator abstraction. Based on a Moog oscillator, this is a hybrid (and a mix) between a sawtooth and a triangular wave. This is a bandlimited oscillator that accepts negative frequencies, has inlets for phase sync and phase modulation and support for multichannels."
+}

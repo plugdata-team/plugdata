@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "signal to be filtered"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "central frequency in Hz"
         }
       ],
@@ -29,7 +29,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "filter resonance (Q or bandwidth)"
         }
       ],
@@ -40,7 +40,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "filtered signal"
         }
       ],
@@ -83,5 +83,5 @@
       "description": "sets resonance parameter to Q"
     }
   ],
-  "body": "[bandstop~] is a 2nd order band reject filter, it can also be used as a 'notch' filter."
+  "body": "[bandstop~] is a 2nd order bandstop filter, it can also be used as a 'notch' filter."
 }

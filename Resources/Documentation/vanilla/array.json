@@ -7,16 +7,45 @@
   "categories": [
     "Arrays and Tables"
   ],
-  "inlets": [],
-  "outlets": [],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "output a pointer to the scalar containing the array"
+        },
+        {
+          "type": "anything",
+          "description": "messages to the array itself"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "pointer",
+          "description": "a pointer to the scalar containing the array at bangs"
+        }
+      ],
+      "repeat": false
+    }
+  ],
   "arguments": [
     {
       "type": "symbol",
-      "description": "sets the function of [array], possible values: define, size, sum, get, set, quantile, random, max and min. The default value is \"define",
-      "default": ""
+      "description": "function of [array]: define, size, sum, get, set, quantile, random, max or min",
+      "default": "define"
     }
   ],
   "flags": [],
-  "methods": [],
-  "body": ""
+  "methods": [
+    {
+      "type": "send <symbol>",
+      "description": "send pointer to a named receive object"
+    }
+  ],
+  "body": "[array] creates or accesses an array of numbers. Its first argument selects the function: [array define] creates one, and [array size], [array sum], [array get], [array set], [array quantile], [array random], [array max] and [array min] work on an array defined elsewhere. Without an argument it is [array define]."
 }

@@ -2,7 +2,7 @@
   "title": [
     "GEMglRasterPos4fv"
   ],
-  "description": "set the current raster position (single-precision version)",
+  "description": "specify the raster position for pixel operations",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -20,35 +20,8 @@
     {
       "messages": [
         {
-          "type": "float",
-          "description": "Specifies the x, y, and z window coordinates."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Specifies the x, y, and z window coordinates."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Specifies the x, y, and z window coordinates."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Specifies the x, y, and z window coordinates."
+          "type": "list",
+          "description": "list of the raster position's 4 coordinates (x, y, z and w)"
         }
       ],
       "repeat": false
@@ -68,11 +41,26 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the x, y, and z window coordinates.",
-      "default": ""
+      "description": "x coordinate of the raster position",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "y coordinate of the raster position",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "z coordinate of the raster position",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "w coordinate of the raster position",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglRasterPos4fv] calls glRasterPos4fv() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glRasterPos in the OpenGL reference."
 }

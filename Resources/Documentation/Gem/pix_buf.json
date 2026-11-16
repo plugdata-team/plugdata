@@ -1,6 +1,7 @@
 {
   "title": [
-    "pix_buf"
+    "pix_buf",
+    "pix_separator"
   ],
   "description": "buffer a pix",
   "origin": "Gem",
@@ -16,7 +17,7 @@
         },
         {
           "type": "bang",
-          "description": "copy of input-data to the output and force all subsequent [pix_]-objects to process"
+          "description": "output the image and make the following [pix_] objects process it"
         }
       ],
       "repeat": false
@@ -36,8 +37,8 @@
   "arguments": [
     {
       "type": "float",
-      "description": "the default value to force processing",
-      "default": ""
+      "description": "nonzero makes it force processing on every frame (see auto)",
+      "default": "0"
     }
   ],
   "flags": [],

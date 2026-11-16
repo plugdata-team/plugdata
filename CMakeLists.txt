@@ -85,7 +85,9 @@ endfunction()
 if(APPLE)
   set(CMAKE_XCODE_BUILD_SYSTEM "12" CACHE STRING "" FORCE)
   if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0" CACHE STRING "Minimum iOS deployment version")
+    if(NOT CMAKE_OSX_DEPLOYMENT_TARGET OR CMAKE_OSX_DEPLOYMENT_TARGET VERSION_LESS "16.0")
+      set(CMAKE_OSX_DEPLOYMENT_TARGET "16.0" CACHE STRING "Minimum iOS deployment version" FORCE)
+    endif()
   elseif(MACOS_LEGACY)
     set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "Minimum macOS deployment version")
     set(CMAKE_OSX_ARCHITECTURES "x86_64;" CACHE STRING "" FORCE)
@@ -233,7 +235,7 @@ else()
     set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo.png")
 endif()
 
-set(PLUGDATA_PLUGINS_LOCATION           "${CMAKE_CURRENT_SOURCE_DIR}/Plugins")
+set(PLUGDATA_PLUGINS_LOCATION           "${CMAKE_CURRENT_SOURCE_DIR}/Plugins" CACHE PATH "Output directory for the built app and plugins")
 
 
 set(SOURCES_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Source)
@@ -322,6 +324,8 @@ set(JUCE_COMPILE_DEFINITIONS
 # So for a better testing experience, we just disable assertions
 if(${ENABLE_TESTING})
     list(APPEND JUCE_COMPILE_DEFINITIONS JUCE_DISABLE_ASSERTIONS=1)
+    # The standalone hosts plugdata's VST3 to run the suite inside it (Tests/PluginHostTest.h)
+    list(APPEND JUCE_COMPILE_DEFINITIONS JUCE_PLUGINHOST_VST3=1)
 endif()
 
 if(LINUX)
@@ -721,6 +725,32 @@ if(APPLE)
 target_compile_definitions(plugdata_midi PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} PLUGDATA_MIDI=1)
 endif()
 
+# ObjC class names are shared by the whole process, and hosts can load several plugdata binaries at once, so we need to apply a name suffix for nanovg's ObjC classes
+if(NANOVG_METAL_IMPLEMENTATION)
+    set(NANOVG_METAL_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/nanovg/src/nanovg_mtl.m)
+    get_target_property(nanovg_sources nanovg SOURCES)
+    list(FILTER nanovg_sources EXCLUDE REGEX "/nanovg_mtl\\.m$")
+    set_target_properties(nanovg PROPERTIES SOURCES "${nanovg_sources}")
+    set_source_files_properties(${NANOVG_METAL_SOURCE} PROPERTIES COMPILE_OPTIONS -fobjc-arc)
+
+    foreach(shared_target plugdata_standalone plugdata plugdata_fx plugdata_midi)
+        if(NOT TARGET ${shared_target})
+            continue()
+        endif()
+        get_target_property(binary_targets ${shared_target} JUCE_ACTIVE_PLUGIN_TARGETS)
+        if(NOT binary_targets)
+            set(binary_targets ${shared_target})
+        endif()
+        if(TARGET ${shared_target}_CLAP)
+            list(APPEND binary_targets ${shared_target}_CLAP)
+        endif()
+        foreach(binary_target ${binary_targets})
+            target_sources(${binary_target} PRIVATE ${NANOVG_METAL_SOURCE})
+            target_compile_definitions(${binary_target} PRIVATE MNVG_CLASS_SUFFIX=${binary_target})
+        endforeach()
+    endforeach()
+endif()
+
 function(copy_binarydata target)
     if(TARGET ${target})
         if(APPLE AND NOT "${target}" MATCHES "_LV2$")
@@ -762,6 +792,17 @@ copy_binarydata(plugdata_fx_AU)
 copy_binarydata(plugdata_midi_AU)
 copy_binarydata(plugdata_AAX)
 copy_binarydata(plugdata_fx_AAX)
+endif()
+
+# Linux plugins: don't export the symbols of the static libraries we link (LuaJIT, libstdc++, ...), and bind
+# our own calls to our own code. Otherwise a host that exports the same names wins: Ardour exports its own
+# Lua, so pdlua's Lua calls ended up in Ardour's Lua and crashed the host while loading plugdata
+if(UNIX AND NOT APPLE)
+    foreach(target plugdata_VST3 plugdata_fx_VST3 plugdata_CLAP plugdata_fx_CLAP plugdata_LV2 plugdata_fx_LV2)
+        if(TARGET ${target})
+            target_link_options(${target} PRIVATE "LINKER:-Bsymbolic" "LINKER:--exclude-libs,ALL")
+        endif()
+    endforeach()
 endif()
 
 target_include_directories(plugdata_core PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/BinaryData)
@@ -877,6 +918,12 @@ if(ENABLE_PERFETTO)
   if(APPLE)
     target_link_libraries(plugdata_midi PRIVATE Melatonin::Perfetto)
   endif()
+endif()
+
+if(ENABLE_TESTING AND TARGET plugdata_VST3)
+    add_dependencies(plugdata_standalone plugdata_VST3)
+    set_property(SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/Tests/Tests.cpp APPEND PROPERTY COMPILE_DEFINITIONS
+        PLUGDATA_TEST_VST3="$<GENEX_EVAL:$<TARGET_PROPERTY:plugdata_VST3,JUCE_PLUGIN_ARTEFACT_FILE>>")
 endif()
 
 set_target_properties(plugdata_standalone PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/Standalone)

@@ -12,7 +12,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "value in cents"
         }
       ],
@@ -23,7 +23,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "converted ratio value"
         }
       ],

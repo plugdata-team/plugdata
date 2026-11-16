@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "signal to frequency shift"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "shift amount in Hz"
         }
       ],
@@ -41,5 +41,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[hv.freqshift~] is a frequency shifter: it shifts all frequencies of its input by the amount in Hz set in the right inlet."
 }

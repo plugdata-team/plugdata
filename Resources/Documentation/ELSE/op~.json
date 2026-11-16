@@ -11,8 +11,12 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "input to operator"
+        },
+        {
+          "type": "anything",
+          "description": "an operator symbol sets the operation"
         }
       ],
       "repeat": false
@@ -20,7 +24,7 @@
     {
       "messages": [
         {
-          "type": "float",
+          "type": "float/signals",
           "description": "secondary operator value (ignored for bitnot)"
         }
       ],
@@ -31,7 +35,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "operator result"
         }
       ],
@@ -51,11 +55,6 @@
     }
   ],
   "flags": [],
-  "methods": [
-    {
-      "type": "<symbol>",
-      "description": "operator: >, <, >=, <=, ==, !=, &&, ||, &, |, ~, ^, >> and <<"
-    }
-  ],
+  "methods": [],
   "body": "[op~] is a signal operator (either comparison or bitwise), which is defined by the first argument. This is more efficient than using [expr~] (which also contains all these operators)."
 }

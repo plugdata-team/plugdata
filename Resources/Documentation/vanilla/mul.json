@@ -51,5 +51,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[*] multiplies its left and right inputs. The right value is set by the argument or the right inlet; a float in the left inlet outputs the result, and a bang outputs it again with the stored values."
 }

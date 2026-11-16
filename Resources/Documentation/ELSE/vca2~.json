@@ -1,0 +1,101 @@
+{
+  "title": [
+    "vca2~"
+  ],
+  "description": "stereo VCA module",
+  "origin": "ELSE",
+  "categories": [
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "Left input signal(s)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "Right input signal(s)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "CV input"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "VCA Left output"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "VCA Right output"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "left level to feed a [vu]"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "right level to feed a [vu]"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "master gain",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "sum flag",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "master <float>",
+      "description": "overall gain compensation"
+    },
+    {
+      "type": "sum <float>",
+      "description": "nonzero sum polyphonic (MC) channels into a single one"
+    }
+  ],
+  "body": "[vca2~] is a stereo voltage controlled amplifier with two inputs and outputs and a CV input, the basis of the [vca2.m~] module. It sums multichannel inputs into a single channel by default, has a master gain, and outputs levels to feed [vu] objects."
+}

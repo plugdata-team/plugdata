@@ -12,7 +12,11 @@
       "messages": [
         {
           "type": "gemlist",
-          "description": "gemlist (RGBA image)"
+          "description": ""
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns processing on (default 1)"
         }
       ],
       "repeat": false

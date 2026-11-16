@@ -83,7 +83,7 @@
   "flags": [],
   "methods": [
     {
-      "type": "goto <f>",
+      "type": "goto <float>",
       "description": "goes to a position index in the sequence (from 1)"
     },
     {

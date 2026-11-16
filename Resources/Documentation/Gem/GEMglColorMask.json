@@ -21,7 +21,34 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies whether red, green, blue, and alpha can be written into the frame buffer."
+          "description": "nonzero to write red into the frame buffer"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "nonzero to write green into the frame buffer"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "nonzero to write blue into the frame buffer"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "nonzero to write alpha into the frame buffer"
         }
       ],
       "repeat": false
@@ -41,11 +68,26 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies whether red, green, blue, and alpha can be written into the frame buffer.",
-      "default": "[true, true, true, true]"
+      "description": "nonzero to write red into the frame buffer",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "nonzero to write green into the frame buffer",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "nonzero to write blue into the frame buffer",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "nonzero to write alpha into the frame buffer",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglColorMask] calls glColorMask() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glColorMask in the OpenGL reference."
 }

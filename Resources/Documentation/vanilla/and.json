@@ -51,5 +51,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": "{{< md_include \"objects/bitwise-operators.md\" >}}"
+  "body": "[&] outputs the bitwise AND of its left and right inputs: each bit of the result is 1 where that bit is 1 in both inputs. Float inputs are truncated to integers. For a logical (Boolean) AND, use [&&]."
 }

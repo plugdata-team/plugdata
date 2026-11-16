@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "input values to be folded"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "float",
+          "type": "float/signals",
           "description": "lowest fold value"
         }
       ],
@@ -29,7 +29,7 @@
     {
       "messages": [
         {
-          "type": "float",
+          "type": "float/signals",
           "description": "highest fold value"
         }
       ],
@@ -40,7 +40,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "folded values"
         }
       ],

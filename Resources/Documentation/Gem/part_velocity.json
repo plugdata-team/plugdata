@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "symbol",
-          "description": "domain, one of \"point\", \"line\", \"triangle\", \"plane\", \"box\", \"sphere\", \"cylinder\", \"cone\", \"blob\", \"disc\", \"rectangle"
+          "description": "domain: point, line, triangle, plane, box, sphere, cylinder, cone, blob, disc or rectangle"
         }
       ],
       "repeat": false
@@ -50,7 +50,7 @@
   "arguments": [
     {
       "type": "symbol",
-      "description": "domain, one of \"point\", \"line\", \"triangle\", \"plane\", \"box\", \"sphere\", \"cylinder\", \"cone\", \"blob\", \"disc\", \"rectangle",
+      "description": "domain: point, line, triangle, plane, box, sphere, cylinder, cone, blob, disc or rectangle",
       "default": ""
     },
     {

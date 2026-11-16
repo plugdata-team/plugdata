@@ -14,6 +14,10 @@
   "flags": [],
   "methods": [
     {
+      "type": "size <float>",
+      "description": "sets the size of selectable square"
+    },
+    {
       "type": "vis_size <float>",
       "description": "sets the GUI size"
     },
@@ -48,7 +52,11 @@
     {
       "type": "delta <float, float>",
       "description": "changes the position by a x/y delta in pixels"
+    },
+    {
+      "type": "get_pos",
+      "description": "gets objects' position (sent to a receive name)"
     }
   ],
-  "body": ""
+  "body": "[cnv] is a canvas GUI, a colored rectangle used as a background or to show a label. It has no inlets or outlets, so it communicates through its send and receive names, and it can report its position when asked. Right click on its top left corner for properties."
 }

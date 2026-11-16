@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "input to hyperbolic tangent function"
         }
       ],
@@ -22,7 +22,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "output of hyperbolic tangent function"
         }
       ],

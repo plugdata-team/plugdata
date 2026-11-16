@@ -12,7 +12,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "signals",
           "description": "real part from the Cartesian coordinates"
         }
       ],
@@ -21,7 +21,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "imaginary part form the Cartesian coordinates"
         }
       ],
@@ -32,7 +32,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "amplitude of the polar form"
         }
       ],
@@ -41,7 +41,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "phase in radians (-pi to pi) of the polar form"
         }
       ],

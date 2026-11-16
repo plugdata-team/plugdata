@@ -2,7 +2,7 @@
   "title": [
     "zl.sort"
   ],
-  "description": "list processor",
+  "description": "sort a list",
   "origin": "cyclone",
   "categories": [
     "Data Management"
@@ -12,11 +12,11 @@
       "messages": [
         {
           "type": "bang",
-          "description": "mode dependent operation on current data see"
+          "description": "performs the operation again on the last received list"
         },
         {
           "type": "anything",
-          "description": "one or more element messages to be processed"
+          "description": "list to sort"
         }
       ],
       "repeat": false
@@ -24,8 +24,8 @@
     {
       "messages": [
         {
-          "type": "anything",
-          "description": "depends on the mode, see [pd examples]"
+          "type": "float",
+          "description": "order: -1 for descending, ascending otherwise"
         }
       ],
       "repeat": false
@@ -36,7 +36,7 @@
       "messages": [
         {
           "type": "anything",
-          "description": "output according to the mode: see details in [pd examples]"
+          "description": "the sorted list"
         }
       ],
       "repeat": false
@@ -44,8 +44,8 @@
     {
       "messages": [
         {
-          "type": "anything",
-          "description": "output according to the mode: see details in [pd examples]"
+          "type": "list",
+          "description": "the original indexes, in sorted order"
         }
       ],
       "repeat": false
@@ -54,34 +54,29 @@
   "arguments": [
     {
       "type": "float",
-      "description": "maximum list size (optional, 1 - 32767)",
-      "default": "256"
-    },
-    {
-      "type": "symbol",
-      "description": "mode",
-      "default": ""
+      "description": "order: -1 for descending, ascending otherwise",
+      "default": "0"
     }
   ],
   "flags": [
     {
       "name": "@zlmaxsize <float>",
-      "description": "max list size (1 - 32767)\ndefault: 256"
+      "description": "maximum list size, 1 to 32767 (default 256)"
     }
   ],
   "methods": [
     {
       "type": "mode <symbol>",
-      "description": "sets the mode (change, compare, delace, ecils, group, indexmap, iter, join, lace, len, lookup, median, mth, nth, queue, reg, rev, rot, sect, scramble, slice, sort, stack, stream, sub, sum, swap, thin, union or unique)"
+      "description": "changes the mode, as in [zl]"
     },
     {
       "type": "zlclear",
-      "description": "clears mode's arguments and received data in both inlets"
+      "description": "clears the mode's arguments and the data received in both inlets"
     },
     {
       "type": "zlmaxsize <float>",
-      "description": "sets the maximum list size (1 - 32767, default 256)"
+      "description": "sets the maximum list size, 1 to 32767"
     }
   ],
-  "body": "[zl] processes messages with one or more elements (\"list messages' or \"anything\") according to a mode (set via argument/message)."
+  "body": "[zl.sort] sorts the elements of a list, in ascending order by default or descending with -1. The right outlet sends the original indexes of the elements in their sorted order."
 }

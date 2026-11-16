@@ -12,7 +12,33 @@
       "messages": [
         {
           "type": "gemlist",
-          "description": ""
+          "description": "particle system (from [part_head])"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "target size"
+        },
+        {
+          "type": "list",
+          "description": "target size: x, y and z"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "how fast particles grow or shrink"
+        },
+        {
+          "type": "list",
+          "description": "x, y and z of the scale"
         }
       ],
       "repeat": false

@@ -2,7 +2,7 @@
   "title": [
     "togedge"
   ],
-  "description": "report zero / non-0 transitions",
+  "description": "report zero / nonzero transitions",
   "origin": "cyclone",
   "categories": [
     "Data Management",
@@ -17,7 +17,7 @@
         },
         {
           "type": "bang",
-          "description": "switches the stored value between 0 and non-0"
+          "description": "switches the stored value between 0 and nonzero"
         }
       ],
       "repeat": false
@@ -28,7 +28,7 @@
       "messages": [
         {
           "type": "bang",
-          "description": "if a zero to non-0 transition is detected"
+          "description": "if a zero to nonzero transition is detected"
         }
       ],
       "repeat": false
@@ -37,7 +37,7 @@
       "messages": [
         {
           "type": "bang",
-          "description": "if a non-0 to zero transition is detected"
+          "description": "if a nonzero to zero transition is detected"
         }
       ],
       "repeat": false
@@ -46,5 +46,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": "[togedge] sends a bang in the left outlet for \"zero to non-0\" transitions, and a bang in the right outlet for \"non-0 to zero\" transitions."
+  "body": "[togedge] sends a bang in the left outlet for \"zero to nonzero\" transitions, and a bang in the right outlet for \"nonzero to zero\" transitions."
 }

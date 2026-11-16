@@ -9,44 +9,7 @@
   ],
   "inlets": [
     {
-      "messages": [
-        {
-          "type": "play <list>",
-          "description": "plays all tracks or tracks from the given list"
-        },
-        {
-          "type": "speed <float>",
-          "description": "sets playback speed in %"
-        },
-        {
-          "type": "record <list>",
-          "description": "records all tracks or tracks from the given list"
-        },
-        {
-          "type": "stop <list>",
-          "description": "stops (rec/play) all tracks or tracks from the given list"
-        },
-        {
-          "type": "mute <list>",
-          "description": "mutes all tracks or tracks from the given list"
-        },
-        {
-          "type": "unmute <list>",
-          "description": "unmutes all tracks or tracks from the given list"
-        },
-        {
-          "type": "clear <list>",
-          "description": "clears all tracks or tracks from the given list"
-        },
-        {
-          "type": "open <symbol>",
-          "description": "opens a text file"
-        },
-        {
-          "type": "save <symbol>",
-          "description": "saves to a text file"
-        }
-      ],
+      "messages": [],
       "repeat": false
     },
     {
@@ -56,7 +19,7 @@
           "description": "any message to be recorded in that inlet/track"
         }
       ],
-      "repeat": false
+      "repeat": true
     }
   ],
   "outlets": [
@@ -64,7 +27,16 @@
       "messages": [
         {
           "type": "anything",
-          "description": "the reversed message/list"
+          "description": "recorded messages from the corresponding inlet/track"
+        }
+      ],
+      "repeat": true
+    },
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "bang when reaching the end of the recording"
         }
       ],
       "repeat": false
@@ -73,7 +45,7 @@
   "arguments": [
     {
       "type": "float",
-      "description": "number of tracks",
+      "description": "number of tracks, max 64",
       "default": "1"
     },
     {
@@ -83,6 +55,43 @@
     }
   ],
   "flags": [],
-  "methods": [],
-  "body": "[reverse] reverses messages/lists."
+  "methods": [
+    {
+      "type": "play <list>",
+      "description": "plays all tracks or tracks from the given list"
+    },
+    {
+      "type": "speed <float>",
+      "description": "sets playback speed in %"
+    },
+    {
+      "type": "record <list>",
+      "description": "records all tracks or tracks from the given list"
+    },
+    {
+      "type": "stop <list>",
+      "description": "stops (rec/play) all tracks or tracks from the given list"
+    },
+    {
+      "type": "mute <list>",
+      "description": "mutes all tracks or tracks from the given list"
+    },
+    {
+      "type": "unmute <list>",
+      "description": "unmutes all tracks or tracks from the given list"
+    },
+    {
+      "type": "clear <list>",
+      "description": "clears all tracks or tracks from the given list"
+    },
+    {
+      "type": "open <symbol>",
+      "description": "opens a text file, no symbol opens a dialog box"
+    },
+    {
+      "type": "save <symbol>",
+      "description": "saves to a text file, no symbol opens a dialog box"
+    }
+  ],
+  "body": "[rec] is a multi-track message recorder. Each track has its own inlet and outlet, and plays back the messages it recorded with their original timing."
 }

@@ -12,12 +12,16 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "the signal to be monitored/displayed"
         },
         {
           "type": "bang",
           "description": "alternate modes"
+        },
+        {
+          "type": "list <float, float>",
+          "description": "sets value to generate and ramp time in ms"
         }
       ],
       "repeat": false
@@ -56,11 +60,11 @@
   "flags": [
     {
       "name": "@monitormode <float>",
-      "description": "non-0 sets monitor mode"
+      "description": "nonzero sets monitor mode"
     },
     {
       "name": "@sigoutmode <float>",
-      "description": "non-0 sets generator mode"
+      "description": "nonzero sets generator mode"
     },
     {
       "name": "@ft1",
@@ -79,11 +83,11 @@
       "description": "maximum generation value"
     },
     {
-      "name": "@bgcolor <f, f, f>",
+      "name": "@bgcolor <float, float, float>",
       "description": "sets background color in RGB"
     },
     {
-      "name": "@textcolor <f, f, f>",
+      "name": "@textcolor <float, float, float>",
       "description": "text color in RGB"
     }
   ],
@@ -93,7 +97,7 @@
       "description": "sets value but doesn't generate signal"
     },
     {
-      "type": "list <f,f>",
+      "type": "list <float, float>",
       "description": "sets value to generate and ramp time in ms"
     },
     {
@@ -105,11 +109,11 @@
       "description": "sets display time interval in ms"
     },
     {
-      "type": "bgcolor <f, f, f>",
+      "type": "bgcolor <float, float, float>",
       "description": "sets background color in RGB"
     },
     {
-      "type": "textcolor <f, f, f>",
+      "type": "textcolor <float, float, float>",
       "description": "sets text color in RGB"
     },
     {

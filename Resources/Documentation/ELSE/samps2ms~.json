@@ -12,7 +12,7 @@
     {
       "messages": [
         {
-          "type": "float",
+          "type": "float/signals",
           "description": "time value in number of samples"
         }
       ],
@@ -23,8 +23,8 @@
     {
       "messages": [
         {
-          "type": "float",
-          "description": "converted value in ms"
+          "type": "signals",
+          "description": "converted value(s) in ms"
         }
       ],
       "repeat": false

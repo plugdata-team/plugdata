@@ -3,7 +3,7 @@
     "trigger",
     "t"
   ],
-  "description": "sequenced messages from right to left",
+  "description": "sequence messages in right-to-left order",
   "origin": "vanilla",
   "categories": [
     "Triggers and Clocks"
@@ -33,11 +33,11 @@
   "arguments": [
     {
       "type": "list",
-      "description": "symbols that define outlet's message type. 'float', 'bang', 'symbol', 'list', 'anything', and 'pointer',  all of which can be abbreviated",
+      "description": "symbols that define outlet's message type. 'float', 'bang', 'symbol', 'list', 'anything', and 'pointer', all of which can be abbreviated",
       "default": "f f"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": "sequence messages in right-to-left order"
+  "body": "[trigger] sends its input to each of its outlets in right-to-left order, converting it as its arguments say: bang, float, symbol, list, anything, pointer, or a constant value."
 }

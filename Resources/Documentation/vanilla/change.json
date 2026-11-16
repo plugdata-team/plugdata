@@ -47,5 +47,5 @@
       "description": "set the value"
     }
   ],
-  "body": ""
+  "body": "[change] outputs its input only when it differs from the previous value, filtering out repetitions. 'set' changes the current value without output, and a bang outputs it."
 }

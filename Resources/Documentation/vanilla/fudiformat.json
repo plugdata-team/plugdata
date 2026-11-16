@@ -23,7 +23,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "converted FUDI packet\nbref: FUDI messages to and from Pd lists"
+          "description": "converted FUDI packet"
         }
       ],
       "repeat": false

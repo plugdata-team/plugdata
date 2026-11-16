@@ -12,11 +12,20 @@
       "messages": [
         {
           "type": "gemlist",
-          "description": "gemlist"
+          "description": ""
         },
         {
           "type": "float",
-          "description": "delay (in frames)"
+          "description": "nonzero turns processing on (default 1)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "delay in frames"
         }
       ],
       "repeat": false
@@ -36,7 +45,7 @@
   "arguments": [
     {
       "type": "float",
-      "description": "max number of delayed frames",
+      "description": "maximum number of frames to delay",
       "default": ""
     }
   ],

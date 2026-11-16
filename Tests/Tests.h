@@ -119,9 +119,20 @@ protected:
         return rng.nextInt(100) / 10.0f;
     }
 
+    // Set PLUGDATA_FUZZ_SYMBOLS=1 to fuzz with symbol arguments too. These reach file operations
+    // ([file mkdir/delete/move], [text write], ...) that resolve relative paths against the
+    // working directory, so only enable this in a sandbox (separate home, TMPDIR and working directory)
+    static bool fuzzWithSymbols()
+    {
+        static bool const enabled = SystemStats::getEnvironmentVariable("PLUGDATA_FUZZ_SYMBOLS", {}) == "1";
+        return enabled;
+    }
+
     pd::Atom generateIncorrectArg()
     {
-        return generateRandomFloat() < 10.0f ? pd::Atom(generateRandomFloat()) : pd::Atom(generateRandomString(rng.nextInt() + 5));
+        if (fuzzWithSymbols() && rng.nextBool())
+            return pd::Atom(generateRandomString(rng.nextInt(12) + 1));
+        return pd::Atom(generateRandomFloat());
     }
 
     t_symbol* generateRandomString(size_t length)

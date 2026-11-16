@@ -23,7 +23,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "found files/directories as a path symbol and type (file <0>, directory <1>)"
+          "description": "found path and its type: 0 for a file, 1 for a directory"
         }
       ],
       "repeat": false

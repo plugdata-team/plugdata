@@ -1,0 +1,68 @@
+{
+  "title": [
+    "nlist.define",
+    "nlist"
+  ],
+  "description": "define, store and edit nested lists",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "set and store nested lists"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "name to bind to",
+      "default": ""
+    },
+    {
+      "type": "symbol",
+      "description": "filename to open",
+      "default": ""
+    }
+  ],
+  "flags": [
+    {
+      "name": "-k",
+      "description": "keep/saves contents with the patch"
+    }
+  ],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "delete all data"
+    },
+    {
+      "type": "show",
+      "description": "open editing window"
+    },
+    {
+      "type": "hide",
+      "description": "close editing window"
+    },
+    {
+      "type": "read <symbol>",
+      "description": "read a file (no symbol opens dialog window)"
+    },
+    {
+      "type": "write <symbol>",
+      "description": "save a file (no symbol opens dialog window)"
+    },
+    {
+      "type": "keep <float>",
+      "description": "nonzero sets to save contents with the patch"
+    }
+  ],
+  "body": "[nlist.define] defines a container for multidimensional lists, where brackets set a list as an element. With a given name, the data is shared and can be accessed and changed by the other nlist objects, such as [nlist.get], [nlist.set] and [nlist.len]. Unlike [messcoll], [nlist.define] objects must not share the same name.\n\nBy default, the contents are not saved with the patch, but you can change that with the -k flag or the 'keep' message, which remains valid when reopening and resaving the patch. If a file argument is given, the keep flag and message are ignored, since the data is stored in the file.\n\nClicking on the object opens an editor window. Shift+click opens a dialog window to read a file, and alt+click one to save a file."
+}

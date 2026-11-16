@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "impulses triggers a random output"
         },
         {
@@ -44,7 +44,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "random value as result of the random walk"
         }
       ],
@@ -71,11 +71,11 @@
   "flags": [
     {
       "name": "-seed <float>",
-      "description": "sets seed\ndefault: unique internal"
+      "description": "sets seed (default unique internal)"
     },
     {
       "name": "-p <float>",
-      "description": "sets probability\ndefault: 70"
+      "description": "sets probability (default 70)"
     }
   ],
   "methods": [

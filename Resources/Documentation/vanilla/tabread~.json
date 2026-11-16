@@ -12,7 +12,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "sets table index and output its value"
         }
       ],
@@ -23,7 +23,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "value of index input"
         }
       ],

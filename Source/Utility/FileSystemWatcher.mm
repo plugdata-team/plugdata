@@ -81,12 +81,9 @@ public:
 class FileSystemWatcher::Impl
 {
 public:
-    Impl (FileSystemWatcher& o, File f) : owner (o), folder (f), fileDescriptor(-1), dispatchSource(nullptr)
+    Impl (FileSystemWatcher& o, File f) : owner (o), folder (f)
     {
-        NSString* path = [NSString stringWithUTF8String:folder.getFullPathName().toRawUTF8()];
-
-        // Open the directory for monitoring
-        fileDescriptor = open([path UTF8String], O_EVTONLY);
+        const int fileDescriptor = open(folder.getFullPathName().toRawUTF8(), O_EVTONLY);
 
         if (fileDescriptor == -1)
         {
@@ -94,7 +91,6 @@ public:
             return;
         }
 
-        // Create dispatch source for monitoring
         dispatchSource = dispatch_source_create(
             DISPATCH_SOURCE_TYPE_VNODE,
             fileDescriptor,
@@ -105,40 +101,31 @@ public:
         if (!dispatchSource)
         {
             close(fileDescriptor);
-            fileDescriptor = -1;
             return;
         }
 
-        // Capture 'this' for the event handler
         Impl* implPtr = this;
+        auto aliveFlag = alive;
 
         dispatch_source_set_event_handler(dispatchSource, ^{
-            unsigned long flags = dispatch_source_get_data(dispatchSource);
+            if (!aliveFlag->load())
+                return;
 
-            if (flags & DISPATCH_VNODE_WRITE)
-            {
-                implPtr->owner.fileChanged(implPtr->folder, FileSystemEvent::fileUpdated);
-            }
-            if (flags & DISPATCH_VNODE_DELETE)
-            {
-                implPtr->owner.fileChanged(implPtr->folder, FileSystemEvent::fileDeleted);
-            }
-            if (flags & DISPATCH_VNODE_RENAME)
-            {
-                implPtr->owner.fileChanged(implPtr->folder, FileSystemEvent::fileRenamedNewName);
-            }
-            if (flags & DISPATCH_VNODE_EXTEND)
-            {
-                implPtr->owner.fileChanged(implPtr->folder, FileSystemEvent::fileCreated);
-            }
+            unsigned long flags = dispatch_source_get_data(implPtr->dispatchSource);
+
+            auto notify = [&](unsigned long flag, FileSystemEvent event) {
+                if ((flags & flag) && aliveFlag->load())
+                    implPtr->owner.fileChanged(implPtr->folder, event);
+            };
+
+            notify(DISPATCH_VNODE_WRITE, FileSystemEvent::fileUpdated);
+            notify(DISPATCH_VNODE_DELETE, FileSystemEvent::fileDeleted);
+            notify(DISPATCH_VNODE_RENAME, FileSystemEvent::fileRenamedNewName);
+            notify(DISPATCH_VNODE_EXTEND, FileSystemEvent::fileCreated);
         });
 
         dispatch_source_set_cancel_handler(dispatchSource, ^{
-            if (implPtr->fileDescriptor != -1)
-            {
-                close(implPtr->fileDescriptor);
-                implPtr->fileDescriptor = -1;
-            }
+            close(fileDescriptor);
         });
 
         dispatch_resume(dispatchSource);
@@ -146,24 +133,19 @@ public:
 
     ~Impl()
     {
+        alive->store(false);
+
         if (dispatchSource)
         {
             dispatch_source_cancel(dispatchSource);
             dispatch_release(dispatchSource);
-            dispatchSource = nullptr;
-        }
-
-        if (fileDescriptor != -1)
-        {
-            close(fileDescriptor);
-            fileDescriptor = -1;
         }
     }
 
     FileSystemWatcher& owner;
     const File folder;
-    int fileDescriptor;
-    dispatch_source_t dispatchSource;
+    dispatch_source_t dispatchSource = nullptr;
+    std::shared_ptr<std::atomic<bool>> alive = std::make_shared<std::atomic<bool>>(true);
 };
 
 #endif

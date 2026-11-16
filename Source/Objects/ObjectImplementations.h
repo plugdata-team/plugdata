@@ -169,14 +169,50 @@ class CanvasVisibleObject final : public ImplementationBase
     , public ComponentListener
     , public Timer {
 
-    bool lastFocus = false;
+    std::optional<bool> lastShown;
     Component::SafePointer<Canvas> cnv;
 
+    static inline SpinLock shownLock;
+    static inline UnorderedSet<void const*> shownObjects;
+
+    // Replaces ELSE's bang, which outputs glist_isvisible(). In plugdata that's true for every loaded
+    // patch, even in a plugin instance whose editor was never opened
+    static void bang(t_object* x)
+    {
+        bool shown;
+        {
+            SpinLock::ScopedLockType lock(shownLock);
+            shown = shownObjects.contains(x);
+        }
+        outlet_float(x->ob_outlet, shown);
+    }
+
+    void setShown(bool const shown) const
+    {
+        SpinLock::ScopedLockType lock(shownLock);
+        if (shown)
+            shownObjects.insert(ptr.getRawUnchecked<void>());
+        else
+            shownObjects.erase(ptr.getRawUnchecked<void>());
+    }
+
 public:
-    using ImplementationBase::ImplementationBase;
+    CanvasVisibleObject(t_gobj* obj, t_canvas const* parent, PluginProcessor* pd)
+        : ImplementationBase(obj, parent, pd)
+    {
+        static bool bangReplaced = false;
+        if (!bangReplaced) {
+            pd->lockAudioThread();
+            class_addbang(pd_class(&obj->g_pd), bang);
+            pd->unlockAudioThread();
+            bangReplaced = true;
+        }
+    }
 
     ~CanvasVisibleObject() override
     {
+        setShown(false);
+
         if (!cnv)
             return;
 
@@ -189,11 +225,13 @@ public:
             cnv = getMainCanvas(canvas_vis->x_canvas);
         }
 
-        if (!cnv)
-            return;
+        if (cnv) {
+            cnv->addComponentListener(this);
+            startTimer(100);
+        }
 
-        cnv->addComponentListener(this);
-        startTimer(100);
+        // Report the first state even when it's 0: a bang during loadbang may have run ELSE's version
+        updateVisibility();
     }
 
     void updateVisibility()
@@ -203,17 +241,13 @@ public:
 
         // We use a safepointer to the canvas to determine if it's still open
         bool const showing = cnv != nullptr;
+        if (lastShown == showing)
+            return;
 
-        if (showing && !lastFocus) {
-            lastFocus = true;
-            if (auto vis = ptr.get<t_fake_canvas_vis>()) {
-                outlet_float(vis->x_obj.ob_outlet, 1.0f);
-            }
-        } else if (lastFocus && !showing) {
-            lastFocus = false;
-            if (auto vis = ptr.get<t_fake_canvas_vis>()) {
-                outlet_float(vis->x_obj.ob_outlet, 0.0f);
-            }
+        lastShown = showing;
+        setShown(showing);
+        if (auto vis = ptr.get<t_fake_canvas_vis>()) {
+            outlet_float(vis->x_obj.ob_outlet, showing);
         }
     }
 

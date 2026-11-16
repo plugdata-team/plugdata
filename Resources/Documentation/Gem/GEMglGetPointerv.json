@@ -20,17 +20,8 @@
     {
       "messages": [
         {
-          "type": "float",
-          "description": "Specifies the pointer to be returned."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "gemlist",
-          "description": "Returns the address of the specified pointer."
+          "type": "list",
+          "description": "pointer to query (broken in Gem: goes to a missing 'v' method)"
         }
       ],
       "repeat": false
@@ -50,11 +41,16 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the pointer to be returned.",
-      "default": "GL_VERTEX_ARRAY_POINTER"
+      "description": "pointer to query (broken in Gem: goes to a missing 'v' method)",
+      "default": "0"
     }
   ],
   "flags": [],
-  "methods": [],
-  "body": ""
+  "methods": [
+    {
+      "type": "pname <float>",
+      "description": "array or buffer pointer to query, e.g. GL_VERTEX_ARRAY_POINTER"
+    }
+  ],
+  "body": "[GEMglGetPointerv] calls glGetPointerv() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. Gem doesn't do anything with the pointer it gets; it only posts it. See glGetPointerv in the OpenGL reference."
 }

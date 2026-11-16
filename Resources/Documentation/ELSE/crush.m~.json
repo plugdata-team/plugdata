@@ -1,0 +1,54 @@
+{
+  "title": [
+    "crush.m~"
+  ],
+  "description": "bitcrusher module",
+  "origin": "MERDA",
+  "categories": [
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "input to crush"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "crush amount"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "decimation amount"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "crushed output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[crush.m~] is a MERDA module wrapper around [crush~], a bitcrusher, with CV inputs for the crush and decimation amounts."
+}

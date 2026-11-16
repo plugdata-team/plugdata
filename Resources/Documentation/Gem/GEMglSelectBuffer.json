@@ -2,7 +2,7 @@
   "title": [
     "GEMglSelectBuffer"
   ],
-  "description": "establish a buffer for selection mode",
+  "description": "establish a buffer for selection mode values",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the size of the selection buffer."
+          "description": "size of buffer"
         }
       ],
       "repeat": false
@@ -36,16 +36,25 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "contents of the selection buffer"
+        }
+      ],
+      "repeat": false
     }
   ],
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the size of the selection buffer.",
-      "default": ""
+      "description": "size of buffer",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglSelectBuffer] calls glSelectBuffer() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glSelectBuffer in the OpenGL reference."
 }

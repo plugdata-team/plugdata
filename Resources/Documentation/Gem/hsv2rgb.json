@@ -2,7 +2,7 @@
   "title": [
     "hsv2rgb"
   ],
-  "description": "convert RGB color values to HSV",
+  "description": "convert HSV color values to RGB",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -12,7 +12,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "RGB values"
+          "description": "HSV values (0 to 1)"
         }
       ],
       "repeat": false
@@ -23,7 +23,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "HSV values"
+          "description": "RGB values (0 to 1)"
         }
       ],
       "repeat": false

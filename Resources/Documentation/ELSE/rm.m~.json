@@ -11,8 +11,17 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "audio in"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "modulation frequency"
         }
       ],
       "repeat": false
@@ -22,7 +31,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "audio out"
         }
       ],
@@ -32,5 +41,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[rm.m~] is a MERDA module wrapper around [rm~], a ring modulator, with a CV input for the modulation frequency."
 }

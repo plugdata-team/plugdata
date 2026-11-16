@@ -1,0 +1,52 @@
+{
+  "title": [
+    "ms2beat"
+  ],
+  "description": "convert ms to beat length ratio",
+  "origin": "ELSE",
+  "categories": [
+    "Converters",
+    "Triggers and Clocks"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "ms inputs"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "BPM value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "beat length outputs"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "BPM value",
+      "default": "60"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[ms2beat] converts from ms to beat length according to a BPM value given as an argument or a right inlet."
+}

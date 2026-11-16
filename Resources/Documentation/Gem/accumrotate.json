@@ -2,7 +2,7 @@
   "title": [
     "accumrotate"
   ],
-  "description": "Accumulated rotation.",
+  "description": "rotate a gemlist by accumulated rotation steps",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -11,8 +11,8 @@
     {
       "messages": [
         {
-          "type": "float",
-          "description": "initial rotations around X, Y, Z-axes"
+          "type": "gemlist",
+          "description": ""
         }
       ],
       "repeat": false
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "delta-rotation around X-axis (in deg)"
+          "description": "rotation step around the x axis, in degrees"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "delta-rotation around Y-axis (in deg)"
+          "description": "rotation step around the y axis, in degrees"
         }
       ],
       "repeat": false
@@ -39,7 +39,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "delta-rotation around Z-axis (in deg)"
+          "description": "rotation step around the z axis, in degrees"
         }
       ],
       "repeat": false
@@ -59,27 +59,25 @@
   "arguments": [
     {
       "type": "float",
-      "description": "initial rotations around X, Y, Z-axes",
-      "default": ""
+      "description": "initial rotation around the x axis, in degrees",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "initial rotation around the y axis, in degrees",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "initial rotation around the z axis, in degrees",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [
     {
       "type": "reset",
-      "description": ""
-    },
-    {
-      "type": "float",
-      "description": "delta-rotation around X-axis (in deg)"
-    },
-    {
-      "type": "float",
-      "description": "delta-rotation around Y-axis (in deg)"
-    },
-    {
-      "type": "float",
-      "description": "delta-rotation around Z-axis (in deg)"
+      "description": "reset the accumulated rotation to 0"
     }
   ],
   "body": ""

@@ -1,0 +1,89 @@
+{
+  "title": [
+    "streamin~"
+  ],
+  "description": "play audio streams and files from the network",
+  "origin": "ELSE",
+  "categories": [
+    "Networking"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "(re)start playing"
+        },
+        {
+          "type": "float",
+          "description": "nonzero (re)starts playing, zero stops"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "audio channel"
+        }
+      ],
+      "repeat": true
+    },
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "when playing is finished"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of channels",
+      "default": "1"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-loop",
+      "description": "turns loop mode on"
+    }
+  ],
+  "methods": [
+    {
+      "type": "open <symbol>",
+      "description": "open a URL (live stream or hosted file)"
+    },
+    {
+      "type": "start",
+      "description": "same as bang"
+    },
+    {
+      "type": "stop",
+      "description": "stop playing"
+    },
+    {
+      "type": "pause",
+      "description": "pause playing"
+    },
+    {
+      "type": "continue",
+      "description": "continue playing after a pause"
+    },
+    {
+      "type": "set <symbol>",
+      "description": "set the URL to play next, without stopping"
+    },
+    {
+      "type": "loop <float>",
+      "description": "nonzero turns loop mode on"
+    }
+  ],
+  "body": "[streamin~] plays audio from web links, either live streams or files hosted online (where it works like [play.file~]). It supports AAC, AIF, CAF, FLAC, MP3, OGG, OPUS and WAV."
+}

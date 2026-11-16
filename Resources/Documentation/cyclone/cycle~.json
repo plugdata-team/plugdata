@@ -107,7 +107,7 @@
       "description": "sets offset into buffer"
     },
     {
-      "type": "buffer_sizeinsamps <f>",
+      "type": "buffer_sizeinsamps <float>",
       "description": "changes the buffer size to powers of 2 (16 to 65536)"
     }
   ],

@@ -12,10 +12,10 @@
       "messages": [
         {
           "type": "list",
-          "description": "binary mode: <inlet#, outlet#, on/off>. non-binary mode: <inlet#, outlet#, gain, ramp>"
+          "description": "inlet, outlet, on/off; or inlet, outlet, gain, ramp time (non-binary)"
         },
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "signals to route and mix"
         }
       ],
@@ -24,7 +24,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "signals to route and mix"
         }
       ],
@@ -45,7 +45,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "on <dump> messages, rightmost outlet dumps a list with all connections: <inlet#, outlet#, gain>"
+          "description": "inlet, outlet and gain of each connection, after a 'dump' message"
         }
       ],
       "repeat": false
@@ -71,7 +71,7 @@
   "flags": [
     {
       "name": "@ramp <float>",
-      "description": "only in non-binary mode (if all 3 arguments are given)\ndefault: 10 ms"
+      "description": "only in non-binary mode (if all 3 arguments are given) (default 10 ms)"
     }
   ],
   "methods": [

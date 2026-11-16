@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "fundamental frequency in Hz"
         }
       ],
@@ -39,15 +39,15 @@
   "flags": [
     {
       "name": "-partial <list>",
-      "description": "sets list of partials for all oscillators\ndefault: all 1"
+      "description": "sets list of partials for all oscillators (default all 1)"
     },
     {
       "name": "-amp <list>",
-      "description": "sets list of amplitudes for all oscillators\ndefault: all 1"
+      "description": "sets list of amplitudes for all oscillators (default all 1)"
     },
     {
       "name": "-phase <list>",
-      "description": "sets list of phases for all oscillators\ndefault: all 0"
+      "description": "sets list of phases for all oscillators (default all 0)"
     },
     {
       "name": "-ramp <list>",
@@ -55,15 +55,15 @@
     },
     {
       "name": "-freq <float>",
-      "description": "sets fundamental frequency in Hz\ndefault: 0"
+      "description": "sets fundamental frequency in Hz (default 0)"
     },
     {
       "name": "-rampall <float>",
-      "description": "sets a ramp time for all oscillators\ndefault: all 10"
+      "description": "sets a ramp time for all oscillators (default all 10)"
     },
     {
       "name": "-mc <float>",
-      "description": "sets to multichannel output\ndefault: 0"
+      "description": "sets to multichannel output (default 0)"
     }
   ],
   "methods": [

@@ -12,7 +12,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "sets table index and output its value with interpolation"
         }
       ],
@@ -21,7 +21,7 @@
     {
       "messages": [
         {
-          "type": "float",
+          "type": "float/signals",
           "description": "sets table onset"
         }
       ],
@@ -32,7 +32,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "value of index input"
         }
       ],
@@ -53,5 +53,5 @@
       "description": "set the table name"
     }
   ],
-  "body": ""
+  "body": "[tabread4~] reads an array with four-point polynomial interpolation, using a signal as the index, which makes it suitable for building samplers. The right inlet sets an onset added to the index, for precise indexing into large arrays. Indexes should range from 1 to the array size minus 2."
 }

@@ -12,7 +12,7 @@
     {
       "messages": [
         {
-          "type": "signals",
+          "type": "float/signals",
           "description": "values from 0 to 1 reads function"
         },
         {

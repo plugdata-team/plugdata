@@ -9,64 +9,7 @@
   ],
   "inlets": [
     {
-      "messages": [
-        {
-          "type": "open <symbol>",
-          "description": "opens sample file"
-        },
-        {
-          "type": "info",
-          "description": "output size, sample rate and channels"
-        },
-        {
-          "type": "reopen",
-          "description": "reopens the previously opened file"
-        },
-        {
-          "type": "clear",
-          "description": "fills all arrays with zeros"
-        },
-        {
-          "type": "trim <f,f>",
-          "description": "trims to a sample range"
-        },
-        {
-          "type": "save <symbol>",
-          "description": "sets file to write to"
-        },
-        {
-          "type": "depth <f>",
-          "description": "bit depth (16, 24 or 32)"
-        },
-        {
-          "type": "show",
-          "description": "opens buffer supbatch window"
-        },
-        {
-          "type": "hide",
-          "description": "closes buffer supbatch window"
-        },
-        {
-          "type": "sr <f>",
-          "description": "sets sample rate (default - patch's)"
-        },
-        {
-          "type": "rename <symbol>",
-          "description": "renames buffer"
-        },
-        {
-          "type": "normalize <f>",
-          "description": "- normalizes to the given float value"
-        },
-        {
-          "type": "size <f>",
-          "description": "maximum buffer size in samples"
-        },
-        {
-          "type": "ms <f>",
-          "description": "maximum buffer size in ms"
-        }
-      ],
+      "messages": [],
       "repeat": false
     }
   ],
@@ -74,8 +17,8 @@
     {
       "messages": [
         {
-          "type": "list <f,f,f>",
-          "description": "sample's size, sample rate and channels"
+          "type": "list",
+          "description": "size in samples, sample rate, size in ms, channels and bit depth"
         }
       ],
       "repeat": false
@@ -85,28 +28,81 @@
     {
       "type": "symbol",
       "description": "buffer name",
-      "default": "default sample_$0"
+      "default": "sample_$0"
     },
     {
-      "type": "symbol",
-      "description": "audio file to load (optional)",
-      "default": "none"
+      "type": "list",
+      "description": "file to load, followed by the same optional values as the 'open' message",
+      "default": ""
     }
   ],
   "flags": [
     {
-      "name": "-size",
-      "description": "maximum buffer size in samples"
+      "name": "-size <float>",
+      "description": "sets maximum buffer size in ms (default 1000)"
     },
     {
-      "name": "-ms",
-      "description": "maximum buffer size in ms"
+      "name": "-ch <float>",
+      "description": "sets number of channels (default 1, or the file's)"
     },
     {
-      "name": "-ch",
-      "description": "number of channels\ndefault: 1"
+      "name": "-sr <float>",
+      "description": "sets sample rate to save to (default Pd's)"
+    },
+    {
+      "name": "-depth <float>",
+      "description": "sets bit depth to save to (default 16)"
     }
   ],
-  "methods": [],
+  "methods": [
+    {
+      "type": "open <list>",
+      "description": "opens a file, optionally followed by number of channels, size in ms and offset in ms; no file name opens a dialog box"
+    },
+    {
+      "type": "info",
+      "description": "outputs size, sample rate, channels and bit depth"
+    },
+    {
+      "type": "clear",
+      "description": "fills all arrays with zeros"
+    },
+    {
+      "type": "trim <float, float>",
+      "description": "trims to a range in ms"
+    },
+    {
+      "type": "save <symbol>",
+      "description": "saves to a file, no symbol opens a dialog box"
+    },
+    {
+      "type": "sr <float>",
+      "description": "sets the sample rate to save the file with"
+    },
+    {
+      "type": "depth <float>",
+      "description": "sets bit depth to save with: 8, 16, 24, 32 or 64"
+    },
+    {
+      "type": "show",
+      "description": "opens the buffer subpatch window"
+    },
+    {
+      "type": "hide",
+      "description": "closes the buffer subpatch window"
+    },
+    {
+      "type": "set <symbol>",
+      "description": "sets buffer name"
+    },
+    {
+      "type": "norm <float>",
+      "description": "normalizes to the given value"
+    },
+    {
+      "type": "size <float>",
+      "description": "resets buffer size in ms"
+    }
+  ],
   "body": "[sample~] is an abstraction that creates an audio buffer which you can use to load a sample or record into. It can load and save multichannel files."
 }

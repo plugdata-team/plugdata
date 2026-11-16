@@ -57,12 +57,16 @@
       "description": "fills all arrays with zeros"
     },
     {
-      "type": "crop <f, f>",
+      "type": "crop <float, float>",
       "description": "trims the sample to a range in ms and resizes the buffer"
     },
     {
       "type": "read <symbol>",
       "description": "sets file to load from (no symbol opens dialog box)"
+    },
+    {
+      "type": "replace <symbol>",
+      "description": "needs a symbol file name to load (just 'replace' opens dialog box). This replaces the buffer with the sample size and number of channels"
     },
     {
       "type": "readagain",
@@ -73,8 +77,8 @@
       "description": "sets file to write to (no symbol opens dialog box)"
     },
     {
-      "type": "format <any>",
-      "description": "sets bit depth - see [pd read/write] for details"
+      "type": "format <anything>",
+      "description": "sets bit depth for writing: 16, 24, int16, int24, float32 or float64"
     },
     {
       "type": "writewave <symbol>",
@@ -101,12 +105,12 @@
       "description": "sets sample rate for writing a file"
     },
     {
-      "type": "fill <any>",
-      "description": "see [pd function/generators] above"
+      "type": "fill <anything>",
+      "description": "fills every sample with a value, or with a sin, cos or sinc function"
     },
     {
-      "type": "apply <any>",
-      "description": "see [pd function/generators] above"
+      "type": "apply <anything>",
+      "description": "applies gain, offset, getdeltas or a window such as hanning to the samples"
     },
     {
       "type": "set <symbol>",
@@ -114,10 +118,10 @@
     },
     {
       "type": "name <symbol>",
-      "description": "same as 'name'"
+      "description": "same as 'set'"
     },
     {
-      "type": "normalize <f>",
+      "type": "normalize <float>",
       "description": "normalizes to the given float value"
     },
     {
@@ -125,7 +129,7 @@
       "description": "sets buffer size in ms"
     },
     {
-      "type": "sizeinsamps <f>",
+      "type": "sizeinsamps <float>",
       "description": "sets buffer size in samples"
     }
   ],

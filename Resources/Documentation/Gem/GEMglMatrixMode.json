@@ -2,7 +2,7 @@
   "title": [
     "GEMglMatrixMode"
   ],
-  "description": "set the current matrix mode",
+  "description": "specify which matrix is the current matrix",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the matrix mode."
+          "description": "which matrix stack is the target for subsequent matrix operations"
         }
       ],
       "repeat": false
@@ -40,12 +40,12 @@
   ],
   "arguments": [
     {
-      "type": "float",
-      "description": "Specifies the matrix mode.",
-      "default": "GL_MODELVIEW"
+      "type": "float/symbol",
+      "description": "which matrix stack is the target for subsequent matrix operations",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglMatrixMode] calls glMatrixMode() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. Its creation arguments also take GL constants by name; its inlets only take their values. See glMatrixMode in the OpenGL reference."
 }

@@ -37,6 +37,10 @@ Patch::Patch(pd::WeakReference patchPtr, Instance* parentInstance, bool const ow
 {
     jassert(parentInstance);
     updateTitle();
+
+    // Otherwise object implementations only get created once an editor shows the patch
+    if (ownsPatch)
+        instance->updateObjectImplementations();
 }
 
 Patch::~Patch()
@@ -116,15 +120,26 @@ void Patch::savePatch(URL const& locationURL)
         canvas_dirty(patch.get(), 0);
 
 #if JUCE_IOS
-        auto patchText = getCanvasContent();
-        auto outputStream = locationURL.createOutputStream();
-
         // on iOS, saving with pd's normal method doesn't work
         // we need to use an outputstream on a URL
-        outputStream->write(patchText.toRawUTF8(), patchText.getNumBytesAsUTF8());
-        outputStream->flush();
+        auto const patchText = getCanvasContent();
+        auto const outputStream = locationURL.createOutputStream();
+        auto* fileStream = dynamic_cast<FileOutputStream*>(outputStream.get());
 
-        instance->logMessage("saved to: " + location.getFullPathName());
+        // The stream opens an existing file for appending
+        bool saved = fileStream && fileStream->openedOk() && fileStream->setPosition(0) && fileStream->truncate().wasOk()
+            && fileStream->write(patchText.toRawUTF8(), patchText.getNumBytesAsUTF8());
+        if (saved) {
+            fileStream->flush();
+            saved = fileStream->getStatus().wasOk();
+        }
+
+        if (saved) {
+            instance->logMessage("saved to: " + location.getFullPathName());
+        } else {
+            canvas_dirty(patch.get(), 1);
+            instance->logError("Couldn't save patch to: " + location.getFullPathName());
+        }
         canvas_rename(patch.get(), file, dir);
 #else
         pd::Interface::saveToFile(patch.get(), file, dir);
@@ -693,20 +708,14 @@ void Patch::setCurrentFile(URL const& newURL)
 
 String Patch::getCanvasContent() const
 {
-    char* buf;
-    int bufsize;
-
+    t_binbuf* binbuf;
     if (auto patch = ptr.get<t_canvas>()) {
-        pd::Interface::getCanvasContent(patch.get(), &buf, &bufsize);
+        binbuf = pd::Interface::getCanvasBinbuf(patch.get());
     } else {
         return { };
     }
 
-    auto content = String::fromUTF8(buf, static_cast<size_t>(bufsize));
-
-    freebytes(buf, static_cast<size_t>(bufsize) * sizeof(char));
-
-    return content;
+    return pd::Interface::getBinbufText(binbuf);
 }
 
 void Patch::reloadPatch(File const& changedPatch, t_glist* except)

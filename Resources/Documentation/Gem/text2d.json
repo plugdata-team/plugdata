@@ -2,7 +2,7 @@
   "title": [
     "text2d"
   ],
-  "description": "renders a line of text without 3D transformations.",
+  "description": "renders a line of text without 3D transformations",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -13,6 +13,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "list",
+          "description": "render the list as text"
         }
       ],
       "repeat": false
@@ -21,7 +25,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "size (in points) (default: 20)"
+          "description": "font size in points (default 20)"
         }
       ],
       "repeat": false
@@ -36,32 +40,57 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "text metrics: bbox, bboxline, ascender, descender, height"
+        }
+      ],
+      "repeat": false
     }
   ],
   "arguments": [
     {
-      "type": "<symbol>",
-      "description": "initial text (defaults to \"gem\")",
-      "default": ""
+      "type": "list",
+      "description": "initial text",
+      "default": "gem"
     }
   ],
   "flags": [],
   "methods": [
     {
       "type": "font <symbol>",
-      "description": "Load a TrueType-font."
+      "description": "load a TrueType font"
     },
     {
       "type": "text <list>",
-      "description": "Render the given text."
-    },
-    {
-      "type": "list <list>",
-      "description": "Render the given text."
+      "description": "Render the given text"
     },
     {
       "type": "alias <float>",
-      "description": "Anti-aliasing on/off ("
+      "description": "nonzero turns anti-aliasing on (default 1)"
+    },
+    {
+      "type": "justify <float, float>",
+      "description": "horizontal and vertical justification"
+    },
+    {
+      "type": "antialias <float>",
+      "description": "nonzero turns anti-aliasing on (default 1)"
+    },
+    {
+      "type": "linedist <float>",
+      "description": "distance between the lines of multi-line text"
+    },
+    {
+      "type": "precision <float>",
+      "description": "precision of the glyph outlines"
+    },
+    {
+      "type": "string <anything>",
+      "description": "render the text given as a list of unicode code points"
     }
   ],
   "body": ""

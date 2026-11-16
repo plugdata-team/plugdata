@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "size"
+          "description": "size of the mesh"
         }
       ],
       "repeat": false
@@ -41,12 +41,21 @@
   "arguments": [
     {
       "type": "float",
-      "description": "resolution of the mesh",
-      "default": "1"
+      "description": "grid resolution in x",
+      "default": "5"
+    },
+    {
+      "type": "float",
+      "description": "grid resolution in y",
+      "default": "5"
     }
   ],
   "flags": [],
   "methods": [
+    {
+      "type": "draw <symbol>",
+      "description": "drawing style: default, line, fill, point, or a GL primitive (linestrip, tri, tristrip, quad, ...)"
+    },
     {
       "type": "grid <float>",
       "description": "change the grid resolution"
@@ -58,6 +67,14 @@
     {
       "type": "gridY <float>",
       "description": "change the Y grid resolution"
+    },
+    {
+      "type": "width <float>",
+      "description": "line width for the line drawing styles (default 1)"
+    },
+    {
+      "type": "blend <float>",
+      "description": "nonzero turns alpha blending on"
     }
   ],
   "body": ""

@@ -32,5 +32,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": "{{< md_include \"objects/acoustic-conversions.md\" >}}"
+  "body": "[dbtopow] converts dB to power units, equal to the square of the \"RMS\" amplitude, so that 100 dB corresponds to a power of 1. Zero dB and less output zero. [powtodb] does the reverse."
 }

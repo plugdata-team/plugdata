@@ -62,7 +62,7 @@
   "flags": [
     {
       "name": "-rate <float>",
-      "description": "sets refresh rate in ms (minimum 1)\ndefault: 5"
+      "description": "sets refresh rate in ms (minimum 1) (default 5)"
     }
   ],
   "methods": [

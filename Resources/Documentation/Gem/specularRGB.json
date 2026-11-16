@@ -2,7 +2,7 @@
   "title": [
     "specularRGB"
   ],
-  "description": "specular coloring with individual RGB values",
+  "description": "set the specular color of the material, per channel",
   "origin": "Gem",
   "categories": [
     "Graphics"

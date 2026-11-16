@@ -37,42 +37,38 @@
   "flags": [
     {
       "name": "-size <float>",
-      "description": "font size (minimum 8)\ndefault: patch's"
+      "description": "font size (minimum 8) (default patch's)"
     },
     {
       "name": "-load <float>",
-      "description": "sets initialization and generating value with given float or sets current value if no float is given."
+      "description": "sets initialization and generating value with given float or sets current value if no float is given"
     },
     {
       "name": "-width <float>",
-      "description": "sets digit width (minimum 1)\ndefault: 6"
+      "description": "sets digit width (minimum 1) (default 6)"
     },
     {
       "name": "-range <float, float>",
-      "description": "dragging range\ndefault: 0, 0 - unlimited"
+      "description": "dragging range (default 0, 0 - unlimited)"
     },
     {
-      "name": "-bgcolor <f, f, f>",
-      "description": "sets background color in RGB\ndefault: 255 255 255"
+      "name": "-bgcolor <float, float, float>",
+      "description": "sets background color in RGB (default 255 255 255)"
     },
     {
-      "name": "-fgcolor <f, f, f>",
-      "description": "sets frontground color in RGB\ndefault: 0 0 0"
+      "name": "-fgcolor <float, float, float>",
+      "description": "sets frontground color in RGB (default 0 0 0)"
     },
     {
       "name": "-ramp <float>",
-      "description": "sets ramp time in ms (minimum 0)\ndefault: 10"
+      "description": "sets ramp time in ms (minimum 0) (default 10)"
     },
     {
       "name": "-rate <float>",
-      "description": "sets refresh rate in ms (minimum 15)\ndefault: 100"
+      "description": "sets refresh rate in ms (minimum 15) (default 100)"
     }
   ],
   "methods": [
-    {
-      "type": "set <float>",
-      "description": "sets initialization and generating value with given float or sets current value if no float is given"
-    },
     {
       "type": "size <float>",
       "description": "sets font size"
@@ -86,11 +82,11 @@
       "description": "sets minimum and maximum dragging values"
     },
     {
-      "type": "bgcolor <f, f, f>",
+      "type": "bgcolor <float, float, float>",
       "description": "sets background color in RGB"
     },
     {
-      "type": "fgcolor <f, f, f>",
+      "type": "fgcolor <float, float, float>",
       "description": "sets foreground color in RGB"
     },
     {

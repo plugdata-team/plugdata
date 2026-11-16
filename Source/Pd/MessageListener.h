@@ -19,154 +19,117 @@ public:
     JUCE_DECLARE_WEAK_REFERENCEABLE(MessageListener)
 };
 
-template<typename T>
-class MessageVector {
-    static constexpr size_t Capacity = 1 << 17;
-    static constexpr size_t OverflowBlockSize = 1024;
-    AtomicValue<size_t> size = 0;
-    // Primary contiguous buffer
-    T buffer[Capacity];
-
-    // Small blocks for when we overflow our buffer
-    SmallArray<std::unique_ptr<T[]>> overflowBlocks;
-
-    void addOverflow(T const& value)
-    {
-        if (overflowBlocks.empty() || (size % OverflowBlockSize) == 0) {
-            overflowBlocks.emplace_back(std::make_unique<T[]>(OverflowBlockSize));
-        }
-        size_t blockIndex = (size - Capacity) / OverflowBlockSize;
-        size_t blockOffset = (size - Capacity) % OverflowBlockSize;
-        overflowBlocks[blockIndex][blockOffset] = value;
-    }
-
-public:
-    // Constructor
-    MessageVector() { }
-
-    bool empty() const
-    {
-        return size == 0;
-    }
-
-    void append(int noOverflow, T const&& header, T const* values, int numValues)
-    {
-        if (EXPECT_LIKELY(size + numValues + 1 < Capacity)) {
-            std::copy(values, values + numValues, buffer + size);
-            buffer[size + numValues] = header;
-            size += (numValues + 1);
-        } else if (!noOverflow) {
-            auto const spaceLeft = Capacity > size ? std::min<int>(Capacity - size, numValues) : 0;
-            int const numOverflow = numValues - spaceLeft;
-            for (int i = 0; i < spaceLeft; i++) {
-                buffer[size + i] = values[i];
-            }
-            size += spaceLeft;
-            for (int i = 0; i < numOverflow; i++) {
-                addOverflow(values[spaceLeft + i]);
-                ++size;
-            }
-
-            if (size < Capacity) {
-                buffer[size] = header;
-            } else {
-                addOverflow(header);
-            }
-            ++size;
-        }
-    }
-
-    T& back()
-    {
-        if (size == 0) {
-            throw std::out_of_range("No elements in vector");
-        }
-        if (EXPECT_LIKELY(size <= Capacity)) {
-            return buffer[size - 1];
-        }
-        size_t blockIndex = (size - Capacity - 1) / OverflowBlockSize;
-        size_t blockOffset = (size - Capacity - 1) & (OverflowBlockSize - 1);
-        return overflowBlocks[blockIndex][blockOffset];
-    }
-
-    void pop()
-    {
-        --size;
-    }
-
-    void pop(int const amount)
-    {
-        size -= amount;
-    }
-
-    void clear()
-    {
-        overflowBlocks.clear();
-        size = 0;
-    }
-};
-
 // MessageDispatcher handles the organising of messages from Pd to the plugdata GUI
 // It provides an optimised way to listen to messages within pd from the message thread,
-// it's guaranteed to be lock-free and wait-free, until memory allocation needs to happen
 class MessageDispatcher final : public AsyncUpdater {
 
-    // Represents a single Pd message.
-    // Holds target object, and symbol+size compressed into a single value
-    // Atoms are stored in a separate buffer, and read out based on reported size
-
-    struct MessageTargetSizeSymbol {
+    struct MessageHeader {
         PointerIntPair<void*, 2, uint8_t> targetAndSize;
         PointerIntPair<t_symbol*, 2, uint8_t> symbolAndSize;
     };
 
-    struct Message {
-        Message() { }
+    // Holds either a message header, an atom, or the atom count of a message with at least EscapeSize atoms
+    // Messages are stored as [atoms...][count, only if escaped][header], so they can be read back newest-first
+    struct Slot {
+        Slot() { }
 
-        // Both are 16 bytes, so we can squish them together into a single queue
         union {
-            MessageTargetSizeSymbol header;
+            MessageHeader header;
             t_atom atom;
+            size_t count;
         };
     };
+    static_assert(sizeof(Slot) == sizeof(t_atom));
+    static_assert(std::is_trivially_copyable_v<Slot>);
 
-    using MessageBuffer = MessageVector<Message>;
+    // The header has 4 bits for the atom count, this value means "real count is in the slot below the header"
+    static constexpr size_t EscapeSize = 15;
+
+    struct Chunk {
+        static constexpr size_t NumSlots = 4096; // 64 KiB
+        Slot* end = nullptr;                     // Write position when the chunk was handed to the consumer
+        Slot slots[NumSlots];
+    };
+
+    static constexpr size_t InitialChunks = 64;
+    static constexpr size_t MaxFreeChunks = 64;
+
+    struct PendingMessage {
+        void* target;
+        t_symbol* symbol;
+        Slot const* atoms;
+        int size;
+    };
 
 public:
-    MessageDispatcher()
+    explicit MessageDispatcher(pd::Instance& instance)
+        : pdInstance(instance)
     {
-        usedHashes.reserve(128);
+        // Reserve up front so the producer doesn't allocate when sealing chunks. The arrays get swapped around in takeFilledChunks(), so all of them need the same capacity
+        writer.filledChunks.reserve(256);
+        writer.freeChunks.reserve(256);
+        drainChunks.reserve(256);
+        retiredChunks.reserve(256);
+        for (size_t i = 0; i < InitialChunks; i++)
+            writer.freeChunks.add(new Chunk);
+        startChunk(writer.freeChunks.pop_back_val());
+
+        usedHeaders.reserve(128);
         listenerScratch.reserve(16);
     }
 
-    static void enqueueMessage(void* instance, int type, void* target, t_symbol* symbol, int const argc, t_atom* argv) noexcept
+    ~MessageDispatcher() override
     {
-        auto const* pd = static_cast<pd::Instance*>(instance);
-        auto* dispatcher = pd->messageDispatcher.get();
-        if (EXPECT_LIKELY(!dispatcher->block)) {
-            auto const size = argc > 15 ? 15 : argc;
-
-            auto& backBuffer = dispatcher->getBackBuffer();
-            Message message;
-            message.header = { PointerIntPair<void*, 2, uint8_t>(target, (size & 0b1100) >> 2), PointerIntPair<t_symbol*, 2, uint8_t>(symbol, size & 0b11) };
-
-            backBuffer.append(type, std::move(message), reinterpret_cast<Message*>(argv), size);
-        }
+        for (auto* chunk : writer.freeChunks)
+            delete chunk;
+        for (auto* chunk : writer.filledChunks)
+            delete chunk;
+        for (auto* chunk : drainChunks)
+            delete chunk;
+        delete writer.chunk;
     }
 
-    // used when no plugineditor is active, so we can just ignore messages
+    // Called by Pd, with the Pd lock held. Type 1 messages (connection debugging/activity) are dropped instead of allocating when the chunk pool is exhausted.
+    static void enqueueMessage(void* instance, int type, void* target, t_symbol* symbol, int const argc, t_atom* argv) noexcept
+    {
+        auto* dispatcher = static_cast<pd::Instance*>(instance)->messageDispatcher.get();
+        auto& writer = dispatcher->writer;
+        if (EXPECT_UNLIKELY(writer.block.load()))
+            return;
+
+        // Fast path for messages with up to 2 atoms (bang, float, symbol, most lists): the copies are inlined, so this stays a leaf function without any calls, stack frame or memory barriers
+        auto* const ptr = writer.ptr;
+        auto const numAtoms = static_cast<size_t>(argc);
+        if (EXPECT_LIKELY(numAtoms <= 2 && writer.end - ptr > 2)) {
+            if (numAtoms != 0) {
+                std::memcpy(static_cast<void*>(ptr), argv, sizeof(Slot));
+                if (numAtoms == 2)
+                    std::memcpy(static_cast<void*>(ptr + 1), argv + 1, sizeof(Slot));
+            }
+            ptr[numAtoms].header = makeHeader(target, symbol, numAtoms);
+            writer.ptr = ptr + numAtoms + 1;
+            return;
+        }
+
+        dispatcher->enqueueLargeMessage(type, target, symbol, numAtoms, argv);
+    }
+
+    // Used when no plugineditor is active, so we can just ignore messages
     void setBlockMessages(bool const blockMessages)
     {
-        block = blockMessages;
+        pdInstance.lockAudioThread();
+        writer.block = blockMessages;
 
-        // If we're blocking messages from now on, also clear out the queue
+        // If we're blocking messages from now on, also discard everything that's queued
         if (blockMessages) {
-            sys_lock();
-            for (auto& buffer : buffers) {
-                buffer.clear();
-            }
-            sys_unlock();
+            for (auto* chunk : writer.filledChunks)
+                (writer.freeChunks.size() < MaxFreeChunks ? writer.freeChunks : retiredChunks).add(chunk);
+            writer.filledChunks.clear();
+            writer.ptr = writer.chunk->slots;
         }
+        pdInstance.unlockAudioThread();
+
+        freeRetiredChunks();
     }
 
     void addMessageListener(void* object, pd::MessageListener* messageListener)
@@ -203,66 +166,45 @@ public:
             messageListeners.erase(object);
     }
 
-    static bool popMessage(MessageBuffer& buffer, Message& result)
-    {
-        if (buffer.empty())
-            return false;
-
-        result = buffer.back();
-        buffer.pop();
-        return true;
-    }
-
-    void dequeueMessages() // Note: make sure correct pd instance is active when calling this
+    void dequeueMessages() // Note: only call this from the message thread
     {
         if (isDequeueing)
             return;
 
         ScopedValueSetter<bool> const dequeueGuard(isDequeueing, true);
 
-        auto& frontBuffer = getFrontBuffer();
+        takeFilledChunks();
 
-        usedHashes.clear();
+        // Walk the messages newest-first, keeping only the newest one for each (target, symbol, size)
+        usedHeaders.clear();
+        pendingMessages.clear();
+        for (int i = static_cast<int>(drainChunks.size()) - 1; i >= 0; i--) {
+            auto const* chunk = drainChunks[i];
+            auto const* slot = chunk->end;
+            while (slot != chunk->slots) {
+                auto const& header = (--slot)->header;
+                size_t size = header.targetAndSize.getInt() << 2 | header.symbolAndSize.getInt();
+                if (EXPECT_UNLIKELY(size == EscapeSize))
+                    size = (--slot)->count;
+                slot -= size;
 
-        SmallArray<Message> allMessages;
-        SmallArray<pd::Atom> allAtoms;
-
-        // Eliminate duplicate messages
-        Message message;
-        while (popMessage(frontBuffer, message)) {
-            auto hash = reinterpret_cast<intptr_t>(message.header.targetAndSize.getOpaqueValue()) ^ reinterpret_cast<intptr_t>(message.header.symbolAndSize.getOpaqueValue());
-            auto size = message.header.targetAndSize.getInt() << 2 | message.header.symbolAndSize.getInt();
-            if (EXPECT_UNLIKELY(usedHashes.contains(hash))) {
-                frontBuffer.pop(size);
-                continue;
+                auto const key = std::pair(reinterpret_cast<uintptr_t>(header.targetAndSize.getOpaqueValue()), reinterpret_cast<uintptr_t>(header.symbolAndSize.getOpaqueValue()));
+                if (usedHeaders.insert(key).second)
+                    pendingMessages.add({ header.targetAndSize.getPointer(), header.symbolAndSize.getPointer(), slot, static_cast<int>(size) });
             }
-            for (int at = 0; at < size; at++) {
-                allAtoms.emplace_back(&frontBuffer.back().atom);
-                frontBuffer.pop();
-            }
-            usedHashes.insert(hash);
-            allMessages.add(message);
         }
 
-        int atomPosition = allAtoms.size();
-
         // Replay messages in original order
-        for (int i = allMessages.size() - 1; i >= 0; i--) {
-            auto& message = allMessages[i];
-            auto targetPtr = message.header.targetAndSize.getPointer();
-            auto target = messageListeners.find(targetPtr);
-            auto [symbol, size] = message.header.symbolAndSize;
-            size = message.header.targetAndSize.getInt() << 2 | size;
-
-            if (EXPECT_LIKELY(target == messageListeners.end())) {
-                atomPosition -= size;
+        // The drained chunks stay ours until the next dequeueMessages() call, so the atoms remain valid while we dispatch
+        for (int i = static_cast<int>(pendingMessages.size()) - 1; i >= 0; i--) {
+            auto const& message = pendingMessages[i];
+            auto const target = messageListeners.find(message.target);
+            if (EXPECT_LIKELY(target == messageListeners.end()))
                 continue;
-            }
 
-            SmallArray<pd::Atom> atoms = {
-                std::make_reverse_iterator(allAtoms.begin() + atomPosition),
-                std::make_reverse_iterator(allAtoms.begin() + atomPosition - size)
-            };
+            atomScratch.clear();
+            for (int at = 0; at < message.size; at++)
+                atomScratch.emplace_back(&message.atoms[at].atom);
 
             // Dispatch from a copy, since we're entering into arbitrary plugdata code here that can possible deallocate things we need
             listenerScratch.clear();
@@ -272,20 +214,14 @@ public:
             bool sawDeadListener = false;
             for (auto const& listener : listenerScratch) {
                 if (auto* referent = listener.get())
-                    referent->receiveMessage(symbol, atoms);
+                    referent->receiveMessage(message.symbol, atomScratch);
                 else
                     sawDeadListener = true;
             }
 
             if (EXPECT_UNLIKELY(sawDeadListener))
-                removeDeadListeners(targetPtr);
-
-            atomPosition -= size;
+                removeDeadListeners(message.target);
         }
-
-        frontBuffer.clear();
-
-        currentBuffer.store((currentBuffer.load() + 1) % 3);
     }
 
     void removeDeadListeners(void* targetPtr)
@@ -310,27 +246,115 @@ public:
         dequeueMessages();
     }
 
-    MessageBuffer& getBackBuffer()
-    {
-        return buffers[currentBuffer.load()];
-    }
-
-    MessageBuffer& getFrontBuffer()
-    {
-        return buffers[(currentBuffer.load() + 2) % 3];
-    }
-
 private:
-    AtomicValue<bool, Relaxed> block = true; // Block messages if message queue cannot be cleared
-    StackArray<MessageBuffer, 3> buffers;
-    AtomicValue<int, Sequential> currentBuffer;
+    static MessageHeader makeHeader(void* target, t_symbol* symbol, size_t const size)
+    {
+        return { PointerIntPair<void*, 2, uint8_t>(target, static_cast<uint8_t>((size & 0b1100) >> 2)), PointerIntPair<t_symbol*, 2, uint8_t>(symbol, static_cast<uint8_t>(size & 0b11)) };
+    }
 
+    // Everything the fast path doesn't handle: more than 2 atoms, escaped atom counts, and starting a new chunk
+#if JUCE_MSVC
+    __declspec(noinline)
+#else
+    __attribute__((noinline))
+#endif
+    void enqueueLargeMessage(int const type, void* target, t_symbol* symbol, size_t numAtoms, t_atom* argv) noexcept
+    {
+        numAtoms = std::min(numAtoms, Chunk::NumSlots - 2); // A message can't span chunks
+        auto const escaped = numAtoms >= EscapeSize;
+        auto const numSlots = numAtoms + (escaped ? 2 : 1);
+
+        if (static_cast<size_t>(writer.end - writer.ptr) < numSlots) {
+            Chunk* chunk = nullptr;
+            if (!writer.freeChunks.empty())
+                chunk = writer.freeChunks.pop_back_val();
+            else if (type != 1)
+                chunk = new (std::nothrow) Chunk;
+
+            if (!chunk)
+                return;
+
+            sealChunk();
+            startChunk(chunk);
+        }
+
+        std::memcpy(static_cast<void*>(writer.ptr), argv, numAtoms * sizeof(Slot));
+        writer.ptr += numAtoms;
+        if (escaped) {
+            writer.ptr->count = numAtoms;
+            ++writer.ptr;
+        }
+        writer.ptr->header = makeHeader(target, symbol, escaped ? EscapeSize : numAtoms);
+        ++writer.ptr;
+    }
+
+    // Swaps the chunks the producer filled since the last call into drainChunks
+    void takeFilledChunks()
+    {
+        pdInstance.lockAudioThread();
+
+        // Return the chunks we drained last time to the pool. Whatever doesn't fit gets freed after unlocking
+        while (!drainChunks.empty() && writer.freeChunks.size() < MaxFreeChunks)
+            writer.freeChunks.add(drainChunks.pop_back_val());
+        std::swap(drainChunks, retiredChunks);
+
+        // Hand over the chunk that's currently being written to as well
+        if (writer.ptr != writer.chunk->slots) {
+            sealChunk();
+            startChunk(writer.freeChunks.empty() ? new Chunk : writer.freeChunks.pop_back_val());
+        }
+        std::swap(drainChunks, writer.filledChunks);
+
+        pdInstance.unlockAudioThread();
+
+        freeRetiredChunks();
+    }
+
+    // Frees chunks that didn't fit back into the pool, outside the Pd lock
+    void freeRetiredChunks()
+    {
+        for (auto* chunk : retiredChunks)
+            delete chunk;
+        retiredChunks.clear();
+    }
+
+    void sealChunk()
+    {
+        writer.chunk->end = writer.ptr;
+        writer.filledChunks.add(writer.chunk);
+    }
+
+    void startChunk(Chunk* chunk)
+    {
+        writer.chunk = chunk;
+        writer.ptr = chunk->slots;
+        writer.end = chunk->slots + Chunk::NumSlots;
+    }
+
+    pd::Instance& pdInstance;
+
+    // Producer state: only touched while holding the Pd lock, so it doesn't need to be atomic
+    struct Writer {
+        Slot* ptr = nullptr;
+        Chunk* chunk = nullptr;
+        Slot* end = nullptr;
+        AtomicValue<bool, Relaxed> block = true;
+        SmallArray<Chunk*> filledChunks;
+        SmallArray<Chunk*> freeChunks;
+    } writer;
+
+    // Padding to keep the consumer's writes to its members below off the producer's cache lines
+    [[maybe_unused]] char writerPadding[128];
+
+    // Consumer state (message thread only)
+    SmallArray<Chunk*> drainChunks;
+    SmallArray<Chunk*> retiredChunks;
     bool isDequeueing = false;
-
-    // Reused across messages; safe because dequeueMessages() is non-reentrant
+    UnorderedSet<std::pair<uintptr_t, uintptr_t>> usedHeaders;
+    SmallArray<PendingMessage> pendingMessages;
+    SmallArray<pd::Atom> atomScratch;
     SmallArray<juce::WeakReference<MessageListener>> listenerScratch;
 
-    UnorderedSet<intptr_t> usedHashes;
     UnorderedMap<void*, SmallArray<juce::WeakReference<MessageListener>>> messageListeners;
 };
 

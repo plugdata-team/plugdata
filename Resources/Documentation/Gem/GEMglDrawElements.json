@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies what kind of primitives to render."
+          "description": "what kind of primitives to render"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the number of indices to be rendered."
+          "description": "number of elements to be rendered"
         }
       ],
       "repeat": false
@@ -39,7 +39,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the type of the values in indices."
+          "description": "type of the values in indices"
         }
       ],
       "repeat": false
@@ -47,8 +47,8 @@
     {
       "messages": [
         {
-          "type": "float",
-          "description": "Specifies an offset in the array buffer bound to GL_ELEMENT_ARRAY_BUFFER."
+          "type": "list",
+          "description": "list of indices"
         }
       ],
       "repeat": false
@@ -68,26 +68,21 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies what kind of primitives to render.",
-      "default": "GL_TRIANGLES"
-    },
-    {
-      "type": "float",
-      "description": "Specifies the number of indices to be rendered.",
+      "description": "what kind of primitives to render",
       "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the type of the values in indices.",
-      "default": "GL_UNSIGNED_INT"
+      "description": "number of elements to be rendered",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies an offset in the array buffer bound to GL_ELEMENT_ARRAY_BUFFER.",
+      "description": "type of the values in indices",
       "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglDrawElements] calls glDrawElements() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. GL constants are numbers here: [GLdefine] turns a name like GL_LINES into its value. See glDrawElements in the OpenGL reference."
 }

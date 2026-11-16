@@ -653,6 +653,7 @@ public:
         sendReceiveDatabase = { };
         currentObject = object;
         usingTouchMode = SettingsFile::getInstance()->isUsingTouchMode();
+        suggestionsEnabled = SettingsFile::getInstance()->getProperty<bool>("suggestions_enabled");
         objectEditor = editor;
         lastQueriedText = "<unset>";
 
@@ -664,6 +665,10 @@ public:
         }
 
         openedEditor = editor;
+
+        if (!suggestionsEnabled)
+            return;
+
         setTransform(object->editor->getTransform());
 
         editor->addKeyListener(this);
@@ -692,7 +697,7 @@ public:
         // transform, so we must not apply it a second time here.
         setTransform(AffineTransform());
         resizer.setVisible(false);
-        layoutMode = LayoutMode::ListOnly;
+        applyLayoutMode(LayoutMode::ListOnly);
 
         touchModeEditor = std::make_unique<TextEditor>();
         touchModeEditor->setMultiLine(true);
@@ -729,7 +734,8 @@ public:
 
         setVisible(true);
         updateSuggestions(touchModeEditor->getText());
-        resized();
+
+        updateTouchDialogSize();
 
         grabEditorFocus();
     }
@@ -814,6 +820,10 @@ public:
         if (getParentComponent() == dialog)
             dialog->removeChildComponent(this);
 
+        // The dialog doesn't own us, but its destructor still calls into its viewed component.
+        // When our canvas closes before the async reset below has run, we're deleted first
+        dialog->viewedComponent.release();
+
         dialog->setVisible(false);
 
         MessageManager::callAsync([safeDialog = SafePointer<Dialog>(dialog), safeEditor = SafePointer<PluginEditor>(owningEditor)] {
@@ -888,7 +898,7 @@ public:
 
     void updateBounds()
     {
-        if (!currentObject || usingTouchMode)
+        if (!currentObject || usingTouchMode || !suggestionsEnabled)
             return;
 
         auto const* cnv = currentObject->cnv;
@@ -915,7 +925,7 @@ public:
 
     void updateSuggestions(String const& currentText)
     {
-        if (!currentObject || lastQueriedText == currentText)
+        if (!currentObject || !suggestionsEnabled || lastQueriedText == currentText)
             return;
 
         if (currentSelection >= 0 && currentSelection < rows.size()
@@ -2113,6 +2123,7 @@ private:
     bool autocompleteActivatedByNavigation = false;
     bool currentResultShouldShrinkHeightToFitEntries = false;
     bool usingTouchMode = false;
+    bool suggestionsEnabled = true;
     bool isTearingDown = false;
 
     String lastQueriedText;

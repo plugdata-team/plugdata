@@ -2,7 +2,7 @@
   "title": [
     "pix_duotone"
   ],
-  "description": "reduce the number of colours by thresholding",
+  "description": "reduce the number of colors by thresholding",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -12,7 +12,11 @@
       "messages": [
         {
           "type": "gemlist",
-          "description": "gemlist"
+          "description": ""
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns processing on (default 1)"
         }
       ],
       "repeat": false

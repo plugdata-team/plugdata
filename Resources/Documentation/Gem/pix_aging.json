@@ -16,19 +16,7 @@
         },
         {
           "type": "float",
-          "description": "add a maximum of scratches"
-        },
-        {
-          "type": "float",
-          "description": "color-bleaching"
-        },
-        {
-          "type": "float",
-          "description": "add \"dust"
-        },
-        {
-          "type": "float",
-          "description": "add \"pits"
+          "description": "nonzero turns processing on (default 1)"
         }
       ],
       "repeat": false
@@ -50,19 +38,19 @@
   "methods": [
     {
       "type": "scratch <float>",
-      "description": "add a maximum of scratches"
+      "description": "maximum number of scratches"
     },
     {
       "type": "coloraging <float>",
-      "description": "color-bleaching"
+      "description": "nonzero bleaches the colors"
     },
     {
       "type": "dust <float>",
-      "description": "add \"dust"
+      "description": "nonzero adds dust"
     },
     {
       "type": "pits <float>",
-      "description": "add \"pits"
+      "description": "nonzero adds pits"
     }
   ],
   "body": ""

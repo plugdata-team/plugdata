@@ -1,6 +1,6 @@
 {
   "title": [
-    "pqtorusknot"
+    "pqtorusknots"
   ],
   "description": "renders a 3D knot",
   "origin": "Gem",
@@ -13,6 +13,15 @@
         {
           "type": "gemlist",
           "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "size of the knot"
         }
       ],
       "repeat": false
@@ -31,40 +40,57 @@
   ],
   "arguments": [
     {
-      "type": "gemlist",
-      "description": "",
-      "default": ""
+      "type": "float",
+      "description": "size of the knot",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "q winding number",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [
     {
-      "type": "draw [line|fill|points]",
-      "description": ""
+      "type": "draw <symbol>",
+      "description": "drawing style: default, line, fill or point"
     },
     {
       "type": "steps <float>",
-      "description": ""
+      "description": "number of steps along the knot (default 256)"
     },
     {
       "type": "facets <float>",
-      "description": ""
+      "description": "number of facets around the tube (default 16)"
     },
     {
       "type": "thick <float>",
-      "description": ""
+      "description": "thickness of the tube (default 0.2)"
     },
     {
-      "type": "clump <float> <float> <float>",
-      "description": ""
+      "type": "scale <float>",
+      "description": "scale of the knot (default 1)"
     },
     {
-      "type": "pq <float> <yWifloatnding>",
-      "description": ""
+      "type": "clump <float, float, float>",
+      "description": "number of clumps, clump offset and clump scale (default 12 0 0.5)"
     },
     {
-      "type": "ivScale <float> <float>",
-      "description": "for texturing"
+      "type": "pq <float, float>",
+      "description": "p and q winding numbers (default 2 0)"
+    },
+    {
+      "type": "uvScale <float, float>",
+      "description": "texture coordinate scale in u and v (default 4 64)"
+    },
+    {
+      "type": "width <float>",
+      "description": "line width for the line drawing styles"
+    },
+    {
+      "type": "blend <float>",
+      "description": "nonzero turns alpha blending on"
     }
   ],
   "body": ""

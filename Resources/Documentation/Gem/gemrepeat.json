@@ -12,7 +12,7 @@
       "messages": [
         {
           "type": "gemlist",
-          "description": ""
+          "description": "passed on as many times as the count says; other messages are ignored"
         }
       ],
       "repeat": false
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "number of repeats (integer)"
+          "description": "number of repeats"
         }
       ],
       "repeat": false
@@ -41,8 +41,8 @@
   "arguments": [
     {
       "type": "float",
-      "description": "number of repeats",
-      "default": "0"
+      "description": "how many times to repeat the gemlist",
+      "default": "2"
     }
   ],
   "flags": [],

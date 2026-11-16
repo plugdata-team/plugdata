@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "audio in"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "cutoff"
         }
       ],
@@ -29,8 +29,26 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "resonance"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "drive"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "MIDI pitch for keyboard tracking of the cutoff"
         }
       ],
       "repeat": false
@@ -40,7 +58,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "audio out"
         }
       ],
@@ -50,5 +68,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[vcf.m~] is a MERDA voltage controlled filter module with multichannel input and controls for cutoff, resonance and drive. The CV inputs go through attenuverters and add to the knob values, and the right inlet takes MIDI pitch for keyboard tracking. The cutoff spans 10 octaves, from about 16 Hz to 16 kHz."
 }

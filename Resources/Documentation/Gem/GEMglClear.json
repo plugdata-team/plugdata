@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies which buffers are to be cleared."
+          "description": "bitwise OR of masks that indicate the buffers to be cleared"
         }
       ],
       "repeat": false
@@ -41,11 +41,11 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies which buffers are to be cleared.",
+      "description": "bitwise OR of masks that indicate the buffers to be cleared",
       "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglClear] calls glClear() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glClear in the OpenGL reference."
 }

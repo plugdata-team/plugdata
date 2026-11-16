@@ -1,0 +1,56 @@
+{
+  "title": [
+    "nlist.iter"
+  ],
+  "description": "iterate through a nested list",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "output nested list's indexes"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "set name of nested list"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "nested list's indexes"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "nested list name to bind to",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "name <symbol>",
+      "description": "set name of nested list"
+    }
+  ],
+  "body": "[nlist.iter] iterates through the indexes of a nested list. If an element is nested, the index is a list. You can use [nlist.get] to actually get the element. Clicking on the object opens the editor window of the [nlist.define] object with the same name."
+}

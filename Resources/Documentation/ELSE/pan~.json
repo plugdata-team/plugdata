@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "signal input"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "gain parameter"
         }
       ],
@@ -29,8 +29,8 @@
     {
       "messages": [
         {
-          "type": "float/signal",
-          "description": "azimuth  (normalized from 0-1 or radians)"
+          "type": "float/signals",
+          "description": "pan position from 0 to 1"
         }
       ],
       "repeat": false
@@ -38,8 +38,8 @@
     {
       "messages": [
         {
-          "type": "float/signal",
-          "description": "spread parameter (from -1 to 1)"
+          "type": "float/signals",
+          "description": "spread parameter, minimum 0.1"
         }
       ],
       "repeat": false
@@ -49,7 +49,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "equal power panned output $nth"
         }
       ],
@@ -69,25 +69,45 @@
     },
     {
       "type": "float",
-      "description": "offset in degrees",
+      "description": "position offset from 0 to 1",
       "default": "0"
     }
   ],
   "flags": [
     {
-      "name": "-radians",
-      "description": "change 3rd inlet input from degrees to radians"
+      "name": "-open",
+      "description": "set to open mode (default circular)"
+    },
+    {
+      "name": "-cartesian",
+      "description": "sets to cartesian mode"
     }
   ],
   "methods": [
     {
-      "type": "offset <float>",
-      "description": "set offset angle in degrees"
+      "type": "open <float>",
+      "description": "sets to open mode"
     },
     {
-      "type": "radians <float>",
-      "description": "set offset angle in radians"
+      "type": "offset <float>",
+      "description": "sets position offset from 0 to 1"
+    },
+    {
+      "type": "cartesian <float>",
+      "description": "nonzero sets cartesian mode"
+    },
+    {
+      "type": "pos <list>",
+      "description": "position value(s)"
+    },
+    {
+      "type": "gain <list>",
+      "description": "gain value(s)"
+    },
+    {
+      "type": "spread <list>",
+      "description": "spread value(s)"
     }
   ],
-  "body": "[pan~] pans an input signal to 'n' specified outlets with equal power crossfading between adjacent channels according to a spread parameter. The speakers are supposedly disposed in a circular setting with equidistant angles. The output selection can then be considered an azimuth angle input whose range is normalized from 0 to 1, where 1 goes back to 0!"
+  "body": "[pan~] pans an input signal to 'n' outlets, with equal power crossfading between adjacent channels according to a spread parameter. The speakers are assumed to be in a circle with equal angles between them, so the position input goes around the circle: it ranges from 0 to 1, where 1 is the same as 0."
 }

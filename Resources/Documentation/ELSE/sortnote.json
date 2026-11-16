@@ -1,0 +1,37 @@
+{
+  "title": [
+    "sortnote"
+  ],
+  "description": "sort note symbols",
+  "origin": "ELSE",
+  "categories": [
+    "Tuning",
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "a message to sort"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "the sorted list"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[sortnote] sorts note symbols by pitch."
+}

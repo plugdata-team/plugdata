@@ -17,10 +17,6 @@
         {
           "type": "bang",
           "description": "outputs value"
-        },
-        {
-          "type": "set <float>",
-          "description": "sets the selected item"
         }
       ],
       "repeat": false
@@ -30,7 +26,7 @@
     {
       "messages": [
         {
-          "type": "float",
+          "type": "float/symbol/list",
           "description": "current item"
         }
       ],
@@ -41,54 +37,66 @@
   "flags": [
     {
       "name": "-load <float>",
-      "description": "sets load value, no float sets current\ndefault: 0"
+      "description": "sets load value, no float sets current (default 0)"
     },
     {
       "name": "-size <float>",
-      "description": "sets size in pixels\ndefault: 50"
+      "description": "sets size in pixels (default 50)"
     },
     {
       "name": "-bg <list>",
-      "description": "sets background color in hexdecimal or RGB list\ndefault: #dfdfdf"
+      "description": "sets background color in hexdecimal or RGB list (default #dfdfdf)"
     },
     {
       "name": "-fg <list>",
-      "description": "sets foreground color in hexdecimal or RGB list\ndefault: #000000"
+      "description": "sets foreground color in hexdecimal or RGB list (default #000000)"
+    },
+    {
+      "name": "-nooutline",
+      "description": "doesn't draw the outline"
+    },
+    {
+      "name": "-pos <float>",
+      "description": "sets popup position: 0 below, 1 above, 2 left, 3 right, 4 over (default 0)"
     },
     {
       "name": "-send <symbol>",
-      "description": "sets send symbol\ndefault: empty"
+      "description": "sets send symbol (default empty)"
     },
     {
       "name": "-receive <symbol>",
-      "description": "sets receive symbol\ndefault: empty"
+      "description": "sets receive symbol (default empty)"
     },
     {
       "name": "-noloadbang",
-      "description": "disable output on init\ndefault: 0"
+      "description": "disable output on init (default 0)"
     },
     {
       "name": "-nokeep",
-      "description": "forget items on reopen\ndefault: 0"
+      "description": "forget items on reopen (default 0)"
     },
     {
       "name": "-savestate",
-      "description": "remember last state\ndefault: 0"
+      "description": "remember last state (default 0)"
     },
     {
       "name": "-var <symbol>",
-      "description": "assigns a variable to the menu\ndefault: empty"
+      "description": "assigns a variable to the menu (default empty)"
     },
     {
       "name": "-param <symbol>",
-      "description": "assigns a parameter to the menu\ndefault: empty"
+      "description": "assigns a parameter to the menu (default empty)"
     },
     {
       "name": "-mode <float>",
-      "description": "set oputput mode, 0=index, 1=item, 2=both\ndefault: 0"
+      "description": "set oputput mode, 0=index, 1=item, 2=both (default 0)"
     }
   ],
   "methods": [
+    {
+      "type": "set <float>",
+      "description": "sets the selected item"
+    },
     {
       "type": "fontsize <float>",
       "description": "sets the font size"
@@ -151,7 +159,7 @@
     },
     {
       "type": "pos <float>",
-      "description": "sets the menu position"
+      "description": "sets popup position: 0 below, 1 above, 2 left, 3 right, 4 over"
     },
     {
       "type": "lb <float>",
@@ -170,5 +178,5 @@
       "description": "triggers when the object is loaded"
     }
   ],
-  "body": "[popup] is a popup menu GUI. When you click on it, you get a popup menu to choose elements from (symbols or floats). You can choose by clicking on the selected item or via up/down arrow keys and hitting 'enter'. By default, the output is the index, but can also be the element or both."
+  "body": "[popmenu] is a popup menu GUI. When you click on it, you get a popup menu to choose elements from (symbols or floats). You can choose by clicking on the selected item or via up/down arrow keys and hitting 'enter'. By default, the output is the index, but can also be the element or both."
 }

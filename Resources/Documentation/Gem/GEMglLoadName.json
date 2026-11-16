@@ -2,7 +2,7 @@
   "title": [
     "GEMglLoadName"
   ],
-  "description": "load a single unsigned integer value into the name stack",
+  "description": "load a name onto the name stack",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the name to be loaded into the name stack."
+          "description": "name that will replace the top value on the name stack"
         }
       ],
       "repeat": false
@@ -41,11 +41,11 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the name to be loaded into the name stack.",
-      "default": ""
+      "description": "name that will replace the top value on the name stack",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglLoadName] calls glLoadName() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glLoadName in the OpenGL reference."
 }

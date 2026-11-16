@@ -3,7 +3,7 @@
     "send",
     "s"
   ],
-  "description": "sets the send name",
+  "description": "send messages without patch cords",
   "origin": "vanilla",
   "categories": [
     "UI",

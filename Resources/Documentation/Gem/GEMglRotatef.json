@@ -7,7 +7,53 @@
   "categories": [
     "Graphics"
   ],
-  "inlets": [],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "angle of rotation, in degrees"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "x coordinate of the rotation axis"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "y coordinate of the rotation axis"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "z coordinate of the rotation axis"
+        }
+      ],
+      "repeat": false
+    }
+  ],
   "outlets": [
     {
       "messages": [
@@ -21,22 +67,27 @@
   ],
   "arguments": [
     {
-      "type": "GLfloat",
-      "description": "Specifies the angle of rotation, in degrees.",
-      "default": ""
+      "type": "float",
+      "description": "angle of rotation, in degrees",
+      "default": "0"
     },
     {
-      "type": "GLfloat",
-      "description": "Specifies the x, y, and z coordinates of a vector, respectively.",
-      "default": ""
+      "type": "float",
+      "description": "x coordinate of the rotation axis",
+      "default": "0"
     },
     {
-      "type": "GLfloat",
-      "description": "Specifies the angle of rotation, in degrees.",
-      "default": ""
+      "type": "float",
+      "description": "y coordinate of the rotation axis",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "z coordinate of the rotation axis",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglRotatef] calls glRotatef() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glRotate in the OpenGL reference."
 }

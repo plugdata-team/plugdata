@@ -133,7 +133,7 @@ public:
             return true;
         }
         case hash("label"): {
-            if (atoms.size() >= 1) {
+            if (atoms.size() >= 1 && atoms[0].isSymbol()) {
                 gui->setParameterExcludingListener(labelText, atoms[0].toString());
                 gui->updateLabel();
             }
@@ -486,6 +486,4 @@ public:
     Value initialise = SynchronousValue();
     Value sendSymbol = SynchronousValue();
     Value receiveSymbol = SynchronousValue();
-
-    ObjectParameters objectParameters;
 };

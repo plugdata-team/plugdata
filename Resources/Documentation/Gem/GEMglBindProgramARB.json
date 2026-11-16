@@ -2,7 +2,7 @@
   "title": [
     "GEMglBindProgramARB"
   ],
-  "description": "bind a program object (ARB extension)",
+  "description": "bind an ARB vertex or fragment program",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the program target (e.g., GL_VERTEX_PROGRAM_ARB)."
+          "description": "GL_VERTEX_PROGRAM_ARB or GL_FRAGMENT_PROGRAM_ARB"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the name of the program object to bind."
+          "description": "ID of the program to bind"
         }
       ],
       "repeat": false
@@ -50,16 +50,16 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the program target (e.g., GL_VERTEX_PROGRAM_ARB).",
+      "description": "GL_VERTEX_PROGRAM_ARB or GL_FRAGMENT_PROGRAM_ARB",
       "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the name of the program object to bind.",
+      "description": "ID of the program to bind",
       "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglBindProgramARB] calls glBindProgramARB() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. GL constants are numbers here: [GLdefine] turns a name like GL_LINES into its value."
 }

@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signel",
+          "type": "float/signals",
           "description": "signal to bypass"
         }
       ],
@@ -22,7 +22,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "bypassed signal"
         }
       ],

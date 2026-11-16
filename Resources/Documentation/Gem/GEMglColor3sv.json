@@ -2,7 +2,7 @@
   "title": [
     "GEMglColor3sv"
   ],
-  "description": "set the current RGB color using 16-bit integers from an array",
+  "description": "set the current color",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -20,8 +20,8 @@
     {
       "messages": [
         {
-          "type": "float",
-          "description": "Specifies an array containing the red, green, and blue components of the current color."
+          "type": "list",
+          "description": "list of red, green and blue values of the current color"
         }
       ],
       "repeat": false
@@ -41,11 +41,21 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies an array containing the red, green, and blue components of the current color.",
-      "default": "[0, 0, 0]"
+      "description": "red value of the current color",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "green value of the current color",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "blue value of the current color",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglColor3sv] calls glColor3sv() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glColor in the OpenGL reference."
 }

@@ -68,7 +68,7 @@
     },
     {
       "type": "float",
-      "description": "non zero sets to legato mode",
+      "description": "nonzero sets to legato mode",
       "default": "0"
     }
   ],
@@ -97,7 +97,7 @@
     },
     {
       "type": "legato <float>",
-      "description": "non zero sets to legato mode, zero restores default"
+      "description": "nonzero sets to legato mode, zero restores default"
     },
     {
       "type": "flush",

@@ -12,7 +12,7 @@
       "messages": [
         {
           "type": "anything",
-          "description": "set messages to concatenate to a second list and output (a bang is a zero element list)"
+          "description": "first list: output with the second appended, a bang is empty"
         }
       ],
       "repeat": false
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "anything",
-          "description": "set messages to append to the first list (a bang is a zero element list and clears it)"
+          "description": "second list to append, a bang clears it"
         }
       ],
       "repeat": false
@@ -47,5 +47,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": "append a second list to the first"
+  "body": "[list append] appends the list in its right inlet to the one in its left inlet and outputs the result. A bang in the left inlet counts as an empty list."
 }

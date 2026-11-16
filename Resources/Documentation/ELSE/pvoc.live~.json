@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "audio signal input"
         },
         {
@@ -44,7 +44,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "processed output"
         }
       ],

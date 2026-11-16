@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "signal to send over network"
         }
       ],
@@ -31,7 +31,7 @@
     {
       "messages": [
         {
-          "type": "anything",
+          "type": "signal",
           "description": "received signals"
         }
       ],
@@ -64,5 +64,5 @@
     }
   ],
   "methods": [],
-  "body": "[pd.link~] allows you to send/receive audio streans to/from different Pd instances, as different versions, platforms and even forks of Pure Data (such as plugdata). It works like [send~]/[receive~] as it just needs a symbol address. It works via network but it's simpler as it doesn't require network configuration! It also allows you to communicate to a [pd~] subprocess. You can make up to 16 sends to a single receive, but you can receive as many times as you like."
+  "body": "[pdlink~] allows you to send/receive audio streams to/from different Pd instances, as different versions, platforms and even forks of Pure Data (such as plugdata). It works like [send~]/[receive~] as it just needs a symbol address. It works via network but it's simpler as it doesn't require network configuration! It also allows you to communicate to a [pd~] subprocess. You can make up to 16 sends to a single receive, but you can receive as many times as you like."
 }

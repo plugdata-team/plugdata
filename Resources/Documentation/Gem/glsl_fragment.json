@@ -38,12 +38,18 @@
       "repeat": false
     }
   ],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "file to load as GLSL fragment shader",
+      "default": ""
+    }
+  ],
   "flags": [],
   "methods": [
     {
       "type": "open <symbol>",
-      "description": "filename to load as GLSL fragment shader module"
+      "description": "load the GLSL fragment shader from the file with the given name"
     },
     {
       "type": "print",

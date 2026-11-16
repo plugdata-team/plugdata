@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "size"
+          "description": "size of the line"
         }
       ],
       "repeat": false
@@ -41,15 +41,27 @@
   "arguments": [
     {
       "type": "float",
-      "description": "resolution of the mesh",
-      "default": "1"
+      "description": "resolution of the line",
+      "default": "5"
     }
   ],
   "flags": [],
   "methods": [
     {
       "type": "draw <symbol>",
-      "description": "line, default or point"
+      "description": "drawing style: default, line, fill, point, or a GL primitive (linestrip, tri, tristrip, quad, ...)"
+    },
+    {
+      "type": "grid <float>",
+      "description": "change the grid resolution"
+    },
+    {
+      "type": "width <float>",
+      "description": "line width for the line drawing styles (default 1)"
+    },
+    {
+      "type": "blend <float>",
+      "description": "nonzero turns alpha blending on"
     }
   ],
   "body": ""

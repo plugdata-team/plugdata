@@ -1,6 +1,7 @@
 {
   "title": [
-    "pix_buffer_write"
+    "pix_buffer_write",
+    "pix_put"
   ],
   "description": "writes an image into a named buffer created by the [pix_buffer] object",
   "origin": "Gem",
@@ -13,6 +14,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns processing on (default 1)"
         }
       ],
       "repeat": false
@@ -41,7 +46,7 @@
   "arguments": [
     {
       "type": "symbol",
-      "description": "<buffer_name>",
+      "description": "name of the [pix_buffer] to write to",
       "default": ""
     }
   ],

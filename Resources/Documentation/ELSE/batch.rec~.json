@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "signal inputs to record for each channel"
         }
       ],
@@ -36,12 +36,17 @@
       "default": "file.wav"
     },
     {
-      "type": "symbol",
+      "type": "float",
       "description": "number of channels to record",
       "default": "1, max 64"
     }
   ],
-  "flags": [],
+  "flags": [
+    {
+      "name": "-time <float>",
+      "description": "sets time in ms (default 0)"
+    }
+  ],
   "methods": [
     {
       "type": "rec <float>",

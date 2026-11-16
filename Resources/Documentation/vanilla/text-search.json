@@ -50,7 +50,7 @@
     },
     {
       "type": "list",
-      "description": "search field number optionally preceded by '>'. '>=', '<', '<=', or\n'near'",
+      "description": "search field number, optionally preceded by '>', '>=', '<', '<=' or 'near'",
       "default": ""
     }
   ],
@@ -60,6 +60,11 @@
       "description": "struct name and field name of main structure"
     }
   ],
-  "methods": [],
+  "methods": [
+    {
+      "type": "range <float, float>",
+      "description": "onset and range of searched messages (onset indexed from 0)"
+    }
+  ],
   "body": "\"text search\" outputs the line number of the line that best matches a search key. By default it seeks a line whose leading fields match the incoming list."
 }

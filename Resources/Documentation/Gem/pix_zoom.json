@@ -38,8 +38,19 @@
       "repeat": false
     }
   ],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "zoom factor in x (and y)",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "zoom factor in y",
+      "default": "same as x"
+    }
+  ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "Gem marks [pix_zoom] as deprecated (it says so when created): use [pix_coordinate] or a shader instead."
 }

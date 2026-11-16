@@ -38,7 +38,18 @@
       "repeat": false
     }
   ],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "name to receive",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "priority: higher numbers receive later",
+      "default": "0"
+    }
+  ],
   "flags": [],
   "methods": [],
   "body": ""

@@ -13,7 +13,7 @@ public:
         : ExporterBase(editor, exportingView)
     {
         PropertiesArray properties;
-        properties.add(new PropertiesPanel::DirectoryPathComponent("EMSDK path", emsdkPathValue));
+        properties.add(new PropertiesPanel::PathComponent("EMSDK path", emsdkPathValue));
 
         for (auto* property : properties) {
             property->setPreferredHeight(28);

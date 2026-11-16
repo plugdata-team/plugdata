@@ -1,0 +1,186 @@
+{
+  "title": [
+    "superosc~"
+  ],
+  "description": "supersaw-style detuned oscillator",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "frequency in Hz or MIDI"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "width/shape modulation"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "maximum detune in cents"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "impulses to sync the oscillators"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "left output"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "right output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "frequency in Hz or MIDI",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "width/shape",
+      "default": "0 (0.5 for square)"
+    },
+    {
+      "type": "float",
+      "description": "maximum detune in cents",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-midi",
+      "description": "sets frequency input to MIDI pitch (default Hz)"
+    },
+    {
+      "name": "-square",
+      "description": "sets to square wave (default variable saw)"
+    },
+    {
+      "name": "-sine",
+      "description": "sets to sine wave (default variable saw)"
+    },
+    {
+      "name": "-n <float>",
+      "description": "sets number of oscillators, 1 to 16 (default 7)"
+    },
+    {
+      "name": "-mix <float>",
+      "description": "sets mix of outer oscillators, 0 to 1 (default 0.5)"
+    },
+    {
+      "name": "-mixmode <float>",
+      "description": "sets mix mode, 0 to 2 (default 0)"
+    },
+    {
+      "name": "-syncmode <float>",
+      "description": "sets sync mode, 0 to 3 (default 0)"
+    },
+    {
+      "name": "-detmode <float>",
+      "description": "sets detune mode, 0 to 2 (default 0)"
+    },
+    {
+      "name": "-detcurve <float>",
+      "description": "sets detune curve, 0.1 to 10 (default 1)"
+    },
+    {
+      "name": "-spread <float>",
+      "description": "sets stereo spread, 0 to 1 (default 1)"
+    },
+    {
+      "name": "-spreadcurve <float>",
+      "description": "sets spread curve, 0.1 to 10 (default 1)"
+    }
+  ],
+  "methods": [
+    {
+      "type": "midi <float>",
+      "description": "nonzero sets frequency input to MIDI pitch"
+    },
+    {
+      "type": "saw",
+      "description": "set waveform to variable saw"
+    },
+    {
+      "type": "square",
+      "description": "set waveform to square"
+    },
+    {
+      "type": "sine",
+      "description": "set waveform to sine"
+    },
+    {
+      "type": "n <float>",
+      "description": "set number of oscillators (1 to 16)"
+    },
+    {
+      "type": "mix <float>",
+      "description": "set mix of outer oscillators (0 to 1)"
+    },
+    {
+      "type": "mixmode <float>",
+      "description": "set mix mode (0 to 2)"
+    },
+    {
+      "type": "sync",
+      "description": "sync the oscillators at control rate"
+    },
+    {
+      "type": "syncmode <float>",
+      "description": "set sync mode (0 to 3)"
+    },
+    {
+      "type": "detmode <float>",
+      "description": "set detune mode (0 to 2)"
+    },
+    {
+      "type": "detcurve <float>",
+      "description": "set detune curve (0.1 to 10)"
+    },
+    {
+      "type": "spread <float>",
+      "description": "set stereo spread (0 to 1)"
+    },
+    {
+      "type": "spreadcurve <float>",
+      "description": "set spread curve (0.1 to 10)"
+    }
+  ],
+  "body": "[superosc~] sums up to 16 detuned oscillators, like the JP-8000 supersaw, spread over a stereo pair of outlets. By default it sums 7 bandlimited variable sawtooth waves ([bl.vsaw~]), and it can also use square waves with PWM or waveshaped sines. A multichannel frequency input gives the same number of channels at both outlets."
+}

@@ -39,7 +39,7 @@ public:
 
     int getNumSteps() const override
     {
-        auto const range = getNormalisableRange();
+        auto const range = getRange();
         if (mode == Integer) {
             return range.end - range.start + 1;
         }
@@ -113,9 +113,10 @@ public:
 
     NormalisableRange<float> const& getNormalisableRange() const override
     {
-        // Have to do this because RangedAudioParameter forces us to return a reference...
-        const_cast<PlugDataParameter*>(this)->normalisableRangeRet = NormalisableRange<float>(rangeStart, rangeEnd, rangeInterval, rangeSkew);
-        return normalisableRangeRet;
+        // RangedAudioParameter forces us to return a reference. This gets called from any thread, so the range can't be a member
+        static thread_local NormalisableRange<float> range;
+        range = getRange();
+        return range;
     }
 
     void notifyDAW()
@@ -132,7 +133,7 @@ public:
 
     void setUnscaledValueNotifyingHost(float const newValue)
     {
-        auto const range = getNormalisableRange();
+        auto const range = getRange();
         auto const oldValue = value.load();
         value = std::clamp(newValue, range.start, range.end);
         sendValueChangedMessageToListeners(getValue());
@@ -141,13 +142,13 @@ public:
 
     float getValue() const override
     {
-        auto const range = getNormalisableRange();
+        auto const range = getRange();
         return range.convertTo0to1(value);
     }
 
     void setValue(float const newValue) override
     {
-        auto const range = getNormalisableRange();
+        auto const range = getRange();
         auto const oldValue = value.load();
         value = range.convertFrom0to1(newValue);
         valueChanged = valueChanged || oldValue != value;
@@ -175,7 +176,7 @@ public:
 
     String getText(float const value, int const maximumStringLength) const override
     {
-        auto const range = getNormalisableRange();
+        auto const range = getRange();
         auto const mappedValue = range.convertFrom0to1(value);
 
         return maximumStringLength > 0 ? String(mappedValue).substring(0, maximumStringLength) : String(mappedValue, 6);
@@ -183,7 +184,7 @@ public:
 
     float getValueForText(String const& text) const override
     {
-        auto const range = getNormalisableRange();
+        auto const range = getRange();
         return range.convertTo0to1(text.getFloatValue());
     }
 
@@ -233,8 +234,8 @@ public:
             paramXml->setAttribute("id", String("param") + String(i));
 
             paramXml->setAttribute(String("name"), param->getTitle().toString());
-            paramXml->setAttribute(String("min"), param->getNormalisableRange().start);
-            paramXml->setAttribute(String("max"), param->getNormalisableRange().end);
+            paramXml->setAttribute(String("min"), param->getRange().start);
+            paramXml->setAttribute(String("max"), param->getRange().end);
             paramXml->setAttribute(String("enabled"), param->enabled);
 
             paramXml->setAttribute(String("value"), param->getValue());
@@ -347,6 +348,11 @@ public:
     }
 
 private:
+    NormalisableRange<float> getRange() const
+    {
+        return NormalisableRange<float>(rangeStart, rangeEnd, rangeInterval, rangeSkew);
+    }
+
     float defaultValue;
     bool loadedFromDAW = false;
 
@@ -362,7 +368,6 @@ private:
     AtomicValue<float> rangeSkew = 1;
 
     AtomicValue<StackArray<char, 128>> parameterName;
-    NormalisableRange<float> normalisableRangeRet;
 
     Mode mode;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataParameter)

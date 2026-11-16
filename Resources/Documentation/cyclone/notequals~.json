@@ -4,7 +4,7 @@
     "!=~",
     "cyclone/!=~"
   ],
-  "description": "1 or 0",
+  "description": "signal not-equal-to comparison",
   "origin": "cyclone",
   "categories": [
     "Signal Math",
@@ -23,7 +23,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "value used for comparison with left inlet's input"
         }
       ],

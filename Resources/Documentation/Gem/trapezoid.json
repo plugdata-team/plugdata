@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "size"
+          "description": "size of the trapezoid"
         }
       ],
       "repeat": false
@@ -50,11 +50,37 @@
   "arguments": [
     {
       "type": "float",
-      "description": "dimensions of the trapezoid (size topline)",
-      "default": "1 1"
+      "description": "size of the trapezoid",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "length of the top edge",
+      "default": "same as size"
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "draw <symbol>",
+      "description": "drawing style: default, line, fill, point, or a GL primitive (linestrip, tri, tristrip, quad, ...)"
+    },
+    {
+      "type": "width <float>",
+      "description": "line width for the line drawing styles (default 1)"
+    },
+    {
+      "type": "blend <float>",
+      "description": "nonzero turns alpha blending on"
+    },
+    {
+      "type": "texscale <float>",
+      "description": "scale of the texture coordinates"
+    },
+    {
+      "type": "top <float>",
+      "description": "length of the top edge, relative to the bottom"
+    }
+  ],
   "body": ""
 }

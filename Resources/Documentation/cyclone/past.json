@@ -12,12 +12,8 @@
     {
       "messages": [
         {
-          "type": "float",
-          "description": "- value to check against threshold"
-        },
-        {
-          "type": "list",
-          "description": "- values to check against threshold"
+          "type": "float/list",
+          "description": "value(s) to check against threshold"
         }
       ],
       "repeat": false
@@ -37,7 +33,7 @@
   "arguments": [
     {
       "type": "float/list",
-      "description": "- value(s) of initial threshold(s) (required)",
+      "description": "value(s) of initial threshold(s) (required)",
       "default": ""
     }
   ],

@@ -24,7 +24,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "sets gain"
         }
       ],
@@ -33,7 +33,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "sets center frequency"
         }
       ],
@@ -42,7 +42,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "sets Q"
         }
       ],

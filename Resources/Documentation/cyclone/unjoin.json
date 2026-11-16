@@ -12,7 +12,7 @@
       "messages": [
         {
           "type": "anything",
-          "description": "any message whose elements will be separated into groups of elements"
+          "description": "message to split into groups of elements"
         }
       ],
       "repeat": false
@@ -39,7 +39,7 @@
   "flags": [
     {
       "name": "@outsize <float>",
-      "description": "number of elements per group\ndefault: 1"
+      "description": "number of elements per group (default 1)"
     }
   ],
   "methods": [

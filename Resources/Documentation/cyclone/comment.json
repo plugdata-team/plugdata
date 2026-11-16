@@ -38,11 +38,11 @@
       "description": "default 0"
     },
     {
-      "name": "@textcolor <f, f, f>",
+      "name": "@textcolor <float, float, float>",
       "description": "default 0 0 0"
     },
     {
-      "name": "@bgcolor <f, f, f>",
+      "name": "@bgcolor <float, float, float>",
       "description": "default 255 255 255"
     },
     {
@@ -51,7 +51,7 @@
     },
     {
       "name": "@text <anything>",
-      "description": "sets comment\ndefault: \"comment"
+      "description": "sets comment (default \"comment\")"
     },
     {
       "name": "@underline <float>",
@@ -93,30 +93,30 @@
     },
     {
       "type": "bold <float>",
-      "description": "non-0 sets to bold"
+      "description": "nonzero sets to bold"
     },
     {
       "type": "italic <float>",
-      "description": "non-0 sets to italic"
+      "description": "nonzero sets to italic"
     },
     {
       "type": "outline <float>",
-      "description": "non-0 sets an outline"
+      "description": "nonzero sets an outline"
     },
     {
       "type": "underline <float>",
-      "description": "non-0 sets underline"
+      "description": "nonzero sets underline"
     },
     {
-      "type": "textjustification <f>",
+      "type": "textjustification <float>",
       "description": "sets justification (0: left, 1: center, 2: right)"
     },
     {
-      "type": "textcolor <f, f, f>",
+      "type": "textcolor <float, float, float>",
       "description": "sets RGB text color (values from 0 to 255)"
     },
     {
-      "type": "bgcolor <f, f, f>",
+      "type": "bgcolor <float, float, float>",
       "description": "sets RGB background color (values from 0 to 255)"
     },
     {

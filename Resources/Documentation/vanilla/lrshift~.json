@@ -12,7 +12,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "input signal vector to shift"
         }
       ],
@@ -23,7 +23,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "shifted signal vector"
         }
       ],
@@ -39,5 +39,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": "Acting at whatever vector size the window is running at, lrshift~ shifts samples to the left (toward the beginning sample"
+  "body": "Acting at whatever vector size the window is running at, lrshift~ shifts samples to the left (toward the beginning sample) or to the right. The argument gives the direction and the amount of the shift. The rightmost (or leftmost) samples are set to zero."
 }

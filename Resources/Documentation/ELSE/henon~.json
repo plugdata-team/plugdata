@@ -12,7 +12,7 @@
     {
       "messages": [
         {
-          "type": "float/signal",
+          "type": "float/signals",
           "description": "frequency in Hz (negative values accepted)"
         },
         {
@@ -27,7 +27,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "Henon map chaotic signal"
         }
       ],
@@ -61,11 +61,20 @@
       "default": "0"
     }
   ],
-  "flags": [],
+  "flags": [
+    {
+      "name": "-mc <list>",
+      "description": "sets multichannel output with a list of frequencies"
+    }
+  ],
   "methods": [
     {
-      "type": "coeffs <f, f>",
+      "type": "coeffs <float, float>",
       "description": "floats set 'a' and 'b', respectively"
+    },
+    {
+      "type": "set <float, float>",
+      "description": "<channel, freq> set a single frequency channel"
     }
   ],
   "body": "[henon~] is a chaotic generator using the difference equation;\ny[n] = 1 - a * y[n-1]^2 + b * y[n-2]"

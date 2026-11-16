@@ -53,32 +53,30 @@ public:
         addCustomItem(getMenuItemID(MenuItem::SaveAs), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::SaveAs)]), nullptr, "Save patch as");
 
         auto const plugdataState = new PopupMenu();
-        plugdataState->addItem("Import workspace", [editor]() mutable {
-            static auto openChooser = std::make_unique<FileChooser>("Choose file to open", SettingsFile::getInstance()->getLastBrowserPathForId("WorkspacePath"), "*.pdproj", SettingsFile::getInstance()->wantsNativeDialog());
-
-            openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, [editor](FileChooser const& f) {
-                auto file = f.getResult();
-                if (file != File { }) {
-                    MemoryBlock block;
-                    file.loadFileAsData(block);
-                    editor->processor.setStateInformation(block.getData(), block.getSize());
-                    SettingsFile::getInstance()->setLastBrowserPathForId("WorkspacePath", file.getParentDirectory());
-                }
-            });
+        plugdataState->addItem("Import workspace", [editor] {
+            Dialogs::showOpenDialog([editor = Component::SafePointer(editor)](URL const& url) {
+                MemoryBlock state;
+                if (editor && url.getLocalFile().loadFileAsData(state))
+                    editor->processor.setStateInformation(state.getData(), static_cast<int>(state.getSize()));
+            },
+                true, false, "*.pdproj", "WorkspacePath", editor);
         });
 
-        plugdataState->addItem("Export workspace", [editor]() mutable {
-            static auto saveChooser = std::make_unique<FileChooser>("Choose save location", SettingsFile::getInstance()->getLastBrowserPathForId("WorkspacePath"), "*.pdproj", SettingsFile::getInstance()->wantsNativeDialog());
+        plugdataState->addItem("Export workspace", [editor] {
+            Dialogs::showSaveDialog([editor = Component::SafePointer(editor)](URL const& url) {
+                if (!editor)
+                    return;
 
-            saveChooser->launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles, [editor](FileChooser const& f) {
-                auto const file = f.getResult().withFileExtension(".pdproj");
-                if (file != File { } && file.getParentDirectory().exists()) {
-                    MemoryBlock destData;
-                    editor->processor.getStateInformation(destData);
-                    file.replaceWithData(destData.getData(), destData.getSize());
-                    SettingsFile::getInstance()->setLastBrowserPathForId("WorkspacePath", file.getParentDirectory());
-                }
-            });
+                MemoryBlock state;
+                editor->processor.getStateInformation(state);
+
+                // Write through the URL: on iOS it carries our access to the file. Its stream appends, so empty the file first
+                auto const target = url.getLocalFile().hasFileExtension("pdproj") ? url : URL(url.getLocalFile().withFileExtension(".pdproj"));
+                auto const stream = target.createOutputStream();
+                if (auto* file = dynamic_cast<FileOutputStream*>(stream.get()); file && file->setPosition(0) && file->truncate().wasOk())
+                    file->write(state.getData(), state.getSize());
+            },
+                "*.pdproj", "WorkspacePath", editor, false, "Workspace");
         });
 
         addCustomItem(getMenuItemID(MenuItem::State), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::State)]), std::unique_ptr<PopupMenu const>(plugdataState), "Workspace");

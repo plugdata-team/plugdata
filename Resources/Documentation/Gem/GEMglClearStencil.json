@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the index used when the stencil buffer is cleared."
+          "description": "index used when the stencil buffer is cleared"
         }
       ],
       "repeat": false
@@ -41,11 +41,11 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the index used when the stencil buffer is cleared.",
+      "description": "index used when the stencil buffer is cleared",
       "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglClearStencil] calls glClearStencil() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glClearStencil in the OpenGL reference."
 }

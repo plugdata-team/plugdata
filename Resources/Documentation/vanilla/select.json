@@ -3,7 +3,7 @@
     "select",
     "sel"
   ],
-  "description": "value if input didn't match",
+  "description": "compare numbers or symbols",
   "origin": "vanilla",
   "categories": [
     "Mixing and Routing",
@@ -58,5 +58,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": "compare numbers or symbols"
+  "body": "[select] compares its input with its arguments: it outputs a bang at the outlet of the argument that matches, and passes the input on through the rightmost outlet when none do."
 }

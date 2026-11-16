@@ -1,0 +1,36 @@
+{
+  "title": [
+    "sign"
+  ],
+  "description": "sign function",
+  "origin": "ELSE",
+  "categories": [
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "input to sign function"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "output of sign function"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[sign] has the value -1 or +1 if the input is, respectively, negative or positive. If the input is 0, the output is also that. As an expression, we have sign = (in > 0) - (in < 0)."
+}

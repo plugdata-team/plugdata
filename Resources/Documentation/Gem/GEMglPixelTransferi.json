@@ -2,7 +2,7 @@
   "title": [
     "GEMglPixelTransferi"
   ],
-  "description": "set pixel transfer modes for read pixels (integer version)",
+  "description": "set pixel transfer modes",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the symbolic name of the parameter to be set."
+          "description": "symbolic name of the pixel transfer parameter to be set"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the value to be set."
+          "description": "value to set the pixel transfer parameter to"
         }
       ],
       "repeat": false
@@ -50,16 +50,16 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the symbolic name of the parameter to be set.",
-      "default": ""
+      "description": "symbolic name of the pixel transfer parameter to be set",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the value to be set.",
-      "default": ""
+      "description": "value to set the pixel transfer parameter to",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglPixelTransferi] calls glPixelTransferi() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. GL constants are numbers here: [GLdefine] turns a name like GL_LINES into its value. See glPixelTransfer in the OpenGL reference."
 }

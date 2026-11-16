@@ -50,7 +50,7 @@
   "methods": [
     {
       "type": "mode <0/1>",
-      "description": "sets mode (details in help)"
+      "description": "0 uses the float's bits as they are (default), 1 converts the input to an integer first"
     },
     {
       "type": "shift <float>",

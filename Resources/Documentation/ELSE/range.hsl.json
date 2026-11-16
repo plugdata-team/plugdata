@@ -44,7 +44,7 @@
       "description": ""
     },
     {
-      "name": "-range <f, f>",
+      "name": "-range <float, float>",
       "description": ""
     },
     {
@@ -52,11 +52,11 @@
       "description": ""
     },
     {
-      "name": "-bgcolor <f, f, f>",
+      "name": "-bgcolor <float, float, float>",
       "description": ""
     },
     {
-      "name": "-fgcolor <f, f, f>",
+      "name": "-fgcolor <float, float, float>",
       "description": ""
     },
     {
@@ -66,11 +66,15 @@
     {
       "name": "-receive <symbol>",
       "description": ""
+    },
+    {
+      "name": "-savestate",
+      "description": "saves the range with the patch"
     }
   ],
   "methods": [
     {
-      "type": "set <f, f>",
+      "type": "set <float, float>",
       "description": "sets range values"
     },
     {
@@ -82,7 +86,7 @@
       "description": "sets height size"
     },
     {
-      "type": "range <f, f>",
+      "type": "range <float, float>",
       "description": "sets range values"
     },
     {
@@ -90,11 +94,11 @@
       "description": "sets mode (0 - shift, 1 - select, 2 - expand, 3 - expand)"
     },
     {
-      "type": "bgcolor <f, f, f>",
+      "type": "bgcolor <float, float, float>",
       "description": "sets background color"
     },
     {
-      "type": "fgcolor <f, f, f>",
+      "type": "fgcolor <float, float, float>",
       "description": "sets foreground color"
     },
     {
@@ -104,7 +108,11 @@
     {
       "type": "receive <symbol>",
       "description": "sets receive symbol"
+    },
+    {
+      "type": "savestate <float>",
+      "description": "nonzero sets to save state mode"
     }
   ],
-  "body": "[range.hsl] is a range horizontal slider GUI abstraction, (based on an object by .mmb). It has 4 modes of operation, see below."
+  "body": "[range.hsl] is a range horizontal slider GUI (based on an object by .mmb). Its 4 modes, set with the 'mode' message, change what a click and drag does: shift the range, select a new one, or expand it."
 }

@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float/signal",
-          "description": "value to round to (whose multiple values will be approximated to)"
+          "description": "round to multiples of this value"
         }
       ],
       "repeat": false
@@ -48,13 +48,13 @@
   "flags": [
     {
       "name": "@nearest",
-      "description": "0 \u2014 round, 1 \u2014 truncate mode\ndefault: 0"
+      "description": "0 rounds, 1 truncates (default 0)"
     }
   ],
   "methods": [
     {
       "type": "nearest <float>",
-      "description": "sets to round (0) or truncate (non-0) mode"
+      "description": "sets to round (0) or truncate (nonzero) mode"
     }
   ],
   "body": "[round~] approximates positive and negative numbers to an integer multiple of any given number that is greater or equal to 0 (0 makes no approximation - so the original input is output unchanged).\nIt works in two modes, rounding to the nearest multiple (default) or to the approximating to the truncated multiple value."

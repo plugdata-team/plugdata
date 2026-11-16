@@ -61,7 +61,12 @@ struct ObjectParameter {
 
 class ObjectParameters {
 public:
-    ObjectParameters() = default;
+    ObjectParameters(Component* owner) : owner(owner) {}
+
+    bool isValid() const
+    {
+        return owner != nullptr;
+    }
 
     HeapArray<ObjectParameter> getParameters()
     {
@@ -75,6 +80,9 @@ public:
 
     void resetAll(Component const& context)
     {
+        if (!isValid())
+            return;
+
         auto const& lnf = context.getLookAndFeel();
         for (auto param : objectParameters) {
             if (!param.defaultValue.isVoid()) {
@@ -185,4 +193,5 @@ public:
 
 private:
     HeapArray<ObjectParameter> objectParameters;
+    Component::SafePointer<Component> owner;
 };

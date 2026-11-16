@@ -11,12 +11,8 @@
     {
       "messages": [
         {
-          "type": "float",
-          "description": "a float to be quantized"
-        },
-        {
-          "type": "list",
-          "description": "a list of floats to be quantized"
+          "type": "float/list",
+          "description": "value(s) to be quantized"
         }
       ],
       "repeat": false
@@ -54,7 +50,12 @@
       "default": "0"
     }
   ],
-  "flags": [],
+  "flags": [
+    {
+      "name": "-mode <float>",
+      "description": "sets approximation mode <0, 1, 2 or 3>"
+    }
+  ],
   "methods": [
     {
       "type": "mode <float>",

@@ -11,8 +11,8 @@
     {
       "messages": [
         {
-          "type": "float",
-          "description": "linear amplitude value"
+          "type": "float/list",
+          "description": "linear amplitude value(s)"
         }
       ],
       "repeat": false
@@ -22,8 +22,8 @@
     {
       "messages": [
         {
-          "type": "float",
-          "description": "converted dBFS amplitude value"
+          "type": "float/list",
+          "description": "converted dBFS amplitude value(s)"
         }
       ],
       "repeat": false
@@ -32,5 +32,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": "[lin2db] is a simple abstraction that converts amplitude values from linear to a deciBel Full Scale (dBFS). Conversion expression: dBFS = log10(amp) * 20, see the implementation inside the abstraction."
+  "body": "[lin2db] is a simple abstraction that converts amplitude values from linear to dBFS. Conversion expression: dBFS = log10(amp) * 20, see the implementation inside the abstraction."
 }

@@ -21,8 +21,8 @@
     {
       "messages": [
         {
-          "type": "signal",
-          "description": "any message to be selected"
+          "type": "float/signal",
+          "description": "signals to select from"
         }
       ],
       "repeat": true
@@ -53,5 +53,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": "[selector] outputs data from the selected inlet according to the float into the rightmost inlet."
+  "body": "[selector~] outputs the signal of one of its inputs, chosen by the left inlet. 0 selects no input and outputs silence."
 }

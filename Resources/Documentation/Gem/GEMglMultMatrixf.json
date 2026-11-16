@@ -2,7 +2,7 @@
   "title": [
     "GEMglMultMatrixf"
   ],
-  "description": "multiply the current matrix with a single-precision matrix",
+  "description": "multiply the current matrix with the specified matrix",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -20,8 +20,8 @@
     {
       "messages": [
         {
-          "type": "float",
-          "description": "Specifies a pointer to sixteen consecutive values, which are used as the elements of a 4x4 column-major matrix."
+          "type": "list",
+          "description": "list of 16 values, the matrix in column-major order"
         }
       ],
       "repeat": false
@@ -38,14 +38,8 @@
       "repeat": false
     }
   ],
-  "arguments": [
-    {
-      "type": "float",
-      "description": "Specifies a pointer to sixteen consecutive values, which are used as the elements of a 4x4 column-major matrix.",
-      "default": ""
-    }
-  ],
+  "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglMultMatrixf] calls glMultMatrixf() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glMultMatrix in the OpenGL reference."
 }

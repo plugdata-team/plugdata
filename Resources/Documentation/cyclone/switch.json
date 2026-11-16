@@ -13,7 +13,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "sets which inlet is open (0 \u2014 all closed)"
+          "description": "sets which inlet is open, 0 closes all"
         },
         {
           "type": "bang",

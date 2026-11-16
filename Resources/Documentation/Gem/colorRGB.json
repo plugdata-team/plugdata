@@ -1,6 +1,7 @@
 {
   "title": [
-    "colorRGB"
+    "colorRGB",
+    "colourRGB"
   ],
   "description": "sets the color for subsequent shape and vertex operations using RGB values",
   "origin": "Gem",

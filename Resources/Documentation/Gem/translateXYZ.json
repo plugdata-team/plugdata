@@ -2,7 +2,7 @@
   "title": [
     "translateXYZ"
   ],
-  "description": "graphics translation",
+  "description": "move a gemlist along x, y and z",
   "origin": "Gem",
   "categories": [
     "Graphics"

@@ -20,7 +20,7 @@ jobs:
             cmake_args: ""
 
           - name: macOS-Legacy
-            runner: macos-14
+            runner: macos-15
             artifact: plugdata-macOS-Legacy.pkg
             cmake_args: -DNANOVG_METAL_IMPLEMENTATION=0 -DMACOS_LEGACY=1
 

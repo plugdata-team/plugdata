@@ -11,6 +11,10 @@
     {
       "messages": [
         {
+          "type": "float/signal",
+          "description": "first signal input to route/mix"
+        },
+        {
           "type": "list",
           "description": "inlet, outlet, gain"
         }
@@ -20,7 +24,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "signals to route/mix"
         }
       ],
@@ -62,8 +66,8 @@
       "description": "sets ramp time in ms"
     },
     {
-      "type": "dump",
-      "description": "outputs state of all cells"
+      "type": "print",
+      "description": "prints state off all cells in pd window"
     },
     {
       "type": "clear",

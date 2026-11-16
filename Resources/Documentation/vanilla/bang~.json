@@ -9,12 +9,7 @@
   ],
   "inlets": [
     {
-      "messages": [
-        {
-          "type": "null",
-          "description": "inactive inlet"
-        }
-      ],
+      "messages": [],
       "repeat": false
     }
   ],

@@ -2,7 +2,7 @@
   "title": [
     "part_velsphere"
   ],
-  "description": "sets a sphere with a specified radius and centre to be the velocity-domain of emitted particles",
+  "description": "set a sphere as the velocity domain of new particles",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "radius"
+          "description": "radius of the sphere"
         }
       ],
       "repeat": false

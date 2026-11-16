@@ -1,0 +1,37 @@
+{
+  "title": [
+    "GemSplash",
+    "Gem"
+  ],
+  "description": "draw Gem's splash screen",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[GemSplash] (also [Gem]) draws Gem's logo into the gemlist it gets. Its help patch, Gem-help.pd, is the starting point of Gem's documentation."
+}

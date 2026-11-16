@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "signal to be crushed (resampled and quantized)"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "float",
+          "type": "float/signals",
           "description": "bit reduction from 0-1"
         }
       ],
@@ -29,7 +29,7 @@
     {
       "messages": [
         {
-          "type": "float",
+          "type": "float/signal",
           "description": "decimation (sample rate reduction) from 0-1"
         }
       ],
@@ -40,7 +40,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "resampled and quantized signal"
         }
       ],
@@ -51,12 +51,12 @@
     {
       "type": "float",
       "description": "bit reduction",
-      "default": ""
+      "default": "0"
     },
     {
       "type": "float",
       "description": "decimation",
-      "default": ""
+      "default": "0"
     }
   ],
   "flags": [],

@@ -187,17 +187,17 @@ private:
             String stringItem = textString[i];
             stringItem += firstOrLast ? "" : ",";
 
-            // first item uses system font
+            // first item uses semibold font
             // use cached width calculation for performance
             int const stringWidth = CachedFontStringWidth::get()->calculateSingleLineWidth(textFont, stringItem) + 2;
 
             if (totalStringWidth + stringWidth > halfEditorWidth) {
-                auto const elideText = String("(" + String(textString.size() - i) + String(")..."));
+                auto const elideText = String("(+" + String(textString.size() - i) + String(")"));
                 auto const elideFont = Font(Fonts::getSemiBoldFont());
 
-                auto const elideWidth = CachedFontStringWidth::get()->calculateSingleLineWidth(elideFont, elideText);
+                auto const elideWidth = CachedFontStringWidth::get()->calculateSingleLineWidth(elideFont, elideText) + 8;
                 messageItemsWithFormat.add(TextStringWithMetrics(elideText, FontStyle::Semibold, elideWidth));
-                totalStringWidth += elideWidth + 4;
+                totalStringWidth += elideWidth;
                 break;
             }
 

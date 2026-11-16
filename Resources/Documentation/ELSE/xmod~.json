@@ -11,8 +11,8 @@
     {
       "messages": [
         {
-          "type": "float/signal",
-          "description": "frequency of oscillator 1\npm - sets to phase modulation\nfm - sets to frequency modulation"
+          "type": "float/signals",
+          "description": "frequency of oscillator 1"
         }
       ],
       "repeat": false
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "modulation index 1"
         }
       ],
@@ -29,7 +29,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "frequency of oscillator 2"
         }
       ],
@@ -38,7 +38,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "modulation index 2"
         }
       ],
@@ -49,7 +49,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "output of oscillator 1"
         }
       ],
@@ -58,7 +58,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "output of oscillator 2"
         }
       ],
@@ -90,9 +90,18 @@
   "flags": [
     {
       "name": "-pm",
-      "description": "sets to phase modulation\ndefault: fm"
+      "description": "sets to phase modulation (default fm)"
     }
   ],
-  "methods": [],
+  "methods": [
+    {
+      "type": "pm",
+      "description": "sets to phase modulation"
+    },
+    {
+      "type": "fm",
+      "description": "sets to frequency modulation"
+    }
+  ],
   "body": "[xmod~] performs cross modulation of two sine oscillators. It can perform either frequency (default) or phase modulation."
 }

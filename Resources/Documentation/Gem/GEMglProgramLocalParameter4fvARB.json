@@ -2,7 +2,7 @@
   "title": [
     "GEMglProgramLocalParameter4fvARB"
   ],
-  "description": "specify a float-precision local parameter for a program object",
+  "description": "set a local parameter of the bound ARB program",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the target program object."
+          "description": "GL_VERTEX_PROGRAM_ARB or GL_FRAGMENT_PROGRAM_ARB"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the index of the parameter to be modified."
+          "description": "index of the parameter"
         }
       ],
       "repeat": false
@@ -39,34 +39,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the new parameter value."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Specifies the new parameter value."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Specifies the new parameter value."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Specifies the new parameter value."
+          "description": "list of the x, y, z and w components"
         }
       ],
       "repeat": false
@@ -86,36 +59,21 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the target program object.",
-      "default": ""
+      "description": "GL_VERTEX_PROGRAM_ARB or GL_FRAGMENT_PROGRAM_ARB",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the index of the parameter to be modified.",
-      "default": ""
+      "description": "index of the parameter",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the new parameter value.",
-      "default": ""
-    },
-    {
-      "type": "float",
-      "description": "Specifies the new parameter value.",
-      "default": ""
-    },
-    {
-      "type": "float",
-      "description": "Specifies the new parameter value.",
-      "default": ""
-    },
-    {
-      "type": "float",
-      "description": "Specifies the new parameter value.",
-      "default": ""
+      "description": "list of the x, y, z and w components",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglProgramLocalParameter4fvARB] calls glProgramLocalParameter4fvARB() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. GL constants are numbers here: [GLdefine] turns a name like GL_LINES into its value."
 }

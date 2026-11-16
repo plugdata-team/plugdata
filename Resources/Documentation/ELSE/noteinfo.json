@@ -12,7 +12,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "midi pitch"
+          "description": "MIDI pitch"
         },
         {
           "type": "bang",
@@ -35,8 +35,8 @@
     {
       "messages": [
         {
-          "type": "float",
-          "description": "voice number (from 0), event number, pitch, velocity, duration (delta time for note on and duration for note off)"
+          "type": "list",
+          "description": "voice number (from 0), event number, pitch, velocity and duration"
         }
       ],
       "repeat": false

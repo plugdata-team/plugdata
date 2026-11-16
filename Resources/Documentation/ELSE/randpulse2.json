@@ -12,8 +12,8 @@
     {
       "messages": [
         {
-          "type": "float/signal",
-          "description": ""
+          "type": "float",
+          "description": "density"
         }
       ],
       "repeat": false
@@ -23,8 +23,8 @@
     {
       "messages": [
         {
-          "type": "signal",
-          "description": "random pulse signal"
+          "type": "float",
+          "description": "random pulse values"
         }
       ],
       "repeat": false
@@ -38,25 +38,25 @@
     },
     {
       "type": "float",
-      "description": "non-0 sets to random gate value mode",
+      "description": "nonzero sets to random gate value mode",
       "default": "0"
     }
   ],
   "flags": [
     {
       "name": "-seed <float>",
-      "description": "sets seed"
+      "description": "sets seed (default unique internal)"
     }
   ],
   "methods": [
     {
       "type": "rand <float>",
-      "description": "non-0 sets to random gate value mode"
+      "description": "nonzero sets to random gate value mode"
     },
     {
       "type": "seed <float>",
-      "description": "- a float sets seed, no float sets a unique internal"
+      "description": "a float sets seed, no float sets a unique internal"
     }
   ],
-  "body": "[randpulse2] is a random pulse train oscillator (which alternates between 0 and 1 at random intervals according to a \"density\" parameter, which controls the average frequency."
+  "body": "[randpulse2] is a control rate random pulse train oscillator: it alternates between 0 and 1 at random intervals, according to a \"density\" parameter that sets the average frequency."
 }

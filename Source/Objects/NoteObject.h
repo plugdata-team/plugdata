@@ -12,8 +12,6 @@ void note_initialize(t_fake_note* x);
 
 class NoteObject final : public ObjectBase
     , public AsyncUpdater {
-    BorderSize<int> border { 1, 7, 1, 0 };
-
     String currentNoteText;
     TextEditor noteEditor;
 
@@ -62,7 +60,6 @@ public:
         noteEditor.setScrollbarsShown(false);
         noteEditor.setScrollToShowCursor(true);
 
-        noteEditor.setBorder(border);
         noteEditor.addMouseListener(this, true);
         noteEditor.setReadOnly(true);
 
@@ -171,6 +168,7 @@ public:
             receiveSymbol = receiveSym == "empty" ? "" : note->x_rcv_raw->s_name;
         }
 
+        updateJustification();
         updateFont();
 
         triggerAsyncUpdate();
@@ -186,16 +184,25 @@ public:
         noteEditor.applyColourToAllText(getValue<Colour>(primaryColour));
         noteEditor.repaint();
 
-        auto const justificationType = getValue<int>(justification);
-        if (justificationType == 1) {
-            noteEditor.setJustification(Justification::topLeft);
-        } else if (justificationType == 2) {
-            noteEditor.setJustification(Justification::centredTop);
-        } else if (justificationType == 3) {
-            noteEditor.setJustification(Justification::topRight);
-        }
-
         needsRepaint = true;
+    }
+
+    void updateJustification()
+    {
+        switch (getValue<int>(justification)) {
+        case 2:
+            noteEditor.setJustification(Justification::centredTop);
+            noteEditor.setBorder({ 1, 3, 1, 7 });
+            break;
+        case 3:
+            noteEditor.setJustification(Justification::topRight);
+            noteEditor.setBorder({ 1, 0, 1, 9 });
+            break;
+        default:
+            noteEditor.setJustification(Justification::topLeft);
+            noteEditor.setBorder({ 1, 7, 1, 0 });
+            break;
+        }
     }
 
     void updateSizeProperty() override
@@ -400,16 +407,9 @@ public:
             auto const receive = receiveSymbol.toString();
             sendMessage("receive", { pd->generateSymbol(receive) });
         } else if (v.refersToSameSourceAs(justification)) {
-            auto const justificationType = getValue<int>(justification);
             if (auto note = ptr.get<t_fake_note>())
-                note->x_textjust = justificationType - 1;
-            if (justificationType == 1) {
-                noteEditor.setJustification(Justification::topLeft);
-            } else if (justificationType == 2) {
-                noteEditor.setJustification(Justification::centredTop);
-            } else if (justificationType == 3) {
-                noteEditor.setJustification(Justification::topRight);
-            }
+                note->x_textjust = getValue<int>(justification) - 1;
+            updateJustification();
             updateFont();
         } else if (v.refersToSameSourceAs(outline)) {
             if (auto note = ptr.get<t_fake_note>()) {

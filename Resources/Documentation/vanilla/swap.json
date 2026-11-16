@@ -3,7 +3,7 @@
     "swap",
     "fswap"
   ],
-  "description": "value from left/1st inlet",
+  "description": "swap two numbers",
   "origin": "vanilla",
   "categories": [
     "Mixing and Routing"
@@ -14,6 +14,10 @@
         {
           "type": "bang",
           "description": "outputs the stored values swapped"
+        },
+        {
+          "type": "float",
+          "description": "set left value, swap and output"
         }
       ],
       "repeat": false

@@ -15,32 +15,57 @@
 #include <raw_keyboard_input/raw_keyboard_input.mm>
 
 
-@interface NSView (FrameViewMethodSwizzling)
-- (NSPoint)FrameView__closeButtonOrigin;
-- (CGFloat)FrameView__titlebarHeight;
-@end
+static char insetTitlebarKey;
+static IMP originalCloseButtonOrigin = nullptr;
+static IMP originalTitlebarHeight = nullptr;
 
-@implementation NSView (FrameViewMethodSwizzling)
+static bool usesInsetTitlebar(NSView* frameView)
+{
+    NSWindow* window = frameView.window;
+    if (!window || (window.styleMask & NSWindowStyleMaskFullScreen) || window.level == NSPopUpMenuWindowLevel)
+        return false;
 
-- (NSPoint)FrameView__closeButtonOrigin {
-    auto* win = static_cast<NSWindow*>(self.window);
-    auto isFullscreen = win.styleMask & NSWindowStyleMaskFullScreen;
-    auto isPopup = win.level == NSPopUpMenuWindowLevel;
-    auto isInset = win.titleVisibility == NSWindowTitleVisible;
-    if(isPopup || isFullscreen || isInset)
-        return [self FrameView__closeButtonOrigin];
-    return {15, self.bounds.size.height - 26};
+    return [objc_getAssociatedObject(window, &insetTitlebarKey) boolValue];
 }
-- (CGFloat)FrameView__titlebarHeight {
-    auto* win = static_cast<NSWindow*>(self.window);
-    auto isFullscreen = win.styleMask & NSWindowStyleMaskFullScreen;
-    auto isPopup = win.level == NSPopUpMenuWindowLevel;
-    auto isInset = win.titleVisibility == NSWindowTitleVisible;
-    if(isPopup || isFullscreen || isInset)
-        return [self FrameView__titlebarHeight];
-    return 34;
+
+static NSPoint insetCloseButtonOrigin(NSView* frameView, SEL selector)
+{
+    if (usesInsetTitlebar(frameView))
+        return { 15, frameView.bounds.size.height - 26 };
+
+    return reinterpret_cast<NSPoint (*)(id, SEL)>(originalCloseButtonOrigin)(frameView, selector);
 }
-@end
+
+static CGFloat insetTitlebarHeight(NSView* frameView, SEL selector)
+{
+    if (usesInsetTitlebar(frameView))
+        return 34;
+
+    return reinterpret_cast<CGFloat (*)(id, SEL)>(originalTitlebarHeight)(frameView, selector);
+}
+
+// These are private AppKit methods: if one is gone or its signature changed, keep the native layout
+static IMP replaceFrameViewMethod(Class frameViewClass, SEL selector, char const* expectedReturnType, IMP replacement)
+{
+    Method method = class_getInstanceMethod(frameViewClass, selector);
+    if (!method || method_getNumberOfArguments(method) != 2)
+        return nullptr;
+
+    char* returnType = method_copyReturnType(method);
+    bool const matches = strcmp(returnType, expectedReturnType) == 0;
+    free(returnType);
+
+    return matches ? method_setImplementation(method, replacement) : nullptr;
+}
+
+// Installed once and never swapped back; the per-window flag decides which windows get the inset layout
+static void installInsetTitlebarOverrides(Class frameViewClass)
+{
+    if (!originalCloseButtonOrigin)
+        originalCloseButtonOrigin = replaceFrameViewMethod(frameViewClass, @selector(_closeButtonOrigin), @encode(NSPoint), reinterpret_cast<IMP>(insetCloseButtonOrigin));
+    if (!originalTitlebarHeight)
+        originalTitlebarHeight = replaceFrameViewMethod(frameViewClass, @selector(_titlebarHeight), @encode(CGFloat), reinterpret_cast<IMP>(insetTitlebarHeight));
+}
 
 int getStyleMask(bool nativeTitlebar) {
     
@@ -73,66 +98,23 @@ void OSUtils::setWindowMovable(juce::ComponentPeer* peer, bool canMove) {
 - (void)_tileTitlebarAndRedisplay:(BOOL)redisplay;
 @end
 
-void OSUtils::enableInsetTitlebarButtons(juce::ComponentPeer* peer, bool enable) {
-    auto* view = static_cast<NSView*>(peer->getNativeHandle());
-    if(!view) return;
-    
-    NSWindow* window = view.window;
-    if(!window) return;
-
+static void applyInsetTitlebar(NSWindow* window, bool enable)
+{
     if (window.styleMask & NSWindowStyleMaskFullScreen) {
+        // Take the window from the notification: the peer can be deleted before fullscreen is exited
         __block id token = [[NSNotificationCenter defaultCenter]
             addObserverForName:NSWindowDidExitFullScreenNotification
                         object:window
                          queue:[NSOperationQueue mainQueue]
-                    usingBlock:^(NSNotification*) {
+                    usingBlock:^(NSNotification* notification) {
                         [[NSNotificationCenter defaultCenter] removeObserver:token];
-                        OSUtils::enableInsetTitlebarButtons(peer, enable);
+                        applyInsetTitlebar(static_cast<NSWindow*>(notification.object), enable);
                     }];
         return;
     }
 
-    // Swaps out the implementation of one Obj-c instance method with another
-    auto swizzleMethods = [](Class aClass, SEL orgMethod, SEL posedMethod) {
-        @try {
-            Method original = nil;
-            Method posed = nil;
+    objc_setAssociatedObject(window, &insetTitlebarKey, @(enable), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 
-            original = class_getInstanceMethod(aClass, orgMethod);
-            posed = class_getInstanceMethod(aClass, posedMethod);
-            
-            if (!original || !posed) return;
-
-            method_exchangeImplementations(original, posed);
-        } @catch (NSException * _exn) {
-        }
-    };
-    
-    Class frameViewClass = [[[window contentView] superview] class];
-    if(frameViewClass != nil) {
-        auto oldOriginMethod = enable ? @selector(_closeButtonOrigin) : @selector(FrameView__closeButtonOrigin);
-        auto newOriginMethod = enable ? @selector(FrameView__closeButtonOrigin) : @selector(_closeButtonOrigin);
-        
-        static IMP our_closeButtonOrigin = class_getMethodImplementation([NSView class], newOriginMethod);
-        IMP _closeButtonOrigin = class_getMethodImplementation(frameViewClass, oldOriginMethod);
-        if (_closeButtonOrigin && _closeButtonOrigin != our_closeButtonOrigin) {
-            swizzleMethods(frameViewClass,
-                           oldOriginMethod,
-                           newOriginMethod);
-        }
-        
-        auto oldTitlebarHeightMethod = enable ? @selector(_titlebarHeight) : @selector(FrameView__titlebarHeight);
-        auto newTitlebarHeightMethod = enable ? @selector(FrameView__titlebarHeight) : @selector(_titlebarHeight);
-        
-        static IMP our_titlebarHeight = class_getMethodImplementation([NSView class], newTitlebarHeightMethod);
-        IMP _titlebarHeight = class_getMethodImplementation([view class], oldTitlebarHeightMethod);
-        if (_titlebarHeight && _titlebarHeight != our_titlebarHeight) {
-            swizzleMethods(frameViewClass,
-                           oldTitlebarHeightMethod,
-                           newTitlebarHeightMethod);
-        }
-    }
-    
     if(enable) {
         window.titlebarAppearsTransparent = true;
         window.titleVisibility = NSWindowTitleHidden;
@@ -150,12 +132,23 @@ void OSUtils::enableInsetTitlebarButtons(juce::ComponentPeer* peer, bool enable)
     // Fixes shadow rendering bug by ensuring there is always something visible to draw a shadow behind
     window.backgroundColor = [NSColor windowBackgroundColor];
     
+    // Only after the styleMask change: JUCE creates the window borderless, without these methods
     NSView* frameView = window.contentView.superview;
+    installInsetTitlebarOverrides([frameView class]);
+
     if ([frameView respondsToSelector:@selector(_tileTitlebarAndRedisplay:)]) {
       [(id)frameView _tileTitlebarAndRedisplay:NO];
     }
     
     [window update];
+}
+
+void OSUtils::enableInsetTitlebarButtons(juce::ComponentPeer* peer, bool enable) {
+    auto* view = static_cast<NSView*>(peer->getNativeHandle());
+    if(!view) return;
+
+    if (NSWindow* window = view.window)
+        applyInsetTitlebar(window, enable);
 }
 
 void OSUtils::hideTitlebarButtons(juce::ComponentPeer* peer, bool hideMinimiseButton, bool hideMaximiseButton, bool hideCloseButton)
@@ -189,56 +182,24 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
     return QWERTY;
 }
 
-@interface ScrollEventObserver : NSObject
-- (instancetype)initWithScrollingFlag:(bool*)scrollingFlag;
-@end
-
-@implementation ScrollEventObserver {
-    bool* isGesturingFlag;
-}
-
-- (instancetype)initWithScrollingFlag:(bool*)gesturingFlag {
-    self = [super init];
-    if (self) {
-        isGesturingFlag = gesturingFlag;
-    }
-    return self;
-}
-
-
-- (void)scrollEventOccurred:(NSEvent*)event {
-    if (event.phase == NSEventPhaseBegan) {
-        *isGesturingFlag = true;
-    } else if (event.phase == NSEventPhaseEnded || event.phase == NSEventPhaseCancelled) {
-        *isGesturingFlag = false;
-    }
-}
-
-@end
-
-
+// ObjC class names are shared by the whole process, so plugdata's binaries (standalone, VST3, AU...)
+// can't declare classes statically: hosts may load several of them at once.
 OSUtils::ScrollTracker::ScrollTracker()
 {
-    // Create the ScrollEventObserver instance
-    observer = [[ScrollEventObserver alloc] initWithScrollingFlag:&gesturing];
-    
-    [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskScrollWheel handler:^NSEvent* (NSEvent* event) {
-        [(ScrollEventObserver*)observer scrollEventOccurred:event];
-        return event;
-    }];
-    
-    [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskMagnify handler:^NSEvent* (NSEvent* event) {
-        [(ScrollEventObserver*)observer scrollEventOccurred:event];
+    bool* gesturingFlag = &gesturing;
+    observer = [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskScrollWheel | NSEventMaskMagnify handler:^NSEvent* (NSEvent* event) {
+        if (event.phase == NSEventPhaseBegan) {
+            *gesturingFlag = true;
+        } else if (event.phase == NSEventPhaseEnded || event.phase == NSEventPhaseCancelled) {
+            *gesturingFlag = false;
+        }
         return event;
     }];
 }
 
 OSUtils::ScrollTracker::~ScrollTracker()
 {
-    // Remove the observer when no longer needed
-    auto* ob = static_cast<ScrollEventObserver*>(observer);
-    [[NSNotificationCenter defaultCenter] removeObserver:ob];
-    [ob dealloc];
+    [NSEvent removeMonitor:static_cast<id>(observer)];
 }
 
 float OSUtils::MTLGetPixelScale(void* view) {
@@ -258,18 +219,28 @@ float OSUtils::MTLGetPixelScale(void* view) {
         return scale;
 }
 
-@interface MTLCustomView : NSView
-@end
-
-@implementation MTLCustomView
-- (NSView *)hitTest:(NSPoint)point {
+static NSView* passThroughHitTest(id, SEL, NSPoint)
+{
     return nil;
 }
-@end
+
+// An NSView that lets mouse events through, registered under a random name (see ScrollTracker)
+static Class getPassThroughViewClass()
+{
+    static Class viewClass = [] {
+        auto const name = "plugdata_MTLView_" + juce::String::toHexString(juce::Random().nextInt64());
+        Class cls = objc_allocateClassPair([NSView class], name.toRawUTF8(), 0);
+        auto* hitTest = class_getInstanceMethod([NSView class], @selector(hitTest:));
+        class_addMethod(cls, @selector(hitTest:), (IMP)passThroughHitTest, method_getTypeEncoding(hitTest));
+        objc_registerClassPair(cls);
+        return cls;
+    }();
+    return viewClass;
+}
 
 void* OSUtils::MTLCreateView(void* parent, int x, int y, int width, int height)
 {
-    NSView *childView = [[MTLCustomView alloc] initWithFrame:NSMakeRect(x, y, width, height)];
+    NSView *childView = [[getPassThroughViewClass() alloc] initWithFrame:NSMakeRect(x, y, width, height)];
 
     CAMetalLayer* metalLayer = [CAMetalLayer new];
     metalLayer.device = MTLCreateSystemDefaultDevice();
@@ -353,6 +324,33 @@ juce::BorderSize<int> OSUtils::getSafeAreaInsets()
 bool OSUtils::isIPad()
 {
     return [UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad;
+}
+
+// Files the user picked outside our container (iCloud Drive, other apps) can't even be stat'ed without this.
+// Access stays on for the rest of the session: Pd opens the patch, its abstractions and later saves by path.
+void OSUtils::startAccessingSecurityScopedURL(juce::URL const& url)
+{
+    static NSMutableDictionary<NSString*, NSURL*>* accessedURLs = [[NSMutableDictionary alloc] init];
+
+    auto const bookmark = url.getBookmarkData();
+    if (bookmark.isEmpty())
+        return;
+
+    juce::MemoryOutputStream decoded;
+    if (!juce::Base64::convertFromBase64(decoded, bookmark))
+        return;
+
+    BOOL isStale = NO;
+    NSURL* resolved = [NSURL URLByResolvingBookmarkData:[NSData dataWithBytes:decoded.getData() length:decoded.getDataSize()]
+                                                options:0
+                                          relativeToURL:nil
+                                    bookmarkDataIsStale:&isStale
+                                                  error:nil];
+    if (!resolved || accessedURLs[resolved.path])
+        return;
+
+    if ([resolved startAccessingSecurityScopedResource])
+        accessedURLs[resolved.path] = resolved;
 }
 
 void OSUtils::showiOSNativeMenu(juce::ComponentPeer* peer, juce::String const& title, SmallArray<TouchPopupMenuItem> const& items, SmallArray<SmallArray<TouchPopupMenuItem>> const& sub, juce::Point<int> screenPosition)

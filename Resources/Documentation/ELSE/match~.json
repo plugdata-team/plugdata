@@ -12,14 +12,9 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "the signal to be matched"
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
+        },
         {
           "type": "list",
           "description": "one or more floats reset argument values"

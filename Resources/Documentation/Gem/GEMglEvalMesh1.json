@@ -2,7 +2,7 @@
   "title": [
     "GEMglEvalMesh1"
   ],
-  "description": "compute a one-dimensional mesh",
+  "description": "compute a one- or two-dimensional grid of points or lines",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the mesh type."
+          "description": "GL_POINT, GL_LINE or GL_FILL"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the starting grid coordinate."
+          "description": "first integer value for grid domain variable i"
         }
       ],
       "repeat": false
@@ -39,7 +39,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the number of steps in the grid."
+          "description": "last integer value for grid domain variable i"
         }
       ],
       "repeat": false
@@ -59,21 +59,21 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the mesh type.",
-      "default": "GL_LINE"
-    },
-    {
-      "type": "float",
-      "description": "Specifies the starting grid coordinate.",
+      "description": "GL_POINT, GL_LINE or GL_FILL",
       "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the number of steps in the grid.",
-      "default": "1"
+      "description": "first integer value for grid domain variable i",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "last integer value for grid domain variable i",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglEvalMesh1] calls glEvalMesh1() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. GL constants are numbers here: [GLdefine] turns a name like GL_LINES into its value. See glEvalMesh in the OpenGL reference."
 }

@@ -2,7 +2,7 @@
   "title": [
     "pix_dot"
   ],
-  "description": "simplify an image by representing each segment with a white dot whose size is relative to the luminance of the original segment",
+  "description": "show an image as dots sized by its luminance",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -13,6 +13,10 @@
         {
           "type": "gemlist",
           "description": "gemlist"
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns processing on (default 1)"
         }
       ],
       "repeat": false
@@ -40,12 +44,17 @@
   ],
   "arguments": [
     {
-      "type": "float",
-      "description": "size of the dots",
+      "type": "list",
+      "description": "one value: scale of the dots; two values: their width and height",
       "default": ""
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "size <float, float>",
+      "description": "size of the dots: width, height"
+    }
+  ],
   "body": ""
 }

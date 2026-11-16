@@ -1,0 +1,59 @@
+{
+  "title": [
+    "dict.add"
+  ],
+  "description": "add a dictionary entry",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "value to add"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "set key name"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "set dictionary name"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "dictionary name to bind to",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <symbol>",
+      "description": "set key name"
+    },
+    {
+      "type": "name <symbol>",
+      "description": "set dictionary name"
+    }
+  ],
+  "body": "[dict.add] adds an entry to a dictionary. If the key already exists, nothing happens and a warning is given. The key must be set before a value is sent to the left inlet."
+}

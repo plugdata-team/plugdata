@@ -44,7 +44,7 @@
   "flags": [
     {
       "name": "-pos",
-      "description": "wrap to positive only\ndefault: allow also negative"
+      "description": "wrap to positive only (default allow also negative)"
     }
   ],
   "methods": [],

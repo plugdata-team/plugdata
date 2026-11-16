@@ -7,23 +7,13 @@
   "categories": [
     "Graphics"
   ],
-  "inlets": [
-    {
-      "messages": [
-        {
-          "type": "non-used",
-          "description": ""
-        }
-      ],
-      "repeat": false
-    }
-  ],
+  "inlets": [],
   "outlets": [
     {
       "messages": [
         {
           "type": "float",
-          "description": "key state"
+          "description": "1 when the key is pressed, 0 when it is released"
         }
       ],
       "repeat": false
@@ -32,13 +22,19 @@
       "messages": [
         {
           "type": "symbol",
-          "description": "key name"
+          "description": "name of the key"
         }
       ],
       "repeat": false
     }
   ],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "optional: name of the context (window) to listen to",
+      "default": ""
+    }
+  ],
   "flags": [],
   "methods": [],
   "body": ""

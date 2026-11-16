@@ -12,10 +12,10 @@
       "messages": [
         {
           "type": "anything",
-          "description": "first element names an object, rest is sent to that object in the sub-process"
+          "description": "object name, then the message to send it in the sub-process"
         },
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "signal input if there's a corresponding adc~ input"
         }
       ],
@@ -24,7 +24,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "signal input if there's a corresponding adc~ input"
         }
       ],
@@ -55,19 +55,19 @@
   "flags": [
     {
       "name": "-ninsig <float>",
-      "description": "sets number of input audio channels\ndefault: 2"
+      "description": "sets number of input audio channels (default 2)"
     },
     {
       "name": "-noutsig <float>",
-      "description": "sets number of output audio channels\ndefault: 2"
+      "description": "sets number of output audio channels (default 2)"
     },
     {
       "name": "-sr <float>",
-      "description": "sets sample rate of subprocess\ndefault: pd's current"
+      "description": "sets sample rate of subprocess (default pd's current)"
     },
     {
       "name": "-fifo <float>",
-      "description": "sets number of blocks for round-trip\ndefault: 5"
+      "description": "sets number of blocks for round-trip (default 5)"
     },
     {
       "name": "-pddir <symbol>",
@@ -88,5 +88,5 @@
       "description": "stops the pd sub-process"
     }
   ],
-  "body": ""
+  "body": "[pd~] starts and manages a separate Pd process, which can run on another CPU core. It communicates with this one through audio channels and messages: 'pd~ start' with a patch name starts it, other messages are sent to objects in it, and its [stdout] objects send messages back. The -ninsig and -noutsig flags set the number of signal channels."
 }

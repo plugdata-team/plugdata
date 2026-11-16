@@ -1,0 +1,56 @@
+{
+  "title": [
+    "nlist.depth"
+  ],
+  "description": "get nested list's depth",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "output nested list's depth"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "set name of nested list"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "nested list's depth"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "nested list name to bind to",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "name <symbol>",
+      "description": "set name of nested list"
+    }
+  ],
+  "body": "[nlist.depth] gets the maximum depth level of a nested list. Clicking on the object opens the editor window of the [nlist.define] object with the same name."
+}

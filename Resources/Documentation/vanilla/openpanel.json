@@ -36,7 +36,7 @@
   "arguments": [
     {
       "type": "float",
-      "description": "'mode: 0 (file, default), 1 (directory), 2 (multiple files)'",
+      "description": "mode: 0 for a file (default), 1 for a directory, 2 for multiple files",
       "default": ""
     }
   ],

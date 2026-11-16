@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "input signal to reverberate"
         },
         {
@@ -64,11 +64,11 @@
   "flags": [
     {
       "name": "-time <float>",
-      "description": "t60 reverberation time in seconds\ndefault: 4"
+      "description": "t60 reverberation time in seconds (default 4)"
     },
     {
       "name": "-damping <float>",
-      "description": "high frequency damping in %\ndefault: 0"
+      "description": "high frequency damping in % (default 0)"
     }
   ],
   "methods": [
@@ -86,7 +86,7 @@
     },
     {
       "type": "exp <float>",
-      "description": "non-0 sets delay times exponentially"
+      "description": "nonzero sets delay times exponentially"
     },
     {
       "type": "clear",

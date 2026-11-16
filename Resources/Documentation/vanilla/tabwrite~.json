@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signals",
           "description": "signal to write to an array"
         },
         {
@@ -45,5 +45,5 @@
       "description": "set the table name"
     }
   ],
-  "body": ""
+  "body": "[tabwrite~] records a signal into an array. A bang writes from the beginning to the end of the array, 'start' with a number starts at that index, and 'stop' stops recording. 'set' changes the array."
 }

@@ -12,7 +12,7 @@
       "messages": [
         {
           "type": "gemlist",
-          "description": ""
+          "description": "particle system (from [part_head])"
         }
       ],
       "repeat": false
@@ -23,7 +23,61 @@
       "messages": [
         {
           "type": "gemlist",
-          "description": ""
+          "description": "passed on once per particle, after its information"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "index of the particle"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "position: x y z"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "color: R G B A"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "velocity: x y z"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "size: x y z"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "age, in frames"
         }
       ],
       "repeat": false
@@ -32,5 +86,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[part_info] combines [part_move] and [part_information]: it moves the particles, then outputs the information of each one. Since it moves them, don't use it together with [part_draw] or [part_render], which move them too; use [part_information] there."
 }

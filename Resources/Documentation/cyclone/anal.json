@@ -23,7 +23,7 @@
     {
       "messages": [
         {
-          "type": "list <f, f, f>",
+          "type": "list <float, float, float>",
           "description": "<previous number, current number, occurrence>"
         }
       ],

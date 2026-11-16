@@ -12,7 +12,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "concatenate incoming list with stored list and output (a bang is a zero element list and outputs stored list)"
+          "description": "output with the stored list appended, a bang outputs the stored list"
         }
       ],
       "repeat": false
@@ -32,7 +32,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "the stored list at bangs, the concatenated list at list input or sublists via 'get' message"
+          "description": "the stored list, the concatenated list, or a sublist from 'get'"
         }
       ],
       "repeat": false

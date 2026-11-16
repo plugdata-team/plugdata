@@ -2,7 +2,7 @@
   "title": [
     "GEMglEdgeFlag"
   ],
-  "description": "set the current edge flag",
+  "description": "flag edges as either boundary or nonboundary",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the current edge flag."
+          "description": "current edge flag, 1 (GL_TRUE, the default) or 0 (GL_FALSE)"
         }
       ],
       "repeat": false
@@ -41,11 +41,11 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the current edge flag.",
-      "default": "GL_TRUE"
+      "description": "current edge flag, 1 (GL_TRUE, the default) or 0 (GL_FALSE)",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglEdgeFlag] calls glEdgeFlag() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glEdgeFlag in the OpenGL reference."
 }

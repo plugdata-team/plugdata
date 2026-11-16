@@ -2,7 +2,7 @@
   "title": [
     "GEMglEndList"
   ],
-  "description": "end the definition of a display list",
+  "description": "create or replace a display list",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -32,5 +32,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglEndList] calls glEndList() each time a gemlist passes through it. See glNewList in the OpenGL reference."
 }

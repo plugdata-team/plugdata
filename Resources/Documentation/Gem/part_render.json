@@ -31,6 +31,15 @@
   ],
   "arguments": [],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "colorize <float>",
+      "description": "nonzero uses the colors set with [part_color]"
+    },
+    {
+      "type": "size <float>",
+      "description": "nonzero uses the sizes set with [part_size]"
+    }
+  ],
   "body": ""
 }

@@ -12,7 +12,7 @@
       "messages": [
         {
           "type": "gemlist",
-          "description": ""
+          "description": "particle system (from [part_head])"
         }
       ],
       "repeat": false
@@ -20,16 +20,8 @@
     {
       "messages": [
         {
-          "type": "float",
-          "description": "V1"
-        },
-        {
-          "type": "float",
-          "description": "V2"
-        },
-        {
-          "type": "float",
-          "description": "V3"
+          "type": "list",
+          "description": "damping vector: x, y and z (below 1 slows the particles down)"
         }
       ],
       "repeat": false
@@ -49,17 +41,17 @@
   "arguments": [
     {
       "type": "float",
-      "description": "V1",
+      "description": "x of the damping vector",
       "default": ""
     },
     {
       "type": "float",
-      "description": "V2",
+      "description": "y of the damping vector",
       "default": ""
     },
     {
       "type": "float",
-      "description": "V3",
+      "description": "z of the damping vector",
       "default": ""
     }
   ],

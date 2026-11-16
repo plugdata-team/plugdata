@@ -11,12 +11,8 @@
     {
       "messages": [
         {
-          "type": "float",
-          "description": "set number 1 and output value"
-        },
-        {
-          "type": "list",
-          "description": "sets a list of numbers and output value"
+          "type": "float/list",
+          "description": "number(s) to find the LCM of, outputs the result"
         }
       ],
       "repeat": false

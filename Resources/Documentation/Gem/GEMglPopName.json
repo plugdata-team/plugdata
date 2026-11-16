@@ -2,7 +2,7 @@
   "title": [
     "GEMglPopName"
   ],
-  "description": "pop the top name from the name stack",
+  "description": "push and pop the name stack",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -32,5 +32,5 @@
   "arguments": [],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglPopName] calls glPopName() each time a gemlist passes through it. See glPushName in the OpenGL reference."
 }

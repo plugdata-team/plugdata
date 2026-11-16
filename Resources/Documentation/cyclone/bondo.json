@@ -16,7 +16,7 @@
         },
         {
           "type": "anything",
-          "description": "one element messages go to the corresponding outlet. If there are more than 1 element, they're parsed among the inlets unless the \"n\" argument is used"
+          "description": "message to sync, spread over the inlets unless 'n' is given"
         }
       ],
       "repeat": true
@@ -46,11 +46,16 @@
     },
     {
       "type": "symbol",
-      "description": "''n' sets outlets to send messages with more than 1 element",
+      "description": "'n' sets outlets to send messages with more than 1 element",
       "default": ""
     }
   ],
   "flags": [],
-  "methods": [],
-  "body": "[bondo] synchronizes and outputs messages when any inlet gets a message. It can wait a time interval for input messages (see [pd sync time]) or send them automatically."
+  "methods": [
+    {
+      "type": "set <anything>",
+      "description": "set any input message without output"
+    }
+  ],
+  "body": "[bondo] synchronizes and outputs messages when any inlet gets a message. It can wait a time interval for input messages or send them automatically."
 }

@@ -21,16 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the parameter value to retrieve."
-        }
-      ],
-      "repeat": false
-    },
-    {
-      "messages": [
-        {
-          "type": "float",
-          "description": "Returns the value or values of the specified parameter."
+          "description": "parameter to query, e.g. GL_MODELVIEW_MATRIX"
         }
       ],
       "repeat": false
@@ -45,16 +36,25 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "value(s) of the queried parameter"
+        }
+      ],
+      "repeat": false
     }
   ],
   "arguments": [
     {
-      "type": "float",
-      "description": "Specifies the parameter value to retrieve.",
-      "default": "GL_VIEWPORT"
+      "type": "float/symbol",
+      "description": "parameter to query, e.g. GL_MODELVIEW_MATRIX",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglGetIntegerv] calls glGetIntegerv() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. Its creation arguments also take GL constants by name; its inlets only take their values. See glGet in the OpenGL reference."
 }

@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the target to which the texture is bound."
+          "description": "texture target, e.g. GL_TEXTURE_2D"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the name of a texture."
+          "description": "name of a texture"
         }
       ],
       "repeat": false
@@ -50,16 +50,16 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the target to which the texture is bound.",
+      "description": "texture target, e.g. GL_TEXTURE_2D",
       "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the name of a texture.",
+      "description": "name of a texture",
       "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglBindTexture] calls glBindTexture() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. GL constants are numbers here: [GLdefine] turns a name like GL_LINES into its value. See glBindTexture in the OpenGL reference."
 }

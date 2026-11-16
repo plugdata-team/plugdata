@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "audio signal to be filtered"
         }
       ],
@@ -20,7 +20,7 @@
     {
       "messages": [
         {
-          "type": "float",
+          "type": "float/signal",
           "description": "rolloff frequency"
         }
       ],

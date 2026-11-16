@@ -16,7 +16,7 @@
         },
         {
           "type": "float",
-          "description": "rewinds chronometer or non-0 starts or continues, zero stops"
+          "description": "rewinds chronometer or nonzero starts or continues, zero stops"
         },
         {
           "type": "list",

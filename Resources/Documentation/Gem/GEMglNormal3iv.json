@@ -2,7 +2,7 @@
   "title": [
     "GEMglNormal3iv"
   ],
-  "description": "set the current normal vector with a pointer to three integer values",
+  "description": "set the current normal vector",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -20,8 +20,8 @@
     {
       "messages": [
         {
-          "type": "pointer",
-          "description": "Specifies a pointer to an array of three integers."
+          "type": "list",
+          "description": "list of the normal's x, y and z coordinates"
         }
       ],
       "repeat": false
@@ -40,12 +40,22 @@
   ],
   "arguments": [
     {
-      "type": "pointer",
-      "description": "Specifies a pointer to an array of three integers.",
-      "default": ""
+      "type": "float",
+      "description": "x value",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "y value",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "z value",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglNormal3iv] calls glNormal3iv() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glNormal in the OpenGL reference."
 }

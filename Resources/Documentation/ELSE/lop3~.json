@@ -1,0 +1,56 @@
+{
+  "title": [
+    "lop3~"
+  ],
+  "description": "1st order (1-pole/1-zero) lowpass filter",
+  "origin": "ELSE",
+  "categories": [
+    "Filters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "signal(s) to be filtered"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "cutoff frequency"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "filtered signal(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "cutoff frequency",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clear the filter state"
+    }
+  ],
+  "body": "[lop3~] is a 1st order lowpass filter (1-pole, 1-zero). Unlike [lop~] from Vanilla or [lop2~], it has a zero fixed at -1 on the z-plane, which means Nyquist is always filtered out. If the cutoff reaches Nyquist, the filter is bypassed.\n\nThe filter outputs the same number of channels as the left input. If the right input has more than one channel, the number of channels must match. A single channel gets repeated to match the channels of the left input."
+}

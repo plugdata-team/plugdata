@@ -16,7 +16,7 @@
         },
         {
           "type": "float",
-          "description": "apply/don't apply"
+          "description": "nonzero turns processing on (default 1)"
         }
       ],
       "repeat": false
@@ -25,7 +25,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "size"
+          "description": "size of the small copies of the image"
         }
       ],
       "repeat": false
@@ -45,7 +45,7 @@
   "arguments": [
     {
       "type": "float",
-      "description": "size",
+      "description": "size of the small copies of the image",
       "default": ""
     }
   ],

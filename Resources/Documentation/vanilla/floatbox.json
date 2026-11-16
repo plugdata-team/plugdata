@@ -41,5 +41,5 @@
       "description": "Set number without output"
     }
   ],
-  "body": ""
+  "body": "[floatbox] is a number box: it shows and outputs a number. Click and drag to change it (shift-drag for hundredths), or click it, type a value and hit enter. 'set' changes the value without output, and a bang outputs it."
 }

@@ -13,6 +13,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns processing on (default 1)"
         }
       ],
       "repeat": false
@@ -42,16 +46,20 @@
   "flags": [],
   "methods": [
     {
-      "type": "float",
-      "description": "which stream is the key-source (0=left stream, 1=right stream)"
+      "type": "value <list>",
+      "description": "pixel value to key out: R G B (or Y U V)"
     },
     {
-      "type": "list",
-      "description": "list of 3 floats of the pixel-value to key out"
+      "type": "range <list>",
+      "description": "range around the value that is keyed out: R G B (or Y U V)"
     },
     {
-      "type": "list",
-      "description": "list of 3 floats defining the +/-range of the key"
+      "type": "direction <float>",
+      "description": "which image is the key source: 0 the left, 1 the right"
+    },
+    {
+      "type": "mode <float>",
+      "description": "keying method for YUV images, 0 or 1 (default 1)"
     }
   ],
   "body": ""

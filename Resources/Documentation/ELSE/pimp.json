@@ -62,7 +62,7 @@
   "flags": [
     {
       "name": "-rate <float>",
-      "description": "rate period in ms (min 0.1)\ndefault: 5"
+      "description": "rate period in ms (min 0.1) (default 5)"
     }
   ],
   "methods": [

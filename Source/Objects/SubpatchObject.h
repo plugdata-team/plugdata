@@ -18,19 +18,7 @@ public:
         objectParameters.addParamBool("Is graph", cGeneral, &isGraphChild, { "No", "Yes" });
 
         // There is a possibility that a donecanvasdialog message is sent inbetween the initialisation in pd and the initialisation of the plugdata object, making it possible to miss this message. This especially tends to happen if the messagebox is connected to a loadbang.
-        // By running another update call asynchrounously, we can still respond to the new state
-        MessageManager::callAsync([_this = SafePointer(this)] {
-            if (!_this)
-                return;
-            if (auto glist = _this->ptr.get<t_canvas>()) {
-                if (glist->gl_isgraph) {
-                    _this->cnv->setSelected(_this->object, false);
-                    if (auto* s = _this->object->editor->getSidebarForPanel(Sidebar::InspectorPanel))
-                        s->hideParameters();
-                    _this->object->setType(_this->getText().toString(), _this->ptr);
-                }
-            }
-        });
+        checkGraphState();
     }
 
     ~SubpatchObject() override
@@ -40,12 +28,30 @@ public:
         }
     }
 
+    void checkGraphState()
+    {
+        MessageManager::callAsync([_this = SafePointer(this)] {
+            if (!_this)
+                return;
+            if (auto glist = _this->ptr.get<t_canvas>()) {
+                if (glist->gl_isgraph) {
+                    auto* object = _this->object;
+                    _this->setParameterExcludingListener(_this->isGraphChild, true); // for destructor check
+                    if (_this->cnv->getLassoSelection().isSelected(object)) {
+                        if (auto* s = object->editor->getSidebarForPanel(Sidebar::InspectorPanel))
+                            s->hideParameters();
+                    }
+                    _this->cnv->setSelected(object, false);
+                    object->setType(_this->getText().toString(), _this->ptr);
+                }
+            }
+        });
+    }
+
     void update() override
     {
         // Change from subpatch to graph
-        if (auto canvas = ptr.get<t_canvas>()) {
-            isGraphChild = static_cast<bool>(canvas->gl_isgraph);
-        }
+        checkGraphState();
         TextObjectBase::update();
     }
 
@@ -81,18 +87,7 @@ public:
             if (auto glist = ptr.get<t_glist>()) {
                 canvas_setgraph(glist.get(), isGraph + 2 * glist->gl_hidetext, 0);
             }
-
-            if (isGraph) {
-                MessageManager::callAsync([this, _this = SafePointer(this)] {
-                    if (!_this)
-                        return;
-
-                    _this->cnv->setSelected(object, false);
-                    if (auto* s = _this->object->editor->getSidebarForPanel(Sidebar::InspectorPanel))
-                        s->hideParameters();
-                    _this->object->setType(_this->getText().toString(), ptr);
-                });
-            }
+            checkGraphState();
         }
     }
 

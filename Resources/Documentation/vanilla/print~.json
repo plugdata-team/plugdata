@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "signal block to print on terminal window"
         },
         {
@@ -31,7 +31,7 @@
     {
       "type": "symbol",
       "description": "symbol to distinct one [print~] from another",
-      "default": ""
+      "default": "print~"
     }
   ],
   "flags": [],

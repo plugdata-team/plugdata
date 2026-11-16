@@ -11,7 +11,7 @@
     {
       "messages": [
         {
-          "type": "signals",
+          "type": "float/signals",
           "description": "gate value"
         }
       ],

@@ -2,7 +2,7 @@
   "title": [
     "shearXY"
   ],
-  "description": "shear.",
+  "description": "shear a gemlist (XY)",
   "origin": "Gem",
   "categories": [
     "Graphics"

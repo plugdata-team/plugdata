@@ -13,6 +13,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "list",
+          "description": "render the list as text"
         }
       ],
       "repeat": false
@@ -20,8 +24,8 @@
     {
       "messages": [
         {
-          "type": "<float>",
-          "description": "size in points"
+          "type": "float",
+          "description": "font size in points (default 20)"
         }
       ],
       "repeat": false
@@ -36,11 +40,20 @@
         }
       ],
       "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "text metrics: bbox, bboxline, ascender, descender, height"
+        }
+      ],
+      "repeat": false
     }
   ],
   "arguments": [
     {
-      "type": "<symbol>",
+      "type": "list",
       "description": "initial text",
       "default": "gem"
     }
@@ -49,23 +62,27 @@
   "methods": [
     {
       "type": "font <symbol>",
-      "description": "load a TrueType-font"
+      "description": "load a TrueType font"
     },
     {
       "type": "text <list>",
       "description": "render the given text"
     },
     {
-      "type": "list <list>",
-      "description": "render the given text"
+      "type": "justify <float, float>",
+      "description": "horizontal and vertical justification"
     },
     {
-      "type": "justify <float> <float>",
-      "description": "horizontal & vertical justification"
+      "type": "linedist <float>",
+      "description": "distance between the lines of multi-line text"
     },
     {
-      "type": "size <float>",
-      "description": "set the size in points"
+      "type": "precision <float>",
+      "description": "precision of the glyph outlines"
+    },
+    {
+      "type": "string <anything>",
+      "description": "render the text given as a list of unicode code points"
     }
   ],
   "body": ""

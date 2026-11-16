@@ -21,11 +21,16 @@
       "messages": [
         {
           "type": "float",
-          "description": "scale factor"
-        },
+          "description": "scale factor for the kernel"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
         {
           "type": "list",
-          "description": "the convolution kernel"
+          "description": "the convolution kernel: rows times columns values"
         }
       ],
       "repeat": false
@@ -44,12 +49,22 @@
   ],
   "arguments": [
     {
-      "type": "list",
-      "description": "matrix dimensions",
+      "type": "float",
+      "description": "number of rows of the kernel (odd)",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "number of columns of the kernel (odd)",
       "default": ""
     }
   ],
   "flags": [],
-  "methods": [],
+  "methods": [
+    {
+      "type": "chroma <float>",
+      "description": "nonzero convolves the color channels too, not only luminance"
+    }
+  ],
   "body": ""
 }

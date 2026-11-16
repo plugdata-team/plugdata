@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the mapping of the near clipping plane to window coordinates."
+          "description": "mapping of the near clipping plane to window coordinates"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the mapping of the far clipping plane to window coordinates."
+          "description": "mapping of the far clipping plane to window coordinates"
         }
       ],
       "repeat": false
@@ -50,16 +50,16 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the mapping of the near clipping plane to window coordinates.",
+      "description": "mapping of the near clipping plane to window coordinates",
       "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the mapping of the far clipping plane to window coordinates.",
-      "default": "1"
+      "description": "mapping of the far clipping plane to window coordinates",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglDepthRange] calls glDepthRange() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glDepthRange in the OpenGL reference."
 }

@@ -14,12 +14,17 @@ public:
     Value samplerateValue = SynchronousValue(var(4));
     Value patchSizeValue = SynchronousValue(var(1));
     Value appTypeValue = SynchronousValue(var(0));
+    Value customBoardValue = SynchronousValue(String());
+    Value customLinkerValue = SynchronousValue(String());
 
-    File customBoardDefinition;
-    File customLinker;
-
+    PropertiesPanel::PathComponent* boardFileProperty;
+    PropertiesPanel::PathComponent* linkerFileProperty;
     PropertiesPanelProperty* usbMidiProperty;
     PropertiesPanelProperty* appTypeProperty;
+    PropertiesPanelProperty* debugPrintProperty;
+    PropertiesPanel::EditableComponent<int>* blocksizeProperty;
+    PropertiesPanelProperty* samplerateProperty;
+    PropertiesPanelProperty* patchSizeProperty;
 
     DaisyExporter(PluginEditor* editor, ExportingProgressView* exportingView)
         : ExporterBase(editor, exportingView)
@@ -32,16 +37,24 @@ public:
                 PropertiesPanel::ComboComponent::OptionSection { "Official", { "Pod", "Petal", "Patch", "Patch.Init()", "Field", "Desktop Devkit", "Eurorack Devkit", "Pedal Devkit" } },
                 PropertiesPanel::ComboComponent::OptionSection { "Community", { "Versio", "Terrarium", "Hothouse", "Simple Touch" } },
             },
-            { "Custom JSON..." }));
+            { "Custom JSON..." }
+        ));
+        boardFileProperty = new PropertiesPanel::PathComponent("Board file", customBoardValue, "*.json", "DaisyCustomBoard");
+        properties.add(boardFileProperty);
         properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, getExportTypes()));
         usbMidiProperty = new PropertiesPanel::BoolComponent("USB MIDI", usbMidiValue, { "No", "Yes" });
         properties.add(usbMidiProperty);
-        properties.add(new PropertiesPanel::BoolComponent("Debug printing", debugPrintValue, { "No", "Yes" }));
-        auto const blocksizeProperty = new PropertiesPanel::EditableComponent<int>("Blocksize", blocksizeValue, true, 1, 256);
+        debugPrintProperty = new PropertiesPanel::BoolComponent("Debug printing", debugPrintValue, { "No", "Yes" });
+        properties.add(debugPrintProperty);
+        blocksizeProperty = new PropertiesPanel::EditableComponent<int>("Blocksize", blocksizeValue, true, 1, 256);
         blocksizeProperty->editableOnClick(false);
         properties.add(blocksizeProperty);
-        properties.add(new PropertiesPanel::ComboComponent("Samplerate", samplerateValue, { "8000", "16000", "32000", "48000", "96000" }));
-        properties.add(new PropertiesPanel::ComboComponent("Patch size", patchSizeValue, { "Small", "Big", "Big + SDRAM", "Huge", "Huge + SDRAM", "Custom Linker..." }));
+        samplerateProperty = new PropertiesPanel::ComboComponent("Samplerate", samplerateValue, { "8000", "16000", "32000", "48000", "96000" });
+        properties.add(samplerateProperty);
+        patchSizeProperty = new PropertiesPanel::ComboComponent("Patch size", patchSizeValue, { "Small", "Big", "Big + SDRAM", "Huge", "Huge + SDRAM", "Custom Linker..." });
+        properties.add(patchSizeProperty);
+        linkerFileProperty = new PropertiesPanel::PathComponent("Linker file", customLinkerValue, "*.lds", "DaisyCustomLinker");
+        properties.add(linkerFileProperty);
         appTypeProperty = new PropertiesPanel::ComboComponent("App type", appTypeValue, { "NONE", "SRAM", "QSPI" });
         properties.add(appTypeProperty);
 
@@ -59,6 +72,10 @@ public:
         samplerateValue.addListener(this);
         patchSizeValue.addListener(this);
         appTypeValue.addListener(this);
+        customBoardValue.addListener(this);
+        customLinkerValue.addListener(this);
+
+        updatePropertiesEnabled();
     }
 
     StringArray getExportTypes() const override
@@ -86,14 +103,14 @@ public:
         state->setProperty("project_copyright_value", getValue<String>(projectCopyrightValue));
         state->setProperty("export_type_value", getValue<int>(exportTypeValue));
         state->setProperty("target_board_value", getValue<int>(targetBoardValue));
-        state->setProperty("custom_board_definition_value", customBoardDefinition.getFullPathName());
+        state->setProperty("custom_board_definition_value", getValue<String>(customBoardValue));
         state->setProperty("usb_midi_value", getValue<int>(usbMidiValue));
         state->setProperty("debug_print_value", getValue<int>(debugPrintValue));
         state->setProperty("blocksize_value", getValue<int>(blocksizeValue));
         state->setProperty("samplerate_value", getValue<int>(samplerateValue));
         state->setProperty("patch_size_value", getValue<int>(patchSizeValue));
         state->setProperty("app_type_value", getValue<int>(appTypeValue));
-        state->setProperty("custom_linker_value", customLinker.getFullPathName());
+        state->setProperty("custom_linker_value", getValue<String>(customLinkerValue));
         globalState->setProperty("daisy", state);
     }
 
@@ -107,26 +124,41 @@ public:
         projectCopyrightValue = state->getProperty("project_copyright_value");
         exportTypeValue = state->getProperty("export_type_value");
         targetBoardValue = state->getProperty("target_board_value");
-        customBoardDefinition = File(state->getProperty("custom_board_definition_value"));
+        customBoardValue = state->getProperty("custom_board_definition_value");
         usbMidiValue = state->getProperty("usb_midi_value");
         debugPrintValue = state->getProperty("debug_print_value");
         blocksizeValue = state->getProperty("blocksize_value");
         samplerateValue = state->getProperty("samplerate_value");
         patchSizeValue = state->getProperty("patch_size_value");
         appTypeValue = state->getProperty("app_type_value");
-        customLinker = File(state->getProperty("custom_linker_value"));
+        customLinkerValue = state->getProperty("custom_linker_value");
+    }
+
+    void updatePropertiesEnabled()
+    {
+        bool const flashingBootloader = getValue<int>(exportTypeValue) == 4;
+        debugPrintProperty->setEnabled(!flashingBootloader);
+        blocksizeProperty->setEnabled(!flashingBootloader);
+        samplerateProperty->setEnabled(!flashingBootloader);
+        patchSizeProperty->setEnabled(!flashingBootloader);
+
+        bool const debugPrint = getValue<int>(debugPrintValue);
+        usbMidiProperty->setEnabled(!debugPrint && !flashingBootloader);
+
+        boardFileProperty->setEnabled(getValue<int>(targetBoardValue) == 10);
+
+        // need to actually hide these properties until needed
+        bool const customLinker = getValue<int>(patchSizeValue) == 6;
+        linkerFileProperty->setEnabled(customLinker && !flashingBootloader);
+        appTypeProperty->setEnabled(customLinker && !flashingBootloader);
     }
 
     void valueChanged(Value& v) override
     {
         ExporterBase::valueChanged(v);
+        updatePropertiesEnabled();
 
-        bool const debugPrint = getValue<int>(debugPrintValue);
-        usbMidiProperty->setEnabled(!debugPrint);
-
-        // need to actually hide this property until needed
         int const patchSize = getValue<int>(patchSizeValue);
-        appTypeProperty->setEnabled(patchSize == 6);
 
         if (patchSize == 1) {
             appTypeValue.setValue(1);
@@ -136,39 +168,40 @@ public:
             appTypeValue.setValue(3);
         }
 
-        if (v.refersToSameSourceAs(targetBoardValue)) {
-            int const idx = getValue<int>(targetBoardValue);
+        if (v.refersToSameSourceAs(targetBoardValue) && getValue<int>(targetBoardValue) == 13 && !blockDialog)
+            boardFileProperty->browse();
 
-            // Custom board option
-            if (idx == 13 && !blockDialog) {
-                Dialogs::showOpenDialog([this](URL const& url) {
-                    auto const result = url.getLocalFile();
-                    if (result.existsAsFile()) {
-                        customBoardDefinition = result;
-                    } else {
-                        customBoardDefinition = File();
-                    }
-                },
-                    true, false, "*.json", "DaisyCustomBoard", nullptr);
-            }
-        }
+        if (v.refersToSameSourceAs(patchSizeValue) && patchSize == 6 && !blockDialog)
+            linkerFileProperty->browse();
+    }
 
-        if (v.refersToSameSourceAs(patchSizeValue)) {
-            int const idx = getValue<int>(patchSizeValue);
+    bool hasDfuError()
+    {
+        // dfu-util will always return 2, even if everything worked
+        // We just test for the search for any dfu-util errors in
+        // the console to decide if the export was successful
+        StringArray errorMessages = {
+            "No DFU capable USB device available",
+            "More than one DFU capable USB device found!",
+            "Cannot open device",
+            "unable to initialize libusb:",
+            "Cannot claim interface",
+            "Cannot set alt interface zero",
+            "Cannot set alternate interface",
+            "error resetting ",
+            "error clear_status",
+            "Lost device after RESET?",
+            "Device still in Runtime Mode!",
+            "can't send DFU_ABORT",
+            "USB communication error",
+            "Transfer size must be specified",
+            "Cannot open file",
+            "Error: File ID",
+            "Unsupported mode:",
+            "error resetting after download"
+        };
 
-            // Custom linker option
-            if (idx == 6 && !blockDialog) {
-                Dialogs::showOpenDialog([this](URL const& url) {
-                    auto const result = url.getLocalFile();
-                    if (result.existsAsFile()) {
-                        customLinker = result;
-                    } else {
-                        customLinker = File();
-                    }
-                },
-                    true, false, "*.lds", "DaisyCustomLinker", nullptr);
-            }
-        }
+        return exportingView->hasConsoleMessage(errorMessages);
     }
 
     int flashBootloader(auto bin, auto sourceDir, auto make, auto gccPath)
@@ -188,7 +221,14 @@ public:
 
         Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 900);
 
-        return getExitCode();
+        auto const hadError = hasDfuError();
+
+        if (!hadError && exportingView->hasConsoleMessage({ "Error 74" })) {
+            exportingView->logToConsole("\x1b[1;36mnote:\x1b[0m Error 74 is not fatal and may be ignored\n");
+        }
+
+        bool const dfuSucceeded = exportingView->hasConsoleMessage({ "File downloaded successfully", "Download done." });
+        return (hadError || !dfuSucceeded) ? 1 : 0;
     }
 
     bool performExport(String const& pdPatch, String const& outdir, String const& name, String const& copyright, StringArray const& searchPaths) override
@@ -231,7 +271,7 @@ public:
         var metaDaisy(new DynamicObject());
 
         if (board == "custom") {
-            metaDaisy.getDynamicObject()->setProperty("board_file", customBoardDefinition.getFullPathName());
+            metaDaisy.getDynamicObject()->setProperty("board_file", customBoardValue.toString());
         } else if (extra_boards.contains(board)) {
             metaDaisy.getDynamicObject()->setProperty("board_file", toolchainDir.getChildFile("etc").getChildFile(board + ".json").getFullPathName());
         } else {
@@ -283,7 +323,7 @@ public:
                 toolchainDir.getChildFile("etc").getChildFile("linkers").getChildFile("qspi_linker_sdram.lds").getFullPathName());
             metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_QSPI");
         } else if (size == 6) {
-            metaDaisy.getDynamicObject()->setProperty("linker_script", customLinker.getFullPathName());
+            metaDaisy.getDynamicObject()->setProperty("linker_script", customLinkerValue.toString());
             if (appType == 2) {
                 metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_SRAM");
             } else if (appType == 3) {
@@ -420,29 +460,7 @@ public:
                 // Delay to get correct exit code
                 Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
 
-                // dfu-util will always return 2, even if everything worked
-                // We just test for the search for any dfu-util errors in the console to decide if the export was successful
-                StringArray errorMessages = {
-                    "No DFU capable USB device available",
-                    "More than one DFU capable USB device found!",
-                    "Cannot open device",
-                    "unable to initialize libusb:",
-                    "Cannot claim interface",
-                    "Cannot set alt interface zero",
-                    "Cannot set alternate interface",
-                    "error resetting ",
-                    "error clear_status",
-                    "Lost device after RESET?",
-                    "Device still in Runtime Mode!",
-                    "can't send DFU_ABORT",
-                    "USB communication error",
-                    "Transfer size must be specified",
-                    "Cannot open file",
-                    "Error: File ID",
-                    "Unsupported mode:",
-                    "error resetting after download"
-                };
-                auto flashExitCode = exportingView->hasConsoleMessage(errorMessages);
+                auto const flashExitCode = hasDfuError();
 
                 if (!flashExitCode && exportingView->hasConsoleMessage({ "Error 74" })) {
                     exportingView->logToConsole("\x1b[1;36mnote:\x1b[0m Error 74 is not fatal and may be ignored\n");

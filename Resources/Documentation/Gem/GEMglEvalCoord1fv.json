@@ -2,7 +2,7 @@
   "title": [
     "GEMglEvalCoord1fv"
   ],
-  "description": "evaluate enabled one-dimensional maps at the specified parametric coordinate",
+  "description": "evaluate enabled one- and two-dimensional maps",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the parametric coordinate at which to evaluate the maps."
+          "description": "value of the second domain coordinate"
         }
       ],
       "repeat": false
@@ -41,11 +41,11 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the parametric coordinate at which to evaluate the maps.",
+      "description": "value of the second domain coordinate",
       "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglEvalCoord1fv] calls glEvalCoord1fv() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glEvalCoord in the OpenGL reference."
 }

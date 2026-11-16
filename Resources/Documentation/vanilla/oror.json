@@ -51,5 +51,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[||] outputs 1 if either its left or its right input is nonzero, and 0 otherwise (a logical OR). Inputs are truncated to integers, so 0.5 counts as zero. A bang evaluates the operation again."
 }

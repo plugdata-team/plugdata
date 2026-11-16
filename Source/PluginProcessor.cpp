@@ -832,9 +832,6 @@ void PluginProcessor::processBlockBypassed(AudioBuffer<float>& buffer, MidiBuffe
 
     // It's better to keep sending blocks into Pd, so messaging can still work and there are no gaps in the users' audio stream
     processBlock(bypassBuffer, midiBuffer);
-
-    for (int ch = 0; ch < getTotalNumOutputChannels(); ch++)
-        buffer.clear(ch, 0, buffer.getNumSamples());
 }
 
 void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiBuffer)
@@ -1252,21 +1249,37 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
 {
     setThis();
 
+    struct PatchState {
+        t_binbuf* content;
+        String location;
+        int splitIndex;
+        bool pluginMode;
+        int pluginModeScale;
+    };
+    SmallArray<PatchState, 16> patchesToSave;
+
+    // Don't keep Patch::Ptr copies past the lock: the last reference could then be released on this thread
+    lockAudioThread();
+    for (auto const& patch : patches) {
+        // Only top-level patches, don't save subpatches/abstractions
+        if (auto* cnv = patch->getRawPointer(); cnv && !cnv->gl_owner)
+            patchesToSave.add({ pd::Interface::getCanvasBinbuf(cnv), patch->getCurrentFile().getFullPathName(), patch->splitViewIndex, patch->openInPluginMode, patch->pluginModeScale });
+    }
+    unlockAudioThread();
+
     // Store pure-data and parameter state
     MemoryOutputStream ostream(destData, false);
 
-    ostream.writeInt(patches.size());
+    ostream.writeInt(patchesToSave.size());
 
     auto const patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
 
     auto const patchesTree = new XmlElement("Patches");
 
     // Save path and content for patch
-    lockAudioThread();
-    for (auto const& patch : patches) {
-
-        auto content = patch->getCanvasContent();
-        auto patchFile = patch->getCurrentFile().getFullPathName();
+    for (auto const& patch : patchesToSave) {
+        auto content = pd::Interface::getBinbufText(patch.content);
+        auto patchFile = patch.location;
 
         if (patchFile.startsWith(patchesDir.getFullPathName())) {
             patchFile = patchFile.replace(patchesDir.getFullPathName(), "${PATCHES_DIR}");
@@ -1279,13 +1292,12 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
         // Write new format
         patchTree->setAttribute("Content", content);
         patchTree->setAttribute("Location", patchFile);
-        patchTree->setAttribute("SplitIndex", patch->splitViewIndex);
-        patchTree->setAttribute("PluginMode", patch->openInPluginMode);
-        patchTree->setAttribute("PluginModeScale", patch->pluginModeScale);
+        patchTree->setAttribute("SplitIndex", patch.splitIndex);
+        patchTree->setAttribute("PluginMode", patch.pluginMode);
+        patchTree->setAttribute("PluginModeScale", patch.pluginModeScale);
 
         patchesTree->addChildElement(patchTree);
     }
-    unlockAudioThread();
 
     ostream.writeInt(getLatencySamples() - Instance::getBlockSize());
     ostream.writeInt(oversampling);
@@ -1460,6 +1472,8 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
             }
 
             auto const patchPtr = loadPatch(content);
+            if (!patchPtr)
+                return;
             patchPtr->splitViewIndex = splitIndex;
             patchPtr->openInPluginMode = pluginMode;
             patchPtr->pluginModeScale = pluginModeScale;
@@ -1471,6 +1485,8 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
             }
         } else {
             auto const patchPtr = loadPatch(URL(location));
+            if (!patchPtr)
+                return;
             patchPtr->splitViewIndex = splitIndex;
             patchPtr->openInPluginMode = pluginMode;
             patchPtr->pluginModeScale = pluginModeScale;
@@ -1571,8 +1587,7 @@ pd::Patch::Ptr PluginProcessor::loadPatch(URL const& patchURL)
     auto patchFile = patchURL.getLocalFile();
 
 #if JUCE_IOS
-    // Create input stream to allow scoped file access
-    auto inputStream = patchURL.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress));
+    OSUtils::startAccessingSecurityScopedURL(patchURL);
 #endif
 
     auto newPatch = openPatch(patchFile);
@@ -1586,8 +1601,10 @@ pd::Patch::Ptr PluginProcessor::loadPatch(URL const& patchURL)
         return nullptr;
     }
 
+    lockAudioThread();
     patches.add(newPatch);
-    auto* patch = patches.back().get();
+    unlockAudioThread();
+    auto* patch = newPatch.get();
 
     patch->setCurrentFile(URL(patchFile));
 
@@ -1956,6 +1973,9 @@ void PluginProcessor::receiveSysMessage(SmallString const& selector, SmallArray<
     }
     case hash("quit"):
     case hash("verifyquit"): {
+#if ENABLE_TESTING
+        break; // The helpfile fuzzer clicks [; pd quit( message boxes, which would end the test run
+#endif
         if (ProjectInfo::isStandalone) {
             bool askToSave = hash(selector) == hash("verifyquit");
             for (auto* editor : getEditors()) {
@@ -1991,7 +2011,9 @@ void PluginProcessor::clearTextEditor(uint64_t const ptr)
 
 bool PluginProcessor::isTextEditorDialogShown(uint64_t const ptr)
 {
-    return textEditorDialogs.count(ptr) && textEditorDialogs[ptr]->isVisible();
+    // Closing a dialog leaves a null entry behind
+    auto const it = textEditorDialogs.find(ptr);
+    return it != textEditorDialogs.end() && it->second && it->second->isVisible();
 }
 
 void PluginProcessor::hideTextEditorDialog(uint64_t ptr)
@@ -2003,9 +2025,12 @@ void PluginProcessor::hideTextEditorDialog(uint64_t ptr)
 
 void PluginProcessor::raiseTextEditorDialog(uint64_t const ptr)
 {
-    if (textEditorDialogs.contains(ptr)) {
-        textEditorDialogs[ptr]->toFront(true);
-    }
+    MessageManager::callAsync([this, ptr] {
+        auto const it = textEditorDialogs.find(ptr);
+        if (it != textEditorDialogs.end() && it->second) {
+            it->second->toFront(true);
+        }
+    });
 }
 
 void PluginProcessor::showTextEditorDialog(uint64_t const ptr, SmallString const& title, std::function<void(String, uint64_t)> save, std::function<void(uint64_t)> close)
@@ -2113,6 +2138,10 @@ void PluginProcessor::handleParameterMessage(SmallArray<pd::Atom> const& atoms)
                     }
                 }
             }
+            // Publish the complete command, including re-creates of enabled parameters.
+            if (auto* param = getEnabledParameter(name)) {
+                param->notifyDAW();
+            }
             break;
         }
         case hash("destroy"): {
@@ -2143,6 +2172,7 @@ void PluginProcessor::handleParameterMessage(SmallArray<pd::Atom> const& atoms)
                     float max = atoms[3].getFloat();
                     max = std::max(max, min + 0.000001f);
                     param->setRange(min, max);
+                    param->notifyDAW();
                 }
             }
             break;
@@ -2188,7 +2218,6 @@ void PluginProcessor::enableAudioParameter(SmallString const& name)
             param->setEnabled(true);
             param->setName(name);
             param->setIndex(numEnabled + 1);
-            param->notifyDAW();
             break;
         }
     }

@@ -15,8 +15,8 @@
           "description": "output a pointer to the scalar containing the array"
         },
         {
-          "type": "other messages",
-          "description": "messages to the array itself (check help file)"
+          "type": "anything",
+          "description": "messages to the array itself"
         }
       ],
       "repeat": false
@@ -51,7 +51,7 @@
       "description": "saves/keeps the contents of the array with the patch"
     },
     {
-      "name": "yrange <float, float>",
+      "name": "-yrange <float, float>",
       "description": "set minimum and maximum plot range"
     },
     {
@@ -65,5 +65,5 @@
       "description": "send pointer to a named receive object"
     }
   ],
-  "body": "create, store, and/or edit an array"
+  "body": "[array define] creates an array and can name it so that other objects can find it. A bang outputs a pointer to the scalar containing the array, and with the -k flag its contents are saved with the patch."
 }

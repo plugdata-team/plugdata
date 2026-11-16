@@ -2,7 +2,7 @@
   "title": [
     "emission"
   ],
-  "description": "emission coloring",
+  "description": "set the emission color of the material",
   "origin": "Gem",
   "categories": [
     "Graphics"
@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "RGB or RGBA float values."
+          "description": "RGB or RGBA float values"
         }
       ],
       "repeat": false
@@ -40,9 +40,9 @@
   ],
   "arguments": [
     {
-      "type": "list <float> <float> <float> <float>",
-      "description": "a list of 3 (RGB) or 4 (RGBA) float-values",
-      "default": "[0, 0, 0, 1]"
+      "type": "list",
+      "description": "emission color: 3 (RGB) or 4 (RGBA) values",
+      "default": "0 0 0 1"
     }
   ],
   "flags": [],

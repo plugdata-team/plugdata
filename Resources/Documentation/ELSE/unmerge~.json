@@ -26,7 +26,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "channel group of a multichannel signal"
         }
       ],

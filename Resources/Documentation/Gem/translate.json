@@ -2,7 +2,7 @@
   "title": [
     "translate"
   ],
-  "description": "graphics translation",
+  "description": "move a gemlist along a vector",
   "origin": "Gem",
   "categories": [
     "Graphics"

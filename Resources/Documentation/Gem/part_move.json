@@ -1,0 +1,36 @@
+{
+  "title": [
+    "part_move"
+  ],
+  "description": "move the particles",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": "particle system (from [part_head])"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[part_move] moves the particles according to their velocity and constraints, and updates their ages. [part_draw] and [part_render] do this themselves, so it is only needed without them, as in [part_info]."
+}

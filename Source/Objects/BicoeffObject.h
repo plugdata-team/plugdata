@@ -18,10 +18,11 @@ class BicoeffGraph final : public Component
 
     Object* object;
 
+    Point<int> lastDragPosition;
     Path magnitudePath;
 
 public:
-    std::function<void(float, float, float, float, float)> graphChangeCallback = [](float, float, float, float, float) { };
+    std::function<void(char const*, float, float, float)> graphChangeCallback = [](char const*, float, float, float) { };
 
     enum FilterType {
         Allpass,
@@ -49,13 +50,17 @@ public:
         filterX2 = filterCentre + filterWidth / 2.0f;
 
         setSize(300, 300);
-        update();
+        update(false);
     }
 
-    void setFilterType(FilterType const type)
+    void setFilterType(FilterType const type, std::optional<float> freq, std::optional<float> q, std::optional<float> gain)
     {
         filterType = type;
-        update();
+        if(freq.has_value()) filterCentre = freq.value();
+        if(q.has_value()) filterWidth = q.value();
+        if(gain.has_value()) filterGain = gain.value();
+
+        update(false);
         saveProperties();
     }
 
@@ -137,7 +142,7 @@ public:
         return AlphaAndOmega { alpha, omega };
     }
 
-    void update()
+    void update(bool sendChageMessage)
     {
         switch (filterType) {
         case Allpass: {
@@ -161,11 +166,11 @@ public:
             break;
         }
         case Bandstop: {
-            notch();
+            bandstop();
             break;
         }
         case EQ: {
-            peaking();
+            eq();
             break;
         }
         case Lowshelf: {
@@ -178,6 +183,11 @@ public:
         }
         default:
             break;
+        }
+
+        if(sendChageMessage) {
+            auto type = StackArray<const char*, 9>{"allpass", "lowpass", "highpass", "bandpass", "resonant", "bandstop", "eq", "lowshelf", "highshelf"}[static_cast<int>(filterType)];
+            graphChangeCallback(type, filterCentre, filterWidth, filterGain);
         }
 
         magnitudePath.clear();
@@ -229,7 +239,11 @@ public:
                 moveGain(e.y, e.mouseDownPosition.y);
         }
 
-        update();
+        auto newPosition = e.getPosition();
+        if(lastDragPosition != newPosition) {
+            update(true);
+            lastDragPosition = newPosition;
+        }
     }
 
     void mouseMove(MouseEvent const& e) override
@@ -243,12 +257,16 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
-        update();
+        auto newPosition = e.getPosition();
+        if(lastDragPosition != newPosition) {
+            update(true);
+            lastDragPosition = newPosition;
+        }
     }
 
     void resized() override
     {
-        update();
+        update(false);
     }
 
     void render(NVGcontext* nvg) override
@@ -362,8 +380,6 @@ public:
         this->b0 = b0 / a0;
         this->b1 = b1 / a0;
         this->b2 = b2 / a0;
-
-        graphChangeCallback(this->a1, this->a2, this->b0, this->b1, this->b2);
     }
 
     // lowpass
@@ -428,8 +444,7 @@ public:
         setCoefficients(a0, a1, a2, b0, b1, b2);
     }
 
-    // notch
-    void notch()
+    void bandstop()
     {
         auto [alpha, omega] = calcCoefficients();
 
@@ -443,7 +458,7 @@ public:
         setCoefficients(a0, a1, a2, b0, b1, b2);
     }
 
-    void peaking()
+    void eq()
     {
         auto [alpha, omega] = calcCoefficients();
 
@@ -533,8 +548,8 @@ public:
     {
         addAndMakeVisible(graph);
 
-        graph.graphChangeCallback = [this](float a1, float a2, float b0, float b1, float b2) {
-            sendMessage("biquad", { a1, a2, b0, b1, b2 });
+        graph.graphChangeCallback = [this](SmallString type, float freq, float q, float gain) {
+            sendMessage(type, { freq, q, gain });
         };
 
         objectParameters.addParamSize(&sizeProperty);
@@ -618,41 +633,45 @@ public:
 
     void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
+        std::optional<float> freq = atoms.size() >= 1 ? std::make_optional(atoms[0].getFloat()) : std::nullopt;
+        std::optional<float> q = atoms.size() >= 2 ? std::make_optional(atoms[1].getFloat()) : std::nullopt;
+        std::optional<float> gain = atoms.size() >= 3 ? std::make_optional(atoms[2].getFloat()) : std::nullopt;
+
         switch (symbol) {
         case hash("allpass"): {
-            graph.setFilterType(BicoeffGraph::Allpass);
+            graph.setFilterType(BicoeffGraph::Allpass, freq, q, gain);
             break;
         }
         case hash("lowpass"): {
-            graph.setFilterType(BicoeffGraph::Lowpass);
+            graph.setFilterType(BicoeffGraph::Lowpass, freq, q, gain);
             break;
         }
         case hash("highpass"): {
-            graph.setFilterType(BicoeffGraph::Highpass);
+            graph.setFilterType(BicoeffGraph::Highpass, freq, q, gain);
             break;
         }
         case hash("bandpass"): {
-            graph.setFilterType(BicoeffGraph::Bandpass);
+            graph.setFilterType(BicoeffGraph::Bandpass, freq, q, gain);
             break;
         }
         case hash("bandstop"): {
-            graph.setFilterType(BicoeffGraph::Bandstop);
+            graph.setFilterType(BicoeffGraph::Bandstop, freq, q, gain);
             break;
         }
         case hash("resonant"): {
-            graph.setFilterType(BicoeffGraph::Resonant);
+            graph.setFilterType(BicoeffGraph::Resonant, freq, q, gain);
             break;
         }
         case hash("eq"): {
-            graph.setFilterType(BicoeffGraph::EQ);
+            graph.setFilterType(BicoeffGraph::EQ, freq, q, gain);
             break;
         }
         case hash("lowshelf"): {
-            graph.setFilterType(BicoeffGraph::Lowshelf);
+            graph.setFilterType(BicoeffGraph::Lowshelf, freq, q, gain);
             break;
         }
         case hash("highshelf"): {
-            graph.setFilterType(BicoeffGraph::Highshelf);
+            graph.setFilterType(BicoeffGraph::Highshelf, freq, q, gain);
             break;
         }
         default:

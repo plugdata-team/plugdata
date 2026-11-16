@@ -16,7 +16,7 @@
         },
         {
           "type": "float",
-          "description": "when DSP is off, sets an internal value to be compared with incoming signal when DSP is on"
+          "description": "sets the value to compare the signal with, while DSP is off"
         }
       ],
       "repeat": false

@@ -21,7 +21,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the x, y, and z window coordinates of the first corner of the rectangle."
+          "description": "x of one vertex of the rectangle"
         }
       ],
       "repeat": false
@@ -30,7 +30,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the x, y, and z window coordinates of the second corner of the rectangle."
+          "description": "y of one vertex of the rectangle"
         }
       ],
       "repeat": false
@@ -39,7 +39,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the x, y, and z window coordinates of the second corner of the rectangle."
+          "description": "x of the opposite vertex"
         }
       ],
       "repeat": false
@@ -48,7 +48,7 @@
       "messages": [
         {
           "type": "float",
-          "description": "Specifies the x, y, and z window coordinates of the second corner of the rectangle."
+          "description": "y of the opposite vertex"
         }
       ],
       "repeat": false
@@ -68,16 +68,26 @@
   "arguments": [
     {
       "type": "float",
-      "description": "Specifies the x, y, and z window coordinates of the first corner of the rectangle.",
-      "default": ""
+      "description": "x of one vertex of the rectangle",
+      "default": "0"
     },
     {
       "type": "float",
-      "description": "Specifies the x, y, and z window coordinates of the second corner of the rectangle.",
-      "default": ""
+      "description": "y of one vertex of the rectangle",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "x of the opposite vertex",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "y of the opposite vertex",
+      "default": "0"
     }
   ],
   "flags": [],
   "methods": [],
-  "body": ""
+  "body": "[GEMglRecti] calls glRecti() each time a gemlist passes through it, with the parameters set by its creation arguments and inlets. See glRect in the OpenGL reference."
 }

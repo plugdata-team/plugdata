@@ -13,6 +13,10 @@
         {
           "type": "gemlist",
           "description": ""
+        },
+        {
+          "type": "float",
+          "description": "nonzero turns processing on (default 1)"
         }
       ],
       "repeat": false
@@ -32,23 +36,15 @@
   "arguments": [
     {
       "type": "list",
-      "description": "table name per channel",
+      "description": "lookup tables: 1 for all channels, 3 for R G B or 4 for R G B A",
       "default": ""
     }
   ],
   "flags": [],
   "methods": [
     {
-      "type": "set <symbol>",
-      "description": "common table for all channels"
-    },
-    {
-      "type": "set <symbol> <symbol> <symbol>",
-      "description": "separate tables for all channels"
-    },
-    {
-      "type": "set <symbol> <symbol> <symbol> <symbol>",
-      "description": "separate tables for all channels (incl. alpha)"
+      "type": "set <list>",
+      "description": "lookup tables: 1 for all channels, 3 for R G B or 4 for R G B A"
     }
   ],
   "body": ""

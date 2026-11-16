@@ -42,7 +42,7 @@
         },
         {
           "type": "float",
-          "description": "sets counter value with no output - if outside the range, it resets min/max according to compatmode (see help)"
+          "description": "sets the value without output, out of range resets min or max"
         }
       ],
       "repeat": false
@@ -55,7 +55,7 @@
         },
         {
           "type": "float",
-          "description": "sets counter value and outputs it - if outside the range, it resets min/max according to compatmode (see help)"
+          "description": "sets and outputs the value, out of range resets min or max"
         }
       ],
       "repeat": false
@@ -92,7 +92,7 @@
         },
         {
           "type": "float",
-          "description": "1 when max is reached, 0 when next round starts (and 'carryint' is set and counting up)"
+          "description": "1 at the maximum, 0 at the next round (counting up, carryint)"
         }
       ],
       "repeat": false
@@ -105,7 +105,7 @@
         },
         {
           "type": "float",
-          "description": "1 when min is reached, 0 when next round starts (if carryint is set and counting down)"
+          "description": "1 at the minimum, 0 at the next round (counting down, carryint)"
         }
       ],
       "repeat": false
@@ -123,18 +123,18 @@
   "arguments": [
     {
       "type": "list",
-      "description": "<f>: max; <f,f>: min, max;  <f,f,f>: direction (0-up,1-down,2-updown), min, max",
+      "description": "<f>: max; <f,f>: min, max; <f,f,f>: direction (0-up,1-down,2-updown), min, max",
       "default": "direction = 0 (up), min = 0, max = 2^24"
     }
   ],
   "flags": [
     {
       "name": "@carryflag",
-      "description": "0 for carryint / 1 for carrybang\ndefault: 0"
+      "description": "0 for carryint / 1 for carrybang (default 0)"
     },
     {
       "name": "@compatmode",
-      "description": "0 for current / 1 for ancient (see help)\ndefault: 0"
+      "description": "0 for current, 1 for the old 'ancient' behavior (default 0)"
     }
   ],
   "methods": [
@@ -203,11 +203,11 @@
       "description": "sets direction to shift between up/down when reaching limits"
     },
     {
-      "type": "compatmode <f>",
+      "type": "compatmode <float>",
       "description": "sets @compatmode attribute: (0 = current, 1 = ancient)"
     },
     {
-      "type": "carryflag <f>",
+      "type": "carryflag <float>",
       "description": "sets @carryflag attribute: (0 = carryint, 1 = carrybang)"
     }
   ],

@@ -12,7 +12,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "float/signal",
           "description": "signal input into the delay line"
         }
       ],
@@ -45,7 +45,7 @@
   "flags": [
     {
       "name": "-samps",
-      "description": "sets time value to samples\ndefault: ms"
+      "description": "sets time value to samples (default ms)"
     }
   ],
   "methods": [
@@ -59,7 +59,7 @@
     },
     {
       "type": "freeze <float>",
-      "description": "non-0 freezes, zero unfreezes"
+      "description": "nonzero freezes, zero unfreezes"
     }
   ],
   "body": "Define a delay line and write to it. If neither \"in\" or \"out\" is specified as the first argument, the default it [del~ in]."

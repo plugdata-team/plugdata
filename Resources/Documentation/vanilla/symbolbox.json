@@ -41,5 +41,5 @@
       "description": "Set list without symbol"
     }
   ],
-  "body": ""
+  "body": "[symbolbox] is a symbol box: it shows and outputs a symbol. Click it, type a symbol and hit enter to output it. 'set' changes the symbol without output, and a bang outputs it."
 }

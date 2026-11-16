@@ -4,7 +4,7 @@
     "!-",
     "cyclone/!-"
   ],
-  "description": "the difference of the two numbers",
+  "description": "subtraction with reversed inlets",
   "origin": "cyclone",
   "categories": [
     "Data Math"

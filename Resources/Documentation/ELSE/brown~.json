@@ -13,7 +13,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "impulses get a new random step"
         },
         {
@@ -28,7 +28,7 @@
     {
       "messages": [
         {
-          "type": "signal",
+          "type": "signals",
           "description": "brown noise"
         }
       ],
@@ -45,14 +45,22 @@
   "flags": [
     {
       "name": "-seed <float>",
-      "description": "sets seed\ndefault: unique internal"
+      "description": "sets seed (default unique internal)"
+    },
+    {
+      "name": "-ch <float>",
+      "description": "sets number of channels (default: 1)"
     }
   ],
   "methods": [
     {
       "type": "seed <float>",
       "description": "a float sets seed, no float sets a unique internal"
+    },
+    {
+      "type": "ch <float>",
+      "description": "set number of channels"
     }
   ],
-  "body": "[brown~] is a brown noise generator (aka brownian noise or red noise), whose spectral energy drops 6dB per octave (sounding less hissy than white noise). It is implemented as a bounded random walk (based on a pseudo random number generator algorithm). By default, the maximum step is 0.125, but you can set that. If a signal is connected, non-0 values generate new random steps."
+  "body": "[brown~] is a brown noise generator (aka brownian noise or red noise), whose spectral energy drops 6dB per octave (sounding less hissy than white noise). It is implemented as a bounded random walk (based on a pseudo random number generator algorithm). By default, the maximum step is 0.125, but you can set that. If a signal is connected, nonzero values generate new random steps."
 }

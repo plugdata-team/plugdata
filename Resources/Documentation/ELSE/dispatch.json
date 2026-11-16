@@ -16,7 +16,7 @@
         },
         {
           "type": "bang",
-          "description": "dispacthes last input again."
+          "description": "dispacthes last input again"
         }
       ],
       "repeat": false

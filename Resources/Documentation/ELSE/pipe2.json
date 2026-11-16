@@ -46,15 +46,6 @@
     }
   ],
   "flags": [],
-  "methods": [
-    {
-      "type": "clear",
-      "description": "clears the delay time"
-    },
-    {
-      "type": "flush",
-      "description": "outputs all stored elements"
-    }
-  ],
+  "methods": [],
   "body": "[pipe2] is similar to vanilla's pipe. It takes all kinds of messages and delays them."
 }

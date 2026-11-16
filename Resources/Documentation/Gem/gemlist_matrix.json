@@ -32,7 +32,7 @@
       "messages": [
         {
           "type": "list",
-          "description": "Transformation matrix (16 floats)"
+          "description": "transformation matrix (16 values)"
         }
       ],
       "repeat": false

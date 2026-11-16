@@ -15,8 +15,8 @@
           "description": ""
         },
         {
-          "type": "<list>",
-          "description": "the filter-coefficients \"fb0 fb1 fb2 ff1 ff2 ff3"
+          "type": "list",
+          "description": "filter coefficients: fb0 fb1 fb2 ff1 ff2 ff3"
         }
       ],
       "repeat": false
@@ -33,12 +33,22 @@
       "repeat": false
     }
   ],
-  "arguments": [],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "filter coefficients: fb0 fb1 fb2 ff1 ff2 ff3",
+      "default": "1 0 0 1 0 0"
+    }
+  ],
   "flags": [],
   "methods": [
     {
       "type": "set",
       "description": "overwrites the filter-buffers with the next incoming image"
+    },
+    {
+      "type": "mode <float>",
+      "description": "filter mode, 0 or 1"
     }
   ],
   "body": ""
