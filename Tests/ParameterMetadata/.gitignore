@@ -1,7 +1,0 @@
-/build/
-/results-*/
-/prepared-*/
-/isolation-*/
-/summary.json
-/__pycache__/
-*.pyc
