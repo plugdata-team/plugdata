@@ -253,12 +253,6 @@ private:
             JUCE_DECLARE_NON_COPYABLE(KeyEntryWindow)
         };
 
-        static void assignNewKeyCallback(int const result, ChangeKeyButton* button, KeyPress newKey)
-        {
-            if (result != 0 && button != nullptr)
-                button->setNewKey(newKey, true);
-        }
-
         void setNewKey(KeyPress const& newKey, bool const dontAskUser)
         {
             if (newKey.isValid()) {
@@ -272,16 +266,19 @@ private:
 
                     owner.getMappings().addKeyPress(commandID, newKey, keyNum);
                 } else {
-                    AlertWindow::showOkCancelBox(MessageBoxIconType::WarningIcon,
-                        "Change key-mapping",
-                        String("This key is already assigned to the command \"CMDN\"")
-                                .replace("CMDN", owner.getCommandManager().getNameOfCommand(previousCommand))
-                            + "\n\nDo you want to re-assign it to this new command instead?",
-                        "Re-assign",
-                        "Cancel",
-                        this,
-                        ModalCallbackFunction::forComponent(assignNewKeyCallback,
-                            this, KeyPress(newKey)));
+                    keyReassignmentDialog = AlertWindow::showScopedAsync(
+                        MessageBoxOptions().withIconType(MessageBoxIconType::WarningIcon)
+                            .withTitle("Change key-mapping")
+                            .withMessage(String("This key is already assigned to the command \"CMDN\"")
+                                             .replace("CMDN", owner.getCommandManager().getNameOfCommand(previousCommand))
+                                + "\n\nDo you want to re-assign it to this new command instead?")
+                            .withButton("Re-assign", 1)
+                            .withButton("Cancel", 0)
+                            .withAssociatedComponent(this),
+                        [button = Component::SafePointer<ChangeKeyButton>(this), newKey](int result) {
+                            if (result == 1 && button != nullptr)
+                                button->setNewKey(newKey, true);
+                        });
                 }
             }
         }
@@ -309,6 +306,7 @@ private:
         CommandID const commandID;
         int const keyNum;
         std::unique_ptr<KeyEntryWindow> currentKeyEntryWindow;
+        ScopedMessageBox keyReassignmentDialog;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ChangeKeyButton)
     };

@@ -12,7 +12,6 @@
 #include "Utility/NVGUtils.h"
 #include "Components/Buttons.h"
 
-class PluginProcessor;
 class LatencyDisplayButton;
 class ZoomLabel;
 class StatusbarButtonGroup;
@@ -25,7 +24,7 @@ class Statusbar final : public Component
     , public NVGComponent
     , public AsyncUpdater {
 public:
-    Statusbar(PluginProcessor* processor, PluginEditor* e);
+    explicit Statusbar(PluginEditor* e);
 
     ~Statusbar() override;
 
@@ -47,7 +46,6 @@ private:
 
     void resized() override;
 
-    PluginProcessor* pd;
     PluginEditor* editor;
 
     std::unique_ptr<ZoomLabel> zoomSelector;

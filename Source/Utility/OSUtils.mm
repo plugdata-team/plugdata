@@ -247,7 +247,9 @@ void* OSUtils::MTLCreateView(void* parent, int x, int y, int width, int height)
     metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
     metalLayer.framebufferOnly = NO;
     metalLayer.presentsWithTransaction = NO;
-    metalLayer.displaySyncEnabled = YES;
+    if (@available(macOS 10.13, *)) {
+        metalLayer.displaySyncEnabled = YES;
+    }
     childView.layer = metalLayer;
     childView.wantsLayer = YES;
 

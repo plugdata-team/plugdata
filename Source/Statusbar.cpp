@@ -401,9 +401,8 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CanvasModePicker)
 };
 
-Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
+Statusbar::Statusbar(PluginEditor* e)
     : NVGComponent(this)
-    , pd(processor)
     , editor(e)
 {
     zoomSelector = std::make_unique<ZoomLabel>(this);

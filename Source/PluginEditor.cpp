@@ -102,7 +102,7 @@ private:
 PluginEditor::PluginEditor(PluginProcessor& p)
     : AudioProcessorEditor(&p)
     , pd(&p)
-    , statusbar(std::make_unique<Statusbar>(&p, this))
+    , statusbar(std::make_unique<Statusbar>(this))
     , nvgSurface(this)
     , openedDialog(nullptr)
     , pluginConstrainer(*getConstrainer())
@@ -728,7 +728,7 @@ void PluginEditor::resized()
     constexpr auto buttonDistance = 38;
     auto const buttonSize = toolbarHeight + 5;
 
-    auto nextButtonBounds = [&toolbarBounds, buttonSize](){ return toolbarBounds.removeFromLeft(buttonDistance).withSizeKeepingCentre(buttonSize, buttonSize); };
+    auto nextButtonBounds = [&toolbarBounds](){ return toolbarBounds.removeFromLeft(buttonDistance).withSizeKeepingCentre(buttonSize, buttonSize); };
     mainMenuButton.setBounds(nextButtonBounds());
     undoButton.setBounds(nextButtonBounds());
     redoButton.setBounds(nextButtonBounds());
