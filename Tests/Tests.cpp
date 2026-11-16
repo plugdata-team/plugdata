@@ -61,6 +61,10 @@ public:
     void logMessage(String const& message) override
     {
         UnitTestRunner::logMessage(message);
+#if JUCE_WINDOWS
+        // JUCE logs to OutputDebugString on Windows, which the CI harness can't read
+        std::cout << message << std::endl;
+#endif
         if (logFile != File())
             logFile.appendText(message + "\n", false, false, "\n");
     }
