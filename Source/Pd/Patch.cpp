@@ -708,20 +708,14 @@ void Patch::setCurrentFile(URL const& newURL)
 
 String Patch::getCanvasContent() const
 {
-    char* buf;
-    int bufsize;
-
+    t_binbuf* binbuf;
     if (auto patch = ptr.get<t_canvas>()) {
-        pd::Interface::getCanvasContent(patch.get(), &buf, &bufsize);
+        binbuf = pd::Interface::getCanvasBinbuf(patch.get());
     } else {
         return { };
     }
 
-    auto content = String::fromUTF8(buf, static_cast<size_t>(bufsize));
-
-    freebytes(buf, static_cast<size_t>(bufsize) * sizeof(char));
-
-    return content;
+    return pd::Interface::getBinbufText(binbuf);
 }
 
 void Patch::reloadPatch(File const& changedPatch, t_glist* except)

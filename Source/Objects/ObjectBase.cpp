@@ -644,23 +644,24 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
         }
         case hash("canvas"):
         case hash("graph"): {
+            enum class Kind { Unknown, Array, Graph, Subpatch } kind = Kind::Unknown;
             if (auto checked = ptr.get<t_gobj>()) {
                 auto const* canvas = checked.cast<t_canvas>();
-                if (checked.cast<t_canvas>()->gl_list) {
-                    t_class* c = canvas->gl_list->g_pd;
-                    if (c && c->c_name && String::fromUTF8(c->c_name->s_name) == "array") {
-                        return new ArrayObject(ptr, parent);
-                    } else if (canvas->gl_isgraph) {
-                        return new GraphOnParent(ptr, parent);
-                    } else { // abstraction or subpatch
-                        return new SubpatchObject(ptr, parent);
-                    }
+                t_class* c = canvas->gl_list ? canvas->gl_list->g_pd : nullptr;
+                if (c && c->c_name && String::fromUTF8(c->c_name->s_name) == "array") {
+                    kind = Kind::Array;
                 } else if (canvas->gl_isgraph) {
-                    return new GraphOnParent(ptr, parent);
-                } else {
-                    return new SubpatchObject(ptr, parent);
+                    kind = Kind::Graph;
+                } else { // abstraction or subpatch
+                    kind = Kind::Subpatch;
                 }
             }
+            if (kind == Kind::Array)
+                return new ArrayObject(ptr, parent);
+            if (kind == Kind::Graph)
+                return new GraphOnParent(ptr, parent);
+            if (kind == Kind::Subpatch)
+                return new SubpatchObject(ptr, parent);
         }
         case hash("array define"):
             return new ArrayDefineObject(ptr, parent);

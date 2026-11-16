@@ -733,7 +733,19 @@ struct Interface {
         canvas_dirty(cnv, 1);
     }
 
-    static void getCanvasContent(t_canvas* cnv, char** buf, int* bufsize)
+    static String getBinbufText(t_binbuf* binbuf)
+    {
+        char* buf;
+        int bufsize;
+        binbuf_gettext(binbuf, &buf, &bufsize);
+        binbuf_free(binbuf);
+        auto content = String::fromUTF8(buf, static_cast<size_t>(bufsize));
+        freebytes(buf, static_cast<size_t>(bufsize) * sizeof(char));
+        return content;
+    }
+
+    // The canvas's content as Pd would save it. Use this part locked, getBinbufText can run without lock
+    static t_binbuf* getCanvasBinbuf(t_canvas* cnv)
     {
         t_binbuf* b = binbuf_new();
 
@@ -768,10 +780,21 @@ struct Interface {
         for (t_gobj* y = cnv->gl_list; y; y = y->g_next)
             gobj_save(y, b);
 
+        SmallArray<std::pair<t_gobj*, int>, 256> index;
+        int nobj = 0;
+        for (t_gobj* y = cnv->gl_list; y; y = y->g_next)
+            index.add({ y, nobj++ });
+        std::sort(index.begin(), index.end(), [](auto const& a, auto const& b) { return std::less<t_gobj*>()(a.first, b.first); });
+
+        t_gobj* src = cnv->gl_list;
+        int srcno = 0;
         linetraverser_start(&t, cnv);
         while ((oc = linetraverser_next_nosize(&t))) {
-            int const srcno = canvas_getindex(cnv, &t.tr_ob->ob_g);
-            int const sinkno = canvas_getindex(cnv, &t.tr_ob2->ob_g);
+            for (; src != &t.tr_ob->ob_g; src = src->g_next)
+                srcno++;
+            t_gobj* sink = &t.tr_ob2->ob_g;
+            auto const it = std::lower_bound(index.begin(), index.end(), sink, [](auto const& a, t_gobj* b) { return std::less<t_gobj*>()(a.first, b); });
+            int const sinkno = it != index.end() && it->first == sink ? it->second : nobj;
             if (t.outconnect_path_info == gensym("empty")) {
                 binbuf_addv(b, "ssiiii;", gensym("#X"), gensym("connect"),
                     srcno, t.tr_outno, sinkno, t.tr_inno);
@@ -802,8 +825,7 @@ struct Interface {
                     static_cast<t_float>(cnv->gl_isgraph));
         }
 
-        binbuf_gettext(b, buf, bufsize);
-        binbuf_free(b);
+        return b;
     }
 
     static int numOutlets(t_object const* x)

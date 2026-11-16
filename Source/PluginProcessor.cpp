@@ -1249,21 +1249,37 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
 {
     setThis();
 
+    struct PatchState {
+        t_binbuf* content;
+        String location;
+        int splitIndex;
+        bool pluginMode;
+        int pluginModeScale;
+    };
+    SmallArray<PatchState, 16> patchesToSave;
+
+    // Don't keep Patch::Ptr copies past the lock: the last reference could then be released on this thread
+    lockAudioThread();
+    for (auto const& patch : patches) {
+        // Only top-level patches, don't save subpatches/abstractions
+        if (auto* cnv = patch->getRawPointer(); cnv && !cnv->gl_owner)
+            patchesToSave.add({ pd::Interface::getCanvasBinbuf(cnv), patch->getCurrentFile().getFullPathName(), patch->splitViewIndex, patch->openInPluginMode, patch->pluginModeScale });
+    }
+    unlockAudioThread();
+
     // Store pure-data and parameter state
     MemoryOutputStream ostream(destData, false);
 
-    ostream.writeInt(patches.size());
+    ostream.writeInt(patchesToSave.size());
 
     auto const patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
 
     auto const patchesTree = new XmlElement("Patches");
 
     // Save path and content for patch
-    lockAudioThread();
-    for (auto const& patch : patches) {
-
-        auto content = patch->getCanvasContent();
-        auto patchFile = patch->getCurrentFile().getFullPathName();
+    for (auto const& patch : patchesToSave) {
+        auto content = pd::Interface::getBinbufText(patch.content);
+        auto patchFile = patch.location;
 
         if (patchFile.startsWith(patchesDir.getFullPathName())) {
             patchFile = patchFile.replace(patchesDir.getFullPathName(), "${PATCHES_DIR}");
@@ -1276,13 +1292,12 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
         // Write new format
         patchTree->setAttribute("Content", content);
         patchTree->setAttribute("Location", patchFile);
-        patchTree->setAttribute("SplitIndex", patch->splitViewIndex);
-        patchTree->setAttribute("PluginMode", patch->openInPluginMode);
-        patchTree->setAttribute("PluginModeScale", patch->pluginModeScale);
+        patchTree->setAttribute("SplitIndex", patch.splitIndex);
+        patchTree->setAttribute("PluginMode", patch.pluginMode);
+        patchTree->setAttribute("PluginModeScale", patch.pluginModeScale);
 
         patchesTree->addChildElement(patchTree);
     }
-    unlockAudioThread();
 
     ostream.writeInt(getLatencySamples() - Instance::getBlockSize());
     ostream.writeInt(oversampling);
