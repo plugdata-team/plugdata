@@ -953,6 +953,8 @@ set_target_properties(plugdata_standalone PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE
 endif()
 
 if(MSVC)
+# Allow deeper message dispatch in the standalone, including ASan builds.
+target_link_options(plugdata_standalone PRIVATE "/STACK:8388608")
 set_target_properties(pthreadVSE3 pthreadVCE3 PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
 endif()
 
