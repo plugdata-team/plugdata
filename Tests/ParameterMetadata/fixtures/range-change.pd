@@ -1,0 +1,13 @@
+#N canvas 0 50 680 350 10;
+#X obj 30 30 loadbang;
+#X msg 30 80 create 2 0 4 \, mode 2;
+#X obj 30 230 param range_example 0;
+#X obj 310 80 del 1000;
+#X msg 310 130 range 0 8;
+#X text 30 270 After 1 second: steps 4 to 8 and normalized current 0.5 to 0.25.;
+#X text 30 295 Raw current remains 2. Metadata and current caches are separate.;
+#X connect 0 0 1 0;
+#X connect 1 0 2 0;
+#X connect 0 0 3 0;
+#X connect 3 0 4 0;
+#X connect 4 0 2 0;
