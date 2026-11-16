@@ -125,15 +125,47 @@ private:
 public:
     class ComboComponent : public PropertiesPanelProperty {
     public:
-        ComboComponent(String const& propertyName, Value const& value, StringArray const& options);
+        struct OptionSection {
+            OptionSection(String sectionTitle, StringArray sectionItems)
+                : title(std::move(sectionTitle))
+                , items(std::move(sectionItems))
+            {
+            }
 
+            String title;
+            StringArray items;
+        };
+
+        class Sections {
+        public:
+            Sections() = default;
+
+            Sections(std::initializer_list<OptionSection> sectionList)
+            {
+                for (auto const& section : sectionList)
+                    sections.add(section);
+            }
+
+            explicit Sections(Array<OptionSection> const& sectionList)
+                : sections(sectionList)
+            {
+            }
+
+            Array<OptionSection> sections;
+        };
+
+        ComboComponent(String const& propertyName, Value const& value, StringArray const& options);
         ComboComponent(String const& propertyName, StringArray const& options);
+        ComboComponent(String const& propertyName, Value const& value, Sections const& sections,
+            StringArray const& flatItems = {});
 
         void resized() override;
 
         PropertiesPanelProperty* createCopy() override;
 
         StringArray items;
+        Array<OptionSection> sections;
+        StringArray flatItems;
         ComboBox comboBox;
     };
 
