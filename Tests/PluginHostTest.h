@@ -43,6 +43,32 @@ inline String const sharedSend = "#N canvas 0 50 450 300 12;\n"
                                  "#X connect 4 0 6 0;\n"
                                  "#X connect 7 0 5 0;\n";
 
+// [param step] at 1 re-creates [param recreated] with a new default, at 2 changes the range of [param ranged]
+inline String const parameterInfo = "#N canvas 0 50 450 300 12;\n"
+                                    "#X obj 20 20 loadbang;\n"
+                                    "#X obj 20 50 t b b b;\n"
+                                    "#X msg 20 80 create 0 0 2;\n"
+                                    "#X msg 120 80 create 1 0 4 \\, mode 2;\n"
+                                    "#X msg 280 80 create 2 0 4 \\, mode 2;\n"
+                                    "#X obj 20 120 param step;\n"
+                                    "#X obj 120 120 param recreated;\n"
+                                    "#X obj 280 120 param ranged;\n"
+                                    "#X obj 20 160 sel 1 2;\n"
+                                    "#X msg 20 200 create 3 0 4;\n"
+                                    "#X msg 120 200 range 0 8;\n"
+                                    "#X connect 0 0 1 0;\n"
+                                    "#X connect 1 0 2 0;\n"
+                                    "#X connect 1 1 3 0;\n"
+                                    "#X connect 1 2 4 0;\n"
+                                    "#X connect 2 0 5 0;\n"
+                                    "#X connect 3 0 6 0;\n"
+                                    "#X connect 4 0 7 0;\n"
+                                    "#X connect 5 0 8 0;\n"
+                                    "#X connect 8 0 9 0;\n"
+                                    "#X connect 8 1 10 0;\n"
+                                    "#X connect 9 0 6 0;\n"
+                                    "#X connect 10 0 7 0;\n";
+
 } // namespace PluginHostPatches
 
 class HostedPlugin final : Thread {
@@ -258,6 +284,38 @@ public:
         beginTest("Host automation reaches the patch, and the patch's output reaches the host");
         cutoff->setValueNotifyingHost(0.8f);
         expect(HostedPlugin::waitForValue(echo, 0.16f), "Expected echo at 0.16 (16 of 100), got " + String(echo->getValue()));
+
+        // The host caches each parameter's default and step count until the plugin reports a parameter info change
+        beginTest("Repeated create and range messages update the host's parameter info");
+        plugin = HostedPlugin::load(error);
+        expect(plugin != nullptr, "Could not load the VST3: " + error);
+        if (!plugin)
+            return;
+
+        plugin->startAudio();
+        plugin->loadPatch(PluginHostPatches::parameterInfo);
+        auto* step = plugin->waitForParameter("step");
+        auto* recreated = plugin->waitForParameter("recreated");
+        auto* ranged = plugin->waitForParameter("ranged");
+        expect(step && recreated && ranged, "The host doesn't see the parameters the patch created");
+        if (!step || !recreated || !ranged)
+            return;
+
+        auto defaultValue = [](AudioProcessorParameter* p) { return MessageManager::callSync([p] { return p->getDefaultValue(); }).value_or(-1.0f); };
+        auto numSteps = [](AudioProcessorParameter* p) { return MessageManager::callSync([p] { return p->getNumSteps(); }).value_or(-1); };
+        auto settled = HostedPlugin::waitUntil([&] { return numSteps(recreated) == 5 && numSteps(ranged) == 5; });
+        expect(settled, "The host didn't see the initial integer ranges");
+        if (!settled)
+            return;
+        expectWithinAbsoluteError(defaultValue(recreated), 0.25f, 0.001f);
+
+        step->setValueNotifyingHost(0.5f);
+        HostedPlugin::waitUntil([&] { return std::abs(defaultValue(recreated) - 0.75f) < 0.001f; }, 2000);
+        expectWithinAbsoluteError(defaultValue(recreated), 0.75f, 0.001f, "The host's default didn't follow a repeated create");
+
+        step->setValueNotifyingHost(1.0f);
+        HostedPlugin::waitUntil([&] { return numSteps(ranged) == 9; }, 2000);
+        expectEquals(numSteps(ranged), 9, "The host's step count didn't follow a range change");
     }
 };
 
