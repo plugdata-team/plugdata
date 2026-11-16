@@ -776,6 +776,7 @@ struct Interface {
                 cnv->gl_screeny2 - cnv->gl_screeny1,
                 cnv->gl_font);
             canvas_savedeclarationsto(cnv, b);
+            canvas_savetemplatesto(cnv, b, 1);
         }
         for (t_gobj* y = cnv->gl_list; y; y = y->g_next)
             gobj_save(y, b);
