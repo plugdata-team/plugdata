@@ -656,6 +656,12 @@ void NVGSurface::recordFrame()
     if (bounds.isEmpty())
         return;
 
+#if JUCE_LINUX || JUCE_BSD
+    // A host can hide its plugin window by unmapping it, and X doesn't tell the windows inside it
+    if (!ProjectInfo::isStandalone && !OSUtils::isLinuxWindowViewable(getPeer()))
+        return;
+#endif
+
 #if NANOVG_METAL_IMPLEMENTATION
     updateRenderScale();
 #endif
