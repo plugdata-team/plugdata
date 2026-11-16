@@ -1472,6 +1472,8 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
             }
 
             auto const patchPtr = loadPatch(content);
+            if (!patchPtr)
+                return;
             patchPtr->splitViewIndex = splitIndex;
             patchPtr->openInPluginMode = pluginMode;
             patchPtr->pluginModeScale = pluginModeScale;
@@ -1483,6 +1485,8 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
             }
         } else {
             auto const patchPtr = loadPatch(URL(location));
+            if (!patchPtr)
+                return;
             patchPtr->splitViewIndex = splitIndex;
             patchPtr->openInPluginMode = pluginMode;
             patchPtr->pluginModeScale = pluginModeScale;
@@ -1597,8 +1601,10 @@ pd::Patch::Ptr PluginProcessor::loadPatch(URL const& patchURL)
         return nullptr;
     }
 
+    lockAudioThread();
     patches.add(newPatch);
-    auto* patch = patches.back().get();
+    unlockAudioThread();
+    auto* patch = newPatch.get();
 
     patch->setCurrentFile(URL(patchFile));
 

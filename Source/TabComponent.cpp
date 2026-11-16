@@ -481,9 +481,11 @@ Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch, bool const warnIfA
         }
     }
 
+    pd->lockAudioThread();
     pd->patches.add_unique(existingPatch, [](auto const& ptr1, auto const& ptr2) {
         return *ptr1 == *ptr2;
     });
+    pd->unlockAudioThread();
 
     existingPatch->splitViewIndex = activeSplitIndex;
     existingPatch->windowIndex = editor->editorIndex;
@@ -1267,9 +1269,11 @@ void TabComponent::closeTab(Canvas* cnv, bool const sendVisMessage)
     canvases.removeObject(cnv);
     if(sendVisMessage) patch->setVisible(false);
 
+    pd->lockAudioThread();
     pd->patches.remove_one(patch, [](auto const& ptr1, auto const& ptr2) {
         return *ptr1 == *ptr2;
     });
+    pd->unlockAudioThread();
 
     pd->updateObjectImplementations();
 
