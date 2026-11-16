@@ -2117,6 +2117,10 @@ void PluginProcessor::handleParameterMessage(SmallArray<pd::Atom> const& atoms)
                     }
                 }
             }
+            // Publish the complete command, including re-creates of enabled parameters.
+            if (auto* param = getEnabledParameter(name)) {
+                param->notifyDAW();
+            }
             break;
         }
         case hash("destroy"): {
@@ -2147,6 +2151,7 @@ void PluginProcessor::handleParameterMessage(SmallArray<pd::Atom> const& atoms)
                     float max = atoms[3].getFloat();
                     max = std::max(max, min + 0.000001f);
                     param->setRange(min, max);
+                    param->notifyDAW();
                 }
             }
             break;
@@ -2192,7 +2197,6 @@ void PluginProcessor::enableAudioParameter(SmallString const& name)
             param->setEnabled(true);
             param->setName(name);
             param->setIndex(numEnabled + 1);
-            param->notifyDAW();
             break;
         }
     }
