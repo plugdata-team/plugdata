@@ -356,6 +356,15 @@ bool OSUtils::isLinuxWindowMaximised(ComponentPeer* peer)
     return (state & WINDOW_STATE_MAXIMIZED) != 0;
 }
 
+bool OSUtils::isLinuxWindowMaximisedOrTiled(ComponentPeer* peer)
+{
+    // On X11 the window manager doesn't tell us about tiling, we only see the maximised state
+    if (isWaylandWindow(peer))
+        return juce::isWaylandWindowMaximisedOrTiled(*peer);
+
+    return isLinuxWindowMaximised(peer);
+}
+
 void OSUtils::maximiseLinuxWindow(ComponentPeer* peer, bool shouldBeMaximised)
 {
     // Not peer->setFullScreen(): on Wayland that requests a fullscreen window rather than a maximised one

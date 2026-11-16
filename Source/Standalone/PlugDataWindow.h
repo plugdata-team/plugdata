@@ -543,6 +543,23 @@ public:
 #endif
     }
 
+    // True if the window manager places the window edge to edge: maximised, but on Wayland also tiled
+    // (half-screen, quarter-screen...). We draw our own window shadow, which has to go in that case.
+    bool isMaximisedOrTiled() const
+    {
+#if JUCE_LINUX || JUCE_BSD
+        if (hasPendingLinuxMaximisedState)
+            return pendingLinuxMaximisedState;
+
+        if (auto* peer = getPeer())
+            return OSUtils::isLinuxWindowMaximisedOrTiled(peer);
+
+        return isFullScreen();
+#else
+        return isMaximised();
+#endif
+    }
+
     static bool useNativeTitlebar()
     {
         return SettingsFile::getInstance()->getProperty<bool>("native_window");
@@ -583,7 +600,7 @@ public:
 #if JUCE_LINUX || JUCE_BSD
     void paint(Graphics& g) override
     {
-        if (drawWindowShadow && !useNativeTitlebar() && !isMaximised()) {
+        if (drawWindowShadow && !useNativeTitlebar() && !isMaximisedOrTiled()) {
             StackShadow::drawShadowForRect(g, getLocalBounds().reduced(18), Corners::windowCornerRadius, StackShadow::Window, isActiveWindow() ? 1.0f : 0.5f);
         }
     }
@@ -600,7 +617,7 @@ public:
             g.drawRect(0, 0, getWidth(), getHeight());
         }
 #    else
-        if (drawWindowShadow && !useNativeTitlebar() && !isMaximised()) {
+        if (drawWindowShadow && !useNativeTitlebar() && !isMaximisedOrTiled()) {
             g.setColour(colours.outlineColour.withAlpha(isActiveWindow() ? 1.0f : 0.5f));
             g.drawRoundedRectangle(18, 18, getWidth() - 36, getHeight() - 36, Corners::windowCornerRadius, 1.0f);
         } else if (drawWindowShadow && !useNativeTitlebar()) {
@@ -738,7 +755,7 @@ private:
 
 #if JUCE_LINUX || JUCE_BSD
             if (drawWindowShadow) {
-                return owner.isMaximised() ? 0 : 18;
+                return owner.isMaximisedOrTiled() ? 0 : 18;
             } else {
                 return 0;
             }

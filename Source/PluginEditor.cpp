@@ -888,6 +888,11 @@ void PluginEditor::mouseDown(MouseEvent const& e)
 
 #else
         findParentComponentOfClass<DocumentWindow>()->maximiseButtonPressed();
+#    if JUCE_LINUX || JUCE_BSD
+        // The second click must not also start dragging the window: on Wayland the compositor would
+        // start moving the window while it is being maximised or restored, and it ends up displaced
+        return;
+#    endif
 #endif
     }
 
@@ -2016,7 +2021,7 @@ bool PluginEditor::wantsRoundedCorners() const
     // Since this is called in a paint routine, use reinterpret_cast instead of dynamic_cast for efficiency
     // For the standalone, the top-level component should always be DocumentWindow derived!
     if (auto const* window = reinterpret_cast<PlugDataWindow*>(getTopLevelComponent())) {
-        return !window->useNativeTitlebar() && !window->isMaximised() && ProjectInfo::canUseSemiTransparentWindows();
+        return !window->useNativeTitlebar() && !window->isMaximisedOrTiled() && ProjectInfo::canUseSemiTransparentWindows();
     }
     return true;
 }
