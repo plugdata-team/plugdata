@@ -19,6 +19,14 @@ public:
     JUCE_DECLARE_WEAK_REFERENCEABLE(MessageListener)
 };
 
+// Gets every message Pd forwards, for any target and in the order they were sent
+// A MessageListener only gets the newest message per target and selector
+class RawMessageListener {
+public:
+    virtual ~RawMessageListener() = default;
+    virtual void receiveRawMessage(void* target, t_symbol* symbol, SmallArray<pd::Atom> const& atoms) = 0;
+};
+
 // MessageDispatcher handles the organising of messages from Pd to the plugdata GUI
 // It provides an optimised way to listen to messages within pd from the message thread,
 class MessageDispatcher final : public AsyncUpdater {
@@ -59,6 +67,7 @@ class MessageDispatcher final : public AsyncUpdater {
         t_symbol* symbol;
         Slot const* atoms;
         int size;
+        bool duplicate; // Superseded by a newer message, only kept for the raw listener
     };
 
 public:
@@ -166,6 +175,24 @@ public:
             messageListeners.erase(object);
     }
 
+    // The listeners registered for an object, or nullptr if there are none
+    SmallArray<juce::WeakReference<MessageListener>> const* getMessageListeners(void* object) const
+    {
+        auto const entry = messageListeners.find(object);
+        return entry != messageListeners.end() ? &entry->second : nullptr;
+    }
+
+    // Costs nothing while there are none
+    void addRawMessageListener(RawMessageListener* listener)
+    {
+        rawMessageListeners.add_unique(listener);
+    }
+
+    void removeRawMessageListener(RawMessageListener* listener)
+    {
+        rawMessageListeners.remove_all(listener);
+    }
+
     void dequeueMessages() // Note: only call this from the message thread
     {
         if (isDequeueing)
@@ -176,6 +203,8 @@ public:
         takeFilledChunks();
 
         // Walk the messages newest-first, keeping only the newest one for each (target, symbol, size)
+        // Raw listeners need the older ones as well
+        auto const keepDuplicates = !rawMessageListeners.empty();
         usedHeaders.clear();
         pendingMessages.clear();
         for (int i = static_cast<int>(drainChunks.size()) - 1; i >= 0; i--) {
@@ -189,10 +218,14 @@ public:
                 slot -= size;
 
                 auto const key = std::pair(reinterpret_cast<uintptr_t>(header.targetAndSize.getOpaqueValue()), reinterpret_cast<uintptr_t>(header.symbolAndSize.getOpaqueValue()));
-                if (usedHeaders.insert(key).second)
-                    pendingMessages.add({ header.targetAndSize.getPointer(), header.symbolAndSize.getPointer(), slot, static_cast<int>(size) });
+                auto const isNewest = usedHeaders.insert(key).second;
+                if (isNewest || keepDuplicates)
+                    pendingMessages.add({ header.targetAndSize.getPointer(), header.symbolAndSize.getPointer(), slot, static_cast<int>(size), !isNewest });
             }
         }
+
+        if (EXPECT_UNLIKELY(keepDuplicates))
+            dispatchRawMessages();
 
         // Replay messages in original order
         // The drained chunks stay ours until the next dequeueMessages() call, so the atoms remain valid while we dispatch
@@ -288,6 +321,26 @@ private:
         ++writer.ptr;
     }
 
+    // Passes every message to the raw listeners in original order, then drops the duplicates that regular listeners don't get
+    void dispatchRawMessages()
+    {
+        for (int i = static_cast<int>(pendingMessages.size()) - 1; i >= 0 && !rawMessageListeners.empty(); i--) {
+            auto const& message = pendingMessages[i];
+            atomScratch.clear();
+            for (int at = 0; at < message.size; at++)
+                atomScratch.emplace_back(&message.atoms[at].atom);
+
+            for (int l = 0; l < rawMessageListeners.size(); l++)
+                rawMessageListeners[l]->receiveRawMessage(message.target, message.symbol, atomScratch);
+        }
+
+        pendingMessages.erase(
+            std::ranges::remove_if(pendingMessages,
+                [](auto const& message) { return message.duplicate; })
+                .begin(),
+            pendingMessages.end());
+    }
+
     // Swaps the chunks the producer filled since the last call into drainChunks
     void takeFilledChunks()
     {
@@ -356,6 +409,7 @@ private:
     SmallArray<juce::WeakReference<MessageListener>> listenerScratch;
 
     UnorderedMap<void*, SmallArray<juce::WeakReference<MessageListener>>> messageListeners;
+    SmallArray<RawMessageListener*, 2> rawMessageListeners;
 };
 
 }

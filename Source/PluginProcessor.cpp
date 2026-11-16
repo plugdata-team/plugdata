@@ -26,6 +26,8 @@
 
 #include "Utility/Presets.h"
 #include "Canvas.h"
+#include "DetectiveMode.h"
+#include "Pd/DSPProfiler.h"
 #include "PluginMode.h"
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
@@ -189,6 +191,9 @@ PluginProcessor::PluginProcessor()
     updateSearchPaths();
 
     objectLibrary = std::make_unique<pd::Library>(this);
+
+    detectiveMode = std::make_unique<DetectiveMode>(this);
+    dspProfiler = std::make_unique<pd::DSPProfiler>(*this);
 
     setLatencySamples(pd::Instance::getBlockSize());
     settingsFile->startChangeListener();

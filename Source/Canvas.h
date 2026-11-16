@@ -106,6 +106,7 @@ public:
     bool shouldShowIndex() const;
     bool shouldShowConnectionDirection() const;
     bool shouldShowConnectionActivity() const;
+    bool shouldShowMessageAnimation() const;
 
     void save(std::function<void()> const& nestedCallback = [] { });
     void saveAs(std::function<void()> const& nestedCallback = [] { });
@@ -227,6 +228,7 @@ public:
     bool showIndex : 1 = false;
     bool showConnectionDirection : 1 = false;
     bool showConnectionActivity : 1 = false;
+    bool showMessageAnimation : 1 = false;
 
     bool isZooming : 1 = false;
     bool isGraph : 1 = false;

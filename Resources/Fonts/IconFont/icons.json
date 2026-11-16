@@ -116,6 +116,11 @@
     { "names": ["AudioSettings"], "fluent": "speaker_settings_24_filled" },
     { "names": ["Github"], "file": "custom/gui/Github.svg" },
     { "names": ["PlayTriangle"], "fluent": "play_24_filled" },
+    { "names": ["Pause"], "fluent": "pause_24_filled" },
+    { "names": ["Step"], "fluent": "next_24_filled" },
+    { "names": ["Pin"], "fluent": "pin_24_regular" },
+    { "names": ["Pinned"], "fluent": "pin_24_filled" },
+    { "names": ["Debugger"], "fluent": "bug_24_regular" },
 
     "OBJECT ICONS",
 

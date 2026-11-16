@@ -786,8 +786,6 @@ void Instance::initialisePd(String& pdlua_version)
     // ag: need to do this here to suppress noise from chatty externals
     printReceiver = pd::Setup::createPrintHook(this, reinterpret_cast<t_plugdata_printhook>(internal::instance_multi_print));
     libpd_set_verbose(0);
-
-    set_plugdata_debugging_enabled(SettingsFile::getInstance()->getProperty<bool>("debug_connections"));
 }
 
 int Instance::getBlockSize()

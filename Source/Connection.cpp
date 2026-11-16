@@ -24,6 +24,8 @@ using namespace juce::gl;
 #include "CanvasViewport.h"
 #include "Pd/Patch.h"
 #include "Components/ConnectionMessageDisplay.h"
+#include "Sidebar/DebugPanel.h"
+#include "DetectiveMode.h"
 
 Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
     : NVGComponent(this)
@@ -483,6 +485,16 @@ void Connection::setSelected(bool const shouldBeSelected)
         // This is so resize handles can easily be hit when the connection is selected
         setAlwaysOnTop(shouldBeSelected);
         repaint();
+
+        // The Debugger panel traces the selected connection
+        if (auto* debugPanel = cnv->editor->debugPanel.get()) {
+            if (selectedFlag) {
+                debugPanel->setConnection(this);
+            } else if (debugPanel->getConnection() == this) {
+                auto const selection = cnv->getSelectionOfType<Connection>();
+                debugPanel->setConnection(selection.empty() ? nullptr : selection.back());
+            }
+        }
     }
 }
 
@@ -571,7 +583,8 @@ StringArray Connection::getMessageFormated() const
 void Connection::mouseEnter(MouseEvent const& e)
 {
     isHovering = true;
-    if (plugdata_debugging_enabled()) {
+    // The tooltip shows the message values. Pd's debugging can also be on for the message animation or the Debugger alone
+    if (plugdata_debugging_enabled() && DetectiveMode::isVisualizationEnabled("debug_connections")) {
         Point<float> nearest;
         getPath().getNearestPoint(cnv->getLocalPoint(this, e.position), nearest);
         cnv->editor->connectionMessageDisplay->setConnection(this, cnv->localPointToGlobal(nearest).roundToInt().translated(20, 15));

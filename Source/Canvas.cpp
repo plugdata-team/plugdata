@@ -12,6 +12,7 @@
 #include "Canvas.h"
 #include "Object.h"
 #include "Connection.h"
+#include "DetectiveMode.h"
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
@@ -725,6 +726,10 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             renderAllObjects(nvg, invalidRegion);
             renderAllConnections(nvg, invalidRegion);
         }
+
+        // Detective Mode's message goes over all objects and cables
+        if (auto const* detectiveMode = pd->detectiveMode.get())
+            detectiveMode->render(this, nvg, invalidRegion);
     }
 
     for (auto* connection : connectionsBeingCreated) {
@@ -841,7 +846,8 @@ void Canvas::settingsChanged(String const& name, var const& value)
         showBorder = static_cast<int>(value);
         repaint();
         break;
-    case hash("overlays"): {
+    case hash("overlays"):
+    case hash("debug_visualization"): {
         updateOverlays();
         break;
     }
@@ -868,6 +874,11 @@ bool Canvas::shouldShowConnectionDirection() const
 bool Canvas::shouldShowConnectionActivity() const
 {
     return showConnectionActivity;
+}
+
+bool Canvas::shouldShowMessageAnimation() const
+{
+    return showMessageAnimation;
 }
 
 int Canvas::getOverlays() const
@@ -899,12 +910,15 @@ void Canvas::updateOverlays()
     showOrigin = overlayState & Origin;
     showConnectionOrder = overlayState & Order;
     connectionsBehind = overlayState & Behind;
-    showObjectActivity = overlayState & ActivationState;
     showIndex = overlayState & Index;
     showConnectionDirection = overlayState & Direction;
-    showConnectionActivity = overlayState & ConnectionActivity;
 
-    set_plugdata_activity_enabled(showObjectActivity);
+    // Pd only reports activity and messages while debugging is on
+    auto const isDebugging = DetectiveMode::isDebuggingEnabled();
+    showObjectActivity = isDebugging && (overlayState & ActivationState);
+    showConnectionActivity = isDebugging && (overlayState & ConnectionActivity);
+    showMessageAnimation = isDebugging && (overlayState & MessageAnimation);
+    set_plugdata_activity_enabled(overlayState & ActivationState);
     orderConnections();
 
     repaint();

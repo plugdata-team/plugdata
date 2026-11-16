@@ -170,7 +170,8 @@ enum Overlay {
     ConnectionActivity = 1 << 5,
     Order = 1 << 6,
     Direction = 1 << 7,
-    Behind = 1 << 8
+    Behind = 1 << 8,
+    MessageAnimation = 1 << 9
 };
 
 enum Align {
