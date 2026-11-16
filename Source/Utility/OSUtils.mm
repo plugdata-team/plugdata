@@ -182,56 +182,24 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
     return QWERTY;
 }
 
-@interface ScrollEventObserver : NSObject
-- (instancetype)initWithScrollingFlag:(bool*)scrollingFlag;
-@end
-
-@implementation ScrollEventObserver {
-    bool* isGesturingFlag;
-}
-
-- (instancetype)initWithScrollingFlag:(bool*)gesturingFlag {
-    self = [super init];
-    if (self) {
-        isGesturingFlag = gesturingFlag;
-    }
-    return self;
-}
-
-
-- (void)scrollEventOccurred:(NSEvent*)event {
-    if (event.phase == NSEventPhaseBegan) {
-        *isGesturingFlag = true;
-    } else if (event.phase == NSEventPhaseEnded || event.phase == NSEventPhaseCancelled) {
-        *isGesturingFlag = false;
-    }
-}
-
-@end
-
-
+// ObjC class names are shared by the whole process, so plugdata's binaries (standalone, VST3, AU...)
+// can't declare classes statically: hosts may load several of them at once.
 OSUtils::ScrollTracker::ScrollTracker()
 {
-    // Create the ScrollEventObserver instance
-    observer = [[ScrollEventObserver alloc] initWithScrollingFlag:&gesturing];
-    
-    [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskScrollWheel handler:^NSEvent* (NSEvent* event) {
-        [(ScrollEventObserver*)observer scrollEventOccurred:event];
-        return event;
-    }];
-    
-    [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskMagnify handler:^NSEvent* (NSEvent* event) {
-        [(ScrollEventObserver*)observer scrollEventOccurred:event];
+    bool* gesturingFlag = &gesturing;
+    observer = [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskScrollWheel | NSEventMaskMagnify handler:^NSEvent* (NSEvent* event) {
+        if (event.phase == NSEventPhaseBegan) {
+            *gesturingFlag = true;
+        } else if (event.phase == NSEventPhaseEnded || event.phase == NSEventPhaseCancelled) {
+            *gesturingFlag = false;
+        }
         return event;
     }];
 }
 
 OSUtils::ScrollTracker::~ScrollTracker()
 {
-    // Remove the observer when no longer needed
-    auto* ob = static_cast<ScrollEventObserver*>(observer);
-    [[NSNotificationCenter defaultCenter] removeObserver:ob];
-    [ob dealloc];
+    [NSEvent removeMonitor:static_cast<id>(observer)];
 }
 
 float OSUtils::MTLGetPixelScale(void* view) {
@@ -251,18 +219,28 @@ float OSUtils::MTLGetPixelScale(void* view) {
         return scale;
 }
 
-@interface MTLCustomView : NSView
-@end
-
-@implementation MTLCustomView
-- (NSView *)hitTest:(NSPoint)point {
+static NSView* passThroughHitTest(id, SEL, NSPoint)
+{
     return nil;
 }
-@end
+
+// An NSView that lets mouse events through, registered under a random name (see ScrollTracker)
+static Class getPassThroughViewClass()
+{
+    static Class viewClass = [] {
+        auto const name = "plugdata_MTLView_" + juce::String::toHexString(juce::Random().nextInt64());
+        Class cls = objc_allocateClassPair([NSView class], name.toRawUTF8(), 0);
+        auto* hitTest = class_getInstanceMethod([NSView class], @selector(hitTest:));
+        class_addMethod(cls, @selector(hitTest:), (IMP)passThroughHitTest, method_getTypeEncoding(hitTest));
+        objc_registerClassPair(cls);
+        return cls;
+    }();
+    return viewClass;
+}
 
 void* OSUtils::MTLCreateView(void* parent, int x, int y, int width, int height)
 {
-    NSView *childView = [[MTLCustomView alloc] initWithFrame:NSMakeRect(x, y, width, height)];
+    NSView *childView = [[getPassThroughViewClass() alloc] initWithFrame:NSMakeRect(x, y, width, height)];
 
     CAMetalLayer* metalLayer = [CAMetalLayer new];
     metalLayer.device = MTLCreateSystemDefaultDevice();
