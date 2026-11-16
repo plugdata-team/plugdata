@@ -29,6 +29,7 @@
 #include "AddObjectMenuTest.h"
 #include "SaveOverwriteTest.h"
 #include "SubpatchTabTest.h"
+#include "PluginHostTest.h"
 
 // Settings come from environment variables, or from TestConfig.json in the app data directory,
 // because an AUv3 extension never sees our environment. "<NAME>_<wrapper>" (e.g.
@@ -104,15 +105,19 @@ void runTests(PluginEditor* editor)
     auto const seedSetting = getTestSetting("PLUGDATA_TEST_SEED", wrapperType);
 
     File logFile, summaryFile;
-#if JUCE_IOS
-    // Neither an iOS app nor an extension has a stdout we can rely on: leave the results where the harness can collect them
-    auto const resultsDir = ProjectInfo::appDataDir.getChildFile("TestResults");
-    resultsDir.createDirectory();
-    logFile = resultsDir.getChildFile(wrapperType + ".log");
-    summaryFile = resultsDir.getChildFile(wrapperType + ".json");
-    logFile.deleteFile();
-    summaryFile.deleteFile();
+    // Neither iOS nor a plugin in a host has a stdout we can rely on: leave the results where a harness
+    // (or the standalone's VST3 Suite Test) can collect them
+#if !JUCE_IOS
+    if (!ProjectInfo::isStandalone)
 #endif
+    {
+        auto const resultsDir = ProjectInfo::appDataDir.getChildFile("TestResults");
+        resultsDir.createDirectory();
+        logFile = resultsDir.getChildFile(wrapperType + ".log");
+        summaryFile = resultsDir.getChildFile(wrapperType + ".json");
+        logFile.deleteFile();
+        summaryFile.deleteFile();
+    }
 
     // Need to execute tests on a separate thread, since our tests will block until the message thread has processed every test case
     std::thread testRunnerThread([editor, filterSetting, seedSetting, logFile, summaryFile] {
@@ -178,6 +183,19 @@ void runTests(PluginEditor* editor)
             &helpfileFuzzer,
             &objectFuzzer,
             &helpfileErrorTest };
+
+#ifdef PLUGDATA_TEST_VST3
+        VST3ParameterTest vst3ParameterTest;
+        VST3StateTest vst3StateTest;
+        VST3MultiInstanceTest vst3MultiInstanceTest;
+        VST3SuiteTest vst3SuiteTest;
+        // Only the standalone hosts the VST3. The suite runs last: if the plugin crashes, it takes this process with it
+        if (ProjectInfo::isStandalone) {
+            UnitTest* hostTests[] = { &vst3ParameterTest, &vst3StateTest, &vst3MultiInstanceTest };
+            tests.insertArray(tests.indexOf(&helpfileFuzzer), hostTests, static_cast<int>(std::size(hostTests)));
+            tests.add(&vst3SuiteTest);
+        }
+#endif
 
         // PLUGDATA_TEST_FILTER: comma-separated, case-insensitive substrings of test names to run.
         // The filter can also select tests that don't run by default.

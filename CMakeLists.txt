@@ -324,6 +324,8 @@ set(JUCE_COMPILE_DEFINITIONS
 # So for a better testing experience, we just disable assertions
 if(${ENABLE_TESTING})
     list(APPEND JUCE_COMPILE_DEFINITIONS JUCE_DISABLE_ASSERTIONS=1)
+    # The standalone hosts plugdata's VST3 to run the suite inside it (Tests/PluginHostTest.h)
+    list(APPEND JUCE_COMPILE_DEFINITIONS JUCE_PLUGINHOST_VST3=1)
 endif()
 
 if(LINUX)
@@ -916,6 +918,12 @@ if(ENABLE_PERFETTO)
   if(APPLE)
     target_link_libraries(plugdata_midi PRIVATE Melatonin::Perfetto)
   endif()
+endif()
+
+if(ENABLE_TESTING AND TARGET plugdata_VST3)
+    add_dependencies(plugdata_standalone plugdata_VST3)
+    set_property(SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/Tests/Tests.cpp APPEND PROPERTY COMPILE_DEFINITIONS
+        PLUGDATA_TEST_VST3="$<GENEX_EVAL:$<TARGET_PROPERTY:plugdata_VST3,JUCE_PLUGIN_ARTEFACT_FILE>>")
 endif()
 
 set_target_properties(plugdata_standalone PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
