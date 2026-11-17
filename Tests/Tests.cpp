@@ -32,6 +32,7 @@
 #include "SaveOverwriteTest.h"
 #include "SubpatchTabTest.h"
 #include "PluginHostTest.h"
+#include "BackupLoopTest.h"
 
 // Settings come from environment variables, or from TestConfig.json in the app data directory,
 // because an AUv3 extension never sees our environment. "<NAME>_<wrapper>" (e.g.
@@ -101,12 +102,17 @@ private:
 
 void runTests(PluginEditor* editor)
 {
+    auto const wrapperType = String(AudioProcessor::getWrapperTypeDescription(editor->pd->wrapperType));
+
+    // Set by host tests that need the plugin's editor open without the suite running in it
+    if (getTestSetting("PLUGDATA_TEST_SKIP_SUITE", wrapperType) == "1")
+        return;
+
     // An AUv3 host can create several editors in one extension process: run the suite once
     static std::atomic<bool> alreadyStarted = false;
     if (alreadyStarted.exchange(true))
         return;
 
-    auto const wrapperType = String(AudioProcessor::getWrapperTypeDescription(editor->pd->wrapperType));
     auto const filterSetting = getTestSetting("PLUGDATA_TEST_FILTER", wrapperType);
     auto const seedSetting = getTestSetting("PLUGDATA_TEST_SEED", wrapperType);
 
@@ -202,10 +208,11 @@ void runTests(PluginEditor* editor)
         VST3ParameterTest vst3ParameterTest;
         VST3StateTest vst3StateTest;
         VST3MultiInstanceTest vst3MultiInstanceTest;
+        VST3BackupLoopTest vst3BackupLoopTest;
         VST3SuiteTest vst3SuiteTest;
         // Only the standalone hosts the VST3. The suite runs last: if the plugin crashes, it takes this process with it
         if (ProjectInfo::isStandalone) {
-            UnitTest* hostTests[] = { &vst3ParameterTest, &vst3StateTest, &vst3MultiInstanceTest };
+            UnitTest* hostTests[] = { &vst3ParameterTest, &vst3StateTest, &vst3MultiInstanceTest, &vst3BackupLoopTest };
             tests.insertArray(tests.indexOf(&helpfileFuzzer), hostTests, static_cast<int>(std::size(hostTests)));
             tests.add(&vst3SuiteTest);
         }
