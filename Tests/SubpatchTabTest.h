@@ -15,6 +15,24 @@ public:
 private:
     static constexpr int settleTime = 100;
 
+    // Synchronising a canvas and replacing its object's GUI are separate queued
+    // updates. A fixed delay can expire between them on a busy message thread.
+    // Always run the assertions, including when the expected state times out.
+    void waitFor(std::function<bool()> ready, std::function<void()> check, double deadline = 0.0)
+    {
+        if (deadline == 0.0)
+            deadline = Time::getMillisecondCounterHiRes() + 5000.0;
+
+        if (ready() || Time::getMillisecondCounterHiRes() >= deadline) {
+            check();
+            return;
+        }
+
+        Timer::callAfterDelay(20, [this, ready = std::move(ready), check = std::move(check), deadline] {
+            waitFor(ready, check, deadline);
+        });
+    }
+
     void perform() override
     {
         beginTest("Turning a graph into a subpatch keeps its tab open");
@@ -45,7 +63,7 @@ private:
                 parameter.valuePtr->setValue(false);
         }
 
-        Timer::callAfterDelay(settleTime, [this] {
+        waitFor([this] { return !tab || (!showsGraph() && !getValue<bool>(tab->isGraphChild)); }, [this] {
             expect(tab != nullptr, "the tab must stay open");
             expect(!showsGraph(), "the object in the parent must become a plain subpatch");
             if (tab)
@@ -63,7 +81,7 @@ private:
 
         tab->isGraphChild = true;
 
-        Timer::callAfterDelay(settleTime, [this] {
+        waitFor([this] { return !tab || showsGraph(); }, [this] {
             expect(tab != nullptr, "the tab must stay open");
             expect(showsGraph(), "the object in the hidden parent must become a graph");
             editor->getTabComponent().showTab(parent, parent->patch.splitViewIndex);
@@ -81,7 +99,7 @@ private:
         parent->setSelected(object, true);
         parent->removeSelection();
 
-        Timer::callAfterDelay(settleTime, [this] {
+        waitFor([this] { return tab == nullptr; }, [this] {
             expect(tab == nullptr, "the tab must close with its object");
             finish(true);
         });

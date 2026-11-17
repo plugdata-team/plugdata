@@ -103,10 +103,26 @@ public:
         });
     }
 
-    void startAudio()
+    void prepare()
     {
         MessageManager::callSync([this] { instance->prepareToPlay(sampleRate, blockSize); });
+    }
+
+    void startAudio()
+    {
+        prepare();
+        resumeAudio();
+    }
+
+    void resumeAudio()
+    {
         startThread(Priority::high);
+    }
+
+    // Stops calling processBlock without releasing resources, like a DAW that skips an idle track
+    void pauseAudio()
+    {
+        stopThread(5000);
     }
 
     void stopAudio()
@@ -117,17 +133,34 @@ public:
         MessageManager::callSync([this] { instance->releaseResources(); });
     }
 
+    // Renders one block on the calling thread, while the audio thread is stopped, and returns the plugin's MIDI output
+    MidiBuffer processBlock()
+    {
+        jassert(!isThreadRunning());
+        AudioBuffer<float> buffer(jmax(1, instance->getTotalNumInputChannels(), instance->getTotalNumOutputChannels()), blockSize);
+        buffer.clear();
+        MidiBuffer midi;
+        instance->processBlock(buffer, midi);
+        return midi;
+    }
+
     void showEditor()
     {
         MessageManager::callSync([this] { window = std::make_unique<EditorWindow>(instance->createEditorIfNeeded()); });
     }
 
+    void closeEditor()
+    {
+        MessageManager::callSync([this] { window.reset(); });
+    }
+
     // Holds the blob PluginProcessor::setStateInformation reads: an empty legacy header, then the XML state
-    static MemoryBlock makeState(String const& patch)
+    static MemoryBlock makeState(String const& patch, int const oversampling = 0)
     {
         XmlElement xml("plugdata_save");
         xml.setAttribute("Version", PLUGDATA_VERSION);
         xml.setAttribute("Legacy", false);
+        xml.setAttribute("Oversampling", oversampling);
         auto* patchXml = xml.createNewChildElement("Patches")->createNewChildElement("Patch");
         patchXml->setAttribute("Content", patch);
         patchXml->setAttribute("Location", "");
@@ -153,9 +186,9 @@ public:
         return hostState;
     }
 
-    void loadPatch(String const& patch)
+    void loadPatch(String const& patch, int const oversampling = 0)
     {
-        setState(makeState(patch));
+        setState(makeState(patch, oversampling));
     }
 
     void setState(MemoryBlock const& state)

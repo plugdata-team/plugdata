@@ -290,10 +290,11 @@ private:
 
     HostInfoUpdater hostInfoUpdater;
 
-    int backupRunLoopInterval;
+    int backupRunLoopInterval = 24;
     TimedCallback backupRunLoop = TimedCallback([this] { runBackupLoop(); });
     CriticalSection backupLoopLock;
     AtomicValue<bool> isProcessingAudio;
+    AtomicValue<double> backupLoopClock = Time::getMillisecondCounterHiRes(); // Wall-clock ms that Pd's clock has caught up with
     std::unique_ptr<Recorder> recorder;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginProcessor)
 };
