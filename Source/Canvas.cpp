@@ -1061,9 +1061,9 @@ void Canvas::performSynchronise()
     static bool alreadyFlushed = false;
     bool const needsFlush = !alreadyFlushed;
     ScopedValueSetter<bool> flushGuard(alreadyFlushed, true);
-    // By flushing twice, we can make sure that any message sent before this point will be dequeued
+    // Dequeue every message Pd sent before this point
     if (needsFlush && !isGraph)
-        pd->doubleFlushMessageQueue();
+        pd->flushMessageQueue();
 
     // Remove deleted connections
     for (int n = connections.size() - 1; n >= 0; n--) {

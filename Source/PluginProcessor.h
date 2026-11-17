@@ -59,7 +59,6 @@ public:
     void updateAllEditorsLNF();
 
     void flushMessageQueue();
-    void doubleFlushMessageQueue();
 
 #ifndef JucePlugin_PreferredChannelConfigurations
     bool isBusesLayoutSupported(BusesLayout const& layouts) const override;
