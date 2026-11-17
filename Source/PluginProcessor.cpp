@@ -197,6 +197,10 @@ PluginProcessor::PluginProcessor()
 
     sendMessagesFromQueue();
     startDSP();
+
+    // Some hosts never prepare us, for example when they have no audio device
+    if (!ProjectInfo::isStandalone)
+        backupRunLoop.startTimer(backupRunLoopInterval);
 }
 
 PluginProcessor::~PluginProcessor()
@@ -941,6 +945,7 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
     // If we miss 4 audio blocks, start the backup scheduler
     if (!ProjectInfo::isStandalone) {
         backupLoopLock.enter();
+        backupLoopClock = Time::getMillisecondCounterHiRes();
         backupRunLoop.startTimer(backupRunLoopInterval * 4);
         backupLoopLock.exit();
     }
@@ -1668,43 +1673,47 @@ void PluginProcessor::runBackupLoop()
     if (ProjectInfo::isStandalone)
         return;
 
+    auto const now = Time::getMillisecondCounterHiRes();
+
     // Only run backup timer if GUI is visible
-    if (!getActiveEditor())
+    if (!getActiveEditor()) {
+        backupLoopClock = now;
+        return;
+    }
+
+    ScopedTryLock const scopedTimerLock(backupLoopLock);
+    if (!scopedTimerLock.isLocked())
         return;
 
-    int blocksToProcess = backupRunLoopInterval / std::max(1, static_cast<int>((DEFDACBLKSIZE / AudioProcessor::getSampleRate()) * 1000.0));
-    if (blocksToProcess < 1) {
-        blocksToProcess = jmax(1, blocksToProcess); // At least 1 block
-        backupRunLoopInterval *= 2;                 // Increase the interval so we get correct timing
+    if (isProcessingAudio) {
+        backupRunLoop.stopTimer();
+        return;
     }
 
-    {
-        ScopedTryLock const scopedTimerLock(backupLoopLock);
-        if (scopedTimerLock.isLocked()) {
-            if (isProcessingAudio) {
-                backupRunLoop.stopTimer();
-                return;
-            }
-
-            backupRunLoop.startTimer(backupRunLoopInterval);
-        } else {
-            return;
-        }
-    }
+    backupRunLoop.startTimer(backupRunLoopInterval);
 
     setThis();
-    ScopedTryLock const scopedAudioLock(backupLoopLock);
-    if (scopedAudioLock.isLocked()) {
-        keyHandler.sendKeyUpMessages();
-        sendMessagesFromQueue();
-        sendParameters();
-        for (int i = 0; i < blocksToProcess; i++) {
-            if (isProcessingAudio)
-                break;
-            sys_pollgui();
-            sched_tick_nodsp();
-        }
+    lockAudioThread();
+
+    // Catch Pd's clock up with the wall clock before new messages arrive, but don't burst after a long stall
+    auto const tickMs = 1000.0 * Instance::getBlockSize() / sys_getsr();
+    auto const behindMs = jmin(now - backupLoopClock.load(), 1000.0);
+    auto const ticks = static_cast<int>(behindMs / tickMs);
+    backupLoopClock = now - (behindMs - ticks * tickMs);
+    for (int i = 0; i < ticks && !isProcessingAudio; i++) {
+        sys_pollgui();
+        sched_tick_nodsp();
     }
+
+    keyHandler.sendKeyUpMessages();
+    sendMessagesFromQueue();
+    sendParameters();
+    unlockAudioThread();
+
+    // The DAW isn't listening: don't let MIDI for it pile up until audio resumes
+    MidiBuffer dawMidiOutput;
+    midiDeviceManager.sendAndCollectMidiOutput(dawMidiOutput);
+    midiDeviceManager.clearMidiOutputBuffers(std::numeric_limits<int>::max());
 }
 
 bool PluginProcessor::toggleRecording(PluginEditor* editor)
