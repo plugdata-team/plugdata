@@ -2612,7 +2612,11 @@ void Canvas::valueChanged(Value& v)
             graphArea.reset(nullptr);
         }
 
-        synchroniseAllCanvases();
+        for (auto* editorWindow : pd->getEditors()) {
+            for (auto* canvas : editorWindow->getTabComponent().getCanvases())
+                canvas->synchronise();
+        }
+
         updateOverlays();
         repaint();
     } else if (v.refersToSameSourceAs(xRange)) {
