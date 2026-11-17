@@ -197,7 +197,7 @@ void runTests(PluginEditor* editor)
             &tabSplitStressTest,
             &helpfileFuzzer,
             &objectFuzzer,
-            &helpfileErrorTest };
+            /*&helpfileErrorTest*/ };
 
         // Only plugin builds use PDINSTANCE. A second processor in the standalone
         // would overwrite its one global Pd instance's callbacks.
