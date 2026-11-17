@@ -196,8 +196,7 @@ void runTests(PluginEditor* editor)
             &editActionStressTest,
             &tabSplitStressTest,
             &helpfileFuzzer,
-            &objectFuzzer,
-            &helpfileErrorTest };
+            &objectFuzzer };
 
         // Only plugin builds use PDINSTANCE. A second processor in the standalone
         // would overwrite its one global Pd instance's callbacks.
@@ -222,7 +221,7 @@ void runTests(PluginEditor* editor)
         // The filter can also select tests that don't run by default.
         auto const filter = StringArray::fromTokens(filterSetting, ",", "");
         if (!filter.isEmpty()) {
-            tests.addArray(Array<UnitTest*> { &patchTextFuzzTest, &coverageSweepTest });
+            tests.addArray(Array<UnitTest*> { &patchTextFuzzTest, &coverageSweepTest, &helpfileErrorTest });
             tests.removeIf([&filter](UnitTest* test) {
                 for (auto const& token : filter) {
                     if (token.trim().isNotEmpty() && test->getName().containsIgnoreCase(token.trim()))
