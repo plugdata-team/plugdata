@@ -215,15 +215,6 @@ void PluginProcessor::flushMessageQueue()
     messageDispatcher->dequeueMessages();
 }
 
-void PluginProcessor::doubleFlushMessageQueue()
-{
-    setThis();
-    lockAudioThread();
-    messageDispatcher->dequeueMessages();
-    messageDispatcher->dequeueMessages();
-    unlockAudioThread();
-}
-
 #if JUCE_IOS
 void PluginProcessor::syncDirectoryFiles(File const& sourceDir, File const& targetDir, Time lastInitTime, bool deleteIfNotExists)
 {
