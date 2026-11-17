@@ -624,7 +624,9 @@ public:
                 { Icons::GlyphLfNoise, "#X obj 0 0 lfnoise~ 10", "Low frequency noise", "LF Noise", OtherObject },
                 { Icons::GlyphStepNoise, "#X obj 0 0 stepnoise~ 10", "Step noise", "Step Noise", OtherObject },
                 { Icons::GlyphRampNoise, "#X obj 0 0 rampnoise~ 10", "Ramp noise", "Ramp Noise", OtherObject },
+#ifdef ENABLE_SFIZZ
                 { Icons::GlyphSfz, "#X obj 0 0 sfz~", "Sfz sample player using sfizz", "Sfz", OtherObject }
+#endif
             } },
         { "Envelopes",
             {
@@ -673,7 +675,7 @@ public:
                 { Icons::GlyphDrive, "#X obj 0 0 drive~", "Drive", "Drive", OtherObject },
                 { Icons::GlyphFlanger, "#X obj 0 0 flanger~ 0.1 20 -0.6", "Flanger", "Flanger", OtherObject },
                 { Icons::GlyphCombRev, "#X obj 0 0 comb.rev~ 500 1 0.99 0.99", "Comb reverberator", "Comb. Rev", OtherObject },
-                { Icons::GlyphComp, "#X obj 0 0 duck~", "Sidechain compressor", "Duck", OtherObject },
+                { Icons::GlyphComp, "#X obj 0 0 sidechain~", "Sidechain compressor", "Sidechain", OtherObject },
                 { Icons::GlyphBallance, "#X obj 0 0 balance~", "Balance", "Balance", OtherObject },
                 { Icons::GlyphPan, "#X obj 0 0 pan2~", "Pan", "Pan", OtherObject },
                 { Icons::GlyphReverb, "#X obj 0 0 free.rev~ 0.7 0.6 0.5 0.7", "Reverb", "Reverb", OtherObject },
