@@ -286,6 +286,7 @@ public:
     void logWarning(String const& message);
 
     std::deque<std::tuple<void*, String, int, int, int>>& getConsoleMessages() const;
+    void flushConsoleMessages();
     std::deque<std::tuple<void*, String, int, int, int>>& getConsoleHistory() const;
 
     void sendMessagesFromQueue();
