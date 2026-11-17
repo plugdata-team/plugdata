@@ -37,21 +37,24 @@ struct WeakReference {
         return ptr == other;
     }
 
-    void setThis() const;
+    bool setThis() const;
 
     template<typename T>
     struct Ptr {
 
-        Ptr(T* pointer, pd_weak_reference const& ref)
+        Ptr(T* pointer, pd_weak_reference const& ref, bool instanceAlive)
             : weakRef(ref)
-            , ptr(pointer)
+            , ptr(instanceAlive ? pointer : nullptr)
+            , locked(instanceAlive)
         {
-            sys_lock();
+            if (locked)
+                sys_lock();
         }
 
         ~Ptr()
         {
-            sys_unlock();
+            if (locked)
+                sys_unlock();
         }
 
         explicit operator bool() const
@@ -77,6 +80,7 @@ struct WeakReference {
 
         pd_weak_reference const& weakRef;
         T* ptr;
+        bool locked;
 
         JUCE_DECLARE_NON_COPYABLE(Ptr)
     };
@@ -84,14 +88,13 @@ struct WeakReference {
     template<typename T>
     Ptr<T> get() const
     {
-        setThis();
-        return Ptr<T>(static_cast<T*>(ptr), weakRef);
+        return Ptr<T>(static_cast<T*>(ptr), weakRef, setThis());
     }
 
     template<typename T>
     T* getRaw() const
     {
-        return weakRef ? static_cast<T*>(ptr) : nullptr;
+        return isValid() ? static_cast<T*>(ptr) : nullptr;
     }
 
     template<typename T>
@@ -102,17 +105,17 @@ struct WeakReference {
 
     bool isValid() const noexcept
     {
-        return weakRef && ptr != nullptr;
+        return pd != nullptr && weakRef && ptr != nullptr;
     }
 
     bool isDeleted() const noexcept
     {
-        return !weakRef;
+        return pd == nullptr || !weakRef;
     }
 
 private:
     void* ptr;
-    Instance* pd;
+    juce::WeakReference<Instance> pd;
     pd_weak_reference weakRef = true;
 };
 
