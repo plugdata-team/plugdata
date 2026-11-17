@@ -124,8 +124,7 @@ public:
     std::deque<std::tuple<void*, String, int, int, int>> consoleMessages;
     std::deque<std::tuple<void*, String, int, int, int>> consoleHistory;
 
-private:
-    void timerCallback() override
+    void flush()
     {
         auto item = std::tuple<void*, SmallString, bool>();
         int numReceived = 0;
@@ -148,6 +147,9 @@ private:
             instance->updateConsole(lastMessage, lastIsWarning, numReceived, newWarning);
         }
     }
+
+private:
+    void timerCallback() override { flush(); }
 
     StackArray<char, 2048> printConcatBuffer = { };
 
@@ -1329,6 +1331,11 @@ void Instance::logWarning(String const& warning)
 std::deque<std::tuple<void*, String, int, int, int>>& Instance::getConsoleMessages() const
 {
     return consoleMessageHandler->consoleMessages;
+}
+
+void Instance::flushConsoleMessages()
+{
+    consoleMessageHandler->flush();
 }
 
 std::deque<std::tuple<void*, String, int, int, int>>& Instance::getConsoleHistory() const
