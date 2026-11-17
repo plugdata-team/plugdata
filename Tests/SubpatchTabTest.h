@@ -62,11 +62,11 @@ private:
         beginTest("Turning a subpatch into a graph from its own tab updates the parent");
 
         tab->isGraphChild = true;
-        editor->getTabComponent().showTab(parent, parent->patch.splitViewIndex);
 
         Timer::callAfterDelay(settleTime, [this] {
             expect(tab != nullptr, "the tab must stay open");
-            expect(showsGraph(), "the object in the parent must become a graph");
+            expect(showsGraph(), "the object in the hidden parent must become a graph");
+            editor->getTabComponent().showTab(parent, parent->patch.splitViewIndex);
             deleteObject();
         });
     }
