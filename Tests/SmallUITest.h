@@ -28,20 +28,26 @@ private:
     {
         beginTest("Colour picker");
 
-        pickedColour = Colours::black;
+        colourCallbacks = 0;
         auto const screenBounds = editor->getScreenBounds().withSizeKeepingCentre(10, 10);
         ColourPicker::getInstance()->show(editor, editor->getTopLevelComponent(), false, Colours::red, screenBounds, [this](Colour const c) {
             pickedColour = c;
+            ++colourCallbacks;
         });
+        // Showing the picker can itself notify. Count only the interactions below.
+        colourCallbacks = 0;
 
         Timer::callAfterDelay(100, [this] {
             auto* picker = ColourPicker::getInstance();
             TestHelpers::clickThrough(picker);
             picker->createComponentSnapshot(picker->getLocalBounds());
+            if (colourCallbacks > 0)
+                expect(pickedColour == picker->getCurrentColour(), "the callback must report the selected colour");
 
             ModalComponentManager::getInstance()->cancelAllModalComponents();
             ColourPicker::getInstance()->hideEyedropper();
-            expect(pickedColour != Colours::black, "interacting with the picker must produce colour callbacks");
+            // Black is a valid result (in particular from the eyedropper).
+            expect(colourCallbacks > 0, "interacting with the picker must produce colour callbacks");
 
             showSnapSettings();
         });
@@ -148,5 +154,6 @@ private:
     }
 
     Colour pickedColour;
+    int colourCallbacks = 0;
     File recordingFile, exportedFile;
 };
