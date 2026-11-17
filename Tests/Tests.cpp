@@ -6,6 +6,7 @@
 #include "SaveCloseRaceTest.h"
 #include "AbstractionReloadRaceTest.h"
 #include "DanglingBindingTest.h"
+#include "WeakReferenceLifetimeTest.h"
 #include "ScalarTemplateTest.h"
 #include "UIClickThroughTest.h"
 #include "EditActionStressTest.h"
@@ -132,6 +133,7 @@ void runTests(PluginEditor* editor)
         SaveCloseRaceTest saveCloseRaceTest(editor);
         AbstractionReloadRaceTest abstractionReloadRaceTest(editor);
         DanglingBindingTest danglingBindingTest(editor);
+        WeakReferenceLifetimeTest weakReferenceLifetimeTest(editor);
         ScalarTemplateTest scalarTemplateTest(editor);
         UIClickThroughTest uiClickThroughTest(editor);
         EditActionStressTest editActionStressTest(editor);
@@ -190,6 +192,11 @@ void runTests(PluginEditor* editor)
             &helpfileFuzzer,
             &objectFuzzer,
             &helpfileErrorTest };
+
+        // Only plugin builds use PDINSTANCE. A second processor in the standalone
+        // would overwrite its one global Pd instance's callbacks.
+        if (!ProjectInfo::isStandalone)
+            tests.add(&weakReferenceLifetimeTest);
 
 #ifdef PLUGDATA_TEST_VST3
         VST3ParameterTest vst3ParameterTest;
