@@ -140,26 +140,30 @@ private:
             dragStart = centre;
             // A drag with >100ms of mouse press queues the connection start
             outlet->mouseDrag(makeEvent(outlet, centre + Point<float>(5.0f, 5.0f), centre, true));
+            dragStartDeadline = Time::getMillisecondCounterHiRes() + 5000.0;
         });
         steps.add([this] {
-            // Now connectingWithDrag is set; drag over the target inlet so
-            // findNearestIolet targets it
+            // runNextStep waits for the asynchronous connection start before
+            // delivering the rest of the drag.
             auto* outlet = getOutlet(objects[2].getComponent(), 0);
             auto* target = getInlet(objects[5].getComponent(), 0);
+            expect(cnv->connectionsBeingCreated.size() == 1
+                    && cnv->connectionsBeingCreated[0]->getIolet() == outlet,
+                "the pending drag must start at the osc~ outlet");
             auto const targetPos = outlet->getLocalPoint(target, target->getLocalBounds().getCentre().toFloat());
             outlet->mouseDrag(makeEvent(outlet, targetPos, dragStart, true));
-        });
-        steps.add([this] {
-            auto* outlet = getOutlet(objects[2].getComponent(), 0);
-            auto* target = getInlet(objects[5].getComponent(), 0);
-            auto const targetPos = outlet->getLocalPoint(target, target->getLocalBounds().getCentre().toFloat());
+            expect(cnv->nearestIolet == target, "the drag must target the +~ inlet before release");
             outlet->mouseUp(makeEvent(outlet, targetPos, dragStart, true));
+
+            // Creating the Pd connection queues a canvas update. Flush that
+            // update before counting components, as we do for connect-by-click.
+            cnv->performSynchronise();
+            expect(cnv->connections.size() == 2, "connect-by-drag must have created a second connection, have " + String(static_cast<int>(cnv->connections.size())));
         });
 
         // --- Select a connection, make it segmented and drag a segment ---
         steps.add([this] {
             beginTest("Manipulate a segmented connection");
-            expect(cnv->connections.size() >= 2, "connect-by-drag must have created a second connection, have " + String(static_cast<int>(cnv->connections.size())));
             if (cnv->connections.size()) {
                 auto* connection = *cnv->connections.begin();
                 cnv->deselectAll();
@@ -201,6 +205,20 @@ private:
             signalDone(false);
             return;
         }
+        if (dragStartDeadline != 0.0) {
+            if (cnv->connectingWithDrag && !cnv->connectionsBeingCreated.empty()) {
+                dragStartDeadline = 0.0;
+            } else if (Time::getMillisecondCounterHiRes() >= dragStartDeadline) {
+                expect(false, "timed out waiting for the pending drag connection");
+                finish();
+                return;
+            } else {
+                // Yield to the message loop instead of assuming callAsync has
+                // completed by the next fixed-delay step.
+                Timer::callAfterDelay(10, [this, stepIndex] { runNextStep(stepIndex); });
+                return;
+            }
+        }
         if (stepIndex >= steps.size()) {
             finish();
             return;
@@ -231,6 +249,7 @@ private:
     Component::SafePointer<Object> objects[6];
     Point<float> dragStart;
     Point<int> positionBeforeDrag;
+    double dragStartDeadline = 0.0;
     int widthBeforeResize = 0;
     int previousGridEnabled = 0, previousGridType = 0;
 };
