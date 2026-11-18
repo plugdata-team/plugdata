@@ -70,7 +70,7 @@ public:
             // Draw the tick at this position
             nanovg::nvgBeginPath(nvg);
             nanovg::nvgCircle(nvg, x, y, tickRadius);
-            nanovg::nvgFillColor(nvg, nvgColour(fgColour));
+            nanovg::nvgFillColor(nvg, nvgColour(getShownForeground()));
             nanovg::nvgFill(nvg);
         }
     }
@@ -273,7 +273,7 @@ public:
             nanovg::nvgBeginPath(nvg);
             nanovg::nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, startAngle, endAngle, NVG_HOLE);
             nanovg::nvgStrokeWidth(nvg, arcWidth * lineThickness);
-            nanovg::nvgStrokeColor(nvg, nvgColour(arcColour));
+            nanovg::nvgStrokeColor(nvg, nvgColour(getShownArcColour()));
             nanovg::nvgStroke(nvg);
 
             nanovg::nvgBeginPath(nvg);
@@ -282,7 +282,7 @@ public:
             } else {
                 nanovg::nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, angle, centre, NVG_HOLE);
             }
-            nanovg::nvgStrokeColor(nvg, nvgColour(fgColour));
+            nanovg::nvgStrokeColor(nvg, nvgColour(getShownForeground()));
             nanovg::nvgStrokeWidth(nvg, arcWidth * lineThickness);
             nanovg::nvgStroke(nvg);
         }
@@ -295,7 +295,7 @@ public:
         nanovg::nvgMoveTo(nvg, bounds.getCentreX(), bounds.getCentreY()); // Adjust parameters as needed
         nanovg::nvgLineTo(nvg, wiperX, wiperY);                           // Adjust parameters as needed
         nanovg::nvgStrokeWidth(nvg, lineThickness);
-        nanovg::nvgStrokeColor(nvg, nvgColour(fgColour));
+        nanovg::nvgStrokeColor(nvg, nvgColour(getShownForeground()));
         nanovg::nvgLineCap(nvg, NVG_ROUND);
         nanovg::nvgStroke(nvg);
 
@@ -357,6 +357,18 @@ public:
     void setReadOnly(bool const newReadOnly)
     {
         readOnly = newReadOnly;
+        repaint();
+    }
+
+    // A read-only knob is drawn greyed out, so it shows that it can't be turned
+    Colour getShownForeground() const
+    {
+        return readOnly ? fgColour.withSaturation(0.0f).withMultipliedBrightness(0.8f).withMultipliedAlpha(0.55f) : fgColour;
+    }
+
+    Colour getShownArcColour() const
+    {
+        return readOnly ? arcColour.withMultipliedAlpha(0.6f) : arcColour;
     }
 };
 
@@ -894,7 +906,7 @@ public:
             if (!::getValue<bool>(showArc)) {
                 nanovg::nvgBeginPath(nvg);
                 nanovg::nvgStrokeWidth(nvg, lineThickness);
-                nanovg::nvgStrokeColor(nvg, nvgColour(::getValue<Colour>(arcColour)));
+                nanovg::nvgStrokeColor(nvg, nvgColour(knob.getShownArcColour()));
                 nanovg::nvgCircle(nvg, b.getCentreX(), b.getCentreY(), b.getWidth() / 2.7f);
                 nanovg::nvgStroke(nvg);
             }
@@ -1002,6 +1014,8 @@ public:
             if (std::abs(textColour.getBrightness() - colours.canvasBackgroundColour.getBrightness()) < 0.3f) {
                 textColour = colours.canvasBackgroundColour.contrasting();
             }
+            if (::getValue<bool>(readOnly)) // greyed out with the knob
+                textColour = textColour.withMultipliedAlpha(0.5f);
             label->setLabelColour(textColour);
             label->setText(typeBuffer.isEmpty() ? labelText : typeBuffer, dontSendNotification);
 
@@ -1279,6 +1293,8 @@ public:
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_readonly = ::getValue<bool>(readOnly);
             knob.setReadOnly(::getValue<bool>(readOnly));
+            updateLabel();
+            repaint();
         } else if (value.refersToSameSourceAs(jumpOnClick)) {
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_jump = ::getValue<bool>(jumpOnClick);
