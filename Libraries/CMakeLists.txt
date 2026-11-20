@@ -8,7 +8,14 @@ project(libpd VERSION 1.0.0 LANGUAGES C CXX)
 cmake_policy(SET CMP0091 NEW)
 cmake_policy(SET CMP0114 NEW)
 
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+if(ENABLE_ASAN AND MSVC)
+    # Match the root project: ASan on MSVC requires the dynamic CRT so the whole
+    # process shares a single ASan runtime (see the note in the top-level
+    # CMakeLists.txt). The static CRT links a separate runtime into each module.
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+else()
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
 
 set(MESSAGE_QUIET ON)
 _message(STATUS "Configuring fftw3")
@@ -27,7 +34,7 @@ set(WEBP_BUILD_EXTRAS OFF CACHE BOOL "")     # Disable all extra utilities
 set(WEBP_ENABLE_LIBWEBPMUX OFF CACHE BOOL "") # no metadata muxing
 set(WEBP_ENABLE_LIBWEBPDEMUX OFF CACHE BOOL "") # no metadata demuxing
 add_subdirectory(libwebp) # for reading webp files
-if(MSVC)
+if(MSVC AND NOT ENABLE_ASAN)
     target_compile_options(webpdecoder PUBLIC "/MT$<$<STREQUAL:$<CONFIGURATION>,Debug>:d>")
     set_target_properties(webpdecoder PROPERTIES CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>$" )
 endif()
@@ -268,7 +275,14 @@ include(ExternalProject)
 find_program(MAKE_EXECUTABLE NAMES gmake make REQUIRED)
 if(WIN32)
     set(LUAJIT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit/src)
-    set(LUAJIT_BUILD_COMMAND cmd /c "set LJCOMPILE=cl /nologo /c /O2 /W3 /D_CRT_SECURE_NO_DEPRECATE /D_CRT_STDIO_INLINE=__declspec(dllexport)__inline /MT && msvcbuild.bat static")
+    # LuaJIT must use the same CRT as the rest of the build, or the modules it is
+    # linked into end up with two C runtimes. ASan builds use the dynamic CRT.
+    if(ENABLE_ASAN)
+        set(LUAJIT_MSVC_CRT /MD)
+    else()
+        set(LUAJIT_MSVC_CRT /MT)
+    endif()
+    set(LUAJIT_BUILD_COMMAND cmd /c "set LJCOMPILE=cl /nologo /c /O2 /W3 /D_CRT_SECURE_NO_DEPRECATE /D_CRT_STDIO_INLINE=__declspec(dllexport)__inline ${LUAJIT_MSVC_CRT} && msvcbuild.bat static")
     set(LUAJIT_LIBS
         ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit/src/lua51.lib
         ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit/src/luajit.lib

@@ -179,7 +179,17 @@ set_directory_properties(PROPERTIES JUCE_COMPANY_NAME "plugdata")
 set_directory_properties(PROPERTIES JUCE_COMPANY_COPYRIGHT "plugdata by Timothy Schoen")
 set_directory_properties(PROPERTIES JUCE_COMPANY_WEBSITE "plugdata.org")
 
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+if(ENABLE_ASAN AND MSVC)
+    # AddressSanitizer on MSVC needs the dynamic CRT so one shared ASan runtime
+    # (clang_rt.asan_dynamic) serves the whole process. With the static CRT (/MT)
+    # every module links its own static ASan runtime; once an instrumented DLL
+    # (the VST3 plugin, loaded by the standalone's suite test) is pulled in, the
+    # two runtimes fight over the shadow memory and ASan aborts with a spurious
+    # "CHECK failed: kCurrentStackFrameMagic" while reporting an in-bounds access.
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+else()
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
 
 # Make sure missing return types will fail compilation with Clang
 if (CMAKE_C_COMPILER_ID MATCHES "Clang")
