@@ -635,9 +635,11 @@ struct Interface {
         auto* fuddy = reinterpret_cast<_fake_rtext*>(glist_getrtext(cnv, reinterpret_cast<t_text*>(obj), 0));
         cnv->gl_editor->e_textedfor = reinterpret_cast<t_rtext*>(fuddy);
 
-        fuddy->x_buf = static_cast<char*>(resizebytes(fuddy->x_buf, fuddy->x_bufsize, bufsize));
+        // Pd keeps a hidden null byte after x_buf for its UTF-8 functions
+        fuddy->x_buf = static_cast<char*>(resizebytes(fuddy->x_buf, fuddy->x_bufsize + 1, bufsize + 1));
 
         strncpy(fuddy->x_buf, buf, bufsize);
+        fuddy->x_buf[bufsize] = 0;
         fuddy->x_bufsize = bufsize;
 
         cnv->gl_editor->e_textdirty = 1;
