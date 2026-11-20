@@ -92,6 +92,8 @@ public:
                 }
             };
 
+        // Some objects print from a helper thread, lock just in case
+        ScopedLock const printLock(printConcatLock);
         printConcatBuffer[messageLength] = '\0';
 
         int len = static_cast<int>(strlen(message));
@@ -151,6 +153,7 @@ public:
 private:
     void timerCallback() override { flush(); }
 
+    CriticalSection printConcatLock;
     StackArray<char, 2048> printConcatBuffer = { };
 
     moodycamel::ConcurrentQueue<std::tuple<void*, SmallString, bool>> pendingMessages = moodycamel::ConcurrentQueue<std::tuple<void*, SmallString, bool>>(512);
