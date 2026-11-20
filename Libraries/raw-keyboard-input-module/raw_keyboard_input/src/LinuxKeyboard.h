@@ -3,6 +3,7 @@
 
 #include <X11/Xlib.h>
 
+#include <atomic>
 #include <thread>
 
 namespace juce { class Component; }
@@ -15,8 +16,8 @@ public:
   void timerCallback() override;
 
 private:
-    char prev_keymap[32];
+    char prev_keymap[32] = {};
     std::thread* eventLoop;
     Display* display = nullptr;
-    bool running = false;
+    std::atomic<bool> running { false };
 };
