@@ -173,7 +173,9 @@ private:
             cnv->editor->pd->sendDirectMessage(gobj, SmallString("symbol"), {generateAtomForType("<symbol>")});
         }
 
-        if(cnv->objects.size() > 10)
+        // Count on the Pd side: cnv->objects only updates when the async synchronise() has run,
+        // so a busy message thread could skip the clear and leave old objects in the DSP graph
+        if(cnv->patch.getObjects().size() > 10)
         {
             cnv->editor->getSidebarForPanel(Sidebar::ConsolePanel)->clearConsole();
             cnv->editor->pd->sendDirectMessage(cnv->patch.getRawPointer(), SmallString("clear"), {});
