@@ -506,31 +506,38 @@ public:
 #if !JUCE_IOS
     void update() override
     {
-        if (auto const* canvas = getMainCanvas(cnv, true)) {
-            attachedEditor = canvas->editor;
-            attachedEditor->addModifierKeyListener(this);
-            // attachedEditor->addKeyListener(this);
-            keyboard.reset(nullptr);
-            keyboard = std::unique_ptr<Keyboard>(KeyboardFactory::instance(attachedEditor));
+        auto const* canvas = getMainCanvas(cnv, true);
+        if (!canvas)
+            return;
 
-            // Install callbacks
-            keyboard->onKeyDownFn = [&](int const keynum) {
-                auto const hid = OSUtils::keycodeToHID(keynum);
+        auto* editor = canvas->editor;
+        if (keyboard && attachedEditor == editor && (!keyboard->peer || keyboard->peer == editor->getPeer()))
+            return;
 
-                if (auto obj = ptr.get<t_fake_keycode>()) {
-                    outlet_float(obj->x_outlet2, hid);
-                    outlet_float(obj->x_outlet1, 1.0f);
-                }
-            };
-            keyboard->onKeyUpFn = [&](int const keynum) {
-                auto const hid = OSUtils::keycodeToHID(keynum);
+        if (attachedEditor)
+            attachedEditor->removeModifierKeyListener(this);
+        attachedEditor = editor;
+        attachedEditor->addModifierKeyListener(this);
+        // attachedEditor->addKeyListener(this);
+        keyboard.reset(nullptr);
+        keyboard = std::unique_ptr<Keyboard>(KeyboardFactory::instance(attachedEditor));
 
-                if (auto obj = ptr.get<t_fake_keycode>()) {
-                    outlet_float(obj->x_outlet2, hid);
-                    outlet_float(obj->x_outlet1, 0.0f);
-                }
-            };
-        }
+        keyboard->onKeyDownFn = [this](int const keynum) {
+            sendKey(keynum, true);
+        };
+        keyboard->onKeyUpFn = [this](int const keynum) {
+            sendKey(keynum, false);
+        };
+    }
+
+    // On Linux the keyboard calls this from its input thread, so enqueue an async function
+    void sendKey(int const keynum, bool const isDown)
+    {
+        auto const hid = OSUtils::keycodeToHID(keynum);
+        pd->enqueueFunctionAsync<t_fake_keycode>(ptr, [hid, isDown](t_fake_keycode* obj) {
+            outlet_float(obj->x_outlet2, hid);
+            outlet_float(obj->x_outlet1, isDown ? 1.0f : 0.0f);
+        });
     }
 #endif
 };
