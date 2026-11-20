@@ -92,6 +92,14 @@ public:
                 }
             };
 
+        // Each thread concatenates its own lines: some objects print from a helper thread
+        thread_local ConsoleMessageHandler* lineOwner = nullptr;
+        thread_local StackArray<char, 2048> printConcatBuffer = { };
+        thread_local int messageLength = 0;
+        if (lineOwner != this) {
+            lineOwner = this;
+            messageLength = 0;
+        }
         printConcatBuffer[messageLength] = '\0';
 
         int len = static_cast<int>(strlen(message));
@@ -151,10 +159,7 @@ public:
 private:
     void timerCallback() override { flush(); }
 
-    StackArray<char, 2048> printConcatBuffer = { };
-
     moodycamel::ConcurrentQueue<std::tuple<void*, SmallString, bool>> pendingMessages = moodycamel::ConcurrentQueue<std::tuple<void*, SmallString, bool>>(512);
-    int messageLength = 0;
 };
 
 struct Instance::dmessage {
