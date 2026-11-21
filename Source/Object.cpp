@@ -368,9 +368,9 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
     String type = newType.upToFirstOccurrenceOf(" ", false, false);
 
     pd::WeakReference objectPtr = nullptr;
-    // "exists" indicates that this object already exists in pd
-    // When setting exists to true, the gui needs to be assigned already
-    if (!existingObject.isValid()) {
+    // use getRawUnchecked instead of isValid because we care about the callers intent: does it want to set from name or from pointer?
+    bool const hasExistingObject = existingObject.getRawUnchecked<void>() != nullptr;
+    if (!hasExistingObject) {
         auto* patch = &cnv->patch;
         if (gui) {
             // Clear connections to this object
@@ -394,25 +394,24 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
         objectPtr = existingObject;
     }
     if (!objectPtr.getRaw<t_gobj>()) {
-        jassertfalse;
+        jassert(hasExistingObject);
         return;
     }
 
-    // Create gui for the object
     gui.reset(ObjectBase::createGui(objectPtr, this));
+    if (!gui)
+        return;
 
     isGemObject = is_gem_object(gui->getText().toString().toRawUTF8());
 
-    if (gui) {
-        gui->initialise();
-        gui->lock(cnv->isGraph || locked == var(true) || commandLocked == var(true));
-        gui->addMouseListener(this, true);
-        addAndMakeVisible(gui.get());
-        if (getValue<bool>(hvccMode))
-            isHvccCompatible = gui->checkHvccCompatibility();
-        else
-            isHvccCompatible = true;
-    }
+    gui->initialise();
+    gui->lock(cnv->isGraph || locked == var(true) || commandLocked == var(true));
+    gui->addMouseListener(this, true);
+    addAndMakeVisible(gui.get());
+    if (getValue<bool>(hvccMode))
+        isHvccCompatible = gui->checkHvccCompatibility();
+    else
+        isHvccCompatible = true;
 
     // Update inlets/outlets
     updateIolets();

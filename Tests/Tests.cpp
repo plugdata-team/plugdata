@@ -5,6 +5,7 @@
 #include "HelpfileErrorTest.h"
 #include "SaveCloseRaceTest.h"
 #include "AbstractionReloadRaceTest.h"
+#include "SynchroniseDeletionStressTest.h"
 #include "DanglingBindingTest.h"
 #include "WeakReferenceLifetimeTest.h"
 #include "ScalarTemplateTest.h"
@@ -138,6 +139,7 @@ void runTests(PluginEditor* editor)
 
         SaveCloseRaceTest saveCloseRaceTest(editor);
         AbstractionReloadRaceTest abstractionReloadRaceTest(editor);
+        SynchroniseDeletionStressTest synchroniseDeletionStressTest(editor);
         DanglingBindingTest danglingBindingTest(editor);
         WeakReferenceLifetimeTest weakReferenceLifetimeTest(editor);
         ScalarTemplateTest scalarTemplateTest(editor);
@@ -174,6 +176,7 @@ void runTests(PluginEditor* editor)
             &subpatchTabTest,
             &saveCloseRaceTest,
             &abstractionReloadRaceTest,
+            &synchroniseDeletionStressTest,
             &danglingBindingTest,
             &scalarTemplateTest,
             &decompressTest,

@@ -1098,9 +1098,16 @@ void Canvas::performSynchronise()
 
         if (it == objects.end()) {
             auto* newObject = objects.add(object, this);
+
+            // Check if the object was deleted in the meantime (we're not holding the lock!)
+            if (!newObject->gui) {
+                objects.remove_one(newObject);
+                continue;
+            }
+
             newObject->toFront(false);
 
-            if (newObject->gui && newObject->gui->getLabel())
+            if (newObject->gui->getLabel())
                 newObject->gui->getLabel()->toFront(false);
         } else {
             auto* object = *it;
@@ -1130,6 +1137,10 @@ void Canvas::performSynchronise()
     for (auto& connection : pdConnections) {
         auto& [ptr, inno, inobj, outno, outobj] = connection;
 
+        // Skip connections that Pd deleted since we collected them (we're not holding the lock!)
+        if (!ptr.isValid())
+            continue;
+
         Iolet *inlet = nullptr, *outlet = nullptr;
 
         // Find the objects that this connection is connected to
@@ -1154,19 +1165,20 @@ void Canvas::performSynchronise()
             }
         }
 
-        // This shouldn't be necessary, but just to be sure...
-        if (!inlet || !outlet) {
-            jassertfalse;
+        if (!inlet || !outlet)
             continue;
-        }
 
         auto const* it = std::ranges::find_if(connections,
-            [c_ptr = ptr](auto* c) {
+            [c_ptr = ptr.getRawUnchecked<t_outconnect>()](auto* c) {
                 return c_ptr == c->getPointer();
             });
 
         if (it == connections.end()) {
-            connections.add(this, inlet, outlet, ptr);
+            auto* newConnection = connections.add(this, inlet, outlet, ptr);
+
+            // Check if the connection was deleted in the meantime
+            if (!newConnection->getPointer())
+                connections.remove_one(newConnection);
         } else {
             // This is necessary to make resorting a subpatchers iolets work
             // And it can't hurt to check if the connection is valid anyway
@@ -1174,6 +1186,8 @@ void Canvas::performSynchronise()
                 int const idx = connections.index_of(*it);
                 connections.remove_one(*it);
                 connections.insert(idx, this, inlet, outlet, ptr);
+                if (!connections[idx]->getPointer())
+                    connections.remove_at(idx);
             } else {
                 c.popPathState();
             }

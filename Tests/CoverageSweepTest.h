@@ -639,7 +639,7 @@ private:
         properties.addButton.hitTest(10, 10);
 
         if (arrays.not_empty()) {
-            ArrayListView list(editor->pd, arrays.front());
+            ArrayListView list(arrays.front());
             list.setBounds(0, 0, 500, 320);
             list.parentSizeChanged();
             list.update();

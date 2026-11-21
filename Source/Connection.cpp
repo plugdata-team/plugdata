@@ -25,7 +25,7 @@ using namespace juce::gl;
 #include "Pd/Patch.h"
 #include "Components/ConnectionMessageDisplay.h"
 
-Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
+Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, pd::WeakReference oc)
     : NVGComponent(this)
     , inlet(s->isInlet() ? s : e)
     , outlet(s->isInlet() ? e : s)
@@ -63,12 +63,12 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
     inlet->repaint();
 
     // If it doesn't already exist in pd, create connection in pd
-    if (!oc) {
+    // Check whether a connection was passed at all, not whether it's still valid: Pd can delete it at any time
+    if (!oc.getRawUnchecked<void>()) {
         auto* checkedOut = pd::Interface::checkObject(outobj->getPointer());
         auto* checkedIn = pd::Interface::checkObject(inobj->getPointer());
         if (checkedOut && checkedIn) {
-            oc = parent->patch.createAndReturnConnection(checkedOut, outIdx, checkedIn, inIdx);
-            setPointer(oc);
+            setPointer(parent->patch.createAndReturnConnection(checkedOut, outIdx, checkedIn, inIdx));
         } else {
             jassertfalse;
             return;
@@ -368,14 +368,20 @@ void Connection::popPathState()
     updatePath();
 }
 
+// Only call this with the pd lock held
 void Connection::setPointer(t_outconnect* newPtr)
 {
-    auto const originalPointer = ptr.getRawUnchecked<t_outconnect>();
-    if (originalPointer != newPtr) {
-        ptr = pd::WeakReference(newPtr, cnv->pd);
+    setPointer(pd::WeakReference(newPtr, cnv->pd));
+}
+
+void Connection::setPointer(pd::WeakReference const& newPtr)
+{
+    auto* const newPointer = newPtr.getRawUnchecked<t_outconnect>();
+    if (ptr.getRawUnchecked<t_outconnect>() != newPointer) {
+        ptr = newPtr;
 
         cnv->pd->unregisterMessageListener(this);
-        cnv->pd->registerMessageListener(newPtr, this);
+        cnv->pd->registerMessageListener(newPointer, this);
     }
 }
 

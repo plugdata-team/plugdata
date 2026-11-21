@@ -232,7 +232,7 @@ Connections Patch::getConnections() const
         linetraverser_start(&t, patch.get());
 
         while ((oc = linetraverser_next_nosize(&t))) {
-            connections.emplace_back(oc, t.tr_inno, t.tr_ob2, t.tr_outno, t.tr_ob);
+            connections.emplace_back(WeakReference(oc, instance), t.tr_inno, t.tr_ob2, t.tr_outno, t.tr_ob);
         }
     }
 
@@ -510,10 +510,11 @@ void Patch::createConnection(t_object* src, int const nout, t_object* sink, int 
     }
 }
 
-t_outconnect* Patch::createAndReturnConnection(t_object* src, int const nout, t_object* sink, int const nin)
+WeakReference Patch::createAndReturnConnection(t_object* src, int const nout, t_object* sink, int const nin)
 {
     if (auto patch = ptr.get<t_glist>()) {
-        return pd::Interface::createConnection(patch.get(), src, nout, sink, nin);
+        if (auto* oc = pd::Interface::createConnection(patch.get(), src, nout, sink, nin))
+            return WeakReference(oc, instance);
     }
 
     return nullptr;

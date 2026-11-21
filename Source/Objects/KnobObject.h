@@ -988,8 +988,9 @@ public:
             label = labels[0];
         }
 
-        if (label) {
-            auto const& arr = *numberPosition.getValue().getArray();
+        auto const* position = numberPosition.getValue().getArray();
+        if (label && position && position->size() >= 2) {
+            auto const& arr = *position;
             auto const height = ::getValue<int>(numberSize);
             auto const font = Font(FontOptions(height));
             auto const labelText = String(getScaledValue(), 2);

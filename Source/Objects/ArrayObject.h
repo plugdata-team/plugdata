@@ -37,10 +37,10 @@ public:
 
     std::function<void()> reloadGraphs = [] { };
 
-    GraphicalArray(PluginProcessor* instance, void* ptr, Object* parent)
+    GraphicalArray(PluginProcessor* instance, pd::WeakReference const& ptr, Object* parent)
         : NVGComponent(this)
         , object(parent)
-        , arr(ptr, instance)
+        , arr(ptr)
         , edited(false)
         , pd(instance)
     {
@@ -934,8 +934,8 @@ struct ArrayPropertiesPanel final : public PropertiesPanelProperty
 class ArrayListView final : public PropertiesPanel
     , public Value::Listener {
 public:
-    ArrayListView(pd::Instance* instance, void* arr)
-        : array(arr, instance)
+    explicit ArrayListView(pd::WeakReference const& arr)
+        : array(arr)
     {
         update();
     }
@@ -1014,15 +1014,15 @@ public:
     OwnedArray<ArrayListView> lists;
     PluginProcessor* pd;
 
-    ArrayEditorDialog(PluginProcessor* instance, SmallArray<void*> const& arrays, Object* parent)
+    ArrayEditorDialog(PluginProcessor* instance, SmallArray<pd::WeakReference> const& arrays, Object* parent)
         : resizer(this, &constrainer)
         , pd(instance)
     {
-        for (auto* arr : arrays) {
+        for (auto const& arr : arrays) {
             auto* graph = graphs.add(new GraphicalArray(pd, arr, parent));
             addChildComponent(graph);
 
-            auto* list = lists.add(new ArrayListView(pd, arr));
+            auto* list = lists.add(new ArrayListView(arr));
             addChildComponent(list);
         }
         if (graphs.size()) {
@@ -1411,27 +1411,18 @@ public:
         }
     }
 
-    SmallArray<void*> getArrays() const
+    // Created under the pd lock, so Pd can't delete an array before its reference is registered
+    SmallArray<pd::WeakReference> getArrays() const
     {
+        SmallArray<pd::WeakReference> arrays;
         if (auto c = ptr.get<t_canvas>()) {
-            SmallArray<void*> arrays;
-
-            if (auto* x = c->gl_list) {
+            for (auto* x = c->gl_list; x; x = x->g_next) {
                 // We can't compare symbols here, that breaks multi-instance support
-                if (String::fromUTF8(x->g_pd->c_name->s_name) == "array") {
-                    arrays.add(x);
-                }
-                while ((x = x->g_next)) {
-                    if (String::fromUTF8(x->g_pd->c_name->s_name) == "array") {
-                        arrays.add(x);
-                    }
-                }
+                if (String::fromUTF8(x->g_pd->c_name->s_name) == "array")
+                    arrays.add(pd::WeakReference(x, pd));
             }
-
-            return arrays;
         }
-
-        return { };
+        return arrays;
     }
 
     void getMenuOptions(PopupMenu& menu) override
@@ -1560,17 +1551,13 @@ public:
         }
 
         if (auto c = ptr.get<t_canvas>()) {
-            SmallArray<void*> arrays;
-
-            t_glist* x = c.get();
-            if (auto* gl = x->gl_list ? pd_checkglist(&x->gl_list->g_pd)->gl_list : nullptr) {
-                arrays.add(gl);
-                while ((gl = gl->g_next)) {
-                    arrays.add(x);
-                }
+            SmallArray<pd::WeakReference> arrays;
+            if (auto* graph = c->gl_list ? pd_checkglist(&c->gl_list->g_pd) : nullptr) {
+                for (auto* gl = graph->gl_list; gl; gl = gl->g_next)
+                    arrays.add(pd::WeakReference(gl, pd));
             }
 
-            if (!arrays.empty() && arrays[0] != nullptr) {
+            if (!arrays.empty()) {
                 editor = std::make_unique<ArrayEditorDialog>(cnv->pd, arrays, object);
                 editor->onClose = [this] {
                     editor.reset(nullptr);
