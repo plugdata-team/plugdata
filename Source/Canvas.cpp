@@ -1098,9 +1098,16 @@ void Canvas::performSynchronise()
 
         if (it == objects.end()) {
             auto* newObject = objects.add(object, this);
+
+            // Check if the object was deleted in the meantime (we're not holding the lock!)
+            if (!newObject->gui) {
+                objects.remove_one(newObject);
+                continue;
+            }
+
             newObject->toFront(false);
 
-            if (newObject->gui && newObject->gui->getLabel())
+            if (newObject->gui->getLabel())
                 newObject->gui->getLabel()->toFront(false);
         } else {
             auto* object = *it;
