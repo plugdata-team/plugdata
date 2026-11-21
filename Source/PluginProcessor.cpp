@@ -899,6 +899,16 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
     smoothedGain.setTargetValue(mappedTargetGain);
     smoothedGain.applyGain(buffer, buffer.getNumSamples());
 
+    // Note-offs the DAW missed while the backup loop ran go before this block's MIDI, so its notes don't hang
+    for (int channel = 1; channel <= 16; channel++) {
+        auto& noteOffs = backupLoopNoteOffs[channel - 1];
+        for (int note = 0; note < 128 && noteOffs.any(); note++) {
+            if (noteOffs.test(note)) {
+                midiBuffer.addEvent(MidiMessage::noteOff(channel, note), 0);
+                noteOffs.reset(note);
+            }
+        }
+    }
     midiDeviceManager.sendAndCollectMidiOutput(midiBuffer);
     auto const internalSynthPort = midiDeviceManager.getInternalSynthPort();
 
@@ -1673,11 +1683,9 @@ void PluginProcessor::runBackupLoop()
     if (ProjectInfo::isStandalone)
         return;
 
-    auto const now = Time::getMillisecondCounterHiRes();
-
     // Only run backup timer if GUI is visible
     if (!getActiveEditor()) {
-        backupLoopClock = now;
+        backupLoopClock = Time::getMillisecondCounterHiRes();
         return;
     }
 
@@ -1692,12 +1700,14 @@ void PluginProcessor::runBackupLoop()
 
     backupRunLoop.startTimer(backupRunLoopInterval);
 
+    auto const now = Time::getMillisecondCounterHiRes();
+
     setThis();
     lockAudioThread();
 
     // Catch Pd's clock up with the wall clock before new messages arrive, but don't burst after a long stall
     auto const tickMs = 1000.0 * Instance::getBlockSize() / sys_getsr();
-    auto const behindMs = jmin(now - backupLoopClock.load(), 1000.0);
+    auto const behindMs = jlimit(0.0, 1000.0, now - backupLoopClock.load());
     auto const ticks = static_cast<int>(behindMs / tickMs);
     backupLoopClock = now - (behindMs - ticks * tickMs);
     for (int i = 0; i < ticks && !isProcessingAudio; i++) {
@@ -1705,15 +1715,27 @@ void PluginProcessor::runBackupLoop()
         sched_tick_nodsp();
     }
 
+    // MIDI from devices would otherwise queue up until audio resumes
+    midiDeviceManager.dequeueMidiInput(Instance::getBlockSize(), [this](int const port, MidiBuffer const& buffer) {
+        sendMidiBuffer(port, buffer);
+    });
+
     keyHandler.sendKeyUpMessages();
     sendMessagesFromQueue();
     sendParameters();
     unlockAudioThread();
 
-    // The DAW isn't listening: don't let MIDI for it pile up until audio resumes
+    // The DAW isn't listening: don't let MIDI for it pile up until audio resumes, but remember its note-offs for processBlock
     MidiBuffer dawMidiOutput;
     midiDeviceManager.sendAndCollectMidiOutput(dawMidiOutput);
     midiDeviceManager.clearMidiOutputBuffers(std::numeric_limits<int>::max());
+    for (auto const metadata : dawMidiOutput) {
+        auto const message = metadata.getMessage();
+        if (message.isNoteOff())
+            backupLoopNoteOffs[message.getChannel() - 1].set(message.getNoteNumber());
+        else if (message.isAllNotesOff() || message.isAllSoundOff())
+            backupLoopNoteOffs[message.getChannel() - 1].set();
+    }
 }
 
 bool PluginProcessor::toggleRecording(PluginEditor* editor)
