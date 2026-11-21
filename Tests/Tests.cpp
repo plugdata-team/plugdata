@@ -14,6 +14,7 @@
 #include "TabSplitStressTest.h"
 #include "PatchTextFuzzTest.h"
 #include "DecompressTest.h"
+#include "FilesystemInitTest.h"
 #include "MarkupDisplayTest.h"
 #include "StateRoundTripTest.h"
 #include "DialogCoverageTest.h"
@@ -148,6 +149,7 @@ void runTests(PluginEditor* editor)
         TabSplitStressTest tabSplitStressTest(editor);
         PatchTextFuzzTest patchTextFuzzTest(editor);
         DecompressTest decompressTest(editor);
+        FilesystemInitTest filesystemInitTest(editor);
         MarkupDisplayTest markupDisplayTest(editor);
         StateRoundTripTest stateRoundTripTest(editor);
         DialogCoverageTest dialogCoverageTest(editor);
@@ -180,6 +182,7 @@ void runTests(PluginEditor* editor)
             &danglingBindingTest,
             &scalarTemplateTest,
             &decompressTest,
+            &filesystemInitTest,
             &markupDisplayTest,
             &stateRoundTripTest,
             &dialogCoverageTest,
