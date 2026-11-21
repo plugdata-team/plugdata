@@ -586,7 +586,7 @@ NVGGraphicsContext& PluginEditor::getOrCreateNanoLLGC(NVGcontext* nvg, float con
 CallOutBox& PluginEditor::showCalloutBox(std::unique_ptr<Component> content, Rectangle<int> const screenBounds)
 {
     class CalloutDeletionListener : public ComponentListener {
-        PluginEditor* editor;
+        SafePointer<PluginEditor> editor;
 
     public:
         explicit CalloutDeletionListener(PluginEditor* e)
@@ -597,7 +597,8 @@ CallOutBox& PluginEditor::showCalloutBox(std::unique_ptr<Component> content, Rec
         void componentBeingDeleted(Component& c) override
         {
             c.removeComponentListener(this);
-            editor->calloutArea->removeFromDesktop();
+            if (editor)
+                editor->calloutArea->removeFromDesktop();
             delete this;
         }
     };
