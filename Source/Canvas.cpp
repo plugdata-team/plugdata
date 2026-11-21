@@ -1137,6 +1137,10 @@ void Canvas::performSynchronise()
     for (auto& connection : pdConnections) {
         auto& [ptr, inno, inobj, outno, outobj] = connection;
 
+        // Skip connections that Pd deleted since we collected them (we're not holding the lock!)
+        if (!ptr.isValid())
+            continue;
+
         Iolet *inlet = nullptr, *outlet = nullptr;
 
         // Find the objects that this connection is connected to
@@ -1161,19 +1165,20 @@ void Canvas::performSynchronise()
             }
         }
 
-        // This shouldn't be necessary, but just to be sure...
-        if (!inlet || !outlet) {
-            jassertfalse;
+        if (!inlet || !outlet)
             continue;
-        }
 
         auto const* it = std::ranges::find_if(connections,
-            [c_ptr = ptr](auto* c) {
+            [c_ptr = ptr.getRawUnchecked<t_outconnect>()](auto* c) {
                 return c_ptr == c->getPointer();
             });
 
         if (it == connections.end()) {
-            connections.add(this, inlet, outlet, ptr);
+            auto* newConnection = connections.add(this, inlet, outlet, ptr);
+
+            // Check if the connection was deleted in the meantime
+            if (!newConnection->getPointer())
+                connections.remove_one(newConnection);
         } else {
             // This is necessary to make resorting a subpatchers iolets work
             // And it can't hurt to check if the connection is valid anyway
