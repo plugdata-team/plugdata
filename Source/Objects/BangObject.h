@@ -22,7 +22,7 @@ class BangObject final : public ObjectBase
     NVGcolor fgCol;
 
 public:
-    BangObject(pd::WeakReference obj, Object* parent)
+    BangObject(pd::WeakReference const& obj, Object* parent)
         : ObjectBase(obj, parent)
         , iemHelper(obj, parent, this)
     {

@@ -37,7 +37,7 @@ class Object final : public Component
 public:
     explicit Object(Canvas* parent, String const& name = "", Point<int> position = { 100, 100 });
 
-    Object(pd::WeakReference object, Canvas* parent);
+    Object(pd::WeakReference const& object, Canvas* parent);
 
     ~Object() override;
 
@@ -55,7 +55,7 @@ public:
 
     void updateIolets();
 
-    void setType(String const& newType, pd::WeakReference existingObject = nullptr);
+    void setType(String const& newType, pd::WeakReference objectPtr = nullptr);
     void updateBounds();
     void applyBounds();
 

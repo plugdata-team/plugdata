@@ -11,7 +11,7 @@ class SubpatchObject final : public TextObjectBase {
     Value isGraphChild = SynchronousValue(var(false));
 
 public:
-    SubpatchObject(pd::WeakReference obj, Object* object)
+    SubpatchObject(pd::WeakReference const& obj, Object* object)
         : TextObjectBase(obj, object)
         , subpatch(new pd::Patch(obj, cnv->pd, false))
     {

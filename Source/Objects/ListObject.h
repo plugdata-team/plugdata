@@ -17,7 +17,7 @@ class ListObject final : public ObjectBase {
     bool editorActive = false;
 
 public:
-    ListObject(pd::WeakReference obj, Object* parent)
+    ListObject(pd::WeakReference const& obj, Object* parent)
         : ObjectBase(obj, parent)
         , atomHelper(obj, parent, this)
     {

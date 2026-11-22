@@ -33,7 +33,7 @@ Patch::Patch(pd::WeakReference patchPtr, Instance* parentInstance, bool const ow
     , canPatchRedo(false)
     , isPatchDirty(false)
     , currentFile(std::move(patchFile))
-    , ptr(patchPtr)
+    , ptr(std::move(patchPtr))
 {
     jassert(parentInstance);
     updateTitle();
@@ -244,7 +244,7 @@ HeapArray<pd::WeakReference> Patch::getObjects()
     HeapArray<pd::WeakReference> objects;
     if (auto patch = ptr.get<t_glist>()) {
         for (t_gobj* y = patch->gl_list; y; y = y->g_next) {
-            objects.add(pd::WeakReference(y, instance));
+            objects.emplace_back(y, instance);
         }
     }
 

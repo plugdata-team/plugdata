@@ -1091,7 +1091,7 @@ void Canvas::performSynchronise()
     auto pdObjects = patch.getObjects();
     objects.reserve(pdObjects.size());
 
-    for (auto object : pdObjects) {
+    for (auto const& object : pdObjects) {
         auto const* it = std::ranges::find_if(objects, [&object](Object const* b) { return b->getPointer() && b->getPointer() == object.getRawUnchecked<void>(); });
         if (!object.isValid())
             continue;

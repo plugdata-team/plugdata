@@ -291,7 +291,7 @@ public:
                                             atoms = binbuf_getvec(binName);
                                             if (atoms[1].a_type == A_SYMBOL) {
                                                 if (String(atom_getsymbol(&atoms[1])->s_name) == lastName) {
-                                                    paramObjectsToChange.add(pd::WeakReference(canvas, pd));
+                                                    paramObjectsToChange.emplace_back(canvas, pd);
                                                 }
                                             }
                                         }
@@ -308,7 +308,7 @@ public:
                     return paramObjectsToChange;
                 };
 
-                auto const paramsWithLastName = findParamsWithLastName();
+                auto paramsWithLastName = findParamsWithLastName();
 
                 if (paramsWithLastName.size() == 0)
                     return;
@@ -324,9 +324,9 @@ public:
                         callOutBoxSafePtr->dismiss();
                 };
 
-                rawDialogPointer->onYes = [this, paramsWithLastName, newName, callOutBoxSafePtr] {
+                rawDialogPointer->onYes = [this, paramsWithLastName = std::move(paramsWithLastName), newName, callOutBoxSafePtr] {
                     auto const name = "param " + newName;
-                    for (auto objReference : paramsWithLastName) {
+                    for (auto const& objReference : paramsWithLastName) {
                         if (auto obj = objReference.get<t_canvas>()) {
                             pd::Interface::renameObject(obj->gl_owner, &obj->gl_obj.te_g, name.toRawUTF8(), name.getNumBytesAsUTF8());
                         }

@@ -1424,9 +1424,9 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
     SmallArray<pd::WeakReference> openedPatches;
     // Close all patches
     for (auto* cnv = pd_getcanvaslist(); cnv; cnv = cnv->gl_next) {
-        openedPatches.add(pd::WeakReference(cnv, this));
+        openedPatches.emplace_back(cnv, this);
     }
-    for (auto patch : openedPatches) {
+    for (auto const& patch : openedPatches) {
         if (auto cnv = patch.get<t_glist*>()) {
             libpd_closefile(cnv.get());
         }

@@ -33,7 +33,7 @@ class NoteObject final : public ObjectBase
     bool needsRepaint : 1 = false;
 
 public:
-    NoteObject(pd::WeakReference obj, Object* object)
+    NoteObject(pd::WeakReference const& obj, Object* object)
         : ObjectBase(obj, object)
     {
         auto const& colours = getThemeColours();

@@ -16,7 +16,7 @@ class ToggleObject final : public ObjectBase {
     IEMHelper iemHelper;
 
 public:
-    ToggleObject(pd::WeakReference ptr, Object* object)
+    ToggleObject(pd::WeakReference const& ptr, Object* object)
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
     {

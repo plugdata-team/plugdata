@@ -89,7 +89,7 @@ int pdlua_is_lua_object(t_pd* x);
 class NonPatchable final : public ObjectBase {
 
 public:
-    NonPatchable(pd::WeakReference obj, Object* parent)
+    NonPatchable(pd::WeakReference const& obj, Object* parent)
         : ObjectBase(obj, parent)
     {
         parent->setVisible(false);
@@ -155,7 +155,7 @@ void ObjectBase::PropertyListener::valueChanged(Value& v)
     parent->propertyChanged(v);
 }
 
-ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
+ObjectBase::ObjectBase(pd::WeakReference const& obj, Object* parent)
     : NVGComponent(this)
     , ptr(obj)
     , object(parent)
@@ -304,7 +304,7 @@ SmallString ObjectBase::getType() const
     return type;
 }
 
-std::pair<SmallString, bool> ObjectBase::getTypeFromClass(pd::WeakReference classPtr)
+std::pair<SmallString, bool> ObjectBase::getTypeFromClass(pd::WeakReference const& classPtr)
 {
     auto getObjectText = [](t_object* ob) -> SmallString {
         char namebuf[MAXPDSTRING];
@@ -550,7 +550,7 @@ void ObjectBase::sendFloatValue(float const newValue)
     }
 }
 
-ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
+ObjectBase* ObjectBase::createGui(pd::WeakReference const& ptr, Object* parent)
 {
     parent->cnv->pd->setThis();
 
@@ -929,7 +929,7 @@ bool ObjectBase::recurseHvccCompatibility(SmallString const& objectText, pd::Pat
 
     bool compatible = true;
 
-    for (auto object : patch->getObjects()) {
+    for (auto const& object : patch->getObjects()) {
         auto [type, isSubpatchOrAbstraction] = getTypeFromClass(object);
         if(isSubpatchOrAbstraction)
         {

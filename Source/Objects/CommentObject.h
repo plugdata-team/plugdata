@@ -20,7 +20,7 @@ class CommentObject final : public ObjectBase
     TextLayout layout;
 
 public:
-    CommentObject(pd::WeakReference obj, Object* object)
+    CommentObject(pd::WeakReference const& obj, Object* object)
         : ObjectBase(obj, object)
     {
         objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty, 0, true, 0);

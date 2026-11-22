@@ -211,7 +211,7 @@ class GraphOnParent final : public ObjectBase {
 
 public:
     // Graph On Parent
-    GraphOnParent(pd::WeakReference obj, Object* object)
+    GraphOnParent(pd::WeakReference const& obj, Object* object)
         : ObjectBase(obj, object)
         , subpatch(new pd::Patch(obj, cnv->pd, false))
     {

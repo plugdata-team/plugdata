@@ -1895,7 +1895,7 @@ private:
                 name = pd::Interface::getObjectText(object.cast<t_text>());
                 type = pd::Interface::getObjectClassName(object.get());
             }
-            allObjects.emplace_back(objectPtr, name, type);
+            allObjects.emplace_back(std::move(objectPtr), name, type);
         }
 
         for (auto& [objectPtr, name, type] : allObjects) {

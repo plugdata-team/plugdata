@@ -26,7 +26,7 @@ class ScopeObject final : public ObjectBase
     bool freezeScope = false;
 
 public:
-    ScopeObject(pd::WeakReference ptr, Object* object)
+    ScopeObject(pd::WeakReference const& ptr, Object* object)
         : ObjectBase(ptr, object)
     {
 

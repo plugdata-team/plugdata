@@ -194,7 +194,7 @@ class SliderObject final : public ObjectBase {
     float value = 0.0f;
 
 public:
-    SliderObject(pd::WeakReference obj, Object* object)
+    SliderObject(pd::WeakReference const& obj, Object* object)
         : ObjectBase(obj, object)
         , iemHelper(obj, object, this)
     {

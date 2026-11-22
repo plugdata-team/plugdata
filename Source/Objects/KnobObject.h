@@ -404,7 +404,7 @@ class KnobObject final : public ObjectBase {
     float value = 0.0f;
 
 public:
-    KnobObject(pd::WeakReference obj, Object* object)
+    KnobObject(pd::WeakReference const& obj, Object* object)
         : ObjectBase(obj, object)
     {
         addAndMakeVisible(knob);

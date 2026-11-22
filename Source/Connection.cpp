@@ -25,7 +25,7 @@ using namespace juce::gl;
 #include "Pd/Patch.h"
 #include "Components/ConnectionMessageDisplay.h"
 
-Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, pd::WeakReference oc)
+Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, pd::WeakReference const& oc)
     : NVGComponent(this)
     , inlet(s->isInlet() ? s : e)
     , outlet(s->isInlet() ? e : s)

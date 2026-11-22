@@ -1010,6 +1010,15 @@ void Instance::unregisterWeakReference(void* ptr, pd_weak_reference const* ref)
     weakReferenceLock.exit();
 }
 
+void Instance::moveWeakReference(void* ptr, pd_weak_reference const* from, pd_weak_reference* to)
+{
+    ScopedLock const lock(weakReferenceLock);
+    if (auto const entry = pdWeakReferences.find(ptr); entry != pdWeakReferences.end()) {
+        if (auto const it = std::ranges::find(entry->second, from); it != entry->second.end())
+            *it = to;
+    }
+}
+
 void Instance::clearWeakReferences(void* ptr)
 {
     weakReferenceLock.enter();

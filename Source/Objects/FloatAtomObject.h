@@ -19,7 +19,7 @@ class FloatAtomObject final : public ObjectBase {
     float value = 0.0f;
 
 public:
-    FloatAtomObject(pd::WeakReference obj, Object* parent)
+    FloatAtomObject(pd::WeakReference const& obj, Object* parent)
         : ObjectBase(obj, parent)
         , atomHelper(obj, parent, this)
         , input(false)

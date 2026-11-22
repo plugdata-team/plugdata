@@ -108,7 +108,7 @@ class ObjectBase : public Component
     };
 
 public:
-    ObjectBase(pd::WeakReference obj, Object* parent);
+    ObjectBase(pd::WeakReference const& obj, Object* parent);
 
     ~ObjectBase() override;
 
@@ -188,7 +188,7 @@ public:
 
     void receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms) override;
 
-    static ObjectBase* createGui(pd::WeakReference ptr, Object* parent);
+    static ObjectBase* createGui(pd::WeakReference const& ptr, Object* parent);
 
     void updateProperties();
 
@@ -240,7 +240,7 @@ protected:
     void stopEdition();
 
     // Returns pair of {name, isSubpatchOrAbstraction}
-    static std::pair<SmallString, bool> getTypeFromClass(pd::WeakReference classPtr);
+    static std::pair<SmallString, bool> getTypeFromClass(pd::WeakReference const& classPtr);
 
     void setType();
 

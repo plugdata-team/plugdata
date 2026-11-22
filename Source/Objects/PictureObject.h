@@ -23,7 +23,7 @@ class PictureObject final : public ObjectBase
     int offsetX = 0, offsetY = 0;
 
 public:
-    PictureObject(pd::WeakReference ptr, Object* object)
+    PictureObject(pd::WeakReference const& ptr, Object* object)
         : ObjectBase(ptr, object)
     {
         objectParameters.addParamSize(&sizeProperty);

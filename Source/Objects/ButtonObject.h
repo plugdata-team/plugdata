@@ -30,7 +30,7 @@ class ButtonObject final : public ObjectBase {
     Mode mode;
 
 public:
-    ButtonObject(pd::WeakReference obj, Object* parent)
+    ButtonObject(pd::WeakReference const& obj, Object* parent)
         : ObjectBase(obj, parent)
     {
         objectParameters.addParamSize(&sizeProperty);

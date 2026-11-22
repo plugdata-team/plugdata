@@ -23,9 +23,13 @@ struct WeakReference {
 
     WeakReference(WeakReference const& toCopy);
 
+    WeakReference(WeakReference&& toMove) noexcept;
+
     ~WeakReference();
 
     WeakReference& operator=(WeakReference const& other);
+
+    WeakReference& operator=(WeakReference&& other) noexcept;
 
     bool operator==(WeakReference const& other) const
     {

@@ -364,7 +364,7 @@ public:
 
         int index = 0;
 
-        for (auto objectPtr : patch->getObjects()) {
+        for (auto const& objectPtr : patch->getObjects()) {
             SmallString name, type;
             int x = 0, y = 0;
             if (auto object = objectPtr.get<t_pd>()) {

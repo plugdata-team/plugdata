@@ -23,7 +23,7 @@ class GemCanvasObject final : public ObjectBase
     bool shiftDown = false, ctrlDown = false, altDown = false, cmdDown = false;
 
 public:
-    GemCanvasObject(pd::WeakReference ptr, Object* object)
+    GemCanvasObject(pd::WeakReference const& ptr, Object* object)
         : ObjectBase(ptr, object)
     {
         objectParameters.addParamSize(&sizeProperty);

@@ -18,7 +18,7 @@ class CanvasObject final : public ObjectBase {
     NVGcolor selectionAreaCol;
 
 public:
-    CanvasObject(pd::WeakReference ptr, Object* object)
+    CanvasObject(pd::WeakReference const& ptr, Object* object)
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
     {

@@ -211,7 +211,7 @@ class LuaObject final : public ObjectBase
     static inline auto allDrawTargets = UnorderedMap<t_pdlua*, SmallArray<LuaObject*>>();
 
 public:
-    LuaObject(pd::WeakReference ptr, Object* parent)
+    LuaObject(pd::WeakReference const& ptr, Object* parent)
         : ObjectBase(ptr, parent)
         , properties(this, &propertyListener)
     {
@@ -981,7 +981,7 @@ public:
     t_symbol* pdluaxjitSymbol;
     LuaProperties properties;
 
-    LuaTextObject(pd::WeakReference ptr, Object* object)
+    LuaTextObject(pd::WeakReference const& ptr, Object* object)
         : TextObjectBase(ptr, object)
         , properties(this, &propertyListener)
     {

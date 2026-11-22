@@ -1063,7 +1063,7 @@ public:
 struct ScalarObject final : public ObjectBase {
     OwnedArray<Component> templates;
 
-    ScalarObject(pd::WeakReference obj, Object* object)
+    ScalarObject(pd::WeakReference const& obj, Object* object)
         : ObjectBase(obj, object)
     {
         setInterceptsMouseClicks(false, false);

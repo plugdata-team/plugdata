@@ -13,7 +13,7 @@ class DropzoneObject final : public ObjectBase
     Value sizeProperty = SynchronousValue();
 
 public:
-    DropzoneObject(pd::WeakReference ptr, Object* object)
+    DropzoneObject(pd::WeakReference const& ptr, Object* object)
         : ObjectBase(ptr, object)
     {
         objectParameters.addParamSize(&sizeProperty);

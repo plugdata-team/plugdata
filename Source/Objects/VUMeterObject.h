@@ -82,7 +82,7 @@ class VUMeterObject final : public ObjectBase {
     NVGcolor bgCol;
 
 public:
-    VUMeterObject(pd::WeakReference ptr, Object* object)
+    VUMeterObject(pd::WeakReference const& ptr, Object* object)
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
     {

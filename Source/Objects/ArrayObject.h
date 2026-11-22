@@ -1177,7 +1177,7 @@ public:
     Value sizeProperty = SynchronousValue();
 
     // Array component
-    ArrayObject(pd::WeakReference obj, Object* object)
+    ArrayObject(pd::WeakReference const& obj, Object* object)
         : ObjectBase(obj, object)
     {
         reinitialiseGraphs();
@@ -1419,7 +1419,7 @@ public:
             for (auto* x = c->gl_list; x; x = x->g_next) {
                 // We can't compare symbols here, that breaks multi-instance support
                 if (String::fromUTF8(x->g_pd->c_name->s_name) == "array")
-                    arrays.add(pd::WeakReference(x, pd));
+                    arrays.emplace_back(x, pd);
             }
         }
         return arrays;
@@ -1505,7 +1505,7 @@ class ArrayDefineObject final : public TextObjectBase {
     std::unique_ptr<ArrayEditorDialog> editor = nullptr;
 
 public:
-    ArrayDefineObject(pd::WeakReference obj, Object* parent)
+    ArrayDefineObject(pd::WeakReference const& obj, Object* parent)
         : TextObjectBase(obj, parent, true)
     {
     }
@@ -1554,7 +1554,7 @@ public:
             SmallArray<pd::WeakReference> arrays;
             if (auto* graph = c->gl_list ? pd_checkglist(&c->gl_list->g_pd) : nullptr) {
                 for (auto* gl = graph->gl_list; gl; gl = gl->g_next)
-                    arrays.add(pd::WeakReference(gl, pd));
+                    arrays.emplace_back(gl, pd);
             }
 
             if (!arrays.empty()) {

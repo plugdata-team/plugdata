@@ -129,11 +129,11 @@ private:
                         // Just send to all inlets, good to test anyway
                         if(x->g_pd->c_name == gensym("inlet"))
                         {
-                            allInlets.add({x, pd});
+                            allInlets.emplace_back(x, pd);
                         }
                     } while ((x = x->g_next));
 
-                    for(auto inletPtr : allInlets) {
+                    for(auto const& inletPtr : allInlets) {
                         if(auto inlet = inletPtr.get<void>()) {
                             cnv->editor->pd->sendDirectMessage(inlet.get(), SmallString(nameWithoutArgs), std::move(args));
                         }
@@ -156,11 +156,11 @@ private:
                 do {
                     if(x->g_pd->c_name == gensym("inlet"))
                     {
-                        allInlets.add({x, pd});
+                        allInlets.emplace_back(x, pd);
                     }
                 } while ((x = x->g_next));
 
-                for(auto inletPtr : allInlets) {
+                for(auto const& inletPtr : allInlets) {
                     if(auto inlet = inletPtr.get<void>()) {
                         cnv->editor->pd->sendDirectMessage(inlet.get(), SmallString("float"), {generateAtomForType("<float>")});
                         cnv->editor->pd->sendDirectMessage(inlet.get(), SmallString("symbol"), {generateAtomForType("<symbol>")});

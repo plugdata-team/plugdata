@@ -57,7 +57,7 @@ Object::Object(Canvas* parent, String const& name, Point<int> const position)
     updater.addAnimator(activityStateFade);
 }
 
-Object::Object(pd::WeakReference object, Canvas* parent)
+Object::Object(pd::WeakReference const& object, Canvas* parent)
     : NVGComponent(this)
     , cnv(parent)
     , editor(parent->editor)
@@ -362,14 +362,13 @@ void Object::updateBounds()
     }
 }
 
-void Object::setType(String const& newType, pd::WeakReference existingObject)
+void Object::setType(String const& newType, pd::WeakReference objectPtr)
 {
     // Change object type
     String type = newType.upToFirstOccurrenceOf(" ", false, false);
 
-    pd::WeakReference objectPtr = nullptr;
     // use getRawUnchecked instead of isValid because we care about the callers intent: does it want to set from name or from pointer?
-    bool const hasExistingObject = existingObject.getRawUnchecked<void>() != nullptr;
+    bool const hasExistingObject = objectPtr.getRawUnchecked<void>() != nullptr;
     if (!hasExistingObject) {
         auto* patch = &cnv->patch;
         if (gui) {
@@ -390,8 +389,6 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
             auto* newObject = patch->createObject(rect.getX(), rect.getY(), newType);
             objectPtr = pd::WeakReference(newObject, cnv->pd);
         }
-    } else {
-        objectPtr = existingObject;
     }
     if (!objectPtr.getRaw<t_gobj>()) {
         jassert(hasExistingObject);
@@ -643,7 +640,7 @@ void Object::updateTooltips()
         auto* subpatchPtr = subpatch->getPointer().get();
 
         // Check child objects of subpatch for inlet/outlet messages
-        for (auto obj : subpatch->getObjects()) {
+        for (auto const& obj : subpatch->getObjects()) {
 
             if (!obj.isValid())
                 continue;

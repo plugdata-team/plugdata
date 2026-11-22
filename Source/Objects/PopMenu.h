@@ -29,7 +29,7 @@ class PopMenu final : public ObjectBase {
     int currentItem = -1;
 
 public:
-    PopMenu(pd::WeakReference obj, Object* parent)
+    PopMenu(pd::WeakReference const& obj, Object* parent)
         : ObjectBase(obj, parent)
     {
         objectParameters.addParamSize(&sizeProperty);
