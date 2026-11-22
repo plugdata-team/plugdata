@@ -1578,6 +1578,10 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
 
     delete[] xmlData;
 
+    // Apply the [param] messages the patches sent on load now
+    if (MessageManager::existsAndIsCurrentThread())
+        handleUpdateNowIfNeeded();
+
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
         editor->getTabComponent().triggerAsyncUpdate();
         if (auto* s = editor->getSidebarForPanel(Sidebar::ParamPanel))

@@ -191,9 +191,14 @@ public:
         setState(makeState(patch, oversampling));
     }
 
-    void setState(MemoryBlock const& state)
+    // Runs `then` right after the restore, before the message thread gets to anything the plugin queued during it
+    void setState(MemoryBlock const& state, std::function<void()> const& then = {})
     {
-        MessageManager::callSync([this, &state] { instance->setStateInformation(state.getData(), static_cast<int>(state.getSize())); });
+        MessageManager::callSync([this, &state, &then] {
+            instance->setStateInformation(state.getData(), static_cast<int>(state.getSize()));
+            if (then)
+                then();
+        });
     }
 
     MemoryBlock getState()
@@ -409,6 +414,15 @@ public:
 
         in->setValueNotifyingHost(0.42f);
         expect(HostedPlugin::waitForValue(out, 0.42f), "The last restored patch doesn't respond to automation");
+
+        // The audio thread delivers the change while the message thread is still busy
+        beginTest("Automation right after a restore isn't reset to the patch's default");
+        original->setState(state);
+        original->setState(otherPatch, [in] {
+            in->setValueNotifyingHost(0.7f);
+            Thread::sleep(200);
+        });
+        expect(HostedPlugin::waitForValue(out, 0.7f), "Automation sent right after the restore was lost");
     }
 };
 
