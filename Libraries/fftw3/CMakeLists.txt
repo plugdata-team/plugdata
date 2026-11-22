@@ -73,6 +73,37 @@ check_symbol_exists (srand48 stdlib.h HAVE_SRAND48)
 check_symbol_exists (memalign malloc.h HAVE_MEMALIGN)
 check_symbol_exists (posix_memalign stdlib.h HAVE_POSIX_MEMALIGN)
 check_symbol_exists (mach_absolute_time mach/mach_time.h HAVE_MACH_ABSOLUTE_TIME)
+
+# plugdata: FFTW_MEASURE can only benchmark plans when kernel/cycle.h finds a
+# tick counter.  x86 uses rdtsc (selected by compiler macros), macOS uses
+# mach_absolute_time() when both HAVE_MACH_ABSOLUTE_TIME and
+# HAVE_MACH_MACH_TIME_H are defined, and AArch64 uses CNTVCT_EL0 when
+# HAVE_ARMV8_CNTVCT_EL0 is defined.
+#
+# The CMake port was missing the #cmakedefine for HAVE_MACH_MACH_TIME_H even
+# though it checks for the header, and it never enabled the AArch64 counter
+# (only autoconf's --enable-armv8-cntvct-el0 does), so FFTW_MEASURE silently
+# measured nothing on arm64.  Without a timer the planner falls back to a
+# different, for SIMD codelets worse, heuristic than FFTW_ESTIMATE.
+#
+# CNTVCT_EL0 is readable from user space on Linux unless the kernel disables
+# EL0 access, so probe it at configure time; skip the probe when
+# cross-compiling because the result could not be verified.
+include (CheckCSourceRuns)
+string (TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" _fftw_system_processor)
+if (_fftw_system_processor MATCHES "^(aarch64|arm64)$"
+    AND NOT APPLE AND NOT EMSCRIPTEN AND NOT CMAKE_CROSSCOMPILING
+    AND CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+  check_c_source_runs ("
+    #include <stdint.h>
+    int main(void)
+    {
+      uint64_t t;
+      __asm__ __volatile__(\"mrs %0, CNTVCT_EL0\" : \"=r\"(t));
+      return t == 0;
+    }" HAVE_ARMV8_CNTVCT_EL0)
+endif ()
+
 check_symbol_exists (alloca alloca.h HAVE_ALLOCA)
 if (NOT HAVE_ALLOCA)
   unset (HAVE_ALLOCA CACHE)
@@ -313,6 +344,37 @@ if (BUILD_SHARED_LIBS)
 endif ()
 
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
+# plugdata: keep LTO static archives intact with CMake < 4.0.
+#
+# CMake's IPO (LTO) archive rules for GNU and Clang used "ar cr" / "ar r"
+# before CMake 4.0, and these *replace* members that already have the same
+# name.  FFTW has many sources that share a basename across directories: every
+# SIMD flavor has its own codlist.c and genus.c, the codelet files repeat in
+# every flavor directory, and dft/ and rdft/ both have conf.c, plan.c, ... .
+# For large object lists CMake splits the archive command into a create pass
+# and an append pass, so the append pass silently replaces objects from the
+# create pass and the resulting libfftw3f.a is missing members (on Linux
+# x86-64 this showed up as unresolved fftwf_dft_*_genus_sse2 symbols when
+# linking with CMake 3.28 + LTO).
+#
+# CMake >= 4.0 fixed this by switching the IPO rules to the non-replacing
+# "qc" / "q" modes.  Do the same here so older CMake versions (or toolchains
+# that still use the old rules) produce a complete archive.
+if (CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+  if (APPLE OR ANDROID)
+    set (_fftw_arxiv "${CMAKE_AR}")
+  else ()
+    set (_fftw_arxiv "${CMAKE_C_COMPILER_AR}")
+  endif ()
+  if (NOT _fftw_arxiv)
+    set (_fftw_arxiv "${CMAKE_AR}")
+  endif ()
+  set (CMAKE_C_ARCHIVE_CREATE_IPO
+    "\"${_fftw_arxiv}\" qc <TARGET> <LINK_FLAGS> <OBJECTS>")
+  set (CMAKE_C_ARCHIVE_APPEND_IPO
+    "\"${_fftw_arxiv}\" q <TARGET> <LINK_FLAGS> <OBJECTS>")
+endif ()
 
 add_library (${fftw3_lib} ${SOURCEFILES})
 target_include_directories (${fftw3_lib} INTERFACE $<INSTALL_INTERFACE:include>)

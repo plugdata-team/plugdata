@@ -71,6 +71,10 @@
 /* Define if you have enabled the cycle counter on ARMv8 */
 /* #undef HAVE_ARMV8CC */
 
+/* Define if the ARMv8 CNTVCT_EL0 timer is readable from user space.  This
+   enables the tick counter in kernel/cycle.h that FFTW_MEASURE needs. */
+#cmakedefine HAVE_ARMV8_CNTVCT_EL0 1
+
 /* plugdata: HAVE_SSE2, HAVE_AVX, HAVE_AVX2 and HAVE_NEON are enabled per
    target architecture (see CMakeLists.txt), so that one config.h serves every
    slice of a multi-arch build. */
@@ -185,6 +189,11 @@
 
 /* Define to 1 if you have the `mach_absolute_time' function. */
 #cmakedefine HAVE_MACH_ABSOLUTE_TIME 1
+
+/* Define to 1 if you have the <mach/mach_time.h> header file.  Together with
+   HAVE_MACH_ABSOLUTE_TIME this enables the tick counter that FFTW_MEASURE
+   needs (kernel/cycle.h). */
+#cmakedefine HAVE_MACH_MACH_TIME_H 1
 
 /* Define to 1 if you have the <malloc.h> header file. */
 #cmakedefine HAVE_MALLOC_H 1
