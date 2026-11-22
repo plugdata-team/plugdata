@@ -79,7 +79,6 @@ bool ImplementationBase::hasImplementation(SmallString const& type)
     case hash("canvas.mouse"):
     case hash("canvas.vis"):
     case hash("canvas.edit"):
-    case hash("canvas.zoom"):
     case hash("keycode"):
     case hash("mouse"):
     case hash("mousestate"):
@@ -97,8 +96,6 @@ ImplementationBase* ImplementationBase::createImplementation(String const& type,
         return new CanvasMouseObject(ptr, cnv, pd);
     case hash("canvas.vis"):
         return new CanvasVisibleObject(ptr, cnv, pd);
-    case hash("canvas.zoom"):
-        return new CanvasZoomObject(ptr, cnv, pd);
     case hash("canvas.edit"):
         return new CanvasEditObject(ptr, cnv, pd);
     case hash("keycode"):

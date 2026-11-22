@@ -60,32 +60,44 @@
       "description": "nonzero sets grid visibility (default 1)"
     },
     {
+      "name": "-nogrid",
+      "description": "hides the grid"
+    },
+    {
       "name": "-clip <float>",
       "description": "nonzero clips inside the circle (default 1)"
+    },
+    {
+      "name": "-noclip",
+      "description": "doesn't clip inside the circle"
     },
     {
       "name": "-jump <float>",
       "description": "nonzero sets to jump on click mode (default 0)"
     },
     {
-      "name": "-savestate <float>",
-      "description": "nonzero saves the position with the patch (default 0)"
+      "name": "-savestate",
+      "description": "saves the position with the patch"
     },
     {
-      "name": "-bgcolor1 <float, float, float>",
-      "description": "sets the background square's color in RGB"
+      "name": "-bgcolor1 <symbol>",
+      "description": "sets the background square's color in hexadecimal"
     },
     {
-      "name": "-bgcolor2 <float, float, float>",
-      "description": "sets the circle's color in RGB"
+      "name": "-bgcolor2 <symbol>",
+      "description": "sets the circle's color in hexadecimal"
     },
     {
-      "name": "-fgcolor <float, float, float>",
-      "description": "sets foreground color in RGB"
+      "name": "-bgcolor <symbol>",
+      "description": "sets both background colors in hexadecimal"
     },
     {
-      "name": "-usetheme <float>",
-      "description": "nonzero uses Pd's theme colors instead of the colors set here (default 1)"
+      "name": "-fgcolor <symbol>",
+      "description": "sets foreground color in hexadecimal"
+    },
+    {
+      "name": "-theme",
+      "description": "uses Pd's theme colors"
     },
     {
       "name": "-transparent <float>",
@@ -142,24 +154,28 @@
       "description": "nonzero saves the position with the patch"
     },
     {
-      "type": "bgcolor1 <float, float, float>",
-      "description": "sets the background square's color in RGB"
+      "type": "bgcolor1 <anything>",
+      "description": "sets the background square's color as RGB list or symbol"
     },
     {
-      "type": "bgcolor2 <float, float, float>",
-      "description": "sets the circle's color in RGB"
+      "type": "bgcolor2 <anything>",
+      "description": "sets the circle's color as RGB list or symbol"
     },
     {
-      "type": "bgcolor <float, float, float>",
-      "description": "sets both background colors in RGB"
+      "type": "bgcolor <anything>",
+      "description": "sets both background colors as RGB list or symbol"
     },
     {
-      "type": "fgcolor <float, float, float>",
-      "description": "sets foreground color in RGB"
+      "type": "fgcolor <anything>",
+      "description": "sets foreground color as RGB list or symbol"
     },
     {
-      "type": "usetheme <float>",
-      "description": "nonzero uses Pd's theme colors instead of the colors set here"
+      "type": "colors <symbol, symbol>",
+      "description": "sets background and foreground colors as symbols"
+    },
+    {
+      "type": "theme <float>",
+      "description": "nonzero uses Pd's theme colors"
     },
     {
       "type": "transparent <float>",

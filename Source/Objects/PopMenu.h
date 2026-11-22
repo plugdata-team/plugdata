@@ -355,15 +355,22 @@ public:
             object->updateIolets();
             break;
         }
-        case hash("fg"): {
+        case hash("fgcolor"): {
             if (atoms.size() >= 1 && atoms[0].isSymbol()) {
                 primaryColour = colourToVar(convertTclColour(atoms[0].toString()));
             }
             break;
         }
-        case hash("bg"): {
+        case hash("bgcolor"): {
             if (atoms.size() >= 1 && atoms[0].isSymbol()) {
                 secondaryColour = colourToVar(convertTclColour(atoms[0].toString()));
+            }
+            break;
+        }
+        case hash("colors"): {
+            if (atoms.size() >= 2 && atoms[0].isSymbol() && atoms[1].isSymbol()) {
+                secondaryColour = colourToVar(convertTclColour(atoms[0].toString()));
+                primaryColour = colourToVar(convertTclColour(atoms[1].toString()));
             }
             break;
         }

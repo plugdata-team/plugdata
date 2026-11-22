@@ -118,12 +118,16 @@
       "description": "adds an item to the menu"
     },
     {
-      "type": "bg <list>",
-      "description": "sets the background color"
+      "type": "bgcolor <anything>",
+      "description": "sets the background color as RGB list or symbol"
     },
     {
-      "type": "fg <list>",
-      "description": "sets the foreground color"
+      "type": "fgcolor <anything>",
+      "description": "sets the foreground color as RGB list or symbol"
+    },
+    {
+      "type": "colors <symbol, symbol>",
+      "description": "sets background and foreground colors as symbols"
     },
     {
       "type": "receive <symbol>",

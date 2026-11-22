@@ -1,0 +1,162 @@
+{
+  "title": [
+    "incdec"
+  ],
+  "description": "increment/decrement buttons",
+  "origin": "ELSE",
+  "categories": [
+    "UI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "outputs the current value"
+        },
+        {
+          "type": "float",
+          "description": "sets and outputs a value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the current value, or 1/-1 in 'relative' mode"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [
+    {
+      "name": "-width <float>",
+      "description": "sets width in pixels (default 20)"
+    },
+    {
+      "name": "-height <float>",
+      "description": "sets height in pixels (default 30)"
+    },
+    {
+      "name": "-step <float>",
+      "description": "sets the step size (default 1)"
+    },
+    {
+      "name": "-range <float, float>",
+      "description": "sets minimum and maximum (default -1e+06 1e+06)"
+    },
+    {
+      "name": "-repeat <float>",
+      "description": "nonzero repeats while held down (default 0)"
+    },
+    {
+      "name": "-relative <float>",
+      "description": "nonzero outputs 1 or -1 instead of a count (default 0)"
+    },
+    {
+      "name": "-horizontal <float>",
+      "description": "nonzero puts the arrows side by side (default 0)"
+    },
+    {
+      "name": "-savestate",
+      "description": "sets to save state mode"
+    },
+    {
+      "name": "-bgcolor <symbol>",
+      "description": "sets background color in hexadecimal"
+    },
+    {
+      "name": "-fgcolor <symbol>",
+      "description": "sets foreground color in hexadecimal"
+    },
+    {
+      "name": "-theme",
+      "description": "uses Pd's theme colors"
+    },
+    {
+      "name": "-transparent <float>",
+      "description": "nonzero makes the background transparent; bare means 1"
+    },
+    {
+      "name": "-send <symbol>",
+      "description": "sets send symbol (default empty)"
+    },
+    {
+      "name": "-receive <symbol>",
+      "description": "sets receive symbol (default empty)"
+    }
+  ],
+  "methods": [
+    {
+      "type": "set <float>",
+      "description": "sets a value without output"
+    },
+    {
+      "type": "step <float>",
+      "description": "sets the step size"
+    },
+    {
+      "type": "range <float, float>",
+      "description": "sets minimum and maximum values"
+    },
+    {
+      "type": "repeat <float>",
+      "description": "nonzero repeats while held down"
+    },
+    {
+      "type": "relative <float>",
+      "description": "nonzero outputs 1 or -1, not a count"
+    },
+    {
+      "type": "horizontal <float>",
+      "description": "nonzero puts the arrows side by side"
+    },
+    {
+      "type": "width <float>",
+      "description": "sets width in pixels"
+    },
+    {
+      "type": "height <float>",
+      "description": "sets height in pixels"
+    },
+    {
+      "type": "bgcolor <anything>",
+      "description": "sets background color as RGB list or symbol"
+    },
+    {
+      "type": "fgcolor <anything>",
+      "description": "sets foreground color as RGB list or symbol"
+    },
+    {
+      "type": "colors <symbol, symbol>",
+      "description": "sets background and foreground colors as symbols"
+    },
+    {
+      "type": "transparent <float>",
+      "description": "nonzero makes the background transparent"
+    },
+    {
+      "type": "theme <float>",
+      "description": "nonzero uses Pd's theme colors"
+    },
+    {
+      "type": "savestate <float>",
+      "description": "nonzero sets to save state mode"
+    },
+    {
+      "type": "send <symbol>",
+      "description": "sets send symbol"
+    },
+    {
+      "type": "receive <symbol>",
+      "description": "sets receive symbol"
+    }
+  ],
+  "body": "[incdec] is an increment/decrement button GUI. Click the upper (or right) half to add the step size to the current value and the lower (or left) half to subtract it; shift-click steps by a tenth of the step size. The range clips the result. In 'relative' mode it outputs 1 or -1 instead of keeping a count."
+}

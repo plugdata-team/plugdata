@@ -1,0 +1,41 @@
+{
+  "title": [
+    "dcblock~"
+  ],
+  "description": "DC offset filter",
+  "origin": "ELSE",
+  "categories": [
+    "Filters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "signal to be filtered"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "DC filtered signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clears the filter state"
+    }
+  ],
+  "body": "[dcblock~] removes DC offset from a signal with a one-pole highpass filter at 5 Hz. It takes multichannel signals."
+}

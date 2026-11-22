@@ -1,0 +1,94 @@
+{
+  "title": [
+    "nlist.walk"
+  ],
+  "description": "walk through a nested list",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "same as 'next'"
+        },
+        {
+          "type": "float",
+          "description": "sets the depth and goes to its start, a negative depth walks through all of them"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "set name of nested list"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "nested list's indexes"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "info on 'goto' (1 if it found the index, 0 if not) and 'skip' messages"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "when walking on the given depth reaches the end"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "nested list name to bind to",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "next",
+      "description": "walks to the next element"
+    },
+    {
+      "type": "reset",
+      "description": "goes back to the start of the current depth"
+    },
+    {
+      "type": "goto <list>",
+      "description": "goes to the given index"
+    },
+    {
+      "type": "skip",
+      "description": "skips the current element, sending its indexes as 'skip' to the middle outlet"
+    },
+    {
+      "type": "name <symbol>",
+      "description": "set name of nested list"
+    }
+  ],
+  "body": "[nlist.walk] walks and browses through the elements of a nested list one at a time, at a given depth or through all depths in turn (unlike [nlist.iter] and [nlist.traverse]). It starts at depth 0."
+}

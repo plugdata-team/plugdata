@@ -1,0 +1,56 @@
+{
+  "title": [
+    "playlist~"
+  ],
+  "description": "sound file player with a playlist",
+  "origin": "ELSE",
+  "categories": [
+    "Buffers"
+  ],
+  "inlets": [
+    {
+      "messages": [],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "the loaded file's audio, 16 channels wide"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "add <list>",
+      "description": "adds one or more files to the playlist (the first one loads if none is loaded)"
+    },
+    {
+      "type": "remove <float>",
+      "description": "removes the file at that index"
+    },
+    {
+      "type": "clear",
+      "description": "empties the playlist and stops playback"
+    },
+    {
+      "type": "select <float>",
+      "description": "loads a file (index counts from 0), which stops playback and rewinds"
+    },
+    {
+      "type": "play <float>",
+      "description": "nonzero plays, zero pauses"
+    },
+    {
+      "type": "pos <float>",
+      "description": "sets the play position, from 0 to 1"
+    }
+  ],
+  "body": "[playlist~] is a sound file player with a playlist. The waveform of the loaded file is drawn across the top with a play/pause button on its left, and the files are listed underneath: click a row to load it, and click or drag the waveform to move the play position. Files are looked for next to the patch first, then on Pd's search path. The output has 16 channels, so files of up to 16 channels play as they are."
+}

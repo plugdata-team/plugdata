@@ -61,20 +61,20 @@
       "description": "number of rows (default 3)"
     },
     {
-      "name": "-bgcolor <float, float, float>",
-      "description": "background color in RGB"
+      "name": "-bgcolor <symbol>",
+      "description": "background color in hexadecimal (default #FFFFFF)"
     },
     {
-      "name": "-fgcolor <float, float, float>",
-      "description": "active cell color in RGB"
+      "name": "-fgcolor <symbol>",
+      "description": "active cell color in hexadecimal (default #80809F)"
     },
     {
-      "name": "-gridcolor <float, float, float>",
-      "description": "grid line color in RGB"
+      "name": "-gridcolor <symbol>",
+      "description": "grid line color in hexadecimal (default #000000)"
     },
     {
-      "name": "-usetheme <float>",
-      "description": "nonzero uses Pd's theme colors instead of the colors set here (default 1)"
+      "name": "-theme",
+      "description": "uses Pd's theme colors"
     },
     {
       "name": "-transparent",
@@ -123,20 +123,24 @@
       "description": "nonzero save internal contents with the object"
     },
     {
-      "type": "bgcolor <float, float, float>",
-      "description": "sets background color in RGB"
+      "type": "bgcolor <anything>",
+      "description": "sets background color as RGB list or symbol"
     },
     {
-      "type": "fgcolor <float, float, float>",
-      "description": "sets active cell color in RGB"
+      "type": "fgcolor <anything>",
+      "description": "sets active cell color as RGB list or symbol"
     },
     {
-      "type": "gridcolor <float, float, float>",
-      "description": "sets grid line color in RGB"
+      "type": "gridcolor <anything>",
+      "description": "sets grid line color as RGB list or symbol"
     },
     {
-      "type": "usetheme <float>",
-      "description": "nonzero uses Pd's theme colors instead of the colors set here"
+      "type": "colors <symbol, symbol, symbol>",
+      "description": "sets background, grid and active cell colors as symbols"
+    },
+    {
+      "type": "theme <float>",
+      "description": "nonzero uses Pd's theme colors"
     },
     {
       "type": "transparent <float>",

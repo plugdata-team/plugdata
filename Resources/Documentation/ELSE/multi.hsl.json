@@ -1,0 +1,210 @@
+{
+  "title": [
+    "multi.hsl"
+  ],
+  "description": "multi horizontal slider",
+  "origin": "ELSE",
+  "categories": [
+    "UI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "outputs all sliders' values (depends on mode)"
+        },
+        {
+          "type": "float",
+          "description": "sets the first slider's value and outputs all values"
+        },
+        {
+          "type": "list",
+          "description": "sets slider values from the first (0) and outputs them"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "slider number and value, or all values as a list in list mode"
+        },
+        {
+          "type": "export <list>",
+          "description": "all slider values, after an 'export' message"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [
+    {
+      "name": "-width <float>",
+      "description": "sets x dimension (default 200)"
+    },
+    {
+      "name": "-height <float>",
+      "description": "sets y dimension (default 127)"
+    },
+    {
+      "name": "-dim <float, float>",
+      "description": "sets x/y dimensions (default 200 127)"
+    },
+    {
+      "name": "-n <float>",
+      "description": "sets number of sliders (default 8)"
+    },
+    {
+      "name": "-range <float, float>",
+      "description": "sets sliders' range (default 0 127)"
+    },
+    {
+      "name": "-name <symbol>",
+      "description": "sets the array to mirror the values into (default internal, meaning none)"
+    },
+    {
+      "name": "-jump <float>",
+      "description": "nonzero sets jump on click mode (default 0)"
+    },
+    {
+      "name": "-savestate",
+      "description": "sets to save state mode"
+    },
+    {
+      "name": "-send <symbol>",
+      "description": "sets send symbol (default empty)"
+    },
+    {
+      "name": "-receive <symbol>",
+      "description": "sets receive symbol (default empty)"
+    },
+    {
+      "name": "-bgcolor <symbol>",
+      "description": "sets background color in hexadecimal"
+    },
+    {
+      "name": "-fgcolor <symbol>",
+      "description": "sets slider color in hexadecimal"
+    },
+    {
+      "name": "-linecolor <symbol>",
+      "description": "sets value line color in hexadecimal"
+    },
+    {
+      "name": "-set <list>",
+      "description": "sets the sliders' values (default all 0)"
+    },
+    {
+      "name": "-mode <float>",
+      "description": "nonzero sets to list mode (default 0)"
+    },
+    {
+      "name": "-theme",
+      "description": "uses Pd's theme colors"
+    },
+    {
+      "name": "-transparent",
+      "description": "makes the background transparent"
+    }
+  ],
+  "methods": [
+    {
+      "type": "mode <float>",
+      "description": "nonzero sets to list mode"
+    },
+    {
+      "type": "dump",
+      "description": "outputs values sequentially as slider number / value"
+    },
+    {
+      "type": "set <list>",
+      "description": "sets values from the index defined in the first float"
+    },
+    {
+      "type": "setall <float>",
+      "description": "sets all sliders' values"
+    },
+    {
+      "type": "get <list>",
+      "description": "gets sliders values from the first float"
+    },
+    {
+      "type": "dim <float, float>",
+      "description": "sets horizontal/vertical dimensions"
+    },
+    {
+      "type": "width <float>",
+      "description": "sets horizontal size"
+    },
+    {
+      "type": "height <float>",
+      "description": "sets vertical size"
+    },
+    {
+      "type": "range <float, float>",
+      "description": "sets sliders' output range"
+    },
+    {
+      "type": "n <float>",
+      "description": "sets number of sliders"
+    },
+    {
+      "type": "rename <symbol>",
+      "description": "sets the array to mirror the values into"
+    },
+    {
+      "type": "jump <float>",
+      "description": "nonzero sets jump on click mode"
+    },
+    {
+      "type": "import <list>",
+      "description": "sets number of sliders and values (and dumps them)"
+    },
+    {
+      "type": "export",
+      "description": "outputs all slider values as an 'export' message"
+    },
+    {
+      "type": "savestate <float>",
+      "description": "nonzero will save object state"
+    },
+    {
+      "type": "send <symbol>",
+      "description": "sets send name"
+    },
+    {
+      "type": "receive <symbol>",
+      "description": "sets receive name"
+    },
+    {
+      "type": "bgcolor <anything>",
+      "description": "sets background color as RGB list or symbol"
+    },
+    {
+      "type": "fgcolor <anything>",
+      "description": "sets slider color as RGB list or symbol"
+    },
+    {
+      "type": "linecolor <anything>",
+      "description": "sets value line color as RGB list or symbol"
+    },
+    {
+      "type": "colors <symbol, symbol, symbol>",
+      "description": "sets background, slider and line colors as symbols"
+    },
+    {
+      "type": "theme <float>",
+      "description": "nonzero uses Pd's theme colors"
+    },
+    {
+      "type": "transparent <float>",
+      "description": "nonzero makes the background transparent"
+    }
+  ],
+  "body": "[multi.hsl] is a GUI with several horizontal sliders, one above the other (see also [multi.vsl])."
+}

@@ -267,54 +267,6 @@ public:
     }
 };
 
-class CanvasZoomObject final : public ImplementationBase
-    , public Value::Listener {
-
-    float lastScale;
-    Value zoomScaleValue = SynchronousValue();
-
-    Component::SafePointer<Canvas> cnv;
-
-public:
-    using ImplementationBase::ImplementationBase;
-
-    void update() override
-    {
-        if (pd->isPerformingGlobalSync)
-            return;
-
-        if (cnv) {
-            cnv->zoomScale.removeListener(this);
-        }
-
-        if (auto canvasZoom = ptr.get<t_fake_zoom>()) {
-            cnv = getMainCanvas(canvasZoom->x_canvas);
-        }
-
-        if (!cnv)
-            return;
-
-        zoomScaleValue.referTo(cnv->zoomScale);
-        zoomScaleValue.addListener(this);
-        lastScale = getValue<float>(zoomScaleValue);
-    }
-
-    void valueChanged(Value&) override
-    {
-        if (pd->isPerformingGlobalSync)
-            return;
-
-        auto const newScale = getValue<float>(zoomScaleValue);
-        if (!approximatelyEqual(lastScale, newScale)) {
-            if (auto zoom = ptr.get<t_fake_zoom>()) {
-                outlet_float(zoom->x_obj.ob_outlet, newScale);
-            }
-
-            lastScale = newScale;
-        }
-    }
-};
-
 class CanvasEditObject final : public ImplementationBase
     , public Value::Listener {
 

@@ -2152,7 +2152,7 @@ private:
         "grain.live.grain", "synth.voice.template",
         "vocoder.band_clone", "f2s~-help",
         "rev1-final", "rev1-stage", "bpclone", "libpd_receive",
-        "out.mc.hip~", "pvoc~", "gran~", "convpartition",
+        "multi.slider.clone.ex", "pvoc~", "gran~", "convpartition",
         "gatehold.unit", "gaterelease.unit",
         "else", "cyclone", "circle-gui"
     };

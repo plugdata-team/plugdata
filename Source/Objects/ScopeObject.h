@@ -63,9 +63,9 @@ public:
             bufferSize = scope->x_bufsize;
             delay = scope->x_delay;
             samplesPerPoint = scope->x_period;
-            secondaryColour = colourToVar(colourFromHexArray(scope->x_bg));
-            primaryColour = colourToVar(colourFromHexArray(scope->x_fg));
-            gridColour = colourToVar(colourFromHexArray(scope->x_gg));
+            secondaryColour = colourToVar(colourFromSymbol(scope->x_bg));
+            primaryColour = colourToVar(colourFromSymbol(scope->x_fg));
+            gridColour = colourToVar(colourFromSymbol(scope->x_gg));
             sizeProperty = VarArray { var(scope->x_width), var(scope->x_height) };
 
             auto rcvSym = scope->x_rcv_set ? String::fromUTF8(scope->x_rcv_raw->s_name) : getBinbufSymbol(22);
@@ -78,9 +78,14 @@ public:
         object->updateIolets();
     }
 
-    static Colour colourFromHexArray(unsigned char* hex)
+    static Colour colourFromSymbol(t_symbol const* hex)
     {
-        return { hex[0], hex[1], hex[2] };
+        return Colour::fromString(String::fromUTF8(hex->s_name).replace("#", "ff"));
+    }
+
+    t_symbol* colourToSymbol(Value& colour) const
+    {
+        return pd->generateSymbol("#" + getValue<Colour>(colour).toString().substring(2));
     }
 
     Rectangle<int> getPdBounds() override
@@ -268,13 +273,13 @@ public:
             object->updateBounds();
         } else if (v.refersToSameSourceAs(primaryColour)) {
             if (auto scope = ptr.get<t_fake_scope>())
-                colourToHexArray(getValue<Colour>(primaryColour), scope->x_fg);
+                scope->x_fg = colourToSymbol(primaryColour);
         } else if (v.refersToSameSourceAs(secondaryColour)) {
             if (auto scope = ptr.get<t_fake_scope>())
-                colourToHexArray(getValue<Colour>(secondaryColour), scope->x_bg);
+                scope->x_bg = colourToSymbol(secondaryColour);
         } else if (v.refersToSameSourceAs(gridColour)) {
             if (auto scope = ptr.get<t_fake_scope>())
-                colourToHexArray(getValue<Colour>(gridColour), scope->x_gg);
+                scope->x_gg = colourToSymbol(gridColour);
         } else if (v.refersToSameSourceAs(bufferSize)) {
             bufferSize = std::clamp<int>(getValue<int>(bufferSize), 0, SCOPE_MAXBUFSIZE * 4);
 

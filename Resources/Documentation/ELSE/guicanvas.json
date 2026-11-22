@@ -1,0 +1,163 @@
+{
+  "title": [
+    "guicanvas"
+  ],
+  "description": "canvas you draw on with messages",
+  "origin": "ELSE",
+  "categories": [
+    "UI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "renders the current layer"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "1 or 0 for mouse down/up, then x/y"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "x/y while moving or dragging"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [
+    {
+      "name": "-width <float>",
+      "description": "sets width in pixels (default 200)"
+    },
+    {
+      "name": "-height <float>",
+      "description": "sets height in pixels (default 200)"
+    },
+    {
+      "name": "-bgcolor <float, float, float>",
+      "description": "sets background color in RGB"
+    }
+  ],
+  "methods": [
+    {
+      "type": "end",
+      "description": "same as bang"
+    },
+    {
+      "type": "clear <float>",
+      "description": "empties a layer's drawing list, the current one without a float"
+    },
+    {
+      "type": "clearall",
+      "description": "empties every layer's drawing list"
+    },
+    {
+      "type": "layer <float>",
+      "description": "sets the layer the commands go into (0 to 63)"
+    },
+    {
+      "type": "color <float, float, float, float>",
+      "description": "sets RGB color and optional alpha (0 to 1)"
+    },
+    {
+      "type": "linewidth <float>",
+      "description": "sets line width for the next strokes"
+    },
+    {
+      "type": "textalign <float>",
+      "description": "sets text alignment, from 0 (top left) to 8 (bottom right)"
+    },
+    {
+      "type": "fillall",
+      "description": "fills the canvas with the current color"
+    },
+    {
+      "type": "rectangle <list>",
+      "description": "x/y/width/height and 'fill' (default) or 'stroke'"
+    },
+    {
+      "type": "roundedrect <list>",
+      "description": "as rectangle, with a corner radius before the style"
+    },
+    {
+      "type": "ellipse <list>",
+      "description": "x/y/width/height and 'fill' (default) or 'stroke'"
+    },
+    {
+      "type": "arc <list>",
+      "description": "x/y/width/height, start and end angle in degrees (0 at the top, clockwise) and style"
+    },
+    {
+      "type": "line <list>",
+      "description": "x/y of the start and the end point"
+    },
+    {
+      "type": "path <list>",
+      "description": "x/y pairs and 'fill' or 'stroke' (default)"
+    },
+    {
+      "type": "quad <list>",
+      "description": "quadratic bezier: start, control and end point"
+    },
+    {
+      "type": "curve <list>",
+      "description": "cubic bezier: start, 2 control points and end point"
+    },
+    {
+      "type": "text <list>",
+      "description": "symbol, x, y, font size and alignment"
+    },
+    {
+      "type": "image <list>",
+      "description": "image file path, x and y"
+    },
+    {
+      "type": "svg <list>",
+      "description": "svg file path, x and y"
+    },
+    {
+      "type": "translate <float, float>",
+      "description": "shifts the origin by x/y"
+    },
+    {
+      "type": "scale <float, float>",
+      "description": "scales x/y (one float scales both)"
+    },
+    {
+      "type": "reset",
+      "description": "undoes translate and scale"
+    },
+    {
+      "type": "size <float, float>",
+      "description": "sets width and height in pixels"
+    },
+    {
+      "type": "width <float>",
+      "description": "sets width in pixels"
+    },
+    {
+      "type": "height <float>",
+      "description": "sets height in pixels"
+    },
+    {
+      "type": "bgcolor <float, float, float>",
+      "description": "sets background color in RGB"
+    }
+  ],
+  "body": "[guicanvas] is a canvas you draw on with messages. Drawing commands pile up in a list per layer and are only drawn when it gets a bang, so a redraw usually starts with 'clear'. Coordinates are in pixels from the top left corner and colors are in RGB. It also reports mouse clicks and movement over it."
+}
