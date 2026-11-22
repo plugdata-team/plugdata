@@ -16,6 +16,7 @@
 #include "Patch.h"
 #include "MessageListener.h"
 #include "Objects/ImplementationBase.h"
+#include "Objects/TclColours.h"
 #include "Utility/SettingsFile.h"
 
 extern "C" {
@@ -32,6 +33,28 @@ extern "C" {
 EXTERN int sys_load_lib(t_canvas* canvas, char const* classname);
 
 namespace pd {
+
+// What Tk's "winfo rgb" makes of a color: #rgb, #rrggbb, #rrrgggbbb, #rrrrggggbbbb or a name, as #rrggbb
+static String tclColourToHex(String const& name)
+{
+    if (name.startsWithChar('#')) {
+        auto const digits = name.substring(1);
+        auto const n = digits.length() / 3;
+        if (digits.length() % 3 || n < 1 || n > 4 || !digits.containsOnly("0123456789abcdefABCDEF"))
+            return { };
+        String hex = "#";
+        for (int i = 0; i < 3; i++) {
+            auto const part = digits.substring(i * n, i * n + n);
+            hex += n == 1 ? part + part : part.substring(0, 2);
+        }
+        return hex.toLowerCase();
+    }
+    for (auto const& [tclName, colour] : tclColours) {
+        if (tclName.equalsIgnoreCase(name))
+            return "#" + colour.toDisplayString(false).toLowerCase();
+    }
+    return { };
+}
 
 class ConsoleMessageHandler final : public Timer {
     Instance* instance;
@@ -743,6 +766,18 @@ void Instance::initialisePd(String& pdlua_version)
 
             auto* b = binbuf_new();
             binbuf_text(b, reply, strlen(reply));
+            binbuf_eval(b, nullptr, 0, nullptr);
+            binbuf_free(b);
+            break;
+        }
+        case hash("else_color_validate"): {
+            // ELSE GUIs have Tk turn a color into #rrggbb, and pass the message to send back if it's invalid and if it's valid
+            auto const name = String::fromUTF8(atom_getsymbol(argv)->s_name);
+            auto const hex = tclColourToHex(name);
+            auto const reply = hex.isEmpty() ? String::fromUTF8(atom_getsymbol(argv + 1)->s_name).replace("$color_escaped", name.replace(" ", "\\ "))
+                                             : String::fromUTF8(atom_getsymbol(argv + 2)->s_name).replace("$hex_color", hex);
+            auto* b = binbuf_new();
+            binbuf_text(b, reply.toRawUTF8(), reply.getNumBytesAsUTF8());
             binbuf_eval(b, nullptr, 0, nullptr);
             binbuf_free(b);
             break;
