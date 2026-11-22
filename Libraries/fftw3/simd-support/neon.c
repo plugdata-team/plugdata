@@ -23,8 +23,17 @@
 
 #if HAVE_NEON
 
+/* plugdata: NEON (Advanced SIMD) is mandatory on AArch64. The probe below
+   executes an AArch32 encoding, which on AArch64 is a valid instruction that
+   silently clobbers x16 and the flags, so don't run it there. */
+#if defined(__aarch64__) || defined(_M_ARM64)
+  int X(have_simd_neon)(void)
+  {
+       return 1;
+  }
+
 /* check for an environment where signals are known to work */
-#if defined(unix) || defined(linux)
+#elif defined(unix) || defined(linux)
   # include <signal.h>
   # include <setjmp.h>
 
