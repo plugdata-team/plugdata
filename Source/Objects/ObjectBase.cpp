@@ -247,8 +247,8 @@ bool ObjectBase::checkHvccCompatibility()
 
     if (type == "msg") // Prevent mixing up pd message and else/message
     {
-        if (auto* objectPtr = ptr.getRaw<t_gobj>()) {
-            auto const origin = pd::Library::getObjectOrigin(objectPtr);
+        if (auto obj = ptr.get<t_gobj>()) {
+            auto const origin = pd::Library::getObjectOrigin(obj.get());
             if (origin == "ELSE") {
                 pd->logWarning(String("Warning: object message is not supported in Compiled Mode").toRawUTF8());
                 return false;
@@ -272,8 +272,8 @@ SmallString ObjectBase::getTypeWithOriginPrefix() const
     String origin;
     origin.preallocateBytes(32);
 
-    if (auto* objectPtr = ptr.getRaw<t_gobj>()) {
-        origin = pd::Library::getObjectOrigin(objectPtr);
+    if (auto obj = ptr.get<t_gobj>()) {
+        origin = pd::Library::getObjectOrigin(obj.get());
     }
 
     if (origin == "ELSE" && type == "msg") {
