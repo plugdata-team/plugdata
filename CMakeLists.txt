@@ -88,12 +88,33 @@ if(APPLE)
     if(NOT CMAKE_OSX_DEPLOYMENT_TARGET OR CMAKE_OSX_DEPLOYMENT_TARGET VERSION_LESS "16.0")
       set(CMAKE_OSX_DEPLOYMENT_TARGET "16.0" CACHE STRING "Minimum iOS deployment version" FORCE)
     endif()
-  elseif(MACOS_LEGACY)
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "Minimum macOS deployment version")
-    set(CMAKE_OSX_ARCHITECTURES "x86_64;" CACHE STRING "" FORCE)
   else()
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum macOS deployment version")
-    set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
+    # Xcode rejects deployment targets older than its SDK supports (e.g. macOS
+    # 12.0 for Xcode 27), which makes CMake's compiler check fail. Use at least
+    # the minimum supported by the active SDK.
+    if(MACOS_LEGACY)
+      set(_plugdata_macos_target "10.11")
+      set(CMAKE_OSX_ARCHITECTURES "x86_64;" CACHE STRING "" FORCE)
+    else()
+      set(_plugdata_macos_target "10.15")
+      set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
+    endif()
+
+    execute_process(COMMAND xcrun --sdk macosx --show-sdk-path
+      OUTPUT_VARIABLE _plugdata_macos_sdk OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+    if(_plugdata_macos_sdk)
+      execute_process(
+        COMMAND plutil -extract SupportedTargets.macosx.MinimumDeploymentTarget raw -o -
+                "${_plugdata_macos_sdk}/SDKSettings.plist"
+        OUTPUT_VARIABLE _plugdata_sdk_min OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+    endif()
+    if(_plugdata_sdk_min MATCHES "^[0-9]+(\\.[0-9]+)*$"
+       AND _plugdata_macos_target VERSION_LESS _plugdata_sdk_min)
+      set(_plugdata_macos_target "${_plugdata_sdk_min}")
+    endif()
+
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "${_plugdata_macos_target}"
+        CACHE STRING "Minimum macOS deployment version")
   endif()
 
 endif()
