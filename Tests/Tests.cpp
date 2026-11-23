@@ -35,6 +35,7 @@
 #include "SubpatchTabTest.h"
 #include "PluginHostTest.h"
 #include "BackupLoopTest.h"
+#include "StackGuardTest.h"
 
 // Settings come from environment variables, or from TestConfig.json in the app data directory,
 // because an AUv3 extension never sees our environment. "<NAME>_<wrapper>" (e.g.
@@ -142,6 +143,7 @@ void runTests(PluginEditor* editor)
         AbstractionReloadRaceTest abstractionReloadRaceTest(editor);
         SynchroniseDeletionStressTest synchroniseDeletionStressTest(editor);
         DanglingBindingTest danglingBindingTest(editor);
+        StackGuardTest stackGuardTest(editor);
         WeakReferenceLifetimeTest weakReferenceLifetimeTest(editor);
         ScalarTemplateTest scalarTemplateTest(editor);
         UIClickThroughTest uiClickThroughTest(editor);
@@ -180,6 +182,7 @@ void runTests(PluginEditor* editor)
             &abstractionReloadRaceTest,
             &synchroniseDeletionStressTest,
             &danglingBindingTest,
+            &stackGuardTest,
             &scalarTemplateTest,
             &decompressTest,
             &filesystemInitTest,
