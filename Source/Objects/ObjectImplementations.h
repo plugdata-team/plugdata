@@ -314,6 +314,84 @@ public:
     }
 };
 
+class CanvasSelectedObject final : public ImplementationBase
+    , public ChangeListener {
+
+    t_gobj const* subpatch = nullptr;
+    Component::SafePointer<Canvas> parentCanvas;
+
+    static inline SpinLock selectedLock;
+    static inline UnorderedSet<void const*> selectedObjects;
+
+    // Replaces ELSE's bang, which reads Pd's selection. plugdata keeps the selection in the parent Canvas instead
+    static void bang(t_object* x)
+    {
+        bool selected;
+        {
+            SpinLock::ScopedLockType lock(selectedLock);
+            selected = selectedObjects.contains(x);
+        }
+        outlet_float(x->ob_outlet, selected);
+    }
+
+    void setSelected(bool const selected) const
+    {
+        SpinLock::ScopedLockType lock(selectedLock);
+        if (selected)
+            selectedObjects.insert(ptr.getRawUnchecked<void>());
+        else
+            selectedObjects.erase(ptr.getRawUnchecked<void>());
+    }
+
+public:
+    CanvasSelectedObject(t_gobj* obj, t_canvas const* parent, PluginProcessor* pd)
+        : ImplementationBase(obj, parent, pd)
+    {
+        static bool bangReplaced = false;
+        if (!bangReplaced) {
+            pd->lockAudioThread();
+            class_addbang(pd_class(&obj->g_pd), bang);
+            pd->unlockAudioThread();
+            bangReplaced = true;
+        }
+    }
+
+    ~CanvasSelectedObject() override
+    {
+        setSelected(false);
+        if (parentCanvas)
+            parentCanvas->selectedComponents.removeChangeListener(this);
+    }
+
+    void update() override
+    {
+        if (parentCanvas)
+            parentCanvas->selectedComponents.removeChangeListener(this);
+
+        t_canvas const* owner = nullptr;
+        if (auto selected = ptr.get<t_fake_canvas_selected>(); selected && selected->x_canvas) {
+            subpatch = &selected->x_canvas->gl_gobj;
+            owner = selected->x_canvas->gl_owner;
+        }
+
+        parentCanvas = owner ? getMainCanvas(owner) : nullptr;
+        if (parentCanvas)
+            parentCanvas->selectedComponents.addChangeListener(this);
+
+        changeListenerCallback(nullptr);
+    }
+
+    void changeListenerCallback(ChangeBroadcaster*) override
+    {
+        bool selected = false;
+        if (parentCanvas) {
+            for (auto const* object : parentCanvas->getSelectionOfType<Object>())
+                selected |= object->getPointer() == subpatch;
+        }
+        setSelected(selected);
+    }
+};
+
 // Else "mouse" component
 class MouseObject final : public ImplementationBase
     , public Timer {
