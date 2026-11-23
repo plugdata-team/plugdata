@@ -129,11 +129,11 @@ private:
                         // Just send to all inlets, good to test anyway
                         if(x->g_pd->c_name == gensym("inlet"))
                         {
-                            allInlets.add({x, pd});
+                            allInlets.emplace_back(x, pd);
                         }
                     } while ((x = x->g_next));
 
-                    for(auto inletPtr : allInlets) {
+                    for(auto const& inletPtr : allInlets) {
                         if(auto inlet = inletPtr.get<void>()) {
                             cnv->editor->pd->sendDirectMessage(inlet.get(), SmallString(nameWithoutArgs), std::move(args));
                         }
@@ -156,11 +156,11 @@ private:
                 do {
                     if(x->g_pd->c_name == gensym("inlet"))
                     {
-                        allInlets.add({x, pd});
+                        allInlets.emplace_back(x, pd);
                     }
                 } while ((x = x->g_next));
 
-                for(auto inletPtr : allInlets) {
+                for(auto const& inletPtr : allInlets) {
                     if(auto inlet = inletPtr.get<void>()) {
                         cnv->editor->pd->sendDirectMessage(inlet.get(), SmallString("float"), {generateAtomForType("<float>")});
                         cnv->editor->pd->sendDirectMessage(inlet.get(), SmallString("symbol"), {generateAtomForType("<symbol>")});
@@ -173,7 +173,9 @@ private:
             cnv->editor->pd->sendDirectMessage(gobj, SmallString("symbol"), {generateAtomForType("<symbol>")});
         }
 
-        if(cnv->objects.size() > 10)
+        // Count on the Pd side: cnv->objects only updates when the async synchronise() has run,
+        // so a busy message thread could skip the clear and leave old objects in the DSP graph
+        if(cnv->patch.getObjects().size() > 10)
         {
             cnv->editor->getSidebarForPanel(Sidebar::ConsolePanel)->clearConsole();
             cnv->editor->pd->sendDirectMessage(cnv->patch.getRawPointer(), SmallString("clear"), {});

@@ -33,7 +33,7 @@ Patch::Patch(pd::WeakReference patchPtr, Instance* parentInstance, bool const ow
     , canPatchRedo(false)
     , isPatchDirty(false)
     , currentFile(std::move(patchFile))
-    , ptr(patchPtr)
+    , ptr(std::move(patchPtr))
 {
     jassert(parentInstance);
     updateTitle();
@@ -232,7 +232,7 @@ Connections Patch::getConnections() const
         linetraverser_start(&t, patch.get());
 
         while ((oc = linetraverser_next_nosize(&t))) {
-            connections.emplace_back(oc, t.tr_inno, t.tr_ob2, t.tr_outno, t.tr_ob);
+            connections.emplace_back(WeakReference(oc, instance), t.tr_inno, t.tr_ob2, t.tr_outno, t.tr_ob);
         }
     }
 
@@ -244,7 +244,7 @@ HeapArray<pd::WeakReference> Patch::getObjects()
     HeapArray<pd::WeakReference> objects;
     if (auto patch = ptr.get<t_glist>()) {
         for (t_gobj* y = patch->gl_list; y; y = y->g_next) {
-            objects.add(pd::WeakReference(y, instance));
+            objects.emplace_back(y, instance);
         }
     }
 
@@ -510,10 +510,11 @@ void Patch::createConnection(t_object* src, int const nout, t_object* sink, int 
     }
 }
 
-t_outconnect* Patch::createAndReturnConnection(t_object* src, int const nout, t_object* sink, int const nin)
+WeakReference Patch::createAndReturnConnection(t_object* src, int const nout, t_object* sink, int const nin)
 {
     if (auto patch = ptr.get<t_glist>()) {
-        return pd::Interface::createConnection(patch.get(), src, nout, sink, nin);
+        if (auto* oc = pd::Interface::createConnection(patch.get(), src, nout, sink, nin))
+            return WeakReference(oc, instance);
     }
 
     return nullptr;

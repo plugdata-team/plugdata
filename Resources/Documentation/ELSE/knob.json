@@ -120,8 +120,8 @@
       "description": "sets foreground color in hexadecimal (default #000000)"
     },
     {
-      "name": "-notheme",
-      "description": "doesn't use Pd's theme colors"
+      "name": "-theme",
+      "description": "uses Pd's theme colors"
     },
     {
       "name": "-transparent",
@@ -207,7 +207,7 @@
     },
     {
       "type": "theme <float>",
-      "description": "nonzero sets to themed mode (default: 1)"
+      "description": "nonzero sets to themed mode (default: 0)"
     },
     {
       "type": "transparent <float>",

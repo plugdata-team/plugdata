@@ -82,7 +82,7 @@ class VUMeterObject final : public ObjectBase {
     NVGcolor bgCol;
 
 public:
-    VUMeterObject(pd::WeakReference ptr, Object* object)
+    VUMeterObject(pd::WeakReference const& ptr, Object* object)
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
     {
@@ -211,10 +211,13 @@ public:
     {
         auto const& colours = getThemeColours();
 
-        if (!ptr.isValid())
+        float values[2];
+        if (auto vu = ptr.get<t_vu>()) {
+            values[0] = vu->x_fp;
+            values[1] = vu->x_fr;
+        } else {
             return;
-
-        float const values[2] = { ptr.get<t_vu>()->x_fp, ptr.get<t_vu>()->x_fr };
+        }
 
         auto const b = getLocalBounds();
         auto const bS = b.reduced(0.5f);

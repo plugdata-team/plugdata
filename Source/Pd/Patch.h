@@ -10,7 +10,7 @@
 
 namespace pd {
 
-using Connections = HeapArray<std::tuple<t_outconnect*, int, t_object*, int, t_object*>>;
+using Connections = HeapArray<std::tuple<WeakReference, int, t_object*, int, t_object*>>;
 class Instance;
 
 // The Pd patch.
@@ -89,7 +89,7 @@ public:
     bool hasConnection(t_object* src, int nout, t_object* sink, int nin) const;
     bool canConnect(t_object* src, int nout, t_object* sink, int nin) const;
     void createConnection(t_object* src, int nout, t_object* sink, int nin);
-    t_outconnect* createAndReturnConnection(t_object* src, int nout, t_object* sink, int nin);
+    WeakReference createAndReturnConnection(t_object* src, int nout, t_object* sink, int nin);
     void removeConnection(t_object* src, int nout, t_object* sink, int nin, t_symbol* connectionPath);
     t_outconnect* setConnctionPath(t_object* src, int nout, t_object* sink, int nin, t_symbol* oldConnectionPath, t_symbol* newConnectionPath);
 

@@ -27,7 +27,7 @@ class NumberObject final : public ObjectBase {
     NVGcolor flagCol;
 
 public:
-    NumberObject(pd::WeakReference ptr, Object* object)
+    NumberObject(pd::WeakReference const& ptr, Object* object)
         : ObjectBase(ptr, object)
         , input(false)
         , iemHelper(ptr, object, this)

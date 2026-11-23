@@ -18,7 +18,7 @@ EXTERN char* pdgui_strnescape(char* dst, size_t dstlen, char const* src, size_t 
 class IEMHelper {
 
 public:
-    IEMHelper(pd::WeakReference iemgui, Object* parent, ObjectBase* base)
+    IEMHelper(pd::WeakReference const& iemgui, Object* parent, ObjectBase* base)
         : object(parent)
         , gui(base)
         , ptr(iemgui)

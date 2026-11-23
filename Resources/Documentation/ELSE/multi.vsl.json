@@ -84,16 +84,16 @@
       "description": "sets receive symbol (default empty)"
     },
     {
-      "name": "-bgcolor <float, float, float>",
-      "description": "sets background color in RGB"
+      "name": "-bgcolor <symbol>",
+      "description": "sets background color in hexadecimal"
     },
     {
-      "name": "-fgcolor <float, float, float>",
-      "description": "sets slider color in RGB"
+      "name": "-fgcolor <symbol>",
+      "description": "sets slider color in hexadecimal"
     },
     {
-      "name": "-linecolor <float, float, float>",
-      "description": "sets value line color in RGB"
+      "name": "-linecolor <symbol>",
+      "description": "sets value line color in hexadecimal"
     },
     {
       "name": "-set <list>",
@@ -104,8 +104,8 @@
       "description": "nonzero sets to list mode (default 0)"
     },
     {
-      "name": "-usetheme <float>",
-      "description": "nonzero uses Pd's theme colors instead of the colors set here (default 1)"
+      "name": "-theme",
+      "description": "uses Pd's theme colors"
     },
     {
       "name": "-transparent",
@@ -182,20 +182,24 @@
       "description": "sets receive name"
     },
     {
-      "type": "bgcolor <float, float, float>",
-      "description": "sets background color in RGB"
+      "type": "bgcolor <anything>",
+      "description": "sets background color as RGB list or symbol"
     },
     {
-      "type": "fgcolor <float, float, float>",
-      "description": "sets slider color in RGB"
+      "type": "fgcolor <anything>",
+      "description": "sets slider color as RGB list or symbol"
     },
     {
-      "type": "linecolor <float, float, float>",
-      "description": "sets value line color in RGB"
+      "type": "linecolor <anything>",
+      "description": "sets value line color as RGB list or symbol"
     },
     {
-      "type": "usetheme <float>",
-      "description": "nonzero uses Pd's theme colors instead of the colors set here"
+      "type": "colors <symbol, symbol, symbol>",
+      "description": "sets background, slider and line colors as symbols"
+    },
+    {
+      "type": "theme <float>",
+      "description": "nonzero uses Pd's theme colors"
     },
     {
       "type": "transparent <float>",

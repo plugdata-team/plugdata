@@ -88,12 +88,33 @@ if(APPLE)
     if(NOT CMAKE_OSX_DEPLOYMENT_TARGET OR CMAKE_OSX_DEPLOYMENT_TARGET VERSION_LESS "16.0")
       set(CMAKE_OSX_DEPLOYMENT_TARGET "16.0" CACHE STRING "Minimum iOS deployment version" FORCE)
     endif()
-  elseif(MACOS_LEGACY)
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "Minimum macOS deployment version")
-    set(CMAKE_OSX_ARCHITECTURES "x86_64;" CACHE STRING "" FORCE)
   else()
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum macOS deployment version")
-    set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
+    # Xcode rejects deployment targets older than its SDK supports (e.g. macOS
+    # 12.0 for Xcode 27), which makes CMake's compiler check fail. Use at least
+    # the minimum supported by the active SDK.
+    if(MACOS_LEGACY)
+      set(_plugdata_macos_target "10.11")
+      set(CMAKE_OSX_ARCHITECTURES "x86_64;" CACHE STRING "" FORCE)
+    else()
+      set(_plugdata_macos_target "10.15")
+      set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
+    endif()
+
+    execute_process(COMMAND xcrun --sdk macosx --show-sdk-path
+      OUTPUT_VARIABLE _plugdata_macos_sdk OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+    if(_plugdata_macos_sdk)
+      execute_process(
+        COMMAND plutil -extract SupportedTargets.macosx.MinimumDeploymentTarget raw -o -
+                "${_plugdata_macos_sdk}/SDKSettings.plist"
+        OUTPUT_VARIABLE _plugdata_sdk_min OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+    endif()
+    if(_plugdata_sdk_min MATCHES "^[0-9]+(\\.[0-9]+)*$"
+       AND _plugdata_macos_target VERSION_LESS _plugdata_sdk_min)
+      set(_plugdata_macos_target "${_plugdata_sdk_min}")
+    endif()
+
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "${_plugdata_macos_target}"
+        CACHE STRING "Minimum macOS deployment version")
   endif()
 
 endif()
@@ -179,7 +200,17 @@ set_directory_properties(PROPERTIES JUCE_COMPANY_NAME "plugdata")
 set_directory_properties(PROPERTIES JUCE_COMPANY_COPYRIGHT "plugdata by Timothy Schoen")
 set_directory_properties(PROPERTIES JUCE_COMPANY_WEBSITE "plugdata.org")
 
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+if(ENABLE_ASAN AND MSVC)
+    # AddressSanitizer on MSVC needs the dynamic CRT so one shared ASan runtime
+    # (clang_rt.asan_dynamic) serves the whole process. With the static CRT (/MT)
+    # every module links its own static ASan runtime; once an instrumented DLL
+    # (the VST3 plugin, loaded by the standalone's suite test) is pulled in, the
+    # two runtimes fight over the shadow memory and ASan aborts with a spurious
+    # "CHECK failed: kCurrentStackFrameMagic" while reporting an in-bounds access.
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+else()
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
 
 # Make sure missing return types will fail compilation with Clang
 if (CMAKE_C_COMPILER_ID MATCHES "Clang")
@@ -953,6 +984,8 @@ set_target_properties(plugdata_standalone PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE
 endif()
 
 if(MSVC)
+# Allow deeper message dispatch in the standalone, including ASan builds.
+target_link_options(plugdata_standalone PRIVATE "/STACK:8388608")
 set_target_properties(pthreadVSE3 pthreadVCE3 PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
 endif()
 

@@ -18,7 +18,8 @@ pd::WeakReference::WeakReference(void* p, Instance* instance)
     : ptr(p)
     , pd(instance)
 {
-    pd->registerWeakReference(ptr, &weakRef);
+    if (pd)
+        pd->registerWeakReference(ptr, &weakRef);
 }
 
 pd::WeakReference::WeakReference(Instance* instance)
@@ -31,8 +32,26 @@ pd::WeakReference::WeakReference(WeakReference const& toCopy)
     : ptr(toCopy.ptr)
     , pd(toCopy.pd)
 {
-    weakRef = toCopy.weakRef.load();
-    pd->registerWeakReference(ptr, &weakRef);
+    if (auto* instance = pd.get()) {
+        ScopedLock const lock(instance->weakReferenceLock);
+        weakRef = toCopy.weakRef.load();
+        instance->registerWeakReference(ptr, &weakRef);
+    } else {
+        weakRef = false;
+    }
+}
+
+pd::WeakReference::WeakReference(WeakReference&& toMove) noexcept
+    : ptr(toMove.ptr)
+    , pd(std::move(toMove.pd))
+{
+    if (auto* instance = pd.get()) {
+        ScopedLock const lock(instance->weakReferenceLock);
+        weakRef = toMove.weakRef.load();
+        instance->moveWeakReference(ptr, &toMove.weakRef, &weakRef);
+    } else {
+        weakRef = false;
+    }
 }
 
 pd::WeakReference::~WeakReference()
@@ -43,27 +62,53 @@ pd::WeakReference::~WeakReference()
 
 pd::WeakReference& pd::WeakReference::operator=(pd::WeakReference const& other)
 {
-    bool const valid = other.ptr && other.pd;
-    if (valid && this != &other) // Check for self-assignment
-    {
-        pd = other.pd;
+    if (this == &other)
+        return *this;
 
-        pd->weakReferenceLock.enter();
-        pd->unregisterWeakReference(ptr, &other.weakRef);
+    // Unregister this flag from its original owner before changing instances.
+    if (pd)
+        pd->unregisterWeakReference(ptr, &weakRef);
 
-        // Use atomic exchange to safely copy the weakRef value
-        weakRef.store(other.weakRef.load());
-        ptr = other.ptr;
-
-        pd->registerWeakReference(ptr, &weakRef);
-        pd->weakReferenceLock.exit();
+    pd = other.pd;
+    ptr = other.ptr;
+    if (auto* instance = pd.get()) {
+        ScopedLock const lock(instance->weakReferenceLock);
+        weakRef = other.weakRef.load();
+        instance->registerWeakReference(ptr, &weakRef);
+    } else {
+        weakRef = false;
     }
 
     return *this;
 }
 
-void pd::WeakReference::setThis() const
+pd::WeakReference& pd::WeakReference::operator=(pd::WeakReference&& other) noexcept
 {
+    if (this == &other)
+        return *this;
+
     if (pd)
-        pd->setThis();
+        pd->unregisterWeakReference(ptr, &weakRef);
+
+    pd = std::move(other.pd);
+    other.pd = nullptr; // juce::WeakReference's move assignment swaps
+    ptr = other.ptr;
+    if (auto* instance = pd.get()) {
+        ScopedLock const lock(instance->weakReferenceLock);
+        weakRef = other.weakRef.load();
+        instance->moveWeakReference(ptr, &other.weakRef, &weakRef);
+    } else {
+        weakRef = false;
+    }
+
+    return *this;
+}
+
+bool pd::WeakReference::setThis() const
+{
+    if (auto* instance = pd.get()) {
+        instance->setThis();
+        return true;
+    }
+    return false;
 }

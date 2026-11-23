@@ -15,7 +15,7 @@ public:
     int lastTextWidth = 0;
     int32 lastColourARGB = 0;
 
-    OpenFileObject(pd::WeakReference ptr, Object* object)
+    OpenFileObject(pd::WeakReference const& ptr, Object* object)
         : TextObjectBase(ptr, object)
     {
     }

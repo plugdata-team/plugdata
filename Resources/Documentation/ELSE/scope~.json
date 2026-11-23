@@ -57,16 +57,16 @@
       "description": "sets vertical range (default -1 1)"
     },
     {
-      "name": "-fgcolor <float, float, float>",
-      "description": "sets front/signal RGB color"
+      "name": "-fgcolor <symbol>",
+      "description": "sets front/signal color in hexadecimal (default #1e1e1e)"
     },
     {
-      "name": "-bgcolor <float, float, float>",
-      "description": "sets background RGB color"
+      "name": "-bgcolor <symbol>",
+      "description": "sets background color in hexadecimal (default #bebebe)"
     },
     {
-      "name": "-gridcolor <float, float, float>",
-      "description": "sets grid RGB color"
+      "name": "-gridcolor <symbol>",
+      "description": "sets grid color in hexadecimal (default #a0a0a0)"
     },
     {
       "name": "-trigger <float>",
@@ -77,12 +77,24 @@
       "description": "sets threshold level for the trigger mode (default 0)"
     },
     {
-      "name": "-delay <float>",
-      "description": "sets onset time delay between displays (default 0)"
+      "name": "-rate <float>",
+      "description": "sets time in ms between displays (default 0)"
     },
     {
       "name": "-receive <symbol>",
       "description": "sets receive symbol (default empty)"
+    },
+    {
+      "name": "-theme",
+      "description": "uses Pd's theme colors"
+    },
+    {
+      "name": "-transparent",
+      "description": "makes the background transparent"
+    },
+    {
+      "name": "-linewidth <float>",
+      "description": "sets the signal line width, 1 to 4 (default 1)"
     }
   ],
   "methods": [
@@ -103,16 +115,32 @@
       "description": "sets vertical range (default -1 1)"
     },
     {
-      "type": "fgcolor <float, float, float>",
-      "description": "sets front/signal RGB color (values 0-255)"
+      "type": "linewidth <float>",
+      "description": "sets the signal line width (1 to 4)"
     },
     {
-      "type": "bgcolor <float, float, float>",
-      "description": "sets background RGB color (values 0-255)"
+      "type": "transparent <float>",
+      "description": "nonzero sets to transparent background"
     },
     {
-      "type": "gridcolor <float, float, float>",
-      "description": "sets grid RGB color (values 0-255)"
+      "type": "theme <float>",
+      "description": "nonzero uses Pd's theme colors"
+    },
+    {
+      "type": "fgcolor <anything>",
+      "description": "sets front/signal color as RGB list or symbol"
+    },
+    {
+      "type": "bgcolor <anything>",
+      "description": "sets background color as RGB list or symbol"
+    },
+    {
+      "type": "gridcolor <anything>",
+      "description": "sets grid color as RGB list or symbol"
+    },
+    {
+      "type": "colors <symbol, symbol, symbol>",
+      "description": "sets background, grid and front/signal colors as symbols"
     },
     {
       "type": "trigger <float>",
@@ -123,8 +151,8 @@
       "description": "sets threshold level for the trigger mode (default 0)"
     },
     {
-      "type": "delay <float>",
-      "description": "onset time delay between displays (default 0)"
+      "type": "rate <float>",
+      "description": "sets time in ms between displays (default 0)"
     },
     {
       "type": "receive <symbol>",

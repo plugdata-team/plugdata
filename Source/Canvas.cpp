@@ -1061,9 +1061,9 @@ void Canvas::performSynchronise()
     static bool alreadyFlushed = false;
     bool const needsFlush = !alreadyFlushed;
     ScopedValueSetter<bool> flushGuard(alreadyFlushed, true);
-    // By flushing twice, we can make sure that any message sent before this point will be dequeued
+    // Dequeue every message Pd sent before this point
     if (needsFlush && !isGraph)
-        pd->doubleFlushMessageQueue();
+        pd->flushMessageQueue();
 
     // Remove deleted connections
     for (int n = connections.size() - 1; n >= 0; n--) {
@@ -1091,16 +1091,23 @@ void Canvas::performSynchronise()
     auto pdObjects = patch.getObjects();
     objects.reserve(pdObjects.size());
 
-    for (auto object : pdObjects) {
+    for (auto const& object : pdObjects) {
         auto const* it = std::ranges::find_if(objects, [&object](Object const* b) { return b->getPointer() && b->getPointer() == object.getRawUnchecked<void>(); });
         if (!object.isValid())
             continue;
 
         if (it == objects.end()) {
             auto* newObject = objects.add(object, this);
+
+            // Check if the object was deleted in the meantime (we're not holding the lock!)
+            if (!newObject->gui) {
+                objects.remove_one(newObject);
+                continue;
+            }
+
             newObject->toFront(false);
 
-            if (newObject->gui && newObject->gui->getLabel())
+            if (newObject->gui->getLabel())
                 newObject->gui->getLabel()->toFront(false);
         } else {
             auto* object = *it;
@@ -1130,6 +1137,10 @@ void Canvas::performSynchronise()
     for (auto& connection : pdConnections) {
         auto& [ptr, inno, inobj, outno, outobj] = connection;
 
+        // Skip connections that Pd deleted since we collected them (we're not holding the lock!)
+        if (!ptr.isValid())
+            continue;
+
         Iolet *inlet = nullptr, *outlet = nullptr;
 
         // Find the objects that this connection is connected to
@@ -1154,19 +1165,20 @@ void Canvas::performSynchronise()
             }
         }
 
-        // This shouldn't be necessary, but just to be sure...
-        if (!inlet || !outlet) {
-            jassertfalse;
+        if (!inlet || !outlet)
             continue;
-        }
 
         auto const* it = std::ranges::find_if(connections,
-            [c_ptr = ptr](auto* c) {
+            [c_ptr = ptr.getRawUnchecked<t_outconnect>()](auto* c) {
                 return c_ptr == c->getPointer();
             });
 
         if (it == connections.end()) {
-            connections.add(this, inlet, outlet, ptr);
+            auto* newConnection = connections.add(this, inlet, outlet, ptr);
+
+            // Check if the connection was deleted in the meantime
+            if (!newConnection->getPointer())
+                connections.remove_one(newConnection);
         } else {
             // This is necessary to make resorting a subpatchers iolets work
             // And it can't hurt to check if the connection is valid anyway
@@ -1174,6 +1186,8 @@ void Canvas::performSynchronise()
                 int const idx = connections.index_of(*it);
                 connections.remove_one(*it);
                 connections.insert(idx, this, inlet, outlet, ptr);
+                if (!connections[idx]->getPointer())
+                    connections.remove_at(idx);
             } else {
                 c.popPathState();
             }
@@ -2612,7 +2626,11 @@ void Canvas::valueChanged(Value& v)
             graphArea.reset(nullptr);
         }
 
-        synchroniseAllCanvases();
+        for (auto* editorWindow : pd->getEditors()) {
+            for (auto* canvas : editorWindow->getTabComponent().getCanvases())
+                canvas->synchronise();
+        }
+
         updateOverlays();
         repaint();
     } else if (v.refersToSameSourceAs(xRange)) {

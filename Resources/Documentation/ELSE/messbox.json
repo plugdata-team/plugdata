@@ -52,6 +52,10 @@
       "description": "background color"
     },
     {
+      "name": "-theme",
+      "description": "uses Pd's theme colors"
+    },
+    {
       "name": "-bold",
       "description": "nonzero sets to bold"
     }
@@ -78,12 +82,20 @@
       "description": "nonzero sets to bold"
     },
     {
-      "type": "bgcolor <float, float, float>",
-      "description": "sets background color"
+      "type": "theme <float>",
+      "description": "nonzero uses Pd's theme colors"
     },
     {
-      "type": "fgcolor <float, float, float>",
-      "description": "sets text color"
+      "type": "bgcolor <anything>",
+      "description": "sets background color as RGB list or symbol"
+    },
+    {
+      "type": "fgcolor <anything>",
+      "description": "sets text color as RGB list or symbol"
+    },
+    {
+      "type": "colors <symbol, symbol>",
+      "description": "sets background and text colors as symbols"
     }
   ],
   "body": "The [messbox] object is an object you can type in messages while in run mode. It's like atom boxes but does all that a message box does. Any message type is possible. It deals with dollar signs, comma and semicolons in the same way as regular message boxes."

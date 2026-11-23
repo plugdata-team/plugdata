@@ -42,7 +42,7 @@
       "description": "default 0"
     },
     {
-      "name": "-color <float, float, float>",
+      "name": "-textcolor <float, float, float>",
       "description": "default 0 0 0"
     },
     {
@@ -50,8 +50,8 @@
       "description": "default 255 255 255"
     },
     {
-      "name": "-bg",
-      "description": ""
+      "name": "-transparent",
+      "description": "transparent background"
     },
     {
       "name": "-outline",
@@ -72,6 +72,10 @@
     {
       "name": "-width <float>",
       "description": "default 0"
+    },
+    {
+      "name": "-theme",
+      "description": "uses Pd's theme colors"
     }
   ],
   "methods": [
@@ -116,16 +120,28 @@
       "description": "sets width in pixels"
     },
     {
-      "type": "color <float, float, float>",
-      "description": "sets RGB text color (values from 0 to 255)"
+      "type": "transparent <float>",
+      "description": "nonzero sets to transparent background"
     },
     {
-      "type": "bgcolor <float, float, float>",
-      "description": "sets RGB background color (values from 0 to 255)"
+      "type": "theme <float>",
+      "description": "nonzero uses Pd's theme colors"
     },
     {
-      "type": "bg <float>",
-      "description": "background flag (0 suppresses background)"
+      "type": "bgcolor <anything>",
+      "description": "sets background color as a symbol or RGB list"
+    },
+    {
+      "type": "textcolor <anything>",
+      "description": "sets text color as a symbol or RGB list"
+    },
+    {
+      "type": "colors <symbol, symbol>",
+      "description": "sets background and text colors, respectively"
+    },
+    {
+      "type": "color <anything>",
+      "description": "same as 'textcolor'"
     },
     {
       "type": "outline <float>",

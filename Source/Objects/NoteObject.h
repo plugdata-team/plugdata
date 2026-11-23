@@ -33,7 +33,7 @@ class NoteObject final : public ObjectBase
     bool needsRepaint : 1 = false;
 
 public:
-    NoteObject(pd::WeakReference obj, Object* object)
+    NoteObject(pd::WeakReference const& obj, Object* object)
         : ObjectBase(obj, object)
     {
         auto const& colours = getThemeColours();
@@ -153,7 +153,7 @@ public:
             bold = note->x_bold;
             italic = note->x_italic;
             underline = note->x_underline;
-            fillBackground = note->x_bg_flag;
+            fillBackground = !note->x_transparent;
             justification = note->x_textjust + 1;
             outline = note->x_outline;
             width = note->x_max_pixwidth;
@@ -400,7 +400,7 @@ public:
             updateFont();
         } else if (v.refersToSameSourceAs(fillBackground)) {
             if (auto note = ptr.get<t_fake_note>())
-                note->x_bg_flag = getValue<int>(fillBackground);
+                note->x_transparent = !getValue<int>(fillBackground);
             needsRepaint = true;
             repaint();
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
@@ -511,6 +511,12 @@ public:
             needsRepaint = true;
             break;
         }
+        case hash("colors"):
+            if (auto note = ptr.get<t_fake_note>()) {
+                secondaryColour = colourToVar(Colour(note->x_bg[0], note->x_bg[1], note->x_bg[2]));
+            }
+            [[fallthrough]];
+        case hash("textcolor"):
         case hash("color"): {
             if (auto note = ptr.get<t_fake_note>()) {
                 primaryColour = colourToVar(Colour(note->x_red, note->x_green, note->x_blue));
@@ -544,9 +550,9 @@ public:
                 setParameterExcludingListener(receiveSymbol, atoms[0].toString());
             break;
         }
-        case hash("bg"): {
-            if (atoms.size() > 0 && atoms[0].isFloat())
-                fillBackground = atoms[0].getFloat();
+        case hash("transparent"): {
+            if (auto note = ptr.get<t_fake_note>())
+                fillBackground = !note->x_transparent;
             break;
         }
         default:

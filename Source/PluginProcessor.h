@@ -5,6 +5,7 @@
 */
 
 #pragma once
+#include <bitset>
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_dsp/juce_dsp.h>
@@ -59,7 +60,6 @@ public:
     void updateAllEditorsLNF();
 
     void flushMessageQueue();
-    void doubleFlushMessageQueue();
 
 #ifndef JucePlugin_PreferredChannelConfigurations
     bool isBusesLayoutSupported(BusesLayout const& layouts) const override;
@@ -291,10 +291,12 @@ private:
 
     HostInfoUpdater hostInfoUpdater;
 
-    int backupRunLoopInterval;
+    int backupRunLoopInterval = 24;
     TimedCallback backupRunLoop = TimedCallback([this] { runBackupLoop(); });
     CriticalSection backupLoopLock;
     AtomicValue<bool> isProcessingAudio;
+    AtomicValue<double> backupLoopClock = Time::getMillisecondCounterHiRes(); // Wall-clock ms that Pd's clock has caught up with
+    std::array<std::bitset<128>, 16> backupLoopNoteOffs;                      // Per channel: notes released while the backup loop ran, which the DAW didn't get
     std::unique_ptr<Recorder> recorder;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginProcessor)
 };

@@ -15,7 +15,7 @@ class CloneObject final : public TextObjectBase {
     pd::Patch::Ptr subpatch;
 
 public:
-    CloneObject(pd::WeakReference obj, Object* object)
+    CloneObject(pd::WeakReference const& obj, Object* object)
         : TextObjectBase(obj, object)
     {
         if (auto gobj = ptr.get<t_gobj>()) {

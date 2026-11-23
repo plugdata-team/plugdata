@@ -55,24 +55,24 @@
       "description": "prevents flashing when getting data"
     },
     {
-      "name": "-notheme",
-      "description": "don't use Pd's color from theme"
+      "name": "-theme",
+      "description": "uses Pd's theme colors"
     },
     {
       "name": "-transparent",
       "description": "makes the background transparent"
     },
     {
-      "name": "-bgcolor <float, float, float>",
-      "description": "background color in RGB (default 224 224 224)"
+      "name": "-bgcolor <symbol>",
+      "description": "background color in hexadecimal (default #E0E0E0)"
     },
     {
-      "name": "-flashcolor <float, float, float>",
-      "description": "flash color in RGB (default 74 79 81)"
+      "name": "-flashcolor <symbol>",
+      "description": "flash color in hexadecimal (default #4A4F51)"
     },
     {
-      "name": "-fgcolor <float, float, float>",
-      "description": "text color in RGB (default 64 64 64)"
+      "name": "-fgcolor <symbol>",
+      "description": "text color in hexadecimal (default #404040)"
     }
   ],
   "methods": [],

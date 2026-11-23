@@ -97,7 +97,6 @@ private:
             "#X obj 350 620 print coverage;\n"
             "#X obj 470 620 canvas.mouse;\n"
             "#X obj 600 620 canvas.vis;\n"
-            "#X obj 720 620 canvas.zoom;\n"
             "#X obj 840 620 canvas.edit;\n"
             "#X obj 470 660 keycode;\n"
             "#X obj 570 660 mouse;\n"
@@ -639,7 +638,7 @@ private:
         properties.addButton.hitTest(10, 10);
 
         if (arrays.not_empty()) {
-            ArrayListView list(editor->pd, arrays.front());
+            ArrayListView list(arrays.front());
             list.setBounds(0, 0, 500, 320);
             list.parentSizeChanged();
             list.update();

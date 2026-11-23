@@ -145,7 +145,7 @@ public:
         bool const debugPrint = getValue<int>(debugPrintValue);
         usbMidiProperty->setEnabled(!debugPrint && !flashingBootloader);
 
-        boardFileProperty->setEnabled(getValue<int>(targetBoardValue) == 10);
+        boardFileProperty->setEnabled(getValue<int>(targetBoardValue) == 13);
 
         // need to actually hide these properties until needed
         bool const customLinker = getValue<int>(patchSizeValue) == 6;

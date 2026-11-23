@@ -160,7 +160,7 @@ protected:
     bool isLocked;
 
 public:
-    TextObjectBase(pd::WeakReference obj, Object* parent, bool const valid = true)
+    TextObjectBase(pd::WeakReference const& obj, Object* parent, bool const valid = true)
         : ObjectBase(obj, parent)
         , isValid(valid)
     {
@@ -584,7 +584,7 @@ public:
 class TextObject final : public TextObjectBase {
 
 public:
-    TextObject(pd::WeakReference obj, Object* parent, bool const isValid = true)
+    TextObject(pd::WeakReference const& obj, Object* parent, bool const isValid = true)
         : TextObjectBase(obj, parent, isValid)
     {
     }

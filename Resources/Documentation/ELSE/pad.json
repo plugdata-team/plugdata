@@ -33,6 +33,18 @@
     {
       "name": "-dim <float, float>",
       "description": "set horizontal and vertical dimensions (default 127 127)"
+    },
+    {
+      "name": "-color <float, float, float>",
+      "description": "sets color in RGB"
+    },
+    {
+      "name": "-transparent",
+      "description": "makes the background transparent"
+    },
+    {
+      "name": "-theme",
+      "description": "uses Pd's theme colors"
     }
   ],
   "methods": [
@@ -49,12 +61,16 @@
       "description": "set height"
     },
     {
-      "type": "color <float, float, float>",
-      "description": "set RGB color"
+      "type": "color <anything>",
+      "description": "sets color as RGB list or symbol"
     },
     {
       "type": "transparent <float>",
-      "description": "set background transparency"
+      "description": "nonzero sets to transparent background"
+    },
+    {
+      "type": "theme <float>",
+      "description": "nonzero uses Pd's theme colors"
     }
   ],
   "body": "[pad] is a GUI object that reports mouse coordinates over its area and click status. If you click and drag, you can get values outside the GUI area."

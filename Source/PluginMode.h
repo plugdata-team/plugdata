@@ -221,6 +221,7 @@ public:
         NVGScopedState scopedState(nvg);
         auto const scale = pluginModeScale;
 
+        nanovg::nvgScissor(nvg, 0, 0, getWidth(), getHeight());
         nanovg::nvgFillColor(nvg, nvgColour(getThemeColours(*this).canvasBackgroundColour));
         nanovg::nvgFillRect(nvg, 0, 0, editor->getWidth(), editor->getHeight());
 

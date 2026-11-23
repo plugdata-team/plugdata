@@ -103,10 +103,26 @@ public:
         });
     }
 
-    void startAudio()
+    void prepare()
     {
         MessageManager::callSync([this] { instance->prepareToPlay(sampleRate, blockSize); });
+    }
+
+    void startAudio()
+    {
+        prepare();
+        resumeAudio();
+    }
+
+    void resumeAudio()
+    {
         startThread(Priority::high);
+    }
+
+    // Stops calling processBlock without releasing resources, like a DAW that skips an idle track
+    void pauseAudio()
+    {
+        stopThread(5000);
     }
 
     void stopAudio()
@@ -117,17 +133,34 @@ public:
         MessageManager::callSync([this] { instance->releaseResources(); });
     }
 
+    // Renders one block on the calling thread, while the audio thread is stopped, and returns the plugin's MIDI output
+    MidiBuffer processBlock()
+    {
+        jassert(!isThreadRunning());
+        AudioBuffer<float> buffer(jmax(1, instance->getTotalNumInputChannels(), instance->getTotalNumOutputChannels()), blockSize);
+        buffer.clear();
+        MidiBuffer midi;
+        instance->processBlock(buffer, midi);
+        return midi;
+    }
+
     void showEditor()
     {
         MessageManager::callSync([this] { window = std::make_unique<EditorWindow>(instance->createEditorIfNeeded()); });
     }
 
+    void closeEditor()
+    {
+        MessageManager::callSync([this] { window.reset(); });
+    }
+
     // Holds the blob PluginProcessor::setStateInformation reads: an empty legacy header, then the XML state
-    static MemoryBlock makeState(String const& patch)
+    static MemoryBlock makeState(String const& patch, int const oversampling = 0)
     {
         XmlElement xml("plugdata_save");
         xml.setAttribute("Version", PLUGDATA_VERSION);
         xml.setAttribute("Legacy", false);
+        xml.setAttribute("Oversampling", oversampling);
         auto* patchXml = xml.createNewChildElement("Patches")->createNewChildElement("Patch");
         patchXml->setAttribute("Content", patch);
         patchXml->setAttribute("Location", "");
@@ -153,14 +186,19 @@ public:
         return hostState;
     }
 
-    void loadPatch(String const& patch)
+    void loadPatch(String const& patch, int const oversampling = 0)
     {
-        setState(makeState(patch));
+        setState(makeState(patch, oversampling));
     }
 
-    void setState(MemoryBlock const& state)
+    // Runs `then` right after the restore, before the message thread gets to anything the plugin queued during it
+    void setState(MemoryBlock const& state, std::function<void()> const& then = {})
     {
-        MessageManager::callSync([this, &state] { instance->setStateInformation(state.getData(), static_cast<int>(state.getSize())); });
+        MessageManager::callSync([this, &state, &then] {
+            instance->setStateInformation(state.getData(), static_cast<int>(state.getSize()));
+            if (then)
+                then();
+        });
     }
 
     MemoryBlock getState()
@@ -376,6 +414,15 @@ public:
 
         in->setValueNotifyingHost(0.42f);
         expect(HostedPlugin::waitForValue(out, 0.42f), "The last restored patch doesn't respond to automation");
+
+        // The audio thread delivers the change while the message thread is still busy
+        beginTest("Automation right after a restore isn't reset to the patch's default");
+        original->setState(state);
+        original->setState(otherPatch, [in] {
+            in->setValueNotifyingHost(0.7f);
+            Thread::sleep(200);
+        });
+        expect(HostedPlugin::waitForValue(out, 0.7f), "Automation sent right after the restore was lost");
     }
 };
 

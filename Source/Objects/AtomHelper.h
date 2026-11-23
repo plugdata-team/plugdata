@@ -44,7 +44,7 @@ public:
 
     ObjectParameters objectParameters;
 
-    AtomHelper(pd::WeakReference pointer, Object* parent, ObjectBase* base)
+    AtomHelper(pd::WeakReference const& pointer, Object* parent, ObjectBase* base)
         : object(parent)
         , gui(base)
         , cnv(parent->cnv)

@@ -21,7 +21,7 @@ class MessboxObject final : public ObjectBase
     bool needsRepaint = true;
 
 public:
-    MessboxObject(pd::WeakReference obj, Object* parent)
+    MessboxObject(pd::WeakReference const& obj, Object* parent)
         : ObjectBase(obj, parent)
     {
         auto const& colours = getThemeColours();

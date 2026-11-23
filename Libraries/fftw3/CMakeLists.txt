@@ -21,10 +21,7 @@ option (ENABLE_FLOAT "single-precision" ON)
 option (ENABLE_LONG_DOUBLE "long-double precision" OFF)
 option (ENABLE_QUAD_PRECISION "quadruple-precision" OFF)
 
-option (ENABLE_SSE "Compile with SSE instruction set support" OFF)
-option (ENABLE_SSE2 "Compile with SSE2 instruction set support" OFF)
-option (ENABLE_AVX "Compile with AVX instruction set support" OFF)
-option (ENABLE_AVX2 "Compile with AVX2 instruction set support" OFF)
+option (ENABLE_SIMD "Compile SSE2/AVX/AVX2 (x86_64) and NEON (arm64) codelets" ON)
 
 option (DISABLE_FORTRAN "Disable Fortran wrapper routines" OFF)
 
@@ -76,6 +73,37 @@ check_symbol_exists (srand48 stdlib.h HAVE_SRAND48)
 check_symbol_exists (memalign malloc.h HAVE_MEMALIGN)
 check_symbol_exists (posix_memalign stdlib.h HAVE_POSIX_MEMALIGN)
 check_symbol_exists (mach_absolute_time mach/mach_time.h HAVE_MACH_ABSOLUTE_TIME)
+
+# plugdata: FFTW_MEASURE can only benchmark plans when kernel/cycle.h finds a
+# tick counter.  x86 uses rdtsc (selected by compiler macros), macOS uses
+# mach_absolute_time() when both HAVE_MACH_ABSOLUTE_TIME and
+# HAVE_MACH_MACH_TIME_H are defined, and AArch64 uses CNTVCT_EL0 when
+# HAVE_ARMV8_CNTVCT_EL0 is defined.
+#
+# The CMake port was missing the #cmakedefine for HAVE_MACH_MACH_TIME_H even
+# though it checks for the header, and it never enabled the AArch64 counter
+# (only autoconf's --enable-armv8-cntvct-el0 does), so FFTW_MEASURE silently
+# measured nothing on arm64.  Without a timer the planner falls back to a
+# different, for SIMD codelets worse, heuristic than FFTW_ESTIMATE.
+#
+# CNTVCT_EL0 is readable from user space on Linux unless the kernel disables
+# EL0 access, so probe it at configure time; skip the probe when
+# cross-compiling because the result could not be verified.
+include (CheckCSourceRuns)
+string (TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" _fftw_system_processor)
+if (_fftw_system_processor MATCHES "^(aarch64|arm64)$"
+    AND NOT APPLE AND NOT EMSCRIPTEN AND NOT CMAKE_CROSSCOMPILING
+    AND CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+  check_c_source_runs ("
+    #include <stdint.h>
+    int main(void)
+    {
+      uint64_t t;
+      __asm__ __volatile__(\"mrs %0, CNTVCT_EL0\" : \"=r\"(t));
+      return t == 0;
+    }" HAVE_ARMV8_CNTVCT_EL0)
+endif ()
+
 check_symbol_exists (alloca alloca.h HAVE_ALLOCA)
 if (NOT HAVE_ALLOCA)
   unset (HAVE_ALLOCA CACHE)
@@ -129,72 +157,73 @@ if (OPENMP_FOUND)
   set (HAVE_OPENMP TRUE)
 endif ()
 
-include (CheckCCompilerFlag)
-
-if (ENABLE_SSE)
-  foreach (FLAG "-msse" "/arch:SSE")
-    unset (HAVE_SSE CACHE)
-    unset (HAVE_SSE)
-    check_c_compiler_flag (${FLAG} HAVE_SSE)
-    if (HAVE_SSE)
-      set (SSE_FLAG ${FLAG})
-      break()
+# plugdata: SIMD codelets.
+#
+# Upstream's CMake adds -mavx/-mavx2 (or /arch:AVX) to the *whole* library, so
+# the compiler may emit AVX anywhere and the library crashes on CPUs without it.
+# Its "/arch:SSE2" check also fails on MSVC x64, where SSE2 is implicit.
+# Instead, only the AVX/AVX2 codelet files get those flags; FFTW checks the CPU
+# at runtime (X(have_simd_avx) etc.) before it uses them. Every SIMD source is
+# compiled through a small generated wrapper that is guarded by the target
+# architecture, and config.h enables each SIMD family per architecture, so a
+# multi-arch build (macOS arm64;x86_64) gets the right codelets in each slice.
+set (FFTW_SIMD_X86 OFF)
+set (FFTW_SIMD_NEON OFF)
+if (ENABLE_SIMD AND NOT EMSCRIPTEN)
+  if (APPLE AND CMAKE_OSX_ARCHITECTURES)
+    set (_fftw_target_archs ${CMAKE_OSX_ARCHITECTURES})
+  elseif (MSVC AND CMAKE_C_COMPILER_ARCHITECTURE_ID)
+    set (_fftw_target_archs ${CMAKE_C_COMPILER_ARCHITECTURE_ID})
+  else ()
+    set (_fftw_target_archs ${CMAKE_SYSTEM_PROCESSOR})
+  endif ()
+  foreach (_fftw_arch IN LISTS _fftw_target_archs)
+    string (TOLOWER "${_fftw_arch}" _fftw_arch)
+    if (_fftw_arch MATCHES "^(x86_64|amd64|x64)$")
+      set (FFTW_SIMD_X86 ON)
+    elseif (_fftw_arch MATCHES "^(arm64|aarch64)$" AND NOT MSVC)
+      # simd-neon.h initialises vectors with brace lists, which MSVC's
+      # arm_neon.h types don't support, so NEON is GCC/Clang only
+      set (FFTW_SIMD_NEON ON)
     endif ()
   endforeach ()
 endif ()
 
-if (ENABLE_SSE2)
-  foreach (FLAG "-msse2" "/arch:SSE2")
-    unset (HAVE_SSE2 CACHE)
-    unset (HAVE_SSE2)
-    check_c_compiler_flag (${FLAG} HAVE_SSE2)
-    if (HAVE_SSE2)
-      set (SSE2_FLAG ${FLAG})
-      break()
-    endif ()
-  endforeach ()
+if (MSVC)
+  set (FFTW_AVX_FLAGS /arch:AVX)
+  set (FFTW_AVX2_FLAGS /arch:AVX2)
+elseif (APPLE)
+  # -Xarch_x86_64 keeps these away from the arm64 slice of universal builds
+  set (FFTW_AVX_FLAGS -Xarch_x86_64 -mavx)
+  set (FFTW_AVX2_FLAGS -Xarch_x86_64 -mavx2 -Xarch_x86_64 -mfma)
+else ()
+  set (FFTW_AVX_FLAGS -mavx)
+  set (FFTW_AVX2_FLAGS -mavx2 -mfma)
 endif ()
 
-if (ENABLE_AVX)
-  foreach (FLAG "-mavx" "/arch:AVX")
-    unset (HAVE_AVX CACHE)
-    unset (HAVE_AVX)
-    check_c_compiler_flag (${FLAG} HAVE_AVX)
-    if (HAVE_AVX)
-      set (AVX_FLAG ${FLAG})
-      break()
-    endif ()
-  endforeach ()
-endif ()
+set (FFTW_X86_GUARD "defined(__x86_64__) || defined(_M_X64) || defined(_M_AMD64)")
+set (FFTW_NEON_GUARD "defined(__aarch64__) || defined(_M_ARM64)")
 
-if (ENABLE_AVX2)
-  foreach (FLAG "-mavx2" "/arch:AVX2")
-    unset (HAVE_AVX2 CACHE)
-    unset (HAVE_AVX2)
-    check_c_compiler_flag (${FLAG} HAVE_AVX2)
-    if (HAVE_AVX2)
-      set (AVX2_FLAG ${FLAG})
-      break()
+# Appends a guarded wrapper for each .c file in SOURCES to SOURCEFILES
+function (fftw_add_simd_sources guard)
+  cmake_parse_arguments (ARG "" "" "FLAGS;SOURCES" ${ARGN})
+  foreach (src IN LISTS ARG_SOURCES)
+    if (NOT src MATCHES "\\.c$")
+      continue ()
     endif ()
-  endforeach ()
-endif ()
-
-# AVX2 codelets require FMA support as well
-if (ENABLE_AVX2)
-  foreach (FLAG "-mfma" "/arch:FMA")
-    unset (HAVE_FMA CACHE)
-    unset (HAVE_FMA)
-    check_c_compiler_flag (${FLAG} HAVE_FMA)
-    if (HAVE_FMA)
-      set (FMA_FLAG ${FLAG})
-      break()
+    file (RELATIVE_PATH rel "${CMAKE_CURRENT_SOURCE_DIR}" "${src}")
+    set (wrapper "${CMAKE_CURRENT_BINARY_DIR}/simd-wrappers/${rel}")
+    set (FFTW_SIMD_GUARD "${guard}")
+    set (FFTW_SIMD_SOURCE "${src}")
+    configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/cmake.simd-wrapper.c.in" "${wrapper}" @ONLY)
+    if (ARG_FLAGS)
+      set_source_files_properties ("${wrapper}" PROPERTIES COMPILE_OPTIONS "${ARG_FLAGS}")
     endif ()
+    list (APPEND SOURCEFILES "${wrapper}")
   endforeach ()
-endif ()
+  set (SOURCEFILES ${SOURCEFILES} PARENT_SCOPE)
+endfunction ()
 
-if (HAVE_SSE2 OR HAVE_AVX)
-  set (HAVE_SIMD TRUE)
-endif ()
 file(GLOB           fftw_api_SOURCE                 api/*.c             api/*.h)
 file(GLOB           fftw_dft_SOURCE                 dft/*.c             dft/*.h)
 file(GLOB           fftw_dft_scalar_SOURCE          dft/scalar/*.c      dft/scalar/*.h)
@@ -204,6 +233,7 @@ file(GLOB           fftw_dft_simd_SOURCE            dft/simd/*.c        dft/simd
 file(GLOB           fftw_dft_simd_sse2_SOURCE       dft/simd/sse2/*.c   dft/simd/sse2/*.h)
 file(GLOB           fftw_dft_simd_avx_SOURCE        dft/simd/avx/*.c    dft/simd/avx/*.h)
 file(GLOB           fftw_dft_simd_avx2_SOURCE       dft/simd/avx2/*.c   dft/simd/avx2/*.h dft/simd/avx2-128/*.c   dft/simd/avx2-128/*.h)
+file(GLOB           fftw_dft_simd_neon_SOURCE       dft/simd/neon/*.c   dft/simd/neon/*.h)
 file(GLOB           fftw_kernel_SOURCE              kernel/*.c          kernel/*.h)
 file(GLOB           fftw_rdft_SOURCE                rdft/*.c            rdft/*.h)
 file(GLOB           fftw_rdft_scalar_SOURCE         rdft/scalar/*.c     rdft/scalar/*.h)
@@ -219,6 +249,7 @@ file(GLOB           fftw_rdft_simd_SOURCE           rdft/simd/*.c       rdft/sim
 file(GLOB           fftw_rdft_simd_sse2_SOURCE      rdft/simd/sse2/*.c  rdft/simd/sse2/*.h)
 file(GLOB           fftw_rdft_simd_avx_SOURCE       rdft/simd/avx/*.c   rdft/simd/avx/*.h)
 file(GLOB           fftw_rdft_simd_avx2_SOURCE      rdft/simd/avx2/*.c  rdft/simd/avx2/*.h rdft/simd/avx2-128/*.c  rdft/simd/avx2-128/*.h)
+file(GLOB           fftw_rdft_simd_neon_SOURCE      rdft/simd/neon/*.c  rdft/simd/neon/*.h)
 
 file(GLOB           fftw_reodft_SOURCE              reodft/*.c          reodft/*.h)
 file(GLOB           fftw_simd_support_SOURCE        simd-support/*.c    simd-support/*.h)
@@ -267,16 +298,20 @@ if (WITH_COMBINED_THREADS)
 endif ()
 
 
-if (HAVE_SSE2)
-  list (APPEND SOURCEFILES ${fftw_dft_simd_sse2_SOURCE} ${fftw_rdft_simd_sse2_SOURCE})
+if (FFTW_SIMD_X86)
+  # SSE2 is part of the x86_64 baseline, so those codelets need no flags
+  fftw_add_simd_sources ("${FFTW_X86_GUARD}"
+    SOURCES ${fftw_dft_simd_sse2_SOURCE} ${fftw_rdft_simd_sse2_SOURCE})
+  fftw_add_simd_sources ("${FFTW_X86_GUARD}" FLAGS ${FFTW_AVX_FLAGS}
+    SOURCES ${fftw_dft_simd_avx_SOURCE} ${fftw_rdft_simd_avx_SOURCE})
+  fftw_add_simd_sources ("${FFTW_X86_GUARD}" FLAGS ${FFTW_AVX2_FLAGS}
+    SOURCES ${fftw_dft_simd_avx2_SOURCE} ${fftw_rdft_simd_avx2_SOURCE})
 endif ()
 
-if (HAVE_AVX)
-  list (APPEND SOURCEFILES ${fftw_dft_simd_avx_SOURCE} ${fftw_rdft_simd_avx_SOURCE})
-endif ()
-
-if (HAVE_AVX2)
-  list (APPEND SOURCEFILES ${fftw_dft_simd_avx2_SOURCE} ${fftw_rdft_simd_avx2_SOURCE})
+if (FFTW_SIMD_NEON)
+  # NEON is part of the AArch64 baseline, so no flags are needed
+  fftw_add_simd_sources ("${FFTW_NEON_GUARD}"
+    SOURCES ${fftw_dft_simd_neon_SOURCE} ${fftw_rdft_simd_neon_SOURCE})
 endif ()
 
 set (FFTW_VERSION 3.3.9)
@@ -310,25 +345,41 @@ endif ()
 
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
+# plugdata: keep LTO static archives intact with CMake < 4.0.
+#
+# CMake's IPO (LTO) archive rules for GNU and Clang used "ar cr" / "ar r"
+# before CMake 4.0, and these *replace* members that already have the same
+# name.  FFTW has many sources that share a basename across directories: every
+# SIMD flavor has its own codlist.c and genus.c, the codelet files repeat in
+# every flavor directory, and dft/ and rdft/ both have conf.c, plan.c, ... .
+# For large object lists CMake splits the archive command into a create pass
+# and an append pass, so the append pass silently replaces objects from the
+# create pass and the resulting libfftw3f.a is missing members (on Linux
+# x86-64 this showed up as unresolved fftwf_dft_*_genus_sse2 symbols when
+# linking with CMake 3.28 + LTO).
+#
+# CMake >= 4.0 fixed this by switching the IPO rules to the non-replacing
+# "qc" / "q" modes.  Do the same here so older CMake versions (or toolchains
+# that still use the old rules) produce a complete archive.
+if (CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+  if (APPLE OR ANDROID)
+    set (_fftw_arxiv "${CMAKE_AR}")
+  else ()
+    set (_fftw_arxiv "${CMAKE_C_COMPILER_AR}")
+  endif ()
+  if (NOT _fftw_arxiv)
+    set (_fftw_arxiv "${CMAKE_AR}")
+  endif ()
+  set (CMAKE_C_ARCHIVE_CREATE_IPO
+    "\"${_fftw_arxiv}\" qc <TARGET> <LINK_FLAGS> <OBJECTS>")
+  set (CMAKE_C_ARCHIVE_APPEND_IPO
+    "\"${_fftw_arxiv}\" q <TARGET> <LINK_FLAGS> <OBJECTS>")
+endif ()
+
 add_library (${fftw3_lib} ${SOURCEFILES})
 target_include_directories (${fftw3_lib} INTERFACE $<INSTALL_INTERFACE:include>)
 if (MSVC AND NOT (CMAKE_C_COMPILER_ID STREQUAL "Intel"))
   target_compile_definitions (${fftw3_lib} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/bigobj> HAVE_UINTPTR_T=1)
-endif ()
-if (HAVE_SSE)
-  target_compile_options (${fftw3_lib} PRIVATE ${SSE_FLAG})
-endif ()
-if (HAVE_SSE2)
-  target_compile_options (${fftw3_lib} PRIVATE ${SSE2_FLAG})
-endif ()
-if (HAVE_AVX)
-  target_compile_options (${fftw3_lib} PRIVATE ${AVX_FLAG})
-endif ()
-if (HAVE_AVX2)
-  target_compile_options (${fftw3_lib} PRIVATE ${AVX2_FLAG})
-endif ()
-if (HAVE_FMA)
-  target_compile_options (${fftw3_lib} PRIVATE ${FMA_FLAG})
 endif ()
 if (HAVE_LIBM)
   target_link_libraries (${fftw3_lib} m)

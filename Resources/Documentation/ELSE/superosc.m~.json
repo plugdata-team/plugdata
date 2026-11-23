@@ -1,0 +1,126 @@
+{
+  "title": [
+    "superosc.m~"
+  ],
+  "description": "super oscillator module",
+  "origin": "MERDA",
+  "categories": [
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "MIDI pitch (60 when nothing is connected), polyphonic via multichannel signals"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "FM CV"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "PWM CV"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "detune CV"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "impulses to sync the oscillators"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "left signal"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "right signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "saw",
+      "description": "sets the waveform to variable saw"
+    },
+    {
+      "type": "square",
+      "description": "sets the waveform to square"
+    },
+    {
+      "type": "transp <float>",
+      "description": "sets transposition in semitones (-24 to 24)"
+    },
+    {
+      "type": "pwm <float>",
+      "description": "sets the pulse width or saw shape (0 to 1)"
+    },
+    {
+      "type": "detune <float>",
+      "description": "sets the maximum detune in cents (0 to 50)"
+    },
+    {
+      "type": "lin <float>",
+      "description": "nonzero sets to linear FM"
+    },
+    {
+      "type": "att_fm <float>",
+      "description": "sets the FM input's attenuverter (-1 to 1)"
+    },
+    {
+      "type": "att_pwm <float>",
+      "description": "sets the PWM input's attenuverter (-1 to 1)"
+    },
+    {
+      "type": "att_detune <float>",
+      "description": "sets the detune input's attenuverter (-1 to 1)"
+    },
+    {
+      "type": "gui <float>",
+      "description": "nonzero expands the module's GUI, zero collapses it"
+    },
+    {
+      "type": "sync <float>",
+      "description": "sets the sync mode: 0 always random (default), 1 initially random, 2 fixed golden ratio phases, 3 all locked to 0"
+    }
+  ],
+  "body": "[superosc.m~] is a MERDA module wrapper around [superosc~], a supersaw-style detuned oscillator. It has a polyphonic MIDI pitch input and CV inputs for FM, PWM (for the variable saw and square) and detune, each with an attenuverter, plus a sync input that takes impulses to reset the phases of all 7 oscillators. It outputs a stereo pair."
+}

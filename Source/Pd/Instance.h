@@ -219,6 +219,7 @@ public:
 
     void registerWeakReference(void* ptr, pd_weak_reference* ref);
     void unregisterWeakReference(void* ptr, pd_weak_reference const* ref);
+    void moveWeakReference(void* ptr, pd_weak_reference const* from, pd_weak_reference* to);
     void clearWeakReferences(void* ptr);
 
     virtual void updateConsole(SmallString const& message, bool isWarning, int numMessages, bool newWarning) = 0;
@@ -286,6 +287,7 @@ public:
     void logWarning(String const& message);
 
     std::deque<std::tuple<void*, String, int, int, int>>& getConsoleMessages() const;
+    void flushConsoleMessages();
     std::deque<std::tuple<void*, String, int, int, int>>& getConsoleHistory() const;
 
     void sendMessagesFromQueue();

@@ -39,12 +39,60 @@
     {
       "name": "-type <fsymbol>",
       "description": "filter type (default eq)"
+    },
+    {
+      "name": "-bgcolor <symbol>",
+      "description": "sets background color in hexadecimal (default #ffffff)"
+    },
+    {
+      "name": "-gridcolor <symbol>",
+      "description": "sets grid color in hexadecimal (default #bbbbcc)"
+    },
+    {
+      "name": "-fgcolor <symbol>",
+      "description": "sets foreground color in hexadecimal (default #dcdcdc)"
+    },
+    {
+      "name": "-theme",
+      "description": "uses Pd's theme colors"
+    },
+    {
+      "name": "-transparent",
+      "description": "makes the background transparent"
+    },
+    {
+      "name": "-noloadbang",
+      "description": "doesn't output the coefficients at load time"
     }
   ],
   "methods": [
     {
       "type": "savestate <float>",
       "description": "nonzero saves the filter settings with the patch"
+    },
+    {
+      "type": "bgcolor <anything>",
+      "description": "sets background color as RGB list or symbol"
+    },
+    {
+      "type": "gridcolor <anything>",
+      "description": "sets grid color as RGB list or symbol"
+    },
+    {
+      "type": "fgcolor <anything>",
+      "description": "sets foreground color as RGB list or symbol"
+    },
+    {
+      "type": "colors <symbol, symbol, symbol>",
+      "description": "sets background, grid and foreground colors as symbols"
+    },
+    {
+      "type": "theme <float>",
+      "description": "nonzero uses Pd's theme colors"
+    },
+    {
+      "type": "transparent <float>",
+      "description": "nonzero sets to transparent background"
     }
   ],
   "body": "[bicoeff] is a GUI that generates coefficients for vanilla's [biquad~] according to different filter types (\"eq\" filter by default). Click on it and drag it around."

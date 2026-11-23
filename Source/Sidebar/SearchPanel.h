@@ -364,7 +364,7 @@ public:
 
         int index = 0;
 
-        for (auto objectPtr : patch->getObjects()) {
+        for (auto const& objectPtr : patch->getObjects()) {
             SmallString name, type;
             int x = 0, y = 0;
             if (auto object = objectPtr.get<t_pd>()) {
@@ -548,7 +548,10 @@ public:
                     break;
                 }
                 case hash("text"): {
-                    switch (objectPtr.get<t_fake_text_define>()->x_textbuf.b_ob.te_type) {
+                    auto textDefine = objectPtr.get<t_fake_text_define>();
+                    if (!textDefine)
+                        break;
+                    switch (textDefine->x_textbuf.b_ob.te_type) {
                     case T_TEXT: {
                         // if object & classname is text, then it's a comment
                         finalFormatedName = String("comment: ") + name.toString();

@@ -27,7 +27,7 @@ class KeyboardObject final : public ObjectBase
     static constexpr uint8 blackNotes[] = { 1, 3, 6, 8, 10 };
 
 public:
-    KeyboardObject(pd::WeakReference ptr, Object* object)
+    KeyboardObject(pd::WeakReference const& ptr, Object* object)
         : ObjectBase(ptr, object)
     {
         objectParameters.addParamInt("Height", cDimensions, &sizeProperty, var(), true, 10);

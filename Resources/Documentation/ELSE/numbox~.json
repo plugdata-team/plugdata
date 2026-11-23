@@ -52,12 +52,12 @@
       "description": "dragging range (default 0, 0 - unlimited)"
     },
     {
-      "name": "-bgcolor <float, float, float>",
-      "description": "sets background color in RGB (default 255 255 255)"
+      "name": "-bgcolor <symbol>",
+      "description": "sets background color in hexadecimal"
     },
     {
-      "name": "-fgcolor <float, float, float>",
-      "description": "sets frontground color in RGB (default 0 0 0)"
+      "name": "-fgcolor <symbol>",
+      "description": "sets foreground color in hexadecimal"
     },
     {
       "name": "-ramp <float>",
@@ -66,6 +66,14 @@
     {
       "name": "-rate <float>",
       "description": "sets refresh rate in ms (minimum 15) (default 100)"
+    },
+    {
+      "name": "-theme",
+      "description": "uses Pd's theme colors"
+    },
+    {
+      "name": "-transparent",
+      "description": "makes the background transparent"
     }
   ],
   "methods": [
@@ -82,12 +90,24 @@
       "description": "sets minimum and maximum dragging values"
     },
     {
-      "type": "bgcolor <float, float, float>",
-      "description": "sets background color in RGB"
+      "type": "transparent <float>",
+      "description": "nonzero sets to transparent background"
     },
     {
-      "type": "fgcolor <float, float, float>",
-      "description": "sets foreground color in RGB"
+      "type": "theme <float>",
+      "description": "nonzero uses Pd's theme colors"
+    },
+    {
+      "type": "bgcolor <anything>",
+      "description": "sets background color as RGB list or symbol"
+    },
+    {
+      "type": "fgcolor <anything>",
+      "description": "sets foreground color as RGB list or symbol"
+    },
+    {
+      "type": "colors <symbol, symbol>",
+      "description": "sets background and foreground colors as symbols"
     },
     {
       "type": "ramp <float>",

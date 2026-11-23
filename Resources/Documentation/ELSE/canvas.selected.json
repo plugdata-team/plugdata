@@ -1,0 +1,36 @@
+{
+  "title": [
+    "canvas.selected"
+  ],
+  "description": "report whether the canvas is selected",
+  "origin": "ELSE",
+  "categories": [
+    "UI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "query for selection status"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "1 if selected, 0 if not"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[canvas.selected] reports whether the subpatch or abstraction it is in is selected in its parent patch."
+}

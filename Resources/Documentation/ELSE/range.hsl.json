@@ -44,6 +44,10 @@
       "description": ""
     },
     {
+      "name": "-dim <float, float>",
+      "description": "sets width and height"
+    },
+    {
       "name": "-range <float, float>",
       "description": ""
     },
@@ -52,12 +56,20 @@
       "description": ""
     },
     {
-      "name": "-bgcolor <float, float, float>",
-      "description": ""
+      "name": "-bgcolor <symbol>",
+      "description": "sets background color in hexadecimal"
     },
     {
-      "name": "-fgcolor <float, float, float>",
-      "description": ""
+      "name": "-fgcolor <symbol>",
+      "description": "sets the range fill color in hexadecimal"
+    },
+    {
+      "name": "-theme",
+      "description": "uses Pd's theme colors (on by default)"
+    },
+    {
+      "name": "-transparent",
+      "description": "makes the background transparent"
     },
     {
       "name": "-send <symbol>",
@@ -94,12 +106,24 @@
       "description": "sets mode (0 - shift, 1 - select, 2 - expand, 3 - expand)"
     },
     {
-      "type": "bgcolor <float, float, float>",
-      "description": "sets background color"
+      "type": "bgcolor <anything>",
+      "description": "sets background color as RGB list or symbol"
     },
     {
-      "type": "fgcolor <float, float, float>",
-      "description": "sets foreground color"
+      "type": "fgcolor <anything>",
+      "description": "sets foreground color as RGB list or symbol"
+    },
+    {
+      "type": "colors <symbol, symbol>",
+      "description": "sets background and foreground colors as symbols"
+    },
+    {
+      "type": "transparent <float>",
+      "description": "nonzero makes the background transparent"
+    },
+    {
+      "type": "theme <float>",
+      "description": "nonzero uses Pd's theme colors (default 1)"
     },
     {
       "type": "send <symbol>",

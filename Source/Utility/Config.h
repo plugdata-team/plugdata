@@ -38,15 +38,23 @@ struct ProjectInfo {
     static bool isMidiEffect() noexcept;
     static bool canUseSemiTransparentWindows();
 
+    static inline File const appDataDir = [] {
+#if ENABLE_TESTING
+        // Keep local/CI test runs separate from an installed copy's resources.
+        auto const testDirectory = SystemStats::getEnvironmentVariable("PLUGDATA_TEST_DATA_DIR", {});
+        if (File::isAbsolutePath(testDirectory))
+            return File(testDirectory);
+#endif
 #if JUCE_WINDOWS
     // Regular documents directory might be synced to OneDrive
-    static inline File const appDataDir = File::getSpecialLocation(File::SpecialLocationType::commonDocumentsDirectory).getChildFile("plugdata");
+        return File::getSpecialLocation(File::SpecialLocationType::commonDocumentsDirectory).getChildFile("plugdata");
 #elif JUCE_IOS
-    static inline File const appDataDir = File::getContainerForSecurityApplicationGroupIdentifier("group.com.plugdata.plugdata");
+        return File::getContainerForSecurityApplicationGroupIdentifier("group.com.plugdata.plugdata");
 #else
-    static inline File const appDataDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata");
+        return File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata");
 #endif
-    static inline String const versionSuffix = "-test4";
+    }();
+    static inline String const versionSuffix = "-test5";
     static inline File const versionDataDir = appDataDir.getChildFile("Versions").getChildFile(ProjectInfo::versionString + versionSuffix);
 };
 

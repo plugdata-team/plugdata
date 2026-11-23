@@ -197,6 +197,10 @@ PluginProcessor::PluginProcessor()
 
     sendMessagesFromQueue();
     startDSP();
+
+    // Some hosts never prepare us, for example when they have no audio device
+    if (!ProjectInfo::isStandalone)
+        backupRunLoop.startTimer(backupRunLoopInterval);
 }
 
 PluginProcessor::~PluginProcessor()
@@ -213,15 +217,6 @@ void PluginProcessor::flushMessageQueue()
 {
     setThis();
     messageDispatcher->dequeueMessages();
-}
-
-void PluginProcessor::doubleFlushMessageQueue()
-{
-    setThis();
-    lockAudioThread();
-    messageDispatcher->dequeueMessages();
-    messageDispatcher->dequeueMessages();
-    unlockAudioThread();
 }
 
 #if JUCE_IOS
@@ -904,6 +899,16 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
     smoothedGain.setTargetValue(mappedTargetGain);
     smoothedGain.applyGain(buffer, buffer.getNumSamples());
 
+    // Note-offs the DAW missed while the backup loop ran go before this block's MIDI, so its notes don't hang
+    for (int channel = 1; channel <= 16; channel++) {
+        auto& noteOffs = backupLoopNoteOffs[channel - 1];
+        for (int note = 0; note < 128 && noteOffs.any(); note++) {
+            if (noteOffs.test(note)) {
+                midiBuffer.addEvent(MidiMessage::noteOff(channel, note), 0);
+                noteOffs.reset(note);
+            }
+        }
+    }
     midiDeviceManager.sendAndCollectMidiOutput(midiBuffer);
     auto const internalSynthPort = midiDeviceManager.getInternalSynthPort();
 
@@ -950,6 +955,7 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
     // If we miss 4 audio blocks, start the backup scheduler
     if (!ProjectInfo::isStandalone) {
         backupLoopLock.enter();
+        backupLoopClock = Time::getMillisecondCounterHiRes();
         backupRunLoop.startTimer(backupRunLoopInterval * 4);
         backupLoopLock.exit();
     }
@@ -1418,9 +1424,9 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
     SmallArray<pd::WeakReference> openedPatches;
     // Close all patches
     for (auto* cnv = pd_getcanvaslist(); cnv; cnv = cnv->gl_next) {
-        openedPatches.add(pd::WeakReference(cnv, this));
+        openedPatches.emplace_back(cnv, this);
     }
-    for (auto patch : openedPatches) {
+    for (auto const& patch : openedPatches) {
         if (auto cnv = patch.get<t_glist*>()) {
             libpd_closefile(cnv.get());
         }
@@ -1572,6 +1578,10 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
 
     delete[] xmlData;
 
+    // Apply the [param] messages the patches sent on load now
+    if (MessageManager::existsAndIsCurrentThread())
+        handleUpdateNowIfNeeded();
+
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
         editor->getTabComponent().triggerAsyncUpdate();
         if (auto* s = editor->getSidebarForPanel(Sidebar::ParamPanel))
@@ -1678,41 +1688,56 @@ void PluginProcessor::runBackupLoop()
         return;
 
     // Only run backup timer if GUI is visible
-    if (!getActiveEditor())
+    if (!getActiveEditor()) {
+        backupLoopClock = Time::getMillisecondCounterHiRes();
+        return;
+    }
+
+    ScopedTryLock const scopedTimerLock(backupLoopLock);
+    if (!scopedTimerLock.isLocked())
         return;
 
-    int blocksToProcess = backupRunLoopInterval / std::max(1, static_cast<int>((DEFDACBLKSIZE / AudioProcessor::getSampleRate()) * 1000.0));
-    if (blocksToProcess < 1) {
-        blocksToProcess = jmax(1, blocksToProcess); // At least 1 block
-        backupRunLoopInterval *= 2;                 // Increase the interval so we get correct timing
-    }
+    if (isProcessingAudio)
+        return;
 
-    {
-        ScopedTryLock const scopedTimerLock(backupLoopLock);
-        if (scopedTimerLock.isLocked()) {
-            if (isProcessingAudio) {
-                backupRunLoop.stopTimer();
-                return;
-            }
+    backupRunLoop.startTimer(backupRunLoopInterval);
 
-            backupRunLoop.startTimer(backupRunLoopInterval);
-        } else {
-            return;
-        }
-    }
+    auto const now = Time::getMillisecondCounterHiRes();
 
     setThis();
-    ScopedTryLock const scopedAudioLock(backupLoopLock);
-    if (scopedAudioLock.isLocked()) {
-        keyHandler.sendKeyUpMessages();
-        sendMessagesFromQueue();
-        sendParameters();
-        for (int i = 0; i < blocksToProcess; i++) {
-            if (isProcessingAudio)
-                break;
-            sys_pollgui();
-            sched_tick_nodsp();
-        }
+    lockAudioThread();
+
+    // Catch Pd's clock up with the wall clock before new messages arrive, but don't burst after a long stall
+    auto const tickMs = 1000.0 * Instance::getBlockSize() / sys_getsr();
+    auto const behindMs = jlimit(0.0, 1000.0, now - backupLoopClock.load());
+    auto const ticks = static_cast<int>(behindMs / tickMs);
+    backupLoopClock = now - (behindMs - ticks * tickMs);
+    for (int i = 0; i < ticks && !isProcessingAudio; i++) {
+        sys_pollgui();
+        sched_tick_nodsp();
+    }
+
+    // MIDI from devices would otherwise queue up until audio resumes
+    midiDeviceManager.dequeueMidiInput(Instance::getBlockSize(), [this](int const port, MidiBuffer const& buffer) {
+        sendMidiBuffer(port, buffer);
+    });
+
+    keyHandler.sendKeyUpMessages();
+    sendMessagesFromQueue();
+    sendParameters();
+    unlockAudioThread();
+
+    // The DAW isn't listening: don't let MIDI for it pile up until audio resumes, but remember its note-offs for processBlock
+    MidiBuffer dawMidiOutput;
+    midiDeviceManager.sendAndCollectMidiOutput(dawMidiOutput);
+    toolbarSource->process(midiDeviceManager.getInputHistory(), midiDeviceManager.getOutputHistory());
+    midiDeviceManager.clearMidiOutputBuffers(std::numeric_limits<int>::max());
+    for (auto const metadata : dawMidiOutput) {
+        auto const message = metadata.getMessage();
+        if (message.isNoteOff())
+            backupLoopNoteOffs[message.getChannel() - 1].set(message.getNoteNumber());
+        else if (message.isAllNotesOff() || message.isAllSoundOff())
+            backupLoopNoteOffs[message.getChannel() - 1].set();
     }
 }
 

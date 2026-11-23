@@ -395,7 +395,10 @@ public:
         };
         addAndMakeVisible(midiSettingsButton);
 
-        messages.onChange = [&] { table.updateContent(); };
+        messages.onChange = [_this = SafePointer(this)] {
+            if (_this)
+                _this->table.updateContent();
+        };
         setSize(278, 200);
     }
 
@@ -417,8 +420,6 @@ public:
         g.setColour(colours.outlineColour);
         g.drawLine(6, 58, getWidth() - 6, 58);
     }
-
-    ~MIDIHistory() override { messages.onChange = nullptr; }
 
     void resized() override
     {
@@ -909,10 +910,12 @@ public:
             updateCPUGraph = cpuHistory->getUpdateFunc();
             updateCPUGraphLong = cpuHistory->getUpdateFuncLongHistory();
 
-            cpuHistory->onClose = [this] {
-                updateCPUGraph = [] { };
-                updateCPUGraphLong = [] { };
-                repaint();
+            cpuHistory->onClose = [_this = SafePointer(this)] {
+                if (!_this)
+                    return;
+                _this->updateCPUGraph = [] { };
+                _this->updateCPUGraphLong = [] { };
+                _this->repaint();
             };
 
             auto* editor = findParentComponentOfClass<PluginEditor>();
@@ -1349,6 +1352,7 @@ class AudioSettingsCallout final : public Component
 public:
     explicit AudioSettingsCallout(PluginEditor* editor)
         : pd(editor->pd)
+        , processorAlive(editor->pd)
         , limiterSettings(SettingsFile::getInstance()->getProperty<int>("limiter_threshold"))
         , oversampleSettings(std::clamp(SettingsFile::getInstance()->getProperty<int>("oversampling"), 0, 3))
     {
@@ -1433,7 +1437,9 @@ public:
 
     ~AudioSettingsCallout() override
     {
-        pd->toolbarSource->removeListener(this);
+        // A callout that is still open at shutdown is deleted after the processor
+        if (processorAlive)
+            pd->toolbarSource->removeListener(this);
     }
 
     void paint(Graphics& g) override
@@ -1505,6 +1511,7 @@ public:
 
 private:
     PluginProcessor* pd;
+    juce::WeakReference<pd::Instance> processorAlive;
 
     Label limiterLabel;
     LimiterSettings limiterSettings;

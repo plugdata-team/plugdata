@@ -1063,14 +1063,19 @@ public:
 struct ScalarObject final : public ObjectBase {
     OwnedArray<Component> templates;
 
-    ScalarObject(pd::WeakReference obj, Object* object)
+    ScalarObject(pd::WeakReference const& obj, Object* object)
         : ObjectBase(obj, object)
     {
         setInterceptsMouseClicks(false, false);
 
         if (auto scalar = obj.get<t_scalar>()) {
             auto* templ = template_findbyname(scalar->sc_template);
+            if (!templ)
+                return;
             auto const* templatecanvas = template_findcanvas(templ);
+            // Saved scalar data may outlive the canvas containing its struct.
+            if (!templatecanvas)
+                return;
             t_float baseX, baseY;
             scalar_getbasexy(scalar.get(), &baseX, &baseY);
             auto* data = scalar->sc_vec;

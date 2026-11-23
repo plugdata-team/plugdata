@@ -1013,9 +1013,9 @@ void setup_canvas0x2egop();
 void setup_canvas0x2emouse();
 void setup_canvas0x2ename();
 void setup_canvas0x2epos();
+void setup_canvas0x2eselected();
 void setup_canvas0x2esetname();
 void setup_canvas0x2evis();
-void setup_canvas0x2ezoom();
 void ceil_setup();
 void ceil_tilde_setup();
 void cents2ratio_setup();
@@ -1331,6 +1331,7 @@ void width_tilde_setup();
 void bassdrum_tilde_setup();
 void bd_tilde_setup();
 void setup_conv0x2efilt_tilde();
+void dcblock_tilde_setup();
 void hip2_tilde_setup();
 void limit_tilde_setup();
 void lop3_tilde_setup();
@@ -1357,6 +1358,7 @@ void setup_nlist0x2elen();
 void setup_nlist0x2eprepend();
 void setup_nlist0x2eset();
 void setup_nlist0x2etraverse();
+void setup_nlist0x2ewalk();
 
 #ifdef ENABLE_FFMPEG
 void setup_play0x2efile_tilde();
@@ -1592,9 +1594,9 @@ void Setup::initialiseELSE()
     setup_canvas0x2egop();
     setup_canvas0x2ename();
     setup_canvas0x2epos();
+    setup_canvas0x2eselected();
     setup_canvas0x2esetname();
     setup_canvas0x2evis();
-    setup_canvas0x2ezoom();
     ceil_setup();
     ceil_tilde_setup();
     cents2ratio_setup();
@@ -1903,6 +1905,7 @@ void Setup::initialiseELSE()
     bassdrum_tilde_setup();
     bd_tilde_setup();
     setup_conv0x2efilt_tilde();
+    dcblock_tilde_setup();
     hip2_tilde_setup();
     limit_tilde_setup();
     lop3_tilde_setup();
@@ -1929,6 +1932,7 @@ void Setup::initialiseELSE()
     setup_nlist0x2eprepend();
     setup_nlist0x2eset();
     setup_nlist0x2etraverse();
+    setup_nlist0x2ewalk();
 
 #ifdef ENABLE_SFIZZ
     sfz_tilde_setup();

@@ -12,7 +12,7 @@ public:
     bool midiInput;
     bool isCtl;
 
-    MidiObject(pd::WeakReference ptr, Object* object, bool const isInput, bool const isCC)
+    MidiObject(pd::WeakReference const& ptr, Object* object, bool const isInput, bool const isCC)
         : TextObjectBase(ptr, object)
         , midiInput(isInput)
         , isCtl(isCC)

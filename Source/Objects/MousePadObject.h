@@ -15,7 +15,7 @@ class MousePadObject final : public ObjectBase {
     NVGcolor fillColour;
 
 public:
-    MousePadObject(pd::WeakReference ptr, Object* object)
+    MousePadObject(pd::WeakReference const& ptr, Object* object)
         : ObjectBase(ptr, object)
         , mouseListener(this)
     {

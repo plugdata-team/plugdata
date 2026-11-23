@@ -82,6 +82,18 @@
       "description": "save object state (default 0)"
     },
     {
+      "name": "-noloadbang",
+      "description": "doesn't output the function at load time"
+    },
+    {
+      "name": "-theme",
+      "description": "uses Pd's theme colors"
+    },
+    {
+      "name": "-transparent",
+      "description": "makes the background transparent"
+    },
+    {
       "name": "-set <list>",
       "description": "default 0 1000 0"
     }
@@ -120,12 +132,28 @@
       "description": "sets width"
     },
     {
-      "type": "fgcolor <float, float, float>",
-      "description": "sets RGB color of foreground"
+      "type": "dim <float, float>",
+      "description": "sets width and height"
     },
     {
-      "type": "bgcolor <float, float, float>",
-      "description": "sets RGB color of background"
+      "type": "theme <float>",
+      "description": "nonzero uses Pd's theme colors"
+    },
+    {
+      "type": "transparent <float>",
+      "description": "nonzero sets to transparent background"
+    },
+    {
+      "type": "fgcolor <anything>",
+      "description": "sets foreground color as RGB list or symbol"
+    },
+    {
+      "type": "bgcolor <anything>",
+      "description": "sets background color as RGB list or symbol"
+    },
+    {
+      "type": "colors <symbol, symbol>",
+      "description": "sets background and foreground colors as symbols"
     },
     {
       "type": "send <symbol>",

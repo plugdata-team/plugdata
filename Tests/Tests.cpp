@@ -5,12 +5,16 @@
 #include "HelpfileErrorTest.h"
 #include "SaveCloseRaceTest.h"
 #include "AbstractionReloadRaceTest.h"
+#include "SynchroniseDeletionStressTest.h"
 #include "DanglingBindingTest.h"
+#include "WeakReferenceLifetimeTest.h"
+#include "ScalarTemplateTest.h"
 #include "UIClickThroughTest.h"
 #include "EditActionStressTest.h"
 #include "TabSplitStressTest.h"
 #include "PatchTextFuzzTest.h"
 #include "DecompressTest.h"
+#include "FilesystemInitTest.h"
 #include "MarkupDisplayTest.h"
 #include "StateRoundTripTest.h"
 #include "DialogCoverageTest.h"
@@ -30,6 +34,8 @@
 #include "SaveOverwriteTest.h"
 #include "SubpatchTabTest.h"
 #include "PluginHostTest.h"
+#include "BackupLoopTest.h"
+#include "StackGuardTest.h"
 
 // Settings come from environment variables, or from TestConfig.json in the app data directory,
 // because an AUv3 extension never sees our environment. "<NAME>_<wrapper>" (e.g.
@@ -99,12 +105,17 @@ private:
 
 void runTests(PluginEditor* editor)
 {
+    auto const wrapperType = String(AudioProcessor::getWrapperTypeDescription(editor->pd->wrapperType));
+
+    // Set by host tests that need the plugin's editor open without the suite running in it
+    if (getTestSetting("PLUGDATA_TEST_SKIP_SUITE", wrapperType) == "1")
+        return;
+
     // An AUv3 host can create several editors in one extension process: run the suite once
     static std::atomic<bool> alreadyStarted = false;
     if (alreadyStarted.exchange(true))
         return;
 
-    auto const wrapperType = String(AudioProcessor::getWrapperTypeDescription(editor->pd->wrapperType));
     auto const filterSetting = getTestSetting("PLUGDATA_TEST_FILTER", wrapperType);
     auto const seedSetting = getTestSetting("PLUGDATA_TEST_SEED", wrapperType);
 
@@ -130,12 +141,17 @@ void runTests(PluginEditor* editor)
 
         SaveCloseRaceTest saveCloseRaceTest(editor);
         AbstractionReloadRaceTest abstractionReloadRaceTest(editor);
+        SynchroniseDeletionStressTest synchroniseDeletionStressTest(editor);
         DanglingBindingTest danglingBindingTest(editor);
+        StackGuardTest stackGuardTest(editor);
+        WeakReferenceLifetimeTest weakReferenceLifetimeTest(editor);
+        ScalarTemplateTest scalarTemplateTest(editor);
         UIClickThroughTest uiClickThroughTest(editor);
         EditActionStressTest editActionStressTest(editor);
         TabSplitStressTest tabSplitStressTest(editor);
         PatchTextFuzzTest patchTextFuzzTest(editor);
         DecompressTest decompressTest(editor);
+        FilesystemInitTest filesystemInitTest(editor);
         MarkupDisplayTest markupDisplayTest(editor);
         StateRoundTripTest stateRoundTripTest(editor);
         DialogCoverageTest dialogCoverageTest(editor);
@@ -164,8 +180,12 @@ void runTests(PluginEditor* editor)
             &subpatchTabTest,
             &saveCloseRaceTest,
             &abstractionReloadRaceTest,
+            &synchroniseDeletionStressTest,
             &danglingBindingTest,
+            &stackGuardTest,
+            &scalarTemplateTest,
             &decompressTest,
+            &filesystemInitTest,
             &markupDisplayTest,
             &stateRoundTripTest,
             &dialogCoverageTest,
@@ -185,17 +205,22 @@ void runTests(PluginEditor* editor)
             &editActionStressTest,
             &tabSplitStressTest,
             &helpfileFuzzer,
-            &objectFuzzer,
-            &helpfileErrorTest };
+            &objectFuzzer };
+
+        // Only plugin builds use PDINSTANCE. A second processor in the standalone
+        // would overwrite its one global Pd instance's callbacks.
+        if (!ProjectInfo::isStandalone)
+            tests.add(&weakReferenceLifetimeTest);
 
 #ifdef PLUGDATA_TEST_VST3
         VST3ParameterTest vst3ParameterTest;
         VST3StateTest vst3StateTest;
         VST3MultiInstanceTest vst3MultiInstanceTest;
+        VST3BackupLoopTest vst3BackupLoopTest;
         VST3SuiteTest vst3SuiteTest;
         // Only the standalone hosts the VST3. The suite runs last: if the plugin crashes, it takes this process with it
         if (ProjectInfo::isStandalone) {
-            UnitTest* hostTests[] = { &vst3ParameterTest, &vst3StateTest, &vst3MultiInstanceTest };
+            UnitTest* hostTests[] = { &vst3ParameterTest, &vst3StateTest, &vst3MultiInstanceTest, &vst3BackupLoopTest };
             tests.insertArray(tests.indexOf(&helpfileFuzzer), hostTests, static_cast<int>(std::size(hostTests)));
             tests.add(&vst3SuiteTest);
         }
@@ -205,7 +230,7 @@ void runTests(PluginEditor* editor)
         // The filter can also select tests that don't run by default.
         auto const filter = StringArray::fromTokens(filterSetting, ",", "");
         if (!filter.isEmpty()) {
-            tests.addArray(Array<UnitTest*> { &patchTextFuzzTest, &coverageSweepTest });
+            tests.addArray(Array<UnitTest*> { &patchTextFuzzTest, &coverageSweepTest, &helpfileErrorTest });
             tests.removeIf([&filter](UnitTest* test) {
                 for (auto const& token : filter) {
                     if (token.trim().isNotEmpty() && test->getName().containsIgnoreCase(token.trim()))

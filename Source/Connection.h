@@ -38,7 +38,7 @@ public:
     Path toDrawLocalSpace;
     String lastId;
 
-    Connection(Canvas* parent, Iolet* start, Iolet* end, t_outconnect* oc);
+    Connection(Canvas* parent, Iolet* start, Iolet* end, pd::WeakReference const& oc);
     ~Connection() override;
 
     static Path getNonSegmentedPath(Point<float> start, Point<float> end, bool useStraightConnections);
@@ -88,6 +88,7 @@ public:
     void removeCorner(int cornerIdx);
 
     void setPointer(t_outconnect* ptr);
+    void setPointer(pd::WeakReference const& ptr);
     t_outconnect* getPointer() const;
 
     t_symbol* getPathState() const;

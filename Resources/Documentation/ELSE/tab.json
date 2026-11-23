@@ -1,0 +1,166 @@
+{
+  "title": [
+    "tab"
+  ],
+  "description": "row of tab buttons",
+  "origin": "ELSE",
+  "categories": [
+    "UI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "outputs the selected tab index"
+        },
+        {
+          "type": "float",
+          "description": "selects a tab and outputs its index"
+        },
+        {
+          "type": "symbol",
+          "description": "selects the tab with this label and outputs it"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float/symbol",
+          "description": "the selected tab: its index counting from 0, or its label in 'mode' 1"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [
+    {
+      "name": "-width <float>",
+      "description": "sets width in pixels (default 200)"
+    },
+    {
+      "name": "-height <float>",
+      "description": "sets height in pixels (default 25)"
+    },
+    {
+      "name": "-ntabs <float>",
+      "description": "sets the number of tabs (default 3)"
+    },
+    {
+      "name": "-mode <float>",
+      "description": "nonzero outputs the label instead of the index (default 0)"
+    },
+    {
+      "name": "-labels <list>",
+      "description": "sets the tab labels, reading every symbol up to the next flag (default tab1 tab2 tab3 ...)"
+    },
+    {
+      "name": "-savestate <float>",
+      "description": "nonzero sets to save state mode (default 0)"
+    },
+    {
+      "name": "-bgcolor <float, float, float>",
+      "description": "sets background color in RGB"
+    },
+    {
+      "name": "-activecolor <float, float, float>",
+      "description": "sets active tab color in RGB"
+    },
+    {
+      "name": "-fgcolor <float, float, float>",
+      "description": "sets text and divider color in RGB"
+    },
+    {
+      "name": "-activetextcolor <float, float, float>",
+      "description": "sets active tab text color in RGB"
+    },
+    {
+      "name": "-usetheme <float>",
+      "description": "nonzero uses Pd's theme colors instead of the colors set here (default 1)"
+    },
+    {
+      "name": "-transparent",
+      "description": "makes the background transparent"
+    },
+    {
+      "name": "-send <symbol>",
+      "description": "sets send symbol (default empty)"
+    },
+    {
+      "name": "-receive <symbol>",
+      "description": "sets receive symbol (default empty)"
+    }
+  ],
+  "methods": [
+    {
+      "type": "set <float>",
+      "description": "selects a tab without output, by index or label"
+    },
+    {
+      "type": "labels <list>",
+      "description": "sets all tab labels at once"
+    },
+    {
+      "type": "label <float, symbol>",
+      "description": "sets one label (tab index and text)"
+    },
+    {
+      "type": "tabs <float>",
+      "description": "sets the number of tabs"
+    },
+    {
+      "type": "mode <float>",
+      "description": "nonzero outputs the label, not the index"
+    },
+    {
+      "type": "width <float>",
+      "description": "sets width in pixels"
+    },
+    {
+      "type": "height <float>",
+      "description": "sets height in pixels"
+    },
+    {
+      "type": "bgcolor <float, float, float>",
+      "description": "sets background color in RGB"
+    },
+    {
+      "type": "activecolor <float, float, float>",
+      "description": "sets active tab color in RGB"
+    },
+    {
+      "type": "fgcolor <float, float, float>",
+      "description": "sets text/divider color in RGB"
+    },
+    {
+      "type": "activetextcolor <float, float, float>",
+      "description": "sets active tab text color in RGB"
+    },
+    {
+      "type": "usetheme <float>",
+      "description": "nonzero uses Pd's theme colors instead of the colors set here"
+    },
+    {
+      "type": "transparent <float>",
+      "description": "nonzero makes the background transparent"
+    },
+    {
+      "type": "savestate <float>",
+      "description": "nonzero sets to save state mode"
+    },
+    {
+      "type": "send <symbol>",
+      "description": "sets send symbol"
+    },
+    {
+      "type": "receive <symbol>",
+      "description": "sets receive symbol"
+    }
+  ],
+  "body": "[tab] is a row of tab buttons. Click a tab to select it and output its index, counting from 0, or its label in 'mode' 1. The tabs share the object's width evenly, so making the object wider gives every tab more room for its label."
+}

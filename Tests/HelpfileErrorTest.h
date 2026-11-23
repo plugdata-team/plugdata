@@ -8,7 +8,9 @@ public:
 private:
     void perform() override
     {
-        static HeapArray<File> allHelpfiles = {};
+        HeapArray<File> allHelpfiles;
+        loggedErrors.clear();
+        auto const filter = StringArray::fromTokens(SystemStats::getEnvironmentVariable("PLUGDATA_HELPFILE_FILTER", {}), ",", "");
 
         // Open every helpfile, this will make sure it initialises and closes every object at least once (but probasbly a whole bunch of times in different contexts)
         // Run with AddressSanitizer, UBSanitizer or ThreadSanitizer to find all memory, UB and threading problems
@@ -20,6 +22,14 @@ private:
             }
         }
 
+        if (!filter.isEmpty()) {
+            allHelpfiles.remove_if([&filter](File const& file) {
+                return std::none_of(filter.begin(), filter.end(), [&file](String const& token) {
+                    return token.trim().isNotEmpty() && file.getFullPathName().contains(token.trim());
+                });
+            });
+        }
+
         allHelpfiles.sort();
         openHelpfilesRecursively(editor->getTabComponent(), allHelpfiles);
     }
@@ -29,7 +39,11 @@ private:
         if(helpFiles.empty())
         {
             ProjectInfo::appDataDir.getChildFile("console-errors.md").replaceWithText(loggedErrors);
-            signalDone(loggedErrors.isEmpty());
+            beginTest("Console error summary");
+            if (loggedErrors.isNotEmpty())
+                logMessage(loggedErrors);
+            expect(loggedErrors.isEmpty(), "Help patches reported console errors (listed above)");
+            signalDone(true);
             return;
         }
 
@@ -38,6 +52,8 @@ private:
 
         beginTest(String(helpFiles.size()) + " -> " + helpFile.getFullPathName());
 
+        editor->pd->flushConsoleMessages();
+        editor->getSidebarForPanel(Sidebar::ConsolePanel)->clearConsole();
         tabbar.openPatch(URL(helpFile));
         auto* cnv = tabbar.getCurrentCanvas();
         auto* pd = cnv->pd;
@@ -50,11 +66,8 @@ private:
         editor->pd->sendMessage("pd", "dsp", { 1.0f });
         editor->pd->unlockAudioThread();
         
-        HeapArray<Object*> objects;
-        for(auto* obj : cnv->objects)
-        {
-            objects.add(obj);
-        }
+        editor->pd->flushMessageQueue();
+        pd->flushConsoleMessages();
 
         StringArray errors;
         for(auto& [ptr, message, type, length, repeats] : pd->getConsoleMessages())

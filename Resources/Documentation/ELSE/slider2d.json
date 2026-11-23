@@ -68,20 +68,24 @@
       "description": "nonzero sets line visibility (default 1)"
     },
     {
-      "name": "-grid <float>",
-      "description": "nonzero sets grid visibility (default 0)"
+      "name": "-noline",
+      "description": "hides the line"
     },
     {
-      "name": "-bgcolor <float, float, float>",
-      "description": "sets background color in RGB"
+      "name": "-grid",
+      "description": "shows the grid"
     },
     {
-      "name": "-fgcolor <float, float, float>",
-      "description": "sets foreground color in RGB"
+      "name": "-bgcolor <symbol>",
+      "description": "sets background color in hexadecimal"
     },
     {
-      "name": "-savestate <float>",
-      "description": "nonzero sets to save state mode (default 0)"
+      "name": "-fgcolor <symbol>",
+      "description": "sets foreground color in hexadecimal"
+    },
+    {
+      "name": "-savestate",
+      "description": "sets to save state mode"
     },
     {
       "name": "-jump <float>",
@@ -96,8 +100,8 @@
       "description": "sets receive symbol (default empty)"
     },
     {
-      "name": "-usetheme <float>",
-      "description": "nonzero uses Pd's theme colors instead of the colors set here (default 1)"
+      "name": "-theme",
+      "description": "uses Pd's theme colors"
     },
     {
       "name": "-transparent",
@@ -146,12 +150,20 @@
       "description": "nonzero sets grid visibility"
     },
     {
-      "type": "bgcolor <float, float, float>",
-      "description": "sets background color in RGB"
+      "type": "bgcolor <anything>",
+      "description": "sets background color as RGB list or symbol"
     },
     {
-      "type": "fgcolor <float, float, float>",
-      "description": "sets foreground color in RGB"
+      "type": "fgcolor <anything>",
+      "description": "sets foreground color as RGB list or symbol"
+    },
+    {
+      "type": "colors <symbol, symbol>",
+      "description": "sets background and foreground colors as symbols"
+    },
+    {
+      "type": "theme <float>",
+      "description": "nonzero uses Pd's theme colors"
     },
     {
       "type": "savestate <float>",
@@ -168,10 +180,6 @@
     {
       "type": "receive <symbol>",
       "description": "sets receive symbol"
-    },
-    {
-      "type": "usetheme <float>",
-      "description": "nonzero uses Pd's theme colors instead of the colors set here"
     },
     {
       "type": "transparent <float>",
