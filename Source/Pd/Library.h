@@ -73,6 +73,7 @@ public:
     static String getObjectOrigin(t_gobj* obj);
 
     StringArray getAllObjects();
+    HeapArray<ObjectReferenceTable> const& getAllDocumentation() const;
 
     std::function<void()> appDirChanged;
 
