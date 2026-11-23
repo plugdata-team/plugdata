@@ -1,0 +1,56 @@
+{
+  "title": [
+    "!=~"
+  ],
+  "description": "not-equal-to comparison for signals",
+  "origin": "vanilla",
+  "categories": [
+    "Signal Math",
+    "Logic"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "one or more channels to the left side of operation"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "one or more channels to the right side of operation"
+        },
+        {
+          "type": "float",
+          "description": "sets the right side value, floats only with an argument"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "one or more channels with the result of the operation"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initializes right inlet's value and impedes signal connections",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[!=~] outputs 1 for each sample where the left input is not equal to the right input, and 0 otherwise. With a numeric argument, the right inlet only takes floats."
+}

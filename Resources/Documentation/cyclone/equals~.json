@@ -1,10 +1,9 @@
 {
   "title": [
     "equals~",
-    "==~",
     "cyclone/==~"
   ],
-  "description": "signal equal-to comparison",
+  "description": "signal equal-to comparison - deprecated",
   "origin": "cyclone",
   "categories": [
     "Signal Math",
@@ -50,5 +49,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": "[equals~] or [==~] outputs a signal that is \"1\" when the left input is equal to the right input/argument or \"0\" when it isn't."
+  "body": "[equals~] or [cyclone/==~] outputs a signal that is \"1\" when the left input is equal to the right input/argument or \"0\" when it isn't. Deprecated since Pd 0.57: use vanilla's [==~] instead."
 }

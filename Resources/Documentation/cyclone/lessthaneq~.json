@@ -1,10 +1,9 @@
 {
   "title": [
     "lessthaneq~",
-    "<=~",
     "cyclone/<=~"
   ],
-  "description": "signal less-than-or-equal comparison",
+  "description": "signal less-than-or-equal comparison - deprecated",
   "origin": "cyclone",
   "categories": [
     "Signal Math",
@@ -50,5 +49,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": "[lessthaneq~] or [<=~] outputs a 1 signal when the left input is less than or equal to the right input or argument, and 0 when it is greater."
+  "body": "[lessthaneq~] or [cyclone/<=~] outputs a 1 signal when the left input is less than or equal to the right input or argument, and 0 when it is greater. Deprecated since Pd 0.57: use vanilla's [<=~] instead."
 }

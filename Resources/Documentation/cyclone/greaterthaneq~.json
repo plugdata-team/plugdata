@@ -1,10 +1,9 @@
 {
   "title": [
     "greaterthaneq~",
-    ">=~",
     "cyclone/>=~"
   ],
-  "description": "signal greater-than-or-equal comparison",
+  "description": "signal greater-than-or-equal comparison - deprecated",
   "origin": "cyclone",
   "categories": [
     "Signal Math",
@@ -50,5 +49,5 @@
   ],
   "flags": [],
   "methods": [],
-  "body": "[greaterthaneq~] or [>=~] outputs a 1 signal when the left input is greater-than or equal-to the right input or argument and a 0 when it is less-than the right input or argument."
+  "body": "[greaterthaneq~] or [cyclone/>=~] outputs a 1 signal when the left input is greater-than or equal-to the right input or argument and a 0 when it is less-than the right input or argument. Deprecated since Pd 0.57: use vanilla's [>=~] instead."
 }
