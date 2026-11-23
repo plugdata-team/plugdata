@@ -200,6 +200,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     , pd(parent->pd)
     , refCountedPatch(p)
     , patch(*p)
+    , presentationMode(false)
     , canvasOrigin(Point<int>(infiniteCanvasSize / 2, infiniteCanvasSize / 2))
     , graphArea(nullptr)
     , pathUpdater(new ConnectionPathUpdater(this))
@@ -310,11 +311,8 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
 
     setWantsKeyboardFocus(true);
 
-    if (!isGraph) {
+    if (!isGraph)
         presentationMode.addListener(this);
-    } else {
-        presentationMode = false;
-    }
     performSynchronise();
 
     // Start in unlocked mode if the patch is empty
