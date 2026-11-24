@@ -1095,6 +1095,7 @@ void keycode_setup();
 void lag_tilde_setup();
 void lag2_tilde_setup();
 void lastvalue_tilde_setup();
+void lcm_setup();
 void latoocarfian_tilde_setup();
 void lb_setup();
 void lfnoise_tilde_setup();
@@ -1676,6 +1677,7 @@ void Setup::initialiseELSE()
     lag_tilde_setup();
     lag2_tilde_setup();
     lastvalue_tilde_setup();
+    lcm_setup();
     latoocarfian_tilde_setup();
     lb_setup();
     lfnoise_tilde_setup();

@@ -169,6 +169,11 @@ macro(get_all_targets_recursive targets dir)
     list(APPEND ${targets} ${current_targets})
 endmacro()
 
+if(CMAKE_SYSTEM_NAME STREQUAL "iOS" AND CMAKE_GENERATOR STREQUAL "Xcode")
+    # Include source locations from the static libraries linked into the app and extensions.
+    add_compile_options("$<$<CONFIG:Release>:-g>")
+endif()
+
 # Get targets before Libraries/
 get_all_targets(targets_before)
 
@@ -853,6 +858,20 @@ set_target_properties(plugdata_standalone PROPERTIES
 endif()
 
 if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
+    # Keep DWARF in static libraries until dsymutil processes the linked binaries.
+    get_all_targets(ios_targets)
+    foreach(target IN LISTS ios_targets)
+        get_target_property(target_type ${target} TYPE)
+        if(target_type STREQUAL "STATIC_LIBRARY")
+            set_target_properties(${target} PROPERTIES XCODE_ATTRIBUTE_STRIP_INSTALLED_PRODUCT[variant=Release] NO)
+        endif()
+    endforeach()
+
+    # Xcode collects archive dSYMs from its build products directory. JUCE overrides
+    # CONFIGURATION_BUILD_DIR for each bundle, so the default dSYM path misses the archive.
+    set_target_properties(plugdata_standalone_Standalone plugdata_AUv3 plugdata_fx_AUv3 PROPERTIES
+        XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT[variant=Release] "dwarf-with-dsym"
+        XCODE_ATTRIBUTE_DWARF_DSYM_FOLDER_PATH[variant=Release] "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)")
     set_property(TARGET plugdata_standalone_Standalone PROPERTY XCODE_EMBED_APP_EXTENSIONS plugdata_AUv3 plugdata_fx_AUv3)
     # iOS requires that the app extensions bundle IDs start the same as the app, but with a suffix appended
     set_target_properties(plugdata_AUv3 PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "com.plugdata.plugdata.instrument")
