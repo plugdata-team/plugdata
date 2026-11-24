@@ -1,6 +1,7 @@
 // Creates every object (and documented sub-forms like [list split]) with fuzzed arguments and flags, sends
 // random message sequences into each of its inlets while running DSP, then saves, duplicates, deletes and
-// undoes it. Each object gets its own seed, so PLUGDATA_OBJECT_FILTER replays what a full run did.
+// undoes it. Objects that find each other by name, like [delwrite~] and [delread~], are then fuzzed together.
+// Each case gets its own seed, so PLUGDATA_OBJECT_FILTER replays what a full run did.
 class ObjectFuzzTest : public PlugDataUnitTest
 {
 public:
@@ -18,9 +19,9 @@ private:
     StringArray symbolPool;
     int numFuzzed = 0;
 
-    // Set PLUGDATA_FUZZ_SYMBOLS=1 to also fuzz with random and malformed symbols. These reach file operations
-    // ([file mkdir/delete/move], [text write], ...). The fuzz patch and working directory are a temporary
-    // directory, but only enable this in a sandbox (separate home and TMPDIR)
+    // Set PLUGDATA_FUZZ_SYMBOLS=1 to also fuzz with malformed symbols (empty, very long, or with $ ; , and spaces).
+    // Symbols reach file operations ([file mkdir/delete/move], [text write], ...), which resolve relative paths
+    // against the fuzz patch's directory or the working directory: both are a temporary directory
     static bool fuzzWithSymbols()
     {
         static bool const enabled = SystemStats::getEnvironmentVariable("PLUGDATA_FUZZ_SYMBOLS", {}) == "1";
@@ -34,6 +35,27 @@ private:
         static bool const enabled = SystemStats::getEnvironmentVariable("PLUGDATA_FUZZ_EXTREME", {}) == "1";
         return enabled;
     }
+
+    // Objects that find each other by name, fuzzed together as "pairs:<first object>" with fuzz-pair for NAME
+    static inline StringArray const pairGroups[] = {
+        { "delwrite~ NAME", "delread~ NAME", "delread4~ NAME" },
+        { "send~ NAME", "receive~ NAME" },
+        { "throw~ NAME", "catch~ NAME" },
+        { "value NAME", "value NAME" },
+        { "send NAME", "receive NAME", "sender NAME", "receiver NAME", "forward NAME", "retrieve NAME", "grab 1 NAME" },
+        { "text define NAME", "text get NAME", "text set NAME", "text insert NAME", "text delete NAME", "text size NAME", "text tolist NAME", "text fromlist NAME", "text search NAME", "text sequence NAME" },
+        { "file define NAME", "file handle NAME" },
+        { "struct NAME float x float y array a NAME-e", "struct NAME-e float z", "scalar define NAME", "pointer", "vpointer NAME", "vpointer NAME", "get NAME x y", "set NAME x y", "element NAME a", "getsize NAME a", "setsize NAME a", "append NAME x y" },
+        { "coll NAME", "coll NAME" },
+        { "funbuff", "funbuff" },
+        { "pv NAME", "pv NAME" },
+        { "cyclone/table NAME", "cyclone/table NAME" },
+        { "buffer~ NAME", "play~ NAME", "record~ NAME", "wave~ NAME", "index~ NAME", "peek~ NAME", "poke~ NAME", "lookup~ NAME", "buffir~ NAME" },
+        { "messcoll NAME", "messcoll NAME" },
+        { "dict NAME", "dict NAME" },
+        { "del.in~ NAME", "del.out~ NAME" },
+        { "del~ in NAME", "del~ out NAME" },
+    };
 
     void perform() override
     {
@@ -53,19 +75,28 @@ private:
         allObjects.removeString("about.MERDA");
         allObjects.removeString("until"); // A bang loops forever by design
 
-        // Set PLUGDATA_OBJECT_SKIP to comma-separated object names to leave out, such as known crashes
-        for (auto const& name : StringArray::fromTokens(SystemStats::getEnvironmentVariable("PLUGDATA_OBJECT_SKIP", {}), ",", ""))
-            allObjects.removeString(name);
+        // Single objects go first (from the back), then the pairs
+        HeapArray<StringArray> jobs;
+        for (auto const& group : pairGroups)
+            jobs.add(group);
+        for (auto const& name : allObjects)
+            jobs.add(StringArray(name));
 
-        // Set PLUGDATA_OBJECT_FILTER to comma-separated parts of the object names you want to test
+        // Set PLUGDATA_OBJECT_SKIP to comma-separated object names (or pairs:<first object>) to leave out, such as known crashes
+        auto const skip = StringArray::fromTokens(SystemStats::getEnvironmentVariable("PLUGDATA_OBJECT_SKIP", {}), ",", "");
+        jobs.remove_if([&](StringArray const& job) { return skip.contains(jobKey(job)); });
+
+        // Set PLUGDATA_OBJECT_FILTER to comma-separated parts of the object names you want to test, or pairs: for all pairs
         auto const filter = StringArray::fromTokens(SystemStats::getEnvironmentVariable("PLUGDATA_OBJECT_FILTER", {}), ",", "");
         if (!filter.isEmpty()) {
-            for (int i = allObjects.size(); --i >= 0;)
-                if (std::none_of(filter.begin(), filter.end(), [&](String const& token) { return allObjects[i].contains(token); }))
-                    allObjects.remove(i);
+            jobs.remove_if([&](StringArray const& job) {
+                return std::none_of(filter.begin(), filter.end(), [&](String const& token) {
+                    return jobKey(job).contains(token) || std::any_of(job.begin(), job.end(), [&](String const& part) { return part.contains(token); });
+                });
+            });
         }
 
-        beginTest(String(allObjects.size()) + " objects");
+        beginTest(String(jobs.size()) + " objects");
 
         // Relative paths in file operations end up in here
         tempDir = File::getSpecialLocation(File::tempDirectory).getNonexistentChildFile("plugdata-object-fuzz", "", false);
@@ -79,10 +110,24 @@ private:
         editor->pd->volume->store(0.0f);
 
         baseSeed = rng.nextInt64();
-        fuzzNext(allObjects);
+        fuzzNext(std::move(jobs));
     }
 
-    void fuzzNext(StringArray objects)
+    String jobKey(StringArray const& job) const
+    {
+        return job.size() == 1 ? job[0] : "pairs:" + partObject(job[0]).first;
+    }
+
+    // "text define NAME" -> { "text define", 1 }: the object, and how many arguments the part gives it
+    std::pair<String, int> partObject(String const& part) const
+    {
+        auto const tokens = StringArray::fromTokens(part, false);
+        if (tokens.size() > 1 && editor->pd->objectLibrary->getObjectInfo(tokens[0] + " " + tokens[1]).title.isNotEmpty())
+            return { tokens[0] + " " + tokens[1], tokens.size() - 2 };
+        return { tokens[0], tokens.size() - 1 };
+    }
+
+    void fuzzNext(HeapArray<StringArray> jobs)
     {
         if (!cnv) {
             auto const file = tempDir.getChildFile("fuzz.pd");
@@ -98,7 +143,7 @@ private:
         pd_typedmess(reinterpret_cast<t_pd*>(cnv->patch.getRawPointer()), editor->pd->generateSymbol("clear"), 0, nullptr);
         editor->pd->unlockAudioThread();
 
-        if (objects.isEmpty()) {
+        if (jobs.empty()) {
             if (deviceManager)
                 deviceManager->restartLastAudioDevice();
             editor->getTabComponent().closeTab(cnv);
@@ -108,115 +153,180 @@ private:
             return;
         }
 
-        auto const name = objects[objects.size() - 1];
-        objects.remove(objects.size() - 1);
+        auto const job = jobs.back();
+        jobs.remove_at(jobs.size() - 1);
 
-        rng.setSeed(baseSeed ^ name.hashCode64());
-        auto const& info = editor->pd->objectLibrary->getObjectInfo(name);
+        rng.setSeed(baseSeed ^ jobKey(job).hashCode64());
         symbolPool = { "fuzz-array", "fuzz-tiny" };
-        for (auto const& flag : info.flags)
-            symbolPool.add(parse(flag.type).first);
+        StringArray boxes;
+        SmallArray<Info const*> infos;
+        for (auto const& part : job) {
+            auto const [object, given] = job.size() == 1 ? std::pair { part, 0 } : partObject(part);
+            auto const& info = editor->pd->objectLibrary->getObjectInfo(object);
+            for (auto const& flag : info.flags)
+                symbolPool.add(parse(flag.type).first);
+            boxes.add(job.size() == 1 ? makeBox(part, info) : makePartBox(part, info, given));
+            infos.add(&info);
+        }
+        if (job.size() > 1)
+            symbolPool.add("fuzz-pair");
 
-        auto const box = makeBox(name, info);
-        beginTest(String(objects.size()) + " -> " + box);
-        fuzzObject(box, info);
+        beginTest(String(jobs.size()) + " -> " + (job.size() > 1 ? jobKey(job) + " -> " : String()) + boxes.joinIntoString(" + "));
+        fuzzObjects(boxes, infos);
 
-        Timer::callAfterDelay(2, [this, objects] { fuzzNext(objects); });
+        Timer::callAfterDelay(2, [this, jobs = std::move(jobs)]() mutable { fuzzNext(std::move(jobs)); });
     }
 
-    void fuzzObject(String const& box, Info const& info)
+    void fuzzObjects(StringArray const& boxes, SmallArray<Info const*> const& infos)
     {
         auto* pd = editor->pd;
         auto& root = cnv->patch;
-
-        // Host the object in the patch, or in a subpatch with its own block size and resampling
-        std::unique_ptr<pd::Patch> subpatch;
-        t_gobj* subpatchObject = nullptr;
-        if (rng.nextBool()) {
-            static StringArray const blocks { "", "block~ 1", "block~ 2", "block~ 4", "block~ 8", "block~ 128", "block~ 1024", "block~ 64 4", "block~ 256 2 0.5", "block~ 64 1 2", "block~ 16 1 0.25" };
-            auto const block = blocks[rng.nextInt(blocks.size())];
-            auto const text = "#N canvas 0 0 450 300 fuzz 0;\n" + (block.isEmpty() ? String() : "#X obj 10 10 " + block + ";\n") + "#X restore 10 10 pd fuzz;\n";
-            pd->lockAudioThread();
-            pd::Interface::paste(root.getRawPointer(), text.toRawUTF8());
-            subpatchObject = pd::Interface::getNewest(root.getRawPointer());
-            glist_noselect(root.getRawPointer());
-            pd->unlockAudioThread();
-            subpatch = std::make_unique<pd::Patch>(pd::WeakReference(subpatchObject, pd), pd, false);
-        }
-        auto& host = subpatch ? *subpatch : root;
-        auto const create = [&host](int x, int y, String const& text) { return pd::Interface::checkObject(host.createObject(x, y, text)); };
-        auto const connect = [&host](t_object* src, t_object* sink, int inlet) {
+        auto const create = [](pd::Patch& host, int x, int y, String const& text) { return pd::Interface::checkObject(host.createObject(x, y, text)); };
+        auto const connect = [](pd::Patch& host, t_object* src, int outlet, t_object* sink, int inlet) {
             if (src && sink)
-                host.createConnection(src, 0, sink, inlet);
+                host.createConnection(src, outlet, sink, inlet);
         };
 
-        auto* array = create(10, 40, "array define fuzz-array 256");
-        create(10, 70, "array define fuzz-tiny 1");
-        auto* gobj = host.createObject(100, 160, box);
-        if (!gobj)
-            return;
+        auto* array = create(root, 10, 40, "array define fuzz-array 256");
+        create(root, 10, 70, "array define fuzz-tiny 1");
 
-        auto* obj = pd::Interface::checkObject(gobj);
-        bool const isCanvas = pd_class(&gobj->g_pd) == canvas_class;
-        int const numInlets = obj ? pd::Interface::numInlets(obj) : 0;
+        struct Part {
+            pd::Patch* host;
+            t_object* object;
+            pd::WeakReference ref;
+            Info const* info;
+            bool isCanvas;
+        };
+        struct Target {
+            pd::WeakReference feeder;
+            int inlet;
+            int part;
+        };
+        HeapArray<Part> parts;
+        HeapArray<Target> targets;
+        HeapArray<pd::WeakReference> units; // What sits in the patch itself: an object, or the subpatch hosting it
+        HeapArray<pd::WeakReference> sigs;
+        std::vector<std::unique_ptr<pd::Patch>> subpatches;
 
-        // A [t a] into each inlet, and signal sources (plain, noise and multichannel) into some signal inlets
-        HeapArray<std::pair<pd::WeakReference, int>> targets;
-        SmallArray<t_object*> sources;
-        pd::WeakReference sig(pd);
-        for (int i = 0; i < numInlets; i++) {
-            if (i >= 10 && i < numInlets - 2)
-                continue;
-
-            auto* feeder = create(100 + 30 * i, 120, "t a");
-            connect(feeder, obj, i);
-            if (feeder)
-                targets.add({ pd::WeakReference(feeder, pd), i });
-
-            if (!pd::Interface::isSignalInlet(obj, i))
-                continue;
-            if (sources.empty()) {
-                auto* sigObject = create(10, 300, "sig~ " + boxToken(floatAtom(fuzzFloat(true))));
-                auto* noise = create(80, 300, "noise~");
-                auto* snake = create(10, 340, "snake~ in 3");
-                connect(noise, snake, 0);
-                connect(sigObject, snake, 1);
-                sources = { sigObject, noise, snake };
-                if (sigObject)
-                    sig = pd::WeakReference(sigObject, pd);
+        for (int p = 0; p < boxes.size(); p++) {
+            // Host each object in the patch, or in a subpatch with its own block size and resampling. Parts can share one
+            pd::Patch* host = &root;
+            if (p > 0 && !parts.empty() && rng.nextBool()) {
+                host = parts.back().host;
+            } else if (rng.nextBool()) {
+                static StringArray const blocks { "", "block~ 1", "block~ 2", "block~ 4", "block~ 8", "block~ 128", "block~ 1024", "block~ 64 4", "block~ 256 2 0.5", "block~ 64 1 2", "block~ 16 1 0.25" };
+                auto const block = blocks[rng.nextInt(blocks.size())];
+                auto const text = "#N canvas 0 0 450 300 fuzz 0;\n" + (block.isEmpty() ? String() : "#X obj 10 10 " + block + ";\n") + "#X restore 10 10 pd fuzz;\n";
+                pd->lockAudioThread();
+                pd::Interface::paste(root.getRawPointer(), text.toRawUTF8());
+                auto* subpatchObject = pd::Interface::getNewest(root.getRawPointer());
+                glist_noselect(root.getRawPointer());
+                pd->unlockAudioThread();
+                subpatches.push_back(std::make_unique<pd::Patch>(pd::WeakReference(subpatchObject, pd), pd, false));
+                units.add(pd::WeakReference(subpatchObject, pd));
+                host = subpatches.back().get();
             }
-            if (auto const source = rng.nextInt(4))
-                connect(sources[source - 1], obj, i);
+
+            auto const x = 100 + 300 * p;
+            auto* gobj = host->createObject(x, 160, boxes[p]);
+            if (!gobj)
+                continue;
+            if (host == &root)
+                units.add(pd::WeakReference(gobj, pd));
+
+            auto* obj = pd::Interface::checkObject(gobj);
+            bool const isCanvas = pd_class(&gobj->g_pd) == canvas_class;
+            int const numInlets = obj ? pd::Interface::numInlets(obj) : 0;
+
+            // A [t a] into each inlet, and signal sources (plain, noise and multichannel) into some signal inlets
+            SmallArray<t_object*> sources;
+            bool hasTarget = false;
+            for (int i = 0; i < numInlets; i++) {
+                if (i >= 10 && i < numInlets - 2)
+                    continue;
+
+                auto* feeder = create(*host, x + 30 * i, 120, "t a");
+                connect(*host, feeder, 0, obj, i);
+                if (feeder) {
+                    targets.add({ pd::WeakReference(feeder, pd), i, static_cast<int>(parts.size()) });
+                    hasTarget = true;
+                }
+
+                if (!pd::Interface::isSignalInlet(obj, i))
+                    continue;
+                if (sources.empty()) {
+                    auto* sigObject = create(*host, x - 90, 300, "sig~ " + boxToken(floatAtom(fuzzFloat(true))));
+                    auto* noise = create(*host, x - 20, 300, "noise~");
+                    auto* snake = create(*host, x - 90, 340, "snake~ in 3");
+                    connect(*host, noise, 0, snake, 0);
+                    connect(*host, sigObject, 0, snake, 1);
+                    sources = { sigObject, noise, snake };
+                    if (sigObject)
+                        sigs.add(pd::WeakReference(sigObject, pd));
+                }
+                if (auto const source = rng.nextInt(4))
+                    connect(*host, sources[source - 1], 0, obj, i);
+            }
+            if (!hasTarget && !isCanvas)
+                targets.add({ pd::WeakReference(gobj, pd), 0, static_cast<int>(parts.size()) });
+            parts.add({ host, obj, pd::WeakReference(gobj, pd), infos[p], isCanvas });
         }
-        if (targets.empty() && !isCanvas)
-            targets.add({ pd::WeakReference(gobj, pd), 0 });
+
+        // Parts in the same patch also feed each other: pointers into [get], signals, a [receive] into a [send]
+        for (int a = 0; a < static_cast<int>(parts.size()); a++) {
+            auto const& part = parts[a];
+            SmallArray<int> candidates;
+            for (int t = 0; t < static_cast<int>(targets.size()); t++) {
+                if (targets[t].part != a && parts[targets[t].part].host == part.host)
+                    candidates.add(t);
+            }
+            for (int o = 0; part.object && !candidates.empty() && o < jmin(4, pd::Interface::numOutlets(part.object)); o++) {
+                if (rng.nextInt(3))
+                    continue;
+                auto const& target = targets[candidates[rng.nextInt(static_cast<int>(candidates.size()))]];
+                if (pd::Interface::isSignalOutlet(part.object, o))
+                    connect(*part.host, part.object, o, parts[target.part].object, target.inlet);
+                else
+                    connect(*part.host, part.object, o, target.feeder.getRaw<t_object>(), 0);
+            }
+        }
 
         pd::WeakReference const arrayRef(array, pd);
-        pd::WeakReference const unitRef(subpatch ? subpatchObject : gobj, pd);
 
         setDSP(true);
         cnv->performSynchronise();
         tick(4);
 
-        for (int i = targets.empty() ? 0 : 8 + rng.nextInt(24); --i >= 0;) {
-            auto const& [target, inlet] = targets[rng.nextInt(static_cast<int>(targets.size()))];
-            auto const [selector, args] = makeMessage(pickNotation(info, inlet, isCanvas), info);
-            send(target, selector, args);
+        for (int i = targets.empty() ? 0 : 8 + rng.nextInt(24 * static_cast<int>(parts.size())); --i >= 0;) {
+            auto const& target = targets[rng.nextInt(static_cast<int>(targets.size()))];
+            auto const& part = parts[target.part];
+            auto const [selector, args] = makeMessage(pickNotation(*part.info, target.inlet, part.isCanvas), *part.info);
+            send(target.feeder, selector, args);
 
             switch (rng.nextInt(16)) {
             case 0: // Makes every object rebuild its DSP
                 setDSP(false);
                 setDSP(true);
                 break;
-            case 1:
-                send(sig, "float", { floatAtom(fuzzFloat(true)) });
+            case 1: {
+                auto const value = floatAtom(fuzzFloat(true));
+                if (!sigs.empty())
+                    send(sigs[sigs.size() > 1 ? rng.nextInt(static_cast<int>(sigs.size())) : 0], "float", { value });
                 break;
+            }
             case 2:
                 send(arrayRef, "resize", { floatAtom(static_cast<float>(rng.nextInt(300))) });
                 break;
             case 3: // For objects that hold on to the array
                 if (auto g = arrayRef.get<t_gobj>(); g && rng.nextInt(4) == 0)
-                    glist_delete(host.getRawPointer(), g.get());
+                    glist_delete(root.getRawPointer(), g.get());
+                break;
+            case 4: // For the other parts of a pair, which may still hold on to it
+                if (parts.size() > 1 && rng.nextInt(4) == 0) {
+                    auto const& victim = parts[rng.nextInt(static_cast<int>(parts.size()))];
+                    if (auto g = victim.ref.get<t_gobj>())
+                        glist_delete(victim.host->getRawPointer(), g.get());
+                }
                 break;
             }
             tick(rng.nextInt(4));
@@ -226,7 +336,10 @@ private:
         root.getCanvasContent(); // Runs every save function on the fuzzed state
 
         // A second instance made from the saved state, then delete the original and undo that
-        if (auto* unit = unitRef.getRaw<t_gobj>()) {
+        for (auto const& unitRef : units) {
+            auto* unit = unitRef.getRaw<t_gobj>();
+            if (!unit)
+                continue;
             root.duplicate({ unit }, nullptr);
             root.deselectAll();
             cnv->performSynchronise();
@@ -242,6 +355,22 @@ private:
             }
         }
         cnv->synchronise();
+    }
+
+    // A part with the shared name, and fuzzed values for the arguments it doesn't give
+    String makePartBox(String const& part, Info const& info, int given)
+    {
+        auto tokens = StringArray::fromTokens(part.replace("NAME", "fuzz-pair"), false);
+        std::vector<t_atom> args;
+        if (auto const mode = rng.nextInt(8); mode == 0) {
+            addJunk(args);
+        } else if (mode < 5) {
+            for (int i = given; i < static_cast<int>(info.arguments.size()); i++)
+                addAtoms(args, info.arguments[i].type);
+        }
+        for (auto const& atom : args)
+            tokens.add(boxToken(atom));
+        return tokens.joinIntoString(" ");
     }
 
     String makeBox(String const& name, Info const& info)
@@ -370,11 +499,11 @@ private:
 
     String fuzzSymbol()
     {
-        if (!fuzzWithSymbols() || rng.nextBool())
+        if (rng.nextBool())
             return symbolPool[rng.nextInt(symbolPool.size())];
 
         static String const malformed[] = { "", String::repeatedString("x", 2000), "$1", "$0-x", "a;b", "a,b", "1e5", "-", "a b", String::fromUTF8("\xc3\xbc\xe2\x82\xac") };
-        if (rng.nextInt(3) == 0)
+        if (fuzzWithSymbols() && rng.nextInt(3) == 0)
             return malformed[rng.nextInt(std::size(malformed))];
 
         String symbol;
