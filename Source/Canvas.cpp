@@ -1089,11 +1089,13 @@ void Canvas::performSynchronise()
     auto pdObjects = patch.getObjects();
     objects.reserve(pdObjects.size());
 
+    // Matched objects are moved to the front in Pd order, so the search usually hits on the first element
+    size_t numSorted = 0;
     for (auto const& object : pdObjects) {
-        auto const* it = std::ranges::find_if(objects, [&object](Object const* b) { return b->getPointer() && b->getPointer() == object.getRawUnchecked<void>(); });
         if (!object.isValid())
             continue;
 
+        auto it = std::find_if(objects.begin() + numSorted, objects.end(), [ptr = object.getRawUnchecked<void>()](Object const* b) { return b->getPointer() == ptr; });
         if (it == objects.end()) {
             auto* newObject = objects.add(object, this);
 
@@ -1102,6 +1104,7 @@ void Canvas::performSynchronise()
                 objects.remove_one(newObject);
                 continue;
             }
+            std::rotate(objects.begin() + numSorted++, objects.end() - 1, objects.end());
 
             newObject->toFront(false);
 
@@ -1109,6 +1112,7 @@ void Canvas::performSynchronise()
                 newObject->gui->getLabel()->toFront(false);
         } else {
             auto* object = *it;
+            std::rotate(objects.begin() + numSorted++, it, it + 1);
 
             // Check if number of inlets/outlets is correct
             object->updateIolets();
@@ -1123,11 +1127,8 @@ void Canvas::performSynchronise()
         }
     }
 
-    // Make sure objects have the same order
-    std::ranges::sort(objects,
-        [&pdObjects](Object const* first, Object const* second) mutable {
-            return pdObjects.index_of(first->getPointer()) < pdObjects.index_of(second->getPointer());
-        });
+    // Objects without a Pd counterpart (e.g. an unfinished new object) go in front
+    std::rotate(objects.begin(), objects.begin() + numSorted, objects.end());
 
     auto pdConnections = isGraph ? pd::Connections() : patch.getConnections();
     connections.reserve(pdConnections.size());
