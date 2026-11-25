@@ -92,6 +92,7 @@ struct DeferredTextPayload {
     int justificationFlags = Justification::left;
     Rectangle<int> bounds;
     DeferredTextMode mode = DeferredTextMode::Baseline;
+    bool useEllipsis = false;
     std::unique_ptr<PreparedText> prepared;
 };
 
@@ -146,7 +147,7 @@ static std::unique_ptr<PreparedText> prepareDeferredText(DeferredTextPayload con
     auto const bounds = payload.bounds.toFloat();
 
     if (payload.mode == DeferredTextMode::Rectangle) {
-        arrangement.addCurtailedLineOfText(payload.font, payload.text, 0.0f, 0.0f, bounds.getWidth(), false);
+        arrangement.addCurtailedLineOfText(payload.font, payload.text, 0.0f, 0.0f, bounds.getWidth(), payload.useEllipsis);
         arrangement.justifyGlyphs(0, arrangement.getNumGlyphs(), 0.0f, 0.0f, bounds.getWidth(), bounds.getHeight(), Justification(payload.justificationFlags));
         arrangement.moveRangeOfGlyphs(0, arrangement.getNumGlyphs(), bounds.getX(), bounds.getY());
     } else {
@@ -716,7 +717,7 @@ void NVGGraphicsContext::drawText(StringRef const text, Point<float> const basel
     enqueueDeferredText(nvg, std::move(payload), transform);
 }
 
-void NVGGraphicsContext::drawText(StringRef const text, Rectangle<float> const area, Justification const justification, bool const /*useEllipsesIfTooBig*/, AffineTransform const& transform)
+void NVGGraphicsContext::drawText(StringRef const text, Rectangle<float> const area, Justification const justification, bool const useEllipsesIfTooBig, AffineTransform const& transform)
 {
     if (area.isEmpty() || !clipRegionIntersects(area.getSmallestIntegerContainer()))
         return;
@@ -732,6 +733,7 @@ void NVGGraphicsContext::drawText(StringRef const text, Rectangle<float> const a
     payload.justificationFlags = justification.getFlags();
     payload.bounds = area.toNearestInt();
     payload.mode = DeferredTextMode::Rectangle;
+    payload.useEllipsis = useEllipsesIfTooBig;
 
     enqueueDeferredText(nvg, std::move(payload), transform);
 }
