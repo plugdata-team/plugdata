@@ -352,6 +352,12 @@ StringArray Library::getAllObjects()
     return allObjects;
 }
 
+HeapArray<Library::ObjectReferenceTable> const& Library::getAllDocumentation() const
+{
+    ensureDatabaseInitialised();
+    return documentation;
+}
+
 void Library::filesystemChanged()
 {
     updateLibrary();

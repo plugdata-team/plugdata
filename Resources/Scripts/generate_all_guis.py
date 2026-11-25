@@ -39,6 +39,7 @@ STRUCTS = [
     ("t_fake_canvas_mouse", ELSE + "Control/canvas.mouse.c", "_canvas_mouse", "[else/canvas.mouse]"),
     ("t_fake_edit", ELSE + "Control/canvas.edit.c", "_edit", "[else/canvas.edit]"),
     ("t_fake_canvas_vis", ELSE + "Control/canvas.vis.c", "_canvas_vis", "[else/canvas.vis]"),
+    ("t_fake_canvas_selected", ELSE + "Control/canvas.selected.c", "canvas_selected", "[else/canvas.selected]"),
     ("t_fake_mouse", ELSE + "Control/mouse.c", "_mouse", "[else/mouse]"),
     ("t_fake_pic", ELSE + "Control/pic.c", "_pic", "[else/pic]"),
     ("t_fake_fielddesc", PD + "g_template.c", "_fielddesc", "for template drawing"),

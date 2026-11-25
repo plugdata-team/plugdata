@@ -283,6 +283,9 @@ public:
     // Adds output message to buffer
     void enqueueMidiOutput(int const port, MidiMessage const& message, int samplePosition)
     {
+        if (port < -1 || port + 1 >= static_cast<int>(outputPorts.size()))
+            return;
+
         auto& outputPort = outputPorts[port + 1];
         auto dawPort = !ProjectInfo::isStandalone && port == 0;
         if (outputPort.enabled || dawPort || internalSynthPort == port) {

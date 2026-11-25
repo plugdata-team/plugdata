@@ -54,7 +54,7 @@ struct ProjectInfo {
         return File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata");
 #endif
     }();
-    static inline String const versionSuffix = "-test5";
+    static inline String const versionSuffix = "-test6";
     static inline File const versionDataDir = appDataDir.getChildFile("Versions").getChildFile(ProjectInfo::versionString + versionSuffix);
 };
 
