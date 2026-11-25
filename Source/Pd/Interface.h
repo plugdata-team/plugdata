@@ -99,10 +99,7 @@ struct Interface {
         int size = 0;
         binbuf_gettext(ptr->te_binbuf, &text, &size);
 
-        String result;
-        if (text && size)
-            result = String::fromUTF8(text, size);
-
+        SmallString result(text, static_cast<size_t>(size));
         freebytes(text, static_cast<size_t>(size) * sizeof(char));
         return result;
     }
