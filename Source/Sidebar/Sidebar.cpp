@@ -903,7 +903,7 @@ void Sidebar::hideParameters()
 void Sidebar::updateSearch(bool const resetInspector)
 {
     if (hasPanel(PatchSearchPanel) && searchPanelPtr)
-        searchPanelPtr->updateResults();
+        searchPanelPtr->triggerAsyncUpdate();
     if (!areParamObjectsAllValid() || resetInspector)
         clearInspector();
 }

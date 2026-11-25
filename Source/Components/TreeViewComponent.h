@@ -6,29 +6,195 @@
 
 #pragma once
 
-#include "Fonts.h"
+#include "Utility/Fonts.h"
+#include "Utility/CachedStringWidth.h"
+#include "Utility/NVGGraphicsContext.h"
 #include "Components/BouncingViewport.h"
+#include "Utility/SettingsFile.h"
 
-class ValueTreeViewerComponent;
-class ValueTreeNodeComponent;
-struct ValueTreeOwnerView final : public Component {
-    SafePointer<ValueTreeNodeComponent> selectedNode;
+// Nodes, properties and string data each live in one flat array. clear() keeps their capacity,
+// so rebuilding a tree that's no larger than before doesn't allocate.
+class TreeViewContent {
+    static constexpr uint32 none = ~0u;
 
-    std::function<void()> updateView = [] { };
-    std::function<void(ValueTree&)> onReturn = [](ValueTree&) { };
-    std::function<void(ValueTree&)> onClick = [](ValueTree&) { };
-    std::function<void(ValueTree&)> onSelect = [](ValueTree&) { };
-    std::function<void(ValueTree&)> onDragStart = [](ValueTree&) { };
-    std::function<void(ValueTree&)> onRightClick = [](ValueTree&) { };
+    struct NodeData {
+        int64 id;
+        uint32 firstChild = none, lastChild = none, nextSibling = none, firstProperty = none;
+    };
+
+    struct Property {
+        hash32 name;
+        uint32 next;
+        int64 value; // integer, pointer, or offset of a null-terminated string
+    };
+
+public:
+    struct PropertyName {
+        consteval PropertyName(char const* name)
+            : hash(::hash(name))
+        {
+        }
+
+        hash32 hash;
+    };
+
+    // Handle to a node, valid until its tree is reassigned or cleared
+    class Node {
+    public:
+        Node() = default;
+
+        bool isValid() const { return tree != nullptr; }
+        int64 getId() const { return tree ? data().id : 0; }
+
+        Node addChild(int64 const id) const
+        {
+            auto const child = static_cast<uint32>(tree->nodes.size());
+            tree->nodes.add({ id });
+            auto& parent = data();
+            (parent.lastChild == none ? parent.firstChild : tree->nodes[parent.lastChild].nextSibling) = child;
+            parent.lastChild = child;
+            return { tree, child };
+        }
+
+        bool hasProperty(PropertyName const name) const { return find(name) != nullptr; }
+
+        // Takes integers, bools, pointers and strings; read them back as the type they were set with
+        template<typename T>
+        void setProperty(PropertyName const name, T const& value) const
+        {
+            int64 v;
+            if constexpr (std::is_integral_v<T>)
+                v = static_cast<int64>(value);
+            else if constexpr (std::is_same_v<T, String>)
+                v = tree->addString(value.toRawUTF8(), value.getNumBytesAsUTF8());
+            else if constexpr (std::is_same_v<T, SmallString>)
+                v = tree->addString(value.data(), value.length());
+            else if constexpr (std::is_convertible_v<T const&, char const*>)
+                v = tree->addString(value, std::strlen(value));
+            else
+                v = reinterpret_cast<int64>(value);
+
+            if (auto* property = find(name)) {
+                property->value = v;
+            } else {
+                tree->properties.add({ name.hash, data().firstProperty, v });
+                data().firstProperty = static_cast<uint32>(tree->properties.size() - 1);
+            }
+        }
+
+        template<typename T>
+        T getProperty(PropertyName const name) const
+        {
+            auto const* property = find(name);
+            if constexpr (std::is_same_v<T, String>)
+                return property ? String::fromUTF8(tree->strings.data() + property->value) : String();
+            else if constexpr (std::is_same_v<T, char const*>)
+                return property ? tree->strings.data() + property->value : "";
+            else if constexpr (std::is_pointer_v<T>)
+                return property ? reinterpret_cast<T>(property->value) : nullptr;
+            else
+                return property ? static_cast<T>(property->value) : T();
+        }
+
+        struct Iterator {
+            TreeViewContent* tree;
+            uint32 index;
+
+            Node operator*() const { return { tree, index }; }
+            bool operator!=(Iterator const& other) const { return index != other.index; }
+            Iterator& operator++()
+            {
+                index = tree->nodes[index].nextSibling;
+                return *this;
+            }
+        };
+
+        Iterator begin() const { return { tree, tree ? data().firstChild : none }; }
+        Iterator end() const { return { tree, none }; }
+
+    private:
+        friend class TreeViewContent;
+
+        Node(TreeViewContent* tree, uint32 const index)
+            : tree(tree)
+            , index(index)
+        {
+        }
+
+        NodeData& data() const { return tree->nodes[index]; }
+
+        Property* find(PropertyName const name) const
+        {
+            if (tree) {
+                for (auto i = data().firstProperty; i != none; i = tree->properties[i].next) {
+                    if (tree->properties[i].name == name.hash)
+                        return &tree->properties[i];
+                }
+            }
+            return nullptr;
+        }
+
+        TreeViewContent* tree = nullptr;
+        uint32 index = 0;
+    };
+
+    TreeViewContent()
+    {
+        clear();
+    }
+
+    Node getRoot() { return { this, 0 }; }
+
+    void clear()
+    {
+        nodes.clear();
+        properties.clear();
+        strings.clear();
+        nodes.add({ 0 });
+    }
+
+private:
+    int64 addString(char const* text, size_t const length)
+    {
+        auto const offset = static_cast<int64>(strings.size());
+        strings.append(text, text + length);
+        strings.add('\0');
+        return offset;
+    }
+
+    SmallArray<NodeData, 64> nodes;
+    SmallArray<Property, 512> properties;
+    SmallArray<char, 4096> strings;
 };
 
-class ValueTreeNodeComponent final : public Component {
-    class ValueTreeNodeBranchLine final : public Component
-        , public SettableTooltipClient {
+class TreeViewComponent;
+class TreeViewNodeComponent;
+struct TreeViewOwnerView final : public Component {
+    SafePointer<TreeViewNodeComponent> selectedNode;
+
+    std::function<void()> updateView = [] { };
+    std::function<void(TreeViewContent::Node const&)> onReturn = [](TreeViewContent::Node const&) { };
+    std::function<void(TreeViewContent::Node const&)> onClick = [](TreeViewContent::Node const&) { };
+    std::function<void(TreeViewContent::Node const&)> onSelect = [](TreeViewContent::Node const&) { };
+    std::function<void(TreeViewContent::Node const&)> onDragStart = [](TreeViewContent::Node const&) { };
+    std::function<void(TreeViewContent::Node const&)> onRightClick = [](TreeViewContent::Node const&) { };
+};
+
+class TreeViewNodeComponent final : public Component {
+    class TreeViewNodeBranchLine final : public Component
+        , public TooltipClient {
     public:
-        explicit ValueTreeNodeBranchLine(ValueTreeNodeComponent* node)
+        explicit TreeViewNodeBranchLine(TreeViewNodeComponent* node)
             : node(node)
         {
+        }
+
+        String getTooltip() override
+        {
+            if (node->treeNode.hasProperty("Name"))
+                return node->tooltipPrepend + " " + node->treeNode.getProperty<String>("Name");
+
+            return { };
         }
 
         void paint(Graphics& g) override
@@ -81,61 +247,52 @@ class ValueTreeNodeComponent final : public Component {
 
 
     private:
-        ValueTreeNodeComponent* node;
+        TreeViewNodeComponent* node;
         bool isHover = false;
     };
 
 public:
-    ValueTreeNodeComponent(ValueTree const& node, ValueTreeNodeComponent* parentNode, String const& prepend = String())
-        : valueTreeNode(node)
+    TreeViewNodeComponent(TreeViewContent::Node const& node, int const index, TreeViewNodeComponent* parentNode, String const& prepend)
+        : treeNode(node)
+        , id(node.getId())
+        , index(index)
         , parent(parentNode)
+        , tooltipPrepend(prepend.isEmpty() ? String("(Parent)") : prepend)
     {
-        nodeBranchLine = std::make_unique<ValueTreeNodeBranchLine>(this);
+        nodeBranchLine = std::make_unique<TreeViewNodeBranchLine>(this);
         addAndMakeVisible(nodeBranchLine.get());
         nodeBranchLine->setAlwaysOnTop(true);
 
-        if (valueTreeNode.hasProperty("Name")) {
-            auto tooltipPrepend = prepend;
-            if (tooltipPrepend.isEmpty())
-                tooltipPrepend = "(Parent)";
-            nodeBranchLine->setTooltip(tooltipPrepend + " " + valueTreeNode.getProperty("Name").toString());
-        }
-
-        // Create subcomponents for each child node
-        for (int i = 0; i < valueTreeNode.getNumChildren(); ++i) {
-            auto* childComponent = nodes.add(new ValueTreeNodeComponent(valueTreeNode.getChild(i), this, prepend));
-            addChildComponent(childComponent);
-        }
+        syncNodes(nodes, treeNode, *this, this, tooltipPrepend);
     }
 
-    void update()
+    void update(TreeViewContent::Node const& node, int const newIndex)
     {
-        // Compare existing child nodes with current children
-        for (auto const& childNode : valueTreeNode) {
-            // Check if an existing node exists for this child
-            ValueTreeNodeComponent* existingNode = nullptr;
-            for (auto* node : nodes) {
-                if (ValueTreeNodeComponent::compareProperties(childNode, node->valueTreeNode)) {
-                    existingNode = node;
-                    node->valueTreeNode = childNode;
-                    break;
-                }
-            }
+        treeNode = node;
+        index = newIndex;
+        syncNodes(nodes, treeNode, *this, this, tooltipPrepend);
+    }
 
-            // If an existing node is found, update it; otherwise, create a new node
-            if (existingNode != nullptr) {
-                existingNode->update();
+    // Reuses the components whose id is still in the tree, so open branches and selection survive a refresh
+    static void syncNodes(OwnedArray<TreeViewNodeComponent>& nodes, TreeViewContent::Node const& treeNode, Component& container, TreeViewNodeComponent* parent, String const& prepend)
+    {
+        OwnedArray<TreeViewNodeComponent> previousNodes;
+        previousNodes.swapWith(nodes);
+
+        UnorderedMap<int64, int> previousIndices;
+        for (int i = 0; i < previousNodes.size(); i++)
+            previousIndices.emplace(previousNodes[i]->id, i);
+
+        int index = 0;
+        for (auto child : treeNode) {
+            auto const previous = previousIndices.find(child.getId());
+            if (auto* node = previous != previousIndices.end() ? previousNodes[previous->second] : nullptr) {
+                previousNodes.set(previous->second, nullptr, false);
+                nodes.add(node)->update(child, index++);
             } else {
-                auto* childComponent = new ValueTreeNodeComponent(childNode, this);
-                nodes.add(childComponent);
-                addAndMakeVisible(childComponent);
-            }
-        }
-
-        // Remove any existing nodes that no longer exist in the current children
-        for (int i = nodes.size(); --i >= 0;) {
-            if (!nodes.getUnchecked(i)->valueTreeNode.isAChildOf(valueTreeNode)) {
-                nodes.remove(i);
+                auto* newNode = nodes.add(new TreeViewNodeComponent(child, index++, parent, prepend));
+                container.addChildComponent(newNode);
+                newNode->setVisible(!parent || parent->isOpen());
             }
         }
     }
@@ -161,16 +318,16 @@ public:
         return false;
     }
 
-    ValueTreeOwnerView* getOwnerView() const
+    TreeViewOwnerView* getOwnerView() const
     {
-        return findParentComponentOfClass<ValueTreeOwnerView>();
+        return findParentComponentOfClass<TreeViewOwnerView>();
     }
 
     void mouseDrag(MouseEvent const& e) override
     {
         if (!isDragging && e.getDistanceFromDragStart() > 10) {
             isDragging = true;
-            getOwnerView()->onDragStart(valueTreeNode);
+            getOwnerView()->onDragStart(treeNode);
         }
     }
 
@@ -182,7 +339,7 @@ public:
     void mouseDown(MouseEvent const& e) override
     {
         if (e.eventComponent == this && e.mods.isRightButtonDown())
-            getOwnerView()->onRightClick(valueTreeNode);
+            getOwnerView()->onRightClick(treeNode);
     }
 
     void mouseUp(MouseEvent const& e) override
@@ -200,9 +357,9 @@ public:
                 getOwnerView()->repaint();
 
                 if (e.getNumberOfClicks() == 1) {
-                    getOwnerView()->onSelect(valueTreeNode);
+                    getOwnerView()->onSelect(treeNode);
                 } else {
-                    getOwnerView()->onClick(valueTreeNode);
+                    getOwnerView()->onClick(treeNode);
                 }
             }
         }
@@ -231,7 +388,7 @@ public:
         auto const& colours = getThemeColours(*this);
 
         // Either show single selection or multi-selection
-        if (getOwnerView()->selectedNode ? isSelected() : valueTreeNode.getProperty("Selected") == var(true)) {
+        if (getOwnerView()->selectedNode ? isSelected() : treeNode.getProperty<bool>("Selected")) {
             g.setColour(colours.sidebarActiveBackgroundColour);
             g.fillRoundedRectangle(getLocalBounds().withHeight(25).reduced(2).toFloat(), Corners::defaultCornerRadius);
         }
@@ -248,34 +405,46 @@ public:
         }
 
         auto colour = colours.sidebarTextColour;
+        auto* nvg = dynamic_cast<NVGGraphicsContext*>(&g.getInternalContext());
+        auto drawText = [&g, nvg](String const& text, Rectangle<int> bounds, Colour textColour, bool useEllipsis = true) {
+            g.setColour(textColour);
+            if (nvg != nullptr)
+                nvg->drawText(text, bounds.toFloat(), Justification::centredLeft, useEllipsis);
+            else
+                g.drawText(text, bounds, Justification::centredLeft, useEllipsis);
+        };
 
-        if (valueTreeNode.hasProperty("Icon")) {
+        if (treeNode.hasProperty("Icon")) {
             auto iconColour = colour;
-            if (valueTreeNode.hasProperty("IconColour"))
-                iconColour = Colour::fromString(valueTreeNode.getProperty("IconColour").toString());
-            Fonts::drawIcon(g, valueTreeNode.getProperty("Icon"), itemBounds.removeFromLeft(22).reduced(2), iconColour, 12, false);
+            if (treeNode.hasProperty("IconColour"))
+                iconColour = Colour(treeNode.getProperty<uint32>("IconColour"));
+            g.setFont(Fonts::getIconFont().withHeight(12));
+            drawText(treeNode.getProperty<String>("Icon"), itemBounds.removeFromLeft(22).reduced(2), iconColour, false);
         }
 
         // Don't allow multi-line for viewer items, so remove all newlines in the string
-        auto nameText = valueTreeNode.getProperty("Name").toString().replaceCharacters("\n", " ");
-        auto nameLength = Fonts::getStringWidth(nameText, 15);
-        Fonts::drawFittedText(g, nameText, itemBounds.removeFromLeft(nameLength + 2), colour);
+        auto nameText = treeNode.getProperty<String>("Name").replaceCharacters("\n", " ");
+
+        auto nameLength = CachedStringWidth<15>::calculateStringWidth(nameText);
+        g.setFont(Fonts::getDefaultFont().withHeight(15));
+        drawText(nameText, itemBounds.removeFromLeft(nameLength + 2), colour);
 
         constexpr auto tagCornerRadius = Corners::defaultCornerRadius * 0.7f;
 
 #ifdef SHOW_PD_SUBPATCH_SYMBOL
-        if (valueTreeNode.hasProperty("PDSymbol")) {
+        if (treeNode.hasProperty("PDSymbol")) {
             // draw generic symbol label tag
             //  ╭──────────╮
             //  │  symbol  │
             //  ╰──────────╯
-            auto sendSymbolText = valueTreeNode.getProperty("PDSymbol").toString();
-            auto length = Fonts.getStringWidthInt(sendSymbolText, 15);
+            auto sendSymbolText = treeNode.getProperty<String>("PDSymbol");
+
+            auto length = CachedStringWidth<15>::calculateStringWidth(sendSymbolText);
             auto sendColour = colours.objectSelectedOutlineColour.withRotatedHue(0.25);
             g.setColour(sendColour.withAlpha(0.2f));
             auto tagBounds = itemBounds.removeFromLeft(length).translated(4, 0).reduced(0, 5).expanded(2, 0);
             g.fillRoundedRectangle(tagBounds.toFloat(), Corners::defaultCornerRadius * 0.8f);
-            Fonts::drawFittedText(g, sendSymbolText, tagBounds.translated(2, 0), sendColour);
+            drawText(sendSymbolText, tagBounds.translated(2, 0), sendColour);
             itemBounds.translate(8, 0);
         } else
 #endif
@@ -286,9 +455,10 @@ public:
             //     c   symbol  │
             //   / │           │
             //  e──d───────────╯
-            if (valueTreeNode.hasProperty("ReceiveSymbol")) {
-                auto receiveSymbolText = (valueTreeNode.hasProperty("ReceiveObject") ? "" : "r: ") + valueTreeNode.getProperty("ReceiveSymbol").toString();
-                auto length = Fonts::getStringWidth(receiveSymbolText, 15);
+            if (treeNode.hasProperty("ReceiveSymbol")) {
+                auto receiveSymbolText = (treeNode.hasProperty("ReceiveObject") ? "" : "r: ") + treeNode.getProperty<String>("ReceiveSymbol");
+
+                auto length = CachedStringWidth<15>::calculateStringWidth(receiveSymbolText);
                 auto recColour = colours.objectSelectedOutlineColour;
                 g.setColour(recColour.withAlpha(0.2f));
                 auto tagBounds = itemBounds.removeFromLeft(length).translated(4, 0).reduced(0, 5).expanded(2, 0).toFloat();
@@ -308,7 +478,7 @@ public:
                 flag.closeSubPath();
                 flag.addRoundedRectangle(b.getX(), b.getY(), tagBounds.getWidth(), tagBounds.getHeight(), tagCornerRadius, tagCornerRadius, false, true, false, true);
                 g.fillPath(flag);
-                Fonts::drawFittedText(g, receiveSymbolText, tagBounds.translated(2 + tagBounds.getHeight() * 0.5f, 0).toNearestIntEdges(), recColour);
+                drawText(receiveSymbolText, tagBounds.translated(2 + tagBounds.getHeight() * 0.5f, 0).toNearestIntEdges(), recColour);
                 itemBounds.translate(16, 0);
             }
             // draw send symbol label tag
@@ -317,9 +487,10 @@ public:
             //  │  symbol  │  b
             //  │          │ /
             //  ╰────────── c
-            if (valueTreeNode.hasProperty("SendSymbol")) {
-                auto sendSymbolText = (valueTreeNode.hasProperty("SendObject") ? "" : "s: ") + valueTreeNode.getProperty("SendSymbol").toString();
-                auto length = Fonts::getStringWidth(sendSymbolText, 15);
+            if (treeNode.hasProperty("SendSymbol")) {
+                auto sendSymbolText = (treeNode.hasProperty("SendObject") ? "" : "s: ") + treeNode.getProperty<String>("SendSymbol");
+
+                auto length = CachedStringWidth<15>::calculateStringWidth(sendSymbolText);
                 auto sendColour = colours.objectSelectedOutlineColour.withRotatedHue(0.5f);
                 g.setColour(sendColour.withAlpha(0.2f));
                 auto tagBounds = itemBounds.removeFromLeft(length).translated(4, 0).reduced(0, 5).expanded(2, 0).toFloat();
@@ -333,26 +504,28 @@ public:
                 flag.closeSubPath();
                 flag.addRoundedRectangle(tagBounds.getX(), tagBounds.getY(), tagBounds.getWidth(), tagBounds.getHeight(), tagCornerRadius, tagCornerRadius, true, false, true, false);
                 g.fillPath(flag);
-                Fonts::drawFittedText(g, sendSymbolText, tagBounds.translated(2, 0).toNearestIntEdges(), sendColour);
+                drawText(sendSymbolText, tagBounds.translated(2, 0).toNearestIntEdges(), sendColour);
             }
         }
 
         int rightOffset = 0;
         auto rightBounds = getLocalBounds().removeFromTop(25);
 
-        if (showIndex && valueTreeNode.hasProperty("Index")) {
+        if (showIndex && treeNode.hasProperty("Index")) {
             rightOffset += 4;
-            auto rightText = valueTreeNode.getProperty("Index").toString();
-            if (itemBounds.getWidth() - Fonts::getStringWidth(rightText, 15) >= rightOffset) {
-                Fonts::drawFittedText(g, rightText, rightBounds.removeFromRight(Fonts::getStringWidth(rightText, 15) + 4), colour.withAlpha(0.5f), Justification::topLeft);
+            auto rightText = String(treeNode.getProperty<int>("Index"));
+            auto const rightTextWidth = CachedStringWidth<15>::calculateStringWidth(rightText);
+            if (itemBounds.getWidth() - rightTextWidth >= rightOffset) {
+                drawText(rightText, rightBounds.removeFromRight(rightTextWidth + 4), colour.withAlpha(0.5f));
             }
         }
 
-        if (showXYpos && valueTreeNode.hasProperty("RightText")) {
+        if (showXYpos && treeNode.hasProperty("RightText")) {
             rightOffset += 8;
-            auto rightText = valueTreeNode.getProperty("RightText").toString();
-            if (itemBounds.getWidth() - Fonts::getStringWidth(rightText, 15) >= rightOffset) {
-                Fonts::drawFittedText(g, rightText, rightBounds.removeFromRight(Fonts::getStringWidth(rightText, 15) + 4), colour.withAlpha(0.5f), Justification::topLeft);
+            auto rightText = treeNode.getProperty<String>("RightText");
+            auto rightTextWidth = CachedStringWidth<15>::calculateStringWidth(rightText);
+            if (itemBounds.getWidth() - rightTextWidth >= rightOffset) {
+                drawText(rightText, rightBounds.removeFromRight(rightTextWidth + 4), colour.withAlpha(0.5f));
             }
         }
     }
@@ -390,17 +563,6 @@ public:
         return totalHeight;
     }
 
-    static bool compareProperties(ValueTree const& oldTree, ValueTree const& newTree)
-    {
-        for (int i = 0; i < oldTree.getNumProperties(); i++) {
-            auto name = oldTree.getPropertyName(i);
-            if (!newTree.hasProperty(name) || newTree.getProperty(name) != oldTree.getProperty(name))
-                return false;
-        }
-
-        return true;
-    }
-
     int getPositionInViewport() const
     {
         auto const* node = this;
@@ -412,33 +574,35 @@ public:
         return posInParent;
     }
 
-    ValueTree valueTreeNode;
+    TreeViewContent::Node treeNode;
 
     bool isOpenInSearchMode() const { return isOpenedBySearch; }
 
 private:
-    ValueTreeNodeComponent* parent;
-    SafePointer<ValueTreeNodeComponent> previous, next;
-    OwnedArray<ValueTreeNodeComponent> nodes;
+    int64 const id;
+    int index;
+    TreeViewNodeComponent* parent;
+    String const tooltipPrepend;
+    SafePointer<TreeViewNodeComponent> previous, next;
+    OwnedArray<TreeViewNodeComponent> nodes;
     bool isOpened = false;
     bool isOpenedBySearch = false;
     bool isDragging = false;
 
-    std::unique_ptr<ValueTreeNodeBranchLine> nodeBranchLine;
+    std::unique_ptr<TreeViewNodeBranchLine> nodeBranchLine;
 
     bool showXYpos = false;
     bool showIndex = false;
 
-    friend class ValueTreeViewerComponent;
+    friend class TreeViewComponent;
 };
 
-#include "SettingsFile.h"
 
-class ValueTreeViewerComponent final : public Component
+class TreeViewComponent final : public Component
     , public KeyListener
     , public SettingsFileListener {
 public:
-    explicit ValueTreeViewerComponent(String prepend = String())
+    explicit TreeViewComponent(String prepend = String())
         : tooltipPrepend(std::move(prepend))
     {
         if (tooltipPrepend == "(Subpatch)") { // FIXME: this is horrible
@@ -457,11 +621,11 @@ public:
             resized();
         };
 
-        contentComponent.onReturn = [this](ValueTree& tree) { onReturn(tree); };
-        contentComponent.onClick = [this](ValueTree& tree) { onClick(tree); };
-        contentComponent.onSelect = [this](ValueTree& tree) { onSelect(tree); };
-        contentComponent.onDragStart = [this](ValueTree& tree) { onDragStart(tree); };
-        contentComponent.onRightClick = [this](ValueTree& tree) { onRightClick(tree); };
+        contentComponent.onReturn = [this](TreeViewContent::Node const& node) { onReturn(node); };
+        contentComponent.onClick = [this](TreeViewContent::Node const& node) { onClick(node); };
+        contentComponent.onSelect = [this](TreeViewContent::Node const& node) { onSelect(node); };
+        contentComponent.onDragStart = [this](TreeViewContent::Node const& node) { onDragStart(node); };
+        contentComponent.onRightClick = [this](TreeViewContent::Node const& node) { onRightClick(node); };
 
         addAndMakeVisible(viewport);
     }
@@ -469,7 +633,7 @@ public:
     void makeNodeActive(void const* objPtr)
     {
         for (auto* node : nodes) {
-            if (reinterpret_cast<void*>(static_cast<int64>(node->valueTreeNode.getProperty("Object"))) == objPtr) {
+            if (node->id == reinterpret_cast<int64>(objPtr)) {
                 node->makeActive();
             }
         }
@@ -499,10 +663,10 @@ public:
 
     void setSelectedNode(void const* obj)
     {
-        // Locate the object in the value tree, and set it as the selected node
+        // Locate the object in the tree, and set it as the selected node
         if (obj) {
             for (auto const& node : nodes) {
-                if (reinterpret_cast<void*>(static_cast<int64>(node->valueTreeNode.getProperty("Object"))) == obj) {
+                if (node->id == reinterpret_cast<int64>(obj)) {
                     contentComponent.selectedNode = node;
                     return;
                 }
@@ -511,59 +675,30 @@ public:
         contentComponent.selectedNode = nullptr;
     }
 
-    void* getSelectedNodeObject() const
+    TreeViewContent::Node getSelectedNode() const
     {
         if (contentComponent.selectedNode)
-            return reinterpret_cast<void*>(static_cast<int64>(contentComponent.selectedNode->valueTreeNode.getProperty("Object")));
+            return contentComponent.selectedNode->treeNode;
 
-        return nullptr;
+        return { };
     }
 
-    void setValueTree(ValueTree const& tree)
+    void setValueTree(TreeViewContent const& newTree)
     {
-        valueTree = tree;
+        tree = newTree;
         auto const originalViewPos = viewport.getViewPosition();
 
-        // Compare existing child nodes with current children
-        for (int i = 0; i < valueTree.getNumChildren(); ++i) {
-            ValueTree childNode = valueTree.getChild(i);
-
-            // Check if an existing node exists for this child
-            ValueTreeNodeComponent* existingNode = nullptr;
-            for (auto* node : nodes) {
-                if (childNode.isValid() && ValueTreeNodeComponent::compareProperties(childNode, node->valueTreeNode)) {
-                    existingNode = node;
-                    node->valueTreeNode = childNode;
-                    break;
-                }
-            }
-
-            // If an existing node is found, update it; otherwise, create a new node
-            if (existingNode != nullptr) {
-                existingNode->update();
-            } else if (childNode.isValid()) {
-                auto* childComponent = new ValueTreeNodeComponent(childNode, nullptr, tooltipPrepend);
-                nodes.add(childComponent);
-                contentComponent.addAndMakeVisible(childComponent);
-            }
-        }
-
-        // Remove any existing nodes that no longer exist in the current children
-        for (int i = nodes.size(); --i >= 0;) {
-            if (!nodes.getUnchecked(i)->valueTreeNode.isAChildOf(valueTree)) {
-                nodes.remove(i);
-            }
-        }
-
+        TreeViewNodeComponent::syncNodes(nodes, tree.getRoot(), contentComponent, nullptr, tooltipPrepend);
         sortNodes(nodes, sortLayerOrder);
 
         setShowIndex(nodes);
         setShowXYPosAllNodes(nodes);
 
-        ValueTreeNodeComponent* previous = nullptr;
+        TreeViewNodeComponent* previous = nullptr;
         linkNodes(nodes, previous);
 
         contentComponent.resized();
+        contentComponent.repaint();
         resized();
 
         viewport.setViewPosition(originalViewPos);
@@ -571,13 +706,7 @@ public:
 
     void clearValueTree()
     {
-        ValueTree const emptyTree;
-        setValueTree(emptyTree);
-    }
-
-    ValueTree& getValueTree()
-    {
-        return valueTree;
+        setValueTree({ });
     }
 
     void setSortDir(bool const sortDir)
@@ -587,7 +716,7 @@ public:
         resizeAllNodes(nodes);
     }
 
-    void setShowIndex(OwnedArray<ValueTreeNodeComponent>& nodes)
+    void setShowIndex(OwnedArray<TreeViewNodeComponent>& nodes)
     {
         for (auto* node : nodes) {
             node->showIndex = showIndex;
@@ -596,7 +725,7 @@ public:
         }
     }
 
-    void setShowXYPosAllNodes(OwnedArray<ValueTreeNodeComponent>& nodes)
+    void setShowXYPosAllNodes(OwnedArray<TreeViewNodeComponent>& nodes)
     {
         for (auto* node : nodes) {
             node->showXYpos = showXYPos;
@@ -605,7 +734,7 @@ public:
         }
     }
 
-    void resizeAllNodes(OwnedArray<ValueTreeNodeComponent>& nodes)
+    void resizeAllNodes(OwnedArray<TreeViewNodeComponent>& nodes)
     {
         resized();
 
@@ -642,7 +771,7 @@ public:
         auto const scrollbarIndent = viewport.canScrollVertically() ? 8 : 0;
         bounds = bounds.reduced(2, 0).withTrimmedRight(scrollbarIndent).withHeight(getTotalContentHeight() + 4).withTrimmedTop(4);
 
-        auto resizeNodes = [bounds](ValueTreeNodeComponent* node) mutable {
+        auto resizeNodes = [bounds](TreeViewNodeComponent* node) mutable {
             if (node->isVisible()) {
                 auto const childBounds = bounds.removeFromTop(node->getTotalContentHeight());
                 node->setBounds(childBounds);
@@ -676,7 +805,7 @@ public:
             }
 
             if (contentComponent.selectedNode && contentComponent.selectedNode->isShowing()) {
-                onSelect(contentComponent.selectedNode->valueTreeNode);
+                onSelect(contentComponent.selectedNode->treeNode);
                 contentComponent.repaint();
                 resized();
                 scrollToShowSelection();
@@ -702,7 +831,7 @@ public:
             }
 
             if (contentComponent.selectedNode && contentComponent.selectedNode->isShowing()) {
-                onSelect(contentComponent.selectedNode->valueTreeNode);
+                onSelect(contentComponent.selectedNode->treeNode);
                 contentComponent.repaint();
                 resized();
                 scrollToShowSelection();
@@ -724,7 +853,7 @@ public:
         }
         if (key.getKeyCode() == KeyPress::returnKey) {
             if (contentComponent.selectedNode && contentComponent.selectedNode->parent != nullptr)
-                onReturn(contentComponent.selectedNode->valueTreeNode);
+                onReturn(contentComponent.selectedNode->treeNode);
             return true;
         }
 
@@ -774,14 +903,14 @@ public:
         resized();
     }
 
-    std::function<void(ValueTree&)> onReturn = [](ValueTree&) { };
-    std::function<void(ValueTree&)> onClick = [](ValueTree&) { };
-    std::function<void(ValueTree&)> onSelect = [](ValueTree&) { };
-    std::function<void(ValueTree&)> onDragStart = [](ValueTree&) { };
-    std::function<void(ValueTree&)> onRightClick = [](ValueTree&) { };
+    std::function<void(TreeViewContent::Node const&)> onReturn = [](TreeViewContent::Node const&) { };
+    std::function<void(TreeViewContent::Node const&)> onClick = [](TreeViewContent::Node const&) { };
+    std::function<void(TreeViewContent::Node const&)> onSelect = [](TreeViewContent::Node const&) { };
+    std::function<void(TreeViewContent::Node const&)> onDragStart = [](TreeViewContent::Node const&) { };
+    std::function<void(TreeViewContent::Node const&)> onRightClick = [](TreeViewContent::Node const&) { };
 
 private:
-    static void linkNodes(OwnedArray<ValueTreeNodeComponent>& nodes, ValueTreeNodeComponent*& previous)
+    static void linkNodes(OwnedArray<TreeViewNodeComponent>& nodes, TreeViewNodeComponent*& previous)
     {
         // Iterate over direct children
         for (auto* node : nodes) {
@@ -798,7 +927,7 @@ private:
         }
     }
 
-    bool searchInNode(ValueTreeNodeComponent* node)
+    bool searchInNode(TreeViewNodeComponent* node)
     {
         // Check if the current node matches the filterString
         int found = 0;
@@ -825,12 +954,11 @@ private:
             }
 
             // NOTE! lambda capture needs to happen here, after we have modified token & isStrict to implement search restrictions
-            auto findProperty = [node, token](String const& propertyName, bool const containsToken = false, bool const isStrict = false) -> bool {
-                if (node->valueTreeNode.hasProperty(propertyName)) {
+            auto findProperty = [node, token](TreeViewContent::PropertyName const propertyName, bool const containsToken = false, bool const isStrict = false) -> bool {
+                if (node->treeNode.hasProperty(propertyName)) {
                     if (containsToken) {
-                        auto const name = node->valueTreeNode.getProperty(propertyName).toString();
-                        // std::cout << "token: " << token << " name: " << name << std::endl;
-                        return (isStrict ? token.length() == name.length() : true) && name.containsIgnoreCase(token);
+                        auto const name = CharPointer_UTF8(node->treeNode.getProperty<char const*>(propertyName));
+                        return (isStrict ? token.length() == static_cast<int>(name.length()) : true) && CharacterFunctions::indexOfIgnoreCase(name, token.getCharPointer()) >= 0;
                     }
                     return true;
                 }
@@ -874,7 +1002,7 @@ private:
         return found;
     }
 
-    static void clearSearch(ValueTreeNodeComponent* node)
+    static void clearSearch(TreeViewNodeComponent* node)
     {
         node->setVisible(true);
         node->isOpenedBySearch = false;
@@ -883,15 +1011,15 @@ private:
         }
     }
 
-    static void sortNodes(OwnedArray<ValueTreeNodeComponent>& nodes, bool const sortDown)
+    static void sortNodes(OwnedArray<TreeViewNodeComponent>& nodes, bool const sortDown)
     {
         struct {
             bool sortDirection = false;
 
-            int compareElements(ValueTreeNodeComponent const* a, ValueTreeNodeComponent const* b) const
+            int compareElements(TreeViewNodeComponent const* a, TreeViewNodeComponent const* b) const
             {
-                auto const firstIdx = a->valueTreeNode.getParent().indexOf(a->valueTreeNode);
-                auto const secondIdx = b->valueTreeNode.getParent().indexOf(b->valueTreeNode);
+                auto const firstIdx = a->index;
+                auto const secondIdx = b->index;
                 if (firstIdx > secondIdx)
                     return sortDirection ? -1 : 1;
                 if (firstIdx < secondIdx)
@@ -911,9 +1039,9 @@ private:
 
     String filterString;
     String tooltipPrepend;
-    ValueTreeOwnerView contentComponent;
-    OwnedArray<ValueTreeNodeComponent> nodes;
-    ValueTree valueTree = ValueTree("Folder");
+    TreeViewOwnerView contentComponent;
+    OwnedArray<TreeViewNodeComponent> nodes;
+    TreeViewContent tree;
     BouncingViewport viewport;
     bool sortLayerOrder = false;
     bool showXYPos = false;

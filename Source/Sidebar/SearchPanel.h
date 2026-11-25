@@ -119,7 +119,8 @@ private:
 
 class SearchPanel final : public Component
     , public KeyListener
-    , public Timer {
+    , public Timer
+    , public AsyncUpdater {
 public:
     explicit SearchPanel(PluginEditor* pluginEditor)
         : editor(pluginEditor)
@@ -135,8 +136,8 @@ public:
         patchTree.addKeyListener(this);
 
         // onReturn makes the current node active and gains focus for keyboard traversal
-        patchTree.onReturn = [this](ValueTree const& tree) {
-            auto* ptr = reinterpret_cast<void*>(static_cast<int64>(tree.getProperty("Object")));
+        patchTree.onReturn = [this](TreeViewContent::Node const& node) {
+            auto* ptr = reinterpret_cast<void*>(node.getId());
             if (auto obj = editor->highlightSearchTarget(ptr, true)) {
                 auto launchInspector = [this, obj, ptr] {
                     SmallArray<ObjectParameters, 6> parameters = { obj->gui->getParameters() };
@@ -151,8 +152,8 @@ public:
             }
         };
 
-        patchTree.onClick = [this](ValueTree const& tree) {
-            auto* ptr = reinterpret_cast<void*>(static_cast<int64>(tree.getProperty("Object")));
+        patchTree.onClick = [this](TreeViewContent::Node const& node) {
+            auto* ptr = reinterpret_cast<void*>(node.getId());
             if (auto obj = editor->highlightSearchTarget(ptr, true)) {
                 auto launchInspector = [this, obj] {
                     SmallArray<ObjectParameters, 6> parameters = { obj->gui->getParameters() };
@@ -165,8 +166,8 @@ public:
             }
         };
 
-        patchTree.onSelect = [this](ValueTree const& tree) {
-            auto* ptr = reinterpret_cast<void*>(static_cast<int64>(tree.getProperty("TopLevel")));
+        patchTree.onSelect = [this](TreeViewContent::Node const& node) {
+            auto* ptr = node.getProperty<void*>("TopLevel");
             if (auto obj = editor->highlightSearchTarget(ptr, false)) {
                 auto launchInspector = [this, obj] {
                     SmallArray<ObjectParameters, 6> parameters = { obj->gui->getParameters() };
@@ -180,8 +181,8 @@ public:
             }
         };
 
-        patchTree.onRightClick = [this](ValueTree const& tree) {
-            auto* ptr = reinterpret_cast<void*>(static_cast<int64>(tree.getProperty("Object")));
+        patchTree.onRightClick = [this](TreeViewContent::Node const& node) {
+            auto* ptr = reinterpret_cast<void*>(node.getId());
 
             auto const pos = Desktop::getInstance().getMousePosition();
             auto const bounds = Rectangle<int>(pos.x, pos.y, 10, 10);
@@ -230,12 +231,14 @@ public:
 
     void timerCallback() override
     {
-        auto* cnv = editor->getCurrentCanvas();
-        if (cnv && (currentCanvas.getComponent() != cnv || cnv->needsSearchUpdate)) {
-            currentCanvas = cnv;
-            currentCanvas->needsSearchUpdate = false;
+        auto const* cnv = editor->getCurrentCanvas();
+        if (cnv && (currentCanvas.getComponent() != cnv || cnv->needsSearchUpdate))
             updateResults();
-        }
+    }
+
+    void handleAsyncUpdate() override
+    {
+        updateResults();
     }
 
     void visibilityChanged() override
@@ -304,31 +307,26 @@ public:
     {
         currentCanvas = editor->getCurrentCanvas();
         if (currentCanvas && isVisible()) {
+            cancelPendingUpdate();
+            currentCanvas->needsSearchUpdate = false;
+            auto const selection = currentCanvas->getSelectionOfType<Object>();
+            selectedObjects.clear();
+            for (auto* object : selection)
+                selectedObjects.insert(object->getPointer());
+
+            searchTree.clear();
             currentCanvas->pd->lockAudioThread(); // It locks inside of this anyway, so we might as well lock around it to prevent constantly locking/unlocking
+            makePatchTree(searchTree.getRoot(), currentCanvas->refCountedPatch);
+            currentCanvas->pd->unlockAudioThread();
 
-            // Get the currently selected object
-            auto const selectedObj = patchTree.getSelectedNodeObject();
+            patchTree.setValueTree(searchTree);
 
-            patchTree.setValueTree(generatePatchTree(currentCanvas->refCountedPatch));
-
-            // If the object is still selected, reselect it
-            auto numSelectedObject = 0;
-            auto foundInCanvas = false;
-            for (auto item : currentCanvas->getLassoSelection()) {
-                if (auto const* obj = dynamic_cast<Object*>(item.get())) {
-                    numSelectedObject++;
-                    if (selectedObj == obj->getPointer()) {
-                        foundInCanvas = true;
-                    }
-                }
-            }
-            if (foundInCanvas && numSelectedObject == 1)
-                patchTree.setSelectedNode(selectedObj);
-            else
+            // A nested search result selects its top-level object on the canvas.
+            auto const* selectedTopLevel = patchTree.getSelectedNode().getProperty<void*>("TopLevel");
+            if (selection.size() != 1 || selection.front()->getPointer() != selectedTopLevel)
                 patchTree.setSelectedNode(nullptr);
 
             patchTree.filterNodes();
-            currentCanvas->pd->unlockAudioThread();
             patchTree.repaint();
         }
     }
@@ -349,19 +347,10 @@ public:
         patchTree.setBounds(tableBounds);
     }
 
-    ValueTree generatePatchTree(pd::Patch::Ptr patch, void* topLevel = nullptr)
+    // Returns whether the patch contains a subpatch, which changes the icon of the patch that holds it
+    bool makePatchTree(TreeViewContent::Node const& parent, pd::Patch::Ptr patch, void* topLevel = nullptr) const
     {
-        auto patchTree = makePatchTree(patch, topLevel);
-
-        updateIconsForChildTrees(patchTree);
-
-        return patchTree;
-    }
-
-    ValueTree makePatchTree(pd::Patch::Ptr patch, void* topLevel = nullptr) const
-    {
-        ValueTree patchTree("Patch");
-
+        bool hasSubpatch = false;
         int index = 0;
 
         for (auto const& objectPtr : patch->getObjects()) {
@@ -378,17 +367,19 @@ public:
 
             auto* top = topLevel ? topLevel : objectPtr.getRaw<void>();
             auto nameWithoutArgs = name.upToFirstOccurrenceOf(" ");
-            auto positionText = " (" + String(x) + ":" + String(y) + ")";
+            char positionText[32];
+            snprintf(positionText, sizeof(positionText), " (%i:%i)", x, y);
 
             auto getFirstArgumentFromFullName = [](SmallString const& fullName) -> SmallString {
                 return fullName.fromFirstOccurrenceOf(" ").upToFirstOccurrenceOf(" ");
             };
 
-            ValueTree element("Object");
+            auto element = parent.addChild(reinterpret_cast<int64>(objectPtr.getRaw<void>()));
             if (type == "canvas" || type == "graph") {
                 pd::Patch::Ptr subpatch = new pd::Patch(objectPtr, editor->pd, false);
-                ValueTree subpatchTree = makePatchTree(subpatch, top);
-                element.copyPropertiesAndChildrenFrom(subpatchTree, nullptr);
+                auto const hasNestedSubpatch = makePatchTree(element, subpatch, top);
+                auto const isAbstraction = canvas_isabstraction(subpatch->getPointer().get());
+                hasSubpatch |= !isAbstraction;
 
                 if (auto patchPtr = subpatch->getPointer()) {
                     if (patchPtr->gl_list) {
@@ -418,28 +409,12 @@ public:
                 if (nameWithoutArgs == "pd") {
                     auto arg = getFirstArgumentFromFullName(name);
                     if (arg.isNotEmpty())
-                        element.setProperty("PDSymbol", nameWithoutArgs + "-" + arg, nullptr);
+                        element.setProperty("PDSymbol", nameWithoutArgs + "-" + arg);
                 }
 #endif
-                auto nameString = name.toString();
-                element.setProperty("ObjectName", nameString, nullptr);
-                element.setProperty("Name", nameString, nullptr);
-                element.setProperty("RightText", positionText, nullptr);
-                element.setProperty("IsAbstraction", canvas_isabstraction(subpatch->getPointer().get()), nullptr);
-                element.setProperty("Object", reinterpret_cast<int64>(objectPtr.getRaw<void>()), nullptr);
-                if (currentCanvas) {
-                    for (auto comp : currentCanvas->getLassoSelection()) {
-                        if (auto obj = dynamic_cast<Object*>(comp.get())) {
-                            if (obj->getPointer() == objectPtr.getRaw<t_gobj>()) {
-                                element.setProperty("Selected", true, nullptr);
-                            }
-                        }
-                    }
-                }
-                element.setProperty("TopLevel", reinterpret_cast<int64>(top), nullptr);
-                element.setProperty("Index", index, nullptr);
-
-                index++;
+                element.setProperty("ObjectName", name);
+                element.setProperty("Name", name);
+                element.setProperty("Icon", isAbstraction ? Icons::File : (hasNestedSubpatch ? Icons::ObjectMulti : Icons::Object));
             } else {
                 SmallString objectName = type;
                 SmallString finalFormatedName;
@@ -560,7 +535,7 @@ public:
                     }
                     case T_OBJECT: {
                         // if object is T_OBJECT but classname is 'text' object is in error state
-                        element.setProperty("IconColour", Colours::red.toString(), nullptr);
+                        element.setProperty("IconColour", Colours::red.getARGB());
 
                         if (name.isEmpty()) {
                             finalFormatedName = String("empty");
@@ -593,7 +568,7 @@ public:
                     case hash("send~"):
                     case hash("throw~"): {
                         sendSymbol = getFirstArgumentFromFullName(name);
-                        element.setProperty("SendObject", 1, nullptr);
+                        element.setProperty("SendObject", true);
                         finalFormatedName = nameWithoutArgs;
                         break;
                     }
@@ -603,28 +578,28 @@ public:
                     case hash("receive~"):
                     case hash("catch~"): {
                         receiveSymbol = getFirstArgumentFromFullName(name);
-                        element.setProperty("ReceiveObject", 1, nullptr);
+                        element.setProperty("ReceiveObject", true);
                         finalFormatedName = nameWithoutArgs;
                         break;
                     }
                     case hash("t"):
                     case hash("trigger"):
-                        element.setProperty("TriggerObject", 1, nullptr);
+                        element.setProperty("TriggerObject", true);
                         finalFormatedName = name;
                         break;
                     case hash("v"):
                     case hash("value"):
-                        element.setProperty("ValueObject", 1, nullptr);
+                        element.setProperty("ValueObject", true);
                         finalFormatedName = name;
                         break;
                     case hash("i"):
                     case hash("int"):
-                        element.setProperty("IntObject", 1, nullptr);
+                        element.setProperty("IntObject", true);
                         finalFormatedName = name;
                         break;
                     case hash("f"):
                     case hash("float"):
-                        element.setProperty("FloatObject", 1, nullptr);
+                        element.setProperty("FloatObject", true);
                         finalFormatedName = name;
                         break;
                     default:
@@ -634,68 +609,35 @@ public:
                     break;
                 }
                 }
-                element.setProperty("ObjectName", objectName.toString(), nullptr);
-                element.setProperty("Name", finalFormatedName.toString(), nullptr);
+                element.setProperty("ObjectName", objectName);
+                element.setProperty("Name", finalFormatedName);
                 // Add send/receive tags if they exist
                 if (!sendSymbol.isEmpty() && sendSymbol != "empty" && sendSymbol != "nosndno") {
-                    element.setProperty("SendSymbol", sendSymbol.toString(), nullptr);
+                    element.setProperty("SendSymbol", sendSymbol);
                 }
                 if (!receiveSymbol.isEmpty() && receiveSymbol != "empty") {
-                    element.setProperty("ReceiveSymbol", receiveSymbol.toString(), nullptr);
+                    element.setProperty("ReceiveSymbol", receiveSymbol);
                 }
-                element.setProperty("RightText", positionText, nullptr);
-                element.setProperty("Icon", Icons::Object, nullptr);
-                element.setProperty("Object", reinterpret_cast<int64>(objectPtr.getRaw<void>()), nullptr);
-                if (currentCanvas) {
-                    for (auto comp : currentCanvas->getLassoSelection()) {
-                        if (auto obj = dynamic_cast<Object*>(comp.get())) {
-                            if (obj->getPointer() == objectPtr.getRaw<t_gobj>())
-                                element.setProperty("Selected", true, nullptr);
-                        }
-                    }
-                }
-                element.setProperty("TopLevel", reinterpret_cast<int64>(top), nullptr);
-                element.setProperty("Index", index, nullptr);
-
-                index++;
+                element.setProperty("Icon", Icons::Object);
             }
 
-            patchTree.appendChild(element, nullptr);
+            element.setProperty("RightText", positionText);
+            if (selectedObjects.contains(objectPtr.getRaw<void>()))
+                element.setProperty("Selected", true);
+            element.setProperty("TopLevel", top);
+            element.setProperty("Index", index++);
         }
 
-        return patchTree;
-    }
-
-    static void updateIconsForChildTrees(ValueTree const& tree)
-    {
-        for (auto child : tree) {
-            // Check if this child has its own children
-            if (child.hasProperty("IsAbstraction")) {
-                if (child.getProperty("IsAbstraction"))
-                    child.setProperty("Icon", Icons::File, nullptr);
-                else {
-                    child.setProperty("Icon", Icons::Object, nullptr);
-
-                    for (auto grandChild : child) {
-                        if (grandChild.hasProperty("IsAbstraction") && !grandChild.getProperty("IsAbstraction")) {
-                            child.setProperty("Icon", Icons::ObjectMulti, nullptr);
-                            break;
-                        }
-                    }
-                }
-            }
-
-            // Recursively check the child itself for nested child trees
-            if (child.getNumChildren())
-                updateIconsForChildTrees(child);
-        }
+        return hasSubpatch;
     }
 
     SafePointer<Canvas> currentCanvas;
     PluginEditor* editor;
-    ValueTreeViewerComponent patchTree = ValueTreeViewerComponent("(Subpatch)");
+    TreeViewComponent patchTree = TreeViewComponent("(Subpatch)");
     SearchEditor input;
 
 private:
+    TreeViewContent searchTree;
+    UnorderedSet<void*> selectedObjects;
     static inline SafePointer<CallOutBox> currentCalloutBox = nullptr;
 };

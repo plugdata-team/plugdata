@@ -11,7 +11,7 @@
 #pragma once
 
 #include "Utility/OSUtils.h"
-#include "Utility/ValueTreeViewer.h"
+#include "Components/TreeViewComponent.h"
 #include "Dialogs/Dialogs.h"
 
 class DocumentBrowserSettings final : public Component {
@@ -82,10 +82,10 @@ public:
         startThread(Thread::Priority::low);
     }
 
-    ValueTree getCurrentTree() const
+    TreeViewContent getCurrentTree() const
     {
         ScopedLock treeLock(fileTreeLock);
-        return fileTree.createCopy();
+        return fileTree;
     }
 
     static DocumentationBrowserUpdateThread* getInstance()
@@ -96,28 +96,36 @@ public:
     }
 
 private:
-    static inline auto const fileIdentifier = Identifier("File");
-    static inline auto const nameIdentifier = Identifier("Name");
-    static inline auto const pathIdentifier = Identifier("Path");
-    static inline auto const iconIdentifier = Identifier("Icon");
-
     static inline auto const fileIcon = Icons::File;
     static inline auto const folderIcon = Icons::FolderFilled;
 
-    ValueTree generateDirectoryValueTree(File const& directory)
+    static TreeViewContent::Node addFile(TreeViewContent::Node const& parent, String const& name, File const& file, String const& icon)
+    {
+        auto const node = parent.addChild(hash(name));
+        node.setProperty("Name", name);
+        node.setProperty("Path", file.getFullPathName());
+        node.setProperty("Icon", icon);
+        return node;
+    }
+
+    static SmallArray<std::pair<String, File>> sortByName(SmallArray<File> const& files)
+    {
+        SmallArray<std::pair<String, File>> sorted;
+        for (auto const& file : files)
+            sorted.add({ file.getFileName(), file });
+        sorted.sort([](auto const& a, auto const& b) { return a.first.compareNatural(b.first) < 0; });
+        return sorted;
+    }
+
+    // Adds the contents of a directory to a node: folders first, then files, both in natural name order
+    void generateDirectoryTree(TreeViewContent::Node const& node, File const& directory)
     {
         static File versionDataDir = ProjectInfo::appDataDir.getChildFile("Versions");
         static File toolchainDir = ProjectInfo::appDataDir.getChildFile("Toolchain");
         static File libraryDir = ProjectInfo::appDataDir.getChildFile("Library");
 
-        if (threadShouldExit() || directory == versionDataDir || directory == toolchainDir || directory == libraryDir) {
-            return { };
-        }
-
-        ValueTree rootNode("Folder");
-        rootNode.setProperty(nameIdentifier, directory.getFileName(), nullptr);
-        rootNode.setProperty(pathIdentifier, directory.getFullPathName(), nullptr);
-        rootNode.setProperty(iconIdentifier, folderIcon, nullptr);
+        if (threadShouldExit())
+            return;
 
         // visitedDirectories keeps track of dirs we've already processed to prevent infinite loops
         static SmallArray<hash32> visitedDirectories = { };
@@ -125,48 +133,21 @@ private:
         auto const directoryHash = OSUtils::getUniqueFileHash(directory.getFullPathName());
         if (!visitedDirectories.contains(directoryHash)) {
             visitedDirectories.add(directoryHash); // Protect against symlink loops!
+            SmallArray<File> subDirectories;
             for (auto const& subDirectory : OSUtils::iterateDirectory(directory, false, false)) {
                 auto pathName = subDirectory.getFullPathName();
-                if (OSUtils::isDirectoryFast(pathName) && subDirectory != directory) {
-                    ValueTree childNode = generateDirectoryValueTree(subDirectory);
-                    if (childNode.isValid())
-                        rootNode.appendChild(childNode, nullptr);
-                }
+                if (OSUtils::isDirectoryFast(pathName) && subDirectory != directory && subDirectory != versionDataDir && subDirectory != toolchainDir && subDirectory != libraryDir)
+                    subDirectories.add(subDirectory);
             }
+            for (auto const& [name, subDirectory] : sortByName(subDirectories))
+                generateDirectoryTree(addFile(node, name, subDirectory, folderIcon), subDirectory);
             visitedDirectories.pop_back();
         }
 
-        for (auto const& file : OSUtils::iterateDirectory(directory, false, true)) {
-            if (file.getFileName().startsWith(".") || file.getFileName() == "settings.json")
-                continue;
-
-            ValueTree childNode(fileIdentifier);
-            childNode.setProperty(nameIdentifier, file.getFileName(), nullptr);
-            childNode.setProperty(pathIdentifier, file.getFullPathName(), nullptr);
-            childNode.setProperty(iconIdentifier, fileIcon, nullptr);
-
-            rootNode.appendChild(childNode, nullptr);
+        for (auto const& [name, file] : sortByName(OSUtils::iterateDirectory(directory, false, true))) {
+            if (!name.startsWith(".") && name != "settings.json")
+                addFile(node, name, file, fileIcon);
         }
-
-        if (threadShouldExit())
-            return { };
-
-        struct {
-            static int compareElements(ValueTree const& first, ValueTree const& second)
-            {
-                if (first.getProperty(iconIdentifier) == fileIcon && second.getProperty(iconIdentifier) == folderIcon) {
-                    return 1;
-                }
-                if (first.getProperty(iconIdentifier) == folderIcon && second.getProperty(iconIdentifier) == fileIcon) {
-                    return -1;
-                }
-
-                return first.getProperty(nameIdentifier).toString().compareNatural(second.getProperty(nameIdentifier).toString());
-            }
-        } valueTreeSorter;
-
-        rootNode.sort(valueTreeSorter, nullptr, false);
-        return rootNode;
     }
 
     void settingsChanged(String const& name, var const& value) override
@@ -190,7 +171,8 @@ private:
 
                 ScopedTryLock const stl(fileTreeLock);
                 if (stl.isLocked()) {
-                    fileTree = generateDirectoryValueTree(File(SettingsFile::getInstance()->getProperty<String>("browser_path")));
+                    fileTree.clear();
+                    generateDirectoryTree(fileTree.getRoot(), File(SettingsFile::getInstance()->getProperty<String>("browser_path")));
                     break;
                 }
                 retries++;
@@ -210,7 +192,7 @@ private:
     }
 
     CriticalSection const fileTreeLock;
-    ValueTree fileTree;
+    TreeViewContent fileTree;
     FileSystemWatcher fsWatcher;
 };
 
@@ -241,8 +223,8 @@ public:
         searchInput.setInterceptsMouseClicks(true, true);
         addAndMakeVisible(searchInput);
 
-        auto returnAndClickFn = [this](ValueTree const& tree) {
-            auto const file = File(tree.getProperty("Path").toString());
+        auto returnAndClickFn = [this](TreeViewContent::Node const& node) {
+            auto const file = File(node.getProperty<String>("Path"));
             if (file.existsAsFile() && file.hasFileExtension("pd")) {
                 auto* editor = findParentComponentOfClass<PluginEditor>();
                 editor->getTabComponent().openPatch(URL(file));
@@ -260,8 +242,8 @@ public:
         fileList.onReturn = returnAndClickFn;
         fileList.onClick = returnAndClickFn;
 
-        fileList.onDragStart = [this](ValueTree const& tree) {
-            DragAndDropContainer::performExternalDragDropOfFiles({ tree.getProperty("Path") }, false, this, nullptr);
+        fileList.onDragStart = [this](TreeViewContent::Node const& node) {
+            DragAndDropContainer::performExternalDragDropOfFiles({ node.getProperty<String>("Path") }, false, this, nullptr);
         };
 
         addAndMakeVisible(fileList);
@@ -275,10 +257,10 @@ public:
     void changeListenerCallback(ChangeBroadcaster* source) override
     {
         fileTree = updater->getCurrentTree();
+        fileTreeChanged = true;
 
-        if (isVisible()) {
-            fileList.setValueTree(fileTree);
-        }
+        if (isVisible())
+            visibilityChanged();
     }
 
     bool isInterestedInFileDrag(StringArray const& files) override
@@ -308,9 +290,8 @@ public:
 
     void visibilityChanged() override
     {
-        if (fileList.getValueTree() != fileTree) {
+        if (std::exchange(fileTreeChanged, false))
             fileList.setValueTree(fileTree);
-        }
     }
 
     void filesDropped(StringArray const& files, int x, int y) override
@@ -447,8 +428,9 @@ private:
     TextButton resetFolderButton = TextButton(Icons::Restore);
     TextButton settingsCalloutButton = TextButton();
 
-    ValueTree fileTree;
-    ValueTreeViewerComponent fileList = ValueTreeViewerComponent("(Folder)");
+    TreeViewContent fileTree;
+    bool fileTreeChanged = false;
+    TreeViewComponent fileList = TreeViewComponent("(Folder)");
 
     DocumentationBrowserUpdateThread* updater;
     SearchEditor searchInput;

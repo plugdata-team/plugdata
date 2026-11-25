@@ -818,8 +818,9 @@ private:
         SearchPanel search(editor);
         search.setBounds(0, 0, 520, 420);
         search.setVisible(true);
-        auto tree = search.generatePatchTree(cnv->refCountedPatch);
-        expect(tree.getNumChildren() > 0, "search tree must contain the sweep objects");
+        TreeViewContent tree;
+        search.makePatchTree(tree.getRoot(), cnv->refCountedPatch);
+        expect(tree.getRoot().begin() != tree.getRoot().end(), "search tree must contain the sweep objects");
         search.updateResults();
         search.timerCallback();
         search.grabFocus();
@@ -2268,40 +2269,59 @@ private:
     {
         beginTest("Value tree viewer and autosave history");
 
-        ValueTree root("Root");
-        for (int i = 0; i < 5; ++i) {
-            ValueTree child("Object");
-            child.setProperty("Name", i == 0 ? "trigger object" : "object " + String(i), nullptr);
-            child.setProperty("ObjectName", i == 0 ? "trigger" : "osc~", nullptr);
-            child.setProperty("Object", static_cast<int64>(i + 1), nullptr);
-            child.setProperty("Index", i, nullptr);
-            child.setProperty("RightText", String(i * 10) + ", " + String(i * 20), nullptr);
-            child.setProperty("SendSymbol", "send_" + String(i), nullptr);
-            child.setProperty("ReceiveSymbol", "receive_" + String(i), nullptr);
-            child.setProperty("Icon", Icons::Object, nullptr);
-            child.setProperty("Selected", i == 2, nullptr);
+        auto makeTree = [](int const numObjects, String const& firstName) {
+            TreeViewContent tree;
+            for (int i = 0; i < numObjects; ++i) {
+                auto child = tree.getRoot().addChild(i + 1);
+                child.setProperty("Name", i == 0 ? firstName : "object " + String(i));
+                child.setProperty("ObjectName", i == 0 ? "trigger" : "osc~");
+                child.setProperty("Index", i);
+                child.setProperty("RightText", String(i * 10) + ", " + String(i * 20));
+                child.setProperty("SendSymbol", "send_" + String(i));
+                child.setProperty("ReceiveSymbol", "receive_" + String(i));
+                child.setProperty("Icon", Icons::Object);
+                child.setProperty("Selected", i == 2);
 
-            for (int j = 0; j < 3; ++j) {
-                ValueTree nested("Nested");
-                nested.setProperty("Name", "nested " + String(j), nullptr);
-                nested.setProperty("ObjectName", j == 0 ? "float" : "value", nullptr);
-                nested.setProperty("Object", static_cast<int64>(100 + i * 10 + j), nullptr);
-                child.appendChild(nested, nullptr);
+                for (int j = 0; j < 3; ++j) {
+                    auto nested = child.addChild(100 + i * 10 + j);
+                    nested.setProperty("Name", "nested " + String(j));
+                    nested.setProperty("ObjectName", j == 0 ? "float" : "value");
+                }
             }
-            root.appendChild(child, nullptr);
-        }
+            return tree;
+        };
+        auto const root = makeTree(5, "trigger object");
 
         ValueTreeViewerComponent viewer("(Subpatch)");
         viewer.setBounds(0, 0, 500, 400);
-        viewer.onReturn = [](ValueTree&) { };
-        viewer.onClick = [](ValueTree&) { };
-        viewer.onSelect = [](ValueTree&) { };
-        viewer.onDragStart = [](ValueTree&) { };
-        viewer.onRightClick = [](ValueTree&) { };
+        viewer.onReturn = [](TreeViewContent::Node const&) { };
+        viewer.onClick = [](TreeViewContent::Node const&) { };
+        viewer.onSelect = [](TreeViewContent::Node const&) { };
+        viewer.onDragStart = [](TreeViewContent::Node const&) { };
+        viewer.onRightClick = [](TreeViewContent::Node const&) { };
         viewer.setValueTree(root);
+
+        auto* branch = TestHelpers::findChildOfType<ValueTreeNodeComponent>(&viewer);
+        auto* nested = TestHelpers::findChildOfType<ValueTreeNodeComponent>(branch);
+        expect(branch && nested, "search tree must contain a nested result");
+        if (branch && nested) {
+            branch->mouseUp(mouseEvent(branch, { 12, 12 }));
+            nested->mouseUp(mouseEvent(nested, { 40, 12 }));
+            auto const clickedObject = nested->treeNode.getId();
+            auto const expandedHeight = viewer.getTotalContentHeight();
+            auto refreshed = root;
+            for (auto child : refreshed.getRoot()) {
+                if (child.getId() == branch->treeNode.getId())
+                    child.setProperty("Selected", true);
+            }
+            viewer.setValueTree(refreshed);
+            viewer.filterNodes();
+            expectEquals(viewer.getTotalContentHeight(), expandedHeight, "selecting a nested result must keep its branch open");
+            expect(viewer.getSelectedNode().getId() == clickedObject, "the clicked result must remain selected");
+        }
+
         viewer.setSelectedNode(reinterpret_cast<void*>(static_cast<intptr_t>(2)));
         viewer.makeNodeActive(reinterpret_cast<void*>(static_cast<intptr_t>(2)));
-        viewer.getSelectedNodeObject();
         viewer.keyPressed(KeyPress(KeyPress::rightKey), &viewer);
         viewer.keyPressed(KeyPress(KeyPress::downKey), &viewer);
         viewer.keyPressed(KeyPress(KeyPress::upKey), &viewer);
@@ -2317,9 +2337,7 @@ private:
             viewer.createComponentSnapshot(viewer.getLocalBounds());
         }
 
-        root.getChild(0).setProperty("Name", "updated", nullptr);
-        root.removeChild(root.getNumChildren() - 1, nullptr);
-        viewer.setValueTree(root);
+        viewer.setValueTree(makeTree(4, "updated"));
         viewer.clearValueTree();
 
         AutosaveHistoryComponent history(editor);
