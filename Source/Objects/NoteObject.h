@@ -144,6 +144,9 @@ public:
 
     void update() override
     {
+        auto const fontState = [this] { return VarArray { font.getValue(), fontSize.getValue(), bold.getValue(), italic.getValue(), underline.getValue() }; };
+        auto const oldFontState = fontState();
+
         if (auto note = ptr.get<t_fake_note>()) {
             currentNoteText = getNote();
             primaryColour = colourToVar(Colour(note->x_red, note->x_green, note->x_blue));
@@ -169,7 +172,8 @@ public:
         }
 
         updateJustification();
-        updateFont();
+        if (fontState() != oldFontState)
+            updateFont();
 
         triggerAsyncUpdate();
     }
