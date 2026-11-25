@@ -35,7 +35,7 @@ void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 #include "Sidebar/AutomationPanel.h"
 #include "Sidebar/CommandInput.h"
 #include "Sidebar/Palettes.h"
-#include "Utility/ValueTreeViewer.h"
+#include "Components/TreeViewComponent.h"
 #include "Sidebar/SearchPanel.h"
 #include "Statusbar.h"
 #include "Toolbar.h"
@@ -2292,53 +2292,53 @@ private:
         };
         auto const root = makeTree(5, "trigger object");
 
-        ValueTreeViewerComponent viewer("(Subpatch)");
-        viewer.setBounds(0, 0, 500, 400);
-        viewer.onReturn = [](TreeViewContent::Node const&) { };
-        viewer.onClick = [](TreeViewContent::Node const&) { };
-        viewer.onSelect = [](TreeViewContent::Node const&) { };
-        viewer.onDragStart = [](TreeViewContent::Node const&) { };
-        viewer.onRightClick = [](TreeViewContent::Node const&) { };
-        viewer.setValueTree(root);
+        TreeViewComponent treeView("(Subpatch)");
+        treeView.setBounds(0, 0, 500, 400);
+        treeView.onReturn = [](TreeViewContent::Node const&) { };
+        treeView.onClick = [](TreeViewContent::Node const&) { };
+        treeView.onSelect = [](TreeViewContent::Node const&) { };
+        treeView.onDragStart = [](TreeViewContent::Node const&) { };
+        treeView.onRightClick = [](TreeViewContent::Node const&) { };
+        treeView.setValueTree(root);
 
-        auto* branch = TestHelpers::findChildOfType<ValueTreeNodeComponent>(&viewer);
-        auto* nested = TestHelpers::findChildOfType<ValueTreeNodeComponent>(branch);
+        auto* branch = TestHelpers::findChildOfType<TreeViewNodeComponent>(&treeView);
+        auto* nested = TestHelpers::findChildOfType<TreeViewNodeComponent>(branch);
         expect(branch && nested, "search tree must contain a nested result");
         if (branch && nested) {
             branch->mouseUp(mouseEvent(branch, { 12, 12 }));
             nested->mouseUp(mouseEvent(nested, { 40, 12 }));
             auto const clickedObject = nested->treeNode.getId();
-            auto const expandedHeight = viewer.getTotalContentHeight();
+            auto const expandedHeight = treeView.getTotalContentHeight();
             auto refreshed = root;
             for (auto child : refreshed.getRoot()) {
                 if (child.getId() == branch->treeNode.getId())
                     child.setProperty("Selected", true);
             }
-            viewer.setValueTree(refreshed);
-            viewer.filterNodes();
-            expectEquals(viewer.getTotalContentHeight(), expandedHeight, "selecting a nested result must keep its branch open");
-            expect(viewer.getSelectedNode().getId() == clickedObject, "the clicked result must remain selected");
+            treeView.setValueTree(refreshed);
+            treeView.filterNodes();
+            expectEquals(treeView.getTotalContentHeight(), expandedHeight, "selecting a nested result must keep its branch open");
+            expect(treeView.getSelectedNode().getId() == clickedObject, "the clicked result must remain selected");
         }
 
-        viewer.setSelectedNode(reinterpret_cast<void*>(static_cast<intptr_t>(2)));
-        viewer.makeNodeActive(reinterpret_cast<void*>(static_cast<intptr_t>(2)));
-        viewer.keyPressed(KeyPress(KeyPress::rightKey), &viewer);
-        viewer.keyPressed(KeyPress(KeyPress::downKey), &viewer);
-        viewer.keyPressed(KeyPress(KeyPress::upKey), &viewer);
-        viewer.keyPressed(KeyPress(KeyPress::leftKey), &viewer);
-        viewer.keyPressed(KeyPress(KeyPress::returnKey), &viewer);
-        viewer.settingsChanged("search_order", true);
-        viewer.settingsChanged("search_xy_show", true);
-        viewer.settingsChanged("search_index_show", true);
+        treeView.setSelectedNode(reinterpret_cast<void*>(static_cast<intptr_t>(2)));
+        treeView.makeNodeActive(reinterpret_cast<void*>(static_cast<intptr_t>(2)));
+        treeView.keyPressed(KeyPress(KeyPress::rightKey), &treeView);
+        treeView.keyPressed(KeyPress(KeyPress::downKey), &treeView);
+        treeView.keyPressed(KeyPress(KeyPress::upKey), &treeView);
+        treeView.keyPressed(KeyPress(KeyPress::leftKey), &treeView);
+        treeView.keyPressed(KeyPress(KeyPress::returnKey), &treeView);
+        treeView.settingsChanged("search_order", true);
+        treeView.settingsChanged("search_xy_show", true);
+        treeView.settingsChanged("search_index_show", true);
 
         for (auto const& filter : { "object", "\"trigger\"", "object:osc~", "send", "receive",
                  "symbols", "trigger", "value", "int", "float", "does-not-exist", "" }) {
-            viewer.setFilterString(filter);
-            viewer.createComponentSnapshot(viewer.getLocalBounds());
+                     treeView.setFilterString(filter);
+                     treeView.createComponentSnapshot(treeView.getLocalBounds());
         }
 
-        viewer.setValueTree(makeTree(4, "updated"));
-        viewer.clearValueTree();
+        treeView.setValueTree(makeTree(4, "updated"));
+        treeView.clearValueTree();
 
         AutosaveHistoryComponent history(editor);
         history.setBounds(0, 0, 600, 400);
