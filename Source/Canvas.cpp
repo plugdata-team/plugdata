@@ -313,7 +313,9 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
 
     if (!isGraph)
         presentationMode.addListener(this);
-    performSynchronise();
+
+    synchronise();
+    handleUpdateNowIfNeeded();
 
     // Start in unlocked mode if the patch is empty
     if (objects.empty()) {
@@ -1725,7 +1727,8 @@ void Canvas::dragAndDropPaste(String const& patchString, Point<int> const mouseP
     deselectAll();
 
     // Load state from pd
-    performSynchronise();
+    synchronise();
+    handleUpdateNowIfNeeded();
 
     SmallArray<t_gobj*> pastedObjects;
     if (auto patchPtr = patch.getPointer()) {
@@ -1764,7 +1767,8 @@ void Canvas::pasteSelection()
     deselectAll();
 
     // Load state from pd
-    performSynchronise();
+    synchronise();
+    handleUpdateNowIfNeeded();
 
     SmallArray<t_gobj*> pastedObjects;
 
@@ -1825,7 +1829,8 @@ void Canvas::duplicateSelection()
     deselectAll();
 
     // Load state from pd immediately
-    performSynchronise();
+    synchronise();
+    handleUpdateNowIfNeeded();
 
     auto* patchPtr = patch.getRawPointer();
     if (!patchPtr)
@@ -2035,7 +2040,8 @@ void Canvas::triggerizeSelection()
         triggerizedObject = pd::Interface::triggerize(patchPtr.get(), selectedObjects, connection);
     }
 
-    performSynchronise();
+    synchronise();
+    handleUpdateNowIfNeeded();
 
     if (triggerizedObject) {
         for (auto* object : objects) {
@@ -2461,7 +2467,8 @@ void Canvas::alignObjects(Align const alignment)
         break;
     }
 
-    performSynchronise();
+    synchronise();
+    handleUpdateNowIfNeeded();
 
     for (auto* connection : connections) {
         connection->forceUpdate();

@@ -512,7 +512,8 @@ public:
         canvas->setLookAndFeel(&cnv->editor->getLookAndFeel());
         canvas->locked.referTo(cnv->locked);
 
-        canvas->performSynchronise();
+        canvas->synchronise();
+        canvas->handleUpdateNowIfNeeded();
     }
 
     void updateDrawables() override

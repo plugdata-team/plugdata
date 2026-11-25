@@ -434,12 +434,14 @@ public:
         if (auto atom = ptr.get<t_fake_gatom>()) {
             if (symbol.isEmpty() && *atom->a_symto->s_name) {
                 outlet_new(&atom->a_text, nullptr);
-                cnv->performSynchronise();
+                cnv->synchronise();
+                cnv->handleUpdateNowIfNeeded();
             } else if (!symbol.isEmpty() && !*atom->a_symto->s_name && atom->a_text.te_outlet) {
                 canvas_deletelinesforio(atom->a_glist, &atom->a_text,
                     nullptr, atom->a_text.te_outlet);
                 outlet_free(atom->a_text.te_outlet);
-                cnv->performSynchronise();
+                cnv->synchronise();
+                cnv->handleUpdateNowIfNeeded();
             }
 
             atom->a_symto = pd->generateSymbol(symbol);
@@ -452,12 +454,14 @@ public:
         if (auto atom = ptr.get<t_fake_gatom>()) {
             if (symbol.isEmpty() && *atom->a_symfrom->s_name) {
                 inlet_new(&atom->a_text, &atom->a_text.te_pd, nullptr, nullptr);
-                cnv->performSynchronise();
+                cnv->synchronise();
+                cnv->handleUpdateNowIfNeeded();
             } else if (!symbol.isEmpty() && !*atom->a_symfrom->s_name && atom->a_text.te_inlet) {
                 canvas_deletelinesforio(atom->a_glist, &atom->a_text,
                     atom->a_text.te_inlet, nullptr);
                 inlet_free(atom->a_text.te_inlet);
-                cnv->performSynchronise();
+                cnv->synchronise();
+                cnv->handleUpdateNowIfNeeded();
             }
 
             if (*atom->a_symfrom->s_name)
