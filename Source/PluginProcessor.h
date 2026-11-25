@@ -255,7 +255,7 @@ private:
 #endif
 
     static inline String const else_version = "ELSE v1.0-rc15";
-    static inline String const cyclone_version = "cyclone v0.9-5";
+    static inline String const cyclone_version = "cyclone v0.9-6";
     static inline String const heavylib_version = "heavylib v0.5.0";
     static inline String const gem_version = "Gem v0.95";
     // this gets updated with live version data later
