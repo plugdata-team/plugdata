@@ -83,10 +83,11 @@ jobs:
           aws s3 cp ./${{ matrix.artifact }}.txt s3://plugdata-nightly/
 
       - name: Archive Artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.name }}
           path: ${{ matrix.artifact }}
+          archive: false
 
   windows-build:
     name: ${{ matrix.name }}
@@ -157,10 +158,11 @@ jobs:
           aws s3 cp ./${{ matrix.artifact }}.txt s3://plugdata-nightly/
 
       - name: Archive Artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.name }}
           path: ${{ matrix.artifact }}
+          archive: false
 
   linux-build:
     name: ${{ matrix.name }}
@@ -367,10 +369,11 @@ jobs:
 
 
       - name: Archive Artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: plugdata-${{ matrix.name }}
           path: plugdata-${{ matrix.name }}.tar.xz
+          archive: false
 
   push-nightlies:
     runs-on: ubuntu-latest
@@ -402,12 +405,12 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: release-package
 
       - name: Upload combined package
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: plugdata-all-platforms
           path: release-package
