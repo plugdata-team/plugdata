@@ -83,10 +83,12 @@ public:
     void update() override
     {
         if (auto pic = ptr.get<t_fake_pic>()) {
-
             if (pic->x_filename) {
-                filename = String::fromUTF8(pic->x_filename->s_name);
-                triggerAsyncUpdate();
+                auto newFilename = String::fromUTF8(pic->x_filename->s_name);
+                if(newFilename != filename || !imageBuffer.isValid()) {
+                    filename = newFilename;
+                    triggerAsyncUpdate();
+                }
             }
 
             latch = pic->x_latch;
