@@ -1133,6 +1133,21 @@ void Canvas::performSynchronise()
     auto pdConnections = isGraph ? pd::Connections() : patch.getConnections();
     connections.reserve(pdConnections.size());
 
+    UnorderedMap<t_gobj*, Object*> objectsByPtr;
+    for (auto* obj : objects)
+        if (auto* ptr = obj->getPointer())
+            objectsByPtr[ptr] = obj;
+
+    UnorderedMap<t_outconnect*, Connection*> connectionsByPtr;
+    for (auto* c : connections)
+        if (auto* ptr = c->getPointer())
+            connectionsByPtr.emplace(ptr, c);
+
+    auto findObject = [&objectsByPtr](t_object* ptr) -> Object* {
+        auto const it = ptr ? objectsByPtr.find(&ptr->te_g) : objectsByPtr.end();
+        return it != objectsByPtr.end() ? it->second : nullptr;
+    };
+
     for (auto& connection : pdConnections) {
         auto& [ptr, inno, inobj, outno, outobj] = connection;
 
@@ -1142,37 +1157,17 @@ void Canvas::performSynchronise()
 
         Iolet *inlet = nullptr, *outlet = nullptr;
 
-        // Find the objects that this connection is connected to
-        for (auto* obj : objects) {
-            if (outobj && &outobj->te_g == obj->getPointer()) {
-
-                // Check if we have enough outlets, should never return false
-                if (isPositiveAndBelow(obj->numInputs + outno, obj->iolets.size())) {
-                    outlet = obj->iolets[obj->numInputs + outno];
-                } else {
-                    break;
-                }
-            }
-            if (inobj && &inobj->te_g == obj->getPointer()) {
-
-                // Check if we have enough inlets, should never return false
-                if (isPositiveAndBelow(inno, obj->iolets.size())) {
-                    inlet = obj->iolets[inno];
-                } else {
-                    break;
-                }
-            }
-        }
+        // Find the iolets this connection is connected to, checking that they exist (should never fail)
+        if (auto* obj = findObject(outobj); obj && isPositiveAndBelow(obj->numInputs + outno, obj->iolets.size()))
+            outlet = obj->iolets[obj->numInputs + outno];
+        if (auto* obj = findObject(inobj); obj && isPositiveAndBelow(inno, obj->iolets.size()))
+            inlet = obj->iolets[inno];
 
         if (!inlet || !outlet)
             continue;
 
-        auto const* it = std::ranges::find_if(connections,
-            [c_ptr = ptr.getRawUnchecked<t_outconnect>()](auto* c) {
-                return c_ptr == c->getPointer();
-            });
-
-        if (it == connections.end()) {
+        auto const it = connectionsByPtr.find(ptr.getRawUnchecked<t_outconnect>());
+        if (it == connectionsByPtr.end()) {
             auto* newConnection = connections.add(this, inlet, outlet, ptr);
 
             // Check if the connection was deleted in the meantime
@@ -1181,9 +1176,9 @@ void Canvas::performSynchronise()
         } else {
             // This is necessary to make resorting a subpatchers iolets work
             // And it can't hurt to check if the connection is valid anyway
-            if (auto& c = **it; c.inlet != inlet || c.outlet != outlet) {
-                int const idx = connections.index_of(*it);
-                connections.remove_one(*it);
+            if (auto& c = *it->second; c.inlet != inlet || c.outlet != outlet) {
+                int const idx = connections.index_of(&c);
+                connections.remove_one(&c);
                 connections.insert(idx, this, inlet, outlet, ptr);
                 if (!connections[idx]->getPointer())
                     connections.remove_at(idx);
