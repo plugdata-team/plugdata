@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2022 Timothy Schoen and Wasted Audio
+ // Copyright (c) 2022-2026 Timothy Schoen and Wasted Audio
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -12,6 +12,7 @@
 #include "OWLExporter.h"
 #include "PdExporter.h"
 #include "WASMExporter.h"
+#include "MetaModuleExporter.h"
 #include "FMODExporter.h"
 #include "UnityExporter.h"
 #include "WwiseExporter.h"
@@ -35,6 +36,7 @@ public:
         "OWL Platform",
         "Pd External",
         "WebAssembly",
+        "MetaModule",
         "FMOD Plugin",
         "Unity Plugin",
         "Wwise Plugin"
@@ -54,10 +56,12 @@ public:
         case 5:
             return new WASMExporter(editor, exportingView);
         case 6:
-            return new FMODExporter(editor, exportingView);
+            return new MetaModuleExporter(editor, exportingView);
         case 7:
-            return new UnityExporter(editor, exportingView);
+            return new FMODExporter(editor, exportingView);
         case 8:
+            return new UnityExporter(editor, exportingView);
+        case 9:
             return new WwiseExporter(editor, exportingView);
         default:
             return new CppExporter(editor, exportingView);
