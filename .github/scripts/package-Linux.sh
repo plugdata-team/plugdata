@@ -11,6 +11,6 @@ if [ -n "$CANONICAL" ]; then
     find plugdata -name "plugdata-resources.bin" ! -path "$CANONICAL" -exec ln -f "$CANONICAL" {} \;
 fi
 # Create tar.xz with unique name for each distro
-tar -cvf - plugdata | xz -9 > $1
+tar -cvf - plugdata | xz -9 -T1 > $1
 
 .github/scripts/generate-upload-info.sh $1
