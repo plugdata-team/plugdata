@@ -27,10 +27,15 @@ public:
 private:
     static KeyPress key(int const keyCode, ModifierKeys const mods = ModifierKeys()) { return KeyPress(keyCode, mods, 0); }
     static KeyPress character(juce_wchar const c) { return KeyPress(c, ModifierKeys(), c); }
+    // The OS delivers backspace/delete as control characters (WM_CHAR 8/127), which is
+    // what the document's sentinel handling keys off. key() passes textCharacter 0 and
+    // would hide that path entirely.
+    static KeyPress backspace() { return KeyPress(KeyPress::backspaceKey, ModifierKeys(), KeyPress::backspaceKey); }
 
     void perform() override
     {
         beginTest("Open, edit, undo/redo, search, save and close");
+        exerciseSelectionBackspace();
         exerciseDocumentModel();
 
         dialog = std::make_unique<TextEditorDialog>(
@@ -184,6 +189,39 @@ private:
         // The close callback is delivered asynchronously (and can be slow under
         // headless CI), so poll for it rather than assuming a fixed delay.
         pollForClose(0);
+    }
+
+    // Issue #2315: selecting a range that spans rows and pressing backspace
+    // deleted the first line instead of the selection and left an empty line on
+    // top. The document's backspace handling compared selection columns rather
+    // than rows, so a multi-row selection whose ends shared a column was treated
+    // as single-line and its head was nudged back one character.
+    void exerciseSelectionBackspace()
+    {
+        PlugDataTextEditor editor;
+        String const original = "first\nsecond\nthird";
+        editor.setText(original);
+
+        // Home/End keys are not handled by this editor, so grow the selection
+        // with shift+Down from the initial caret at (0, 0): rows 0-2, column 0.
+        auto const shift = ModifierKeys::shiftModifier;
+        editor.keyPressed(key(KeyPress::downKey, shift));
+        editor.keyPressed(key(KeyPress::downKey, shift));
+
+        // Real backspace presses arrive with the control character as their text
+        // character; key() passes 0 and would skip the document's sentinel path.
+        editor.keyPressed(backspace());
+
+        auto const afterBackspace = editor.getText();
+        logMessage("backspace over a multi-row selection: \"" + afterBackspace.replace("\n", "\\n") + "\"");
+        expect(afterBackspace == "third", "backspace must delete the selected rows, keeping the rest untouched");
+        expect(!afterBackspace.startsWith("\n"), "backspace over a selection must not leave an empty line on top");
+
+        // Undo has to restore the deleted rows in place, without duplicating them
+        editor.performUndo();
+        auto const afterUndo = editor.getText();
+        logMessage("undo after backspace: \"" + afterUndo.replace("\n", "\\n") + "\"");
+        expect(afterUndo == original, "undo must restore the deleted selection exactly");
     }
 
     void pollForClose(int const attempt)
