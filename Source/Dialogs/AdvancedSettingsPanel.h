@@ -134,6 +134,9 @@ public:
         suggestionsEnabled.referTo(settingsFile->getPropertyAsValue("suggestions_enabled"));
         interfaceProperties.add(new PropertiesPanel::BoolComponent("Show suggestions while typing", suggestionsEnabled, { "No", "Yes" }));
 
+        consoleHistorySize.referTo(settingsFile->getPropertyAsValue("console_history_size"));
+        interfaceProperties.add(new PropertiesPanel::EditableComponent<int>("Console history size", consoleHistorySize, true, 100, 10000));
+
 #if !JUCE_IOS
         touchMode = settingsFile->getPropertyAsValue("touch_mode");
         interfaceProperties.add(new PropertiesPanel::BoolComponent("Enable touch mode", touchMode, { "No", "Yes" }));
@@ -196,6 +199,7 @@ public:
     Value centreSidepanelButtons;
     Value showMinimap;
     Value suggestionsEnabled;
+    Value consoleHistorySize;
     Value touchMode;
 
     Value openPatchesInWindow;

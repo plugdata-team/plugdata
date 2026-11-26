@@ -79,7 +79,8 @@ public:
             consoleMessages.emplace_back(object, message, type, CachedStringWidth<14>::calculateStringWidth(message) + 40, 1);
         }
 
-        if (consoleMessages.size() > 800)
+        auto const maxMessages = std::max(1, SettingsFile::getInstance()->getProperty<int>("console_history_size"));
+        if (static_cast<int>(consoleMessages.size()) > maxMessages)
             consoleMessages.pop_front();
     }
 
