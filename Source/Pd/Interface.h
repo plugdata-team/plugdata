@@ -623,6 +623,7 @@ struct Interface {
             int x_pixheight;
         };
 
+        ScopedCurrentCanvas scopedCurrent(cnv);
         auto const wasEditMode = cnv->gl_edit;
         canvas_editmode(cnv, 1);
 
@@ -647,7 +648,6 @@ struct Interface {
         cnv->gl_editor->e_textdirty = 0;
 
         canvas_editmode(cnv, wasEditMode);
-
         canvas_dirty(cnv, 1);
     }
 
