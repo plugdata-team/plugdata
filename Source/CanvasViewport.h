@@ -637,6 +637,15 @@ public:
         return true;
     }
 
+    // A wheel notch must zoom in and out by reciprocal factors, otherwise the notches
+    // don't cancel out and the zoom drifts (issue #654). The step is clamped so an
+    // oversized wheel delta can't divide by zero or flip the factor's sign.
+    static constexpr float wheelZoomFactor(float const deltaY)
+    {
+        auto const step = std::clamp(deltaY, -0.5f, 0.5f);
+        return step > 0.0f ? 1.0f / (1.0f - step) : 1.0f + step;
+    }
+
     void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel) override
     {
         moveAnimator.complete();
@@ -658,7 +667,7 @@ public:
         if (!wheel.isInertial && e.mods.isCommandDown()) {
             suppressWheelInertia = true;
 
-            auto const scrollFactor = 1.0f / (1.0f - wheel.deltaY);
+            auto const scrollFactor = wheelZoomFactor(wheel.deltaY);
 
             if (wheel.isSmooth) {
                 applyScale(
