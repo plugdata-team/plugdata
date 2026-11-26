@@ -946,6 +946,12 @@ public:
             }
         };
 
+        // Open in search mode so the browser is ready to type straight away
+        // (issue #2267). The focus grab is a no-op until we're in the hierarchy,
+        // so parentHierarchyChanged retries it.
+        searchButton.setToggleState(true, dontSendNotification);
+        objectSearch.startSearching();
+
         categoriesList.changeCallback = [this](String const& category) {
             objectsList.showObjects(objectsByCategory[category]);
         };
@@ -1018,6 +1024,18 @@ public:
         categoriesList.initialise(categories);
         updater.addAnimator(fadeAnimator);
         fadeAnimator.complete();
+    }
+
+    void parentHierarchyChanged() override
+    {
+        // Don't pop up the on-screen keyboard as soon as the dialog appears
+        if (SettingsFile::getInstance()->isUsingTouchMode())
+            return;
+
+        MessageManager::callAsync([_this = SafePointer(this)] {
+            if (_this && _this->isShowing())
+                _this->objectSearch.startSearching();
+        });
     }
 
     void dismiss(bool const shouldFade)
