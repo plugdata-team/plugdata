@@ -132,8 +132,12 @@ public:
             break;
         }
         case hash("number"): {
-            if (atoms.size() >= 1)
-                max = getMaximum();
+            if (atoms.size() >= 1) {
+                numItems = getMaximum();
+                setParameterExcludingListener(max, numItems);
+                updateAspectRatio();
+                setMaximum(numItems);
+            }
             break;
         }
         default: {

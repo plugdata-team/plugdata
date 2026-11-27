@@ -747,38 +747,48 @@ public:
             break;
         }
         case hash("fgcolor"): {
-            primaryColour = colourToVar(getForegroundColour());
+            setParameterExcludingListener(primaryColour, colourToVar(getForegroundColour()));
+            knob.setFgColour(getForegroundColour());
+            updateColours();
             break;
         }
         case hash("bgcolor"): {
-            secondaryColour = colourToVar(getBackgroundColour());
+            setParameterExcludingListener(secondaryColour, colourToVar(getBackgroundColour()));
+            updateColours();
             break;
         }
         case hash("colors"): {
-            primaryColour = colourToVar(getForegroundColour());
-            secondaryColour = colourToVar(getBackgroundColour());
+            setParameterExcludingListener(primaryColour, colourToVar(getForegroundColour()));
+            setParameterExcludingListener(secondaryColour, colourToVar(getBackgroundColour()));
+            knob.setFgColour(getForegroundColour());
+            updateColours();
             break;
         }
         case hash("arccolor"): {
-            arcColour = colourToVar(getArcColour());
+            setParameterExcludingListener(arcColour, colourToVar(getArcColour()));
+            knob.setArcColour(getArcColour());
+            repaint();
             break;
         }
         case hash("init"): {
             if (auto knb = ptr.get<t_fake_knob>()) {
-                initialValue = knb->x_load;
+                setParameterExcludingListener(initialValue, knb->x_load);
                 knob.setValue(getValue());
             }
             break;
         }
         case hash("square"): {
             if (atoms.size() > 0 && atoms[0].isFloat()) {
-                square = atoms[0].getFloat();
+                setParameterExcludingListener(square, atoms[0].getFloat());
+                repaint();
             }
             break;
         }
         case hash("readonly"): {
-            if (atoms.size() > 0 && atoms[0].isFloat())
-                readOnly = atoms[0].getFloat();
+            if (atoms.size() > 0 && atoms[0].isFloat()) {
+                setParameterExcludingListener(readOnly, atoms[0].getFloat());
+                knob.setReadOnly(atoms[0].getFloat());
+            }
             break;
         }
         case hash("number"): {
@@ -867,7 +877,7 @@ public:
         }
         case hash("transparent"): {
             if (atoms.size() > 0 && atoms[0].isFloat()) {
-                transparent = atoms[0].getFloat();
+                setParameterExcludingListener(transparent, atoms[0].getFloat());
                 repaint();
             }
             break;

@@ -144,15 +144,11 @@ public:
             updateText();
             break;
         }
-        case hash("bold"): {
-            if (atoms.size() >= 1 && atoms[0].isFloat())
-                bold = atoms[0].getFloat();
-            break;
-        }
+        case hash("bold"):
         case hash("fontsize"):
         case hash("fgcolor"):
         case hash("bgcolor"): {
-            update();
+            updateProperties();
             break;
         }
         default:

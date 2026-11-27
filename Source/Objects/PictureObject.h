@@ -116,7 +116,7 @@ public:
         switch (symbol) {
         case hash("latch"): {
             if (auto pic = ptr.get<t_fake_pic>())
-                latch = pic->x_latch;
+                setParameterExcludingListener(latch, pic->x_latch);
             break;
         }
         case hash("offset"): {
@@ -129,12 +129,14 @@ public:
         }
         case hash("outline"): {
             if (auto pic = ptr.get<t_fake_pic>())
-                outline = pic->x_outline;
+                setParameterExcludingListener(outline, pic->x_outline);
             break;
         }
         case hash("open"): {
-            if (atoms.size() >= 1)
-                filename = atoms[0].toString();
+            if (atoms.size() >= 1) {
+                setParameterExcludingListener(filename, atoms[0].toString());
+                triggerAsyncUpdate();
+            }
             break;
         }
         default:

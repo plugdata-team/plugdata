@@ -250,8 +250,10 @@ public:
         case hash("range"): {
             if (atoms.size() >= 2) {
                 if (auto nbx = ptr.get<t_my_numbox>()) {
-                    min = nbx->x_min;
-                    max = nbx->x_max;
+                    setParameterExcludingListener(min, nbx->x_min);
+                    setParameterExcludingListener(max, nbx->x_max);
+                    input.setMinimum(nbx->x_min);
+                    input.setMaximum(nbx->x_max);
                 }
             }
             break;

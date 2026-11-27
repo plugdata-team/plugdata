@@ -390,7 +390,7 @@ public:
         case hash("latch"):
         case hash("bang"):
         case hash("toggle"): {
-            update();
+            updateProperties();
             break;
         }
         default:

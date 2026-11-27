@@ -477,7 +477,7 @@ public:
         case hash("fgcolor"):
         case hash("bgcolor"):
         case hash("set"): {
-            update();
+            updateProperties();
             break;
         }
         default:

@@ -473,7 +473,7 @@ public:
         switch (symbol) {
         case hash("font"): {
             if (auto note = ptr.get<t_fake_note>()) {
-                font = String::fromUTF8(note->x_fontname->s_name);
+                setParameterExcludingListener(font, String::fromUTF8(note->x_fontname->s_name));
             }
 
             updateFont();
@@ -481,28 +481,28 @@ public:
         }
         case hash("italic"): {
             if (auto note = ptr.get<t_fake_note>()) {
-                italic = note->x_italic;
+                setParameterExcludingListener(italic, note->x_italic);
             }
             updateFont();
             break;
         }
         case hash("size"): {
             if (auto note = ptr.get<t_fake_note>()) {
-                fontSize = note->x_fontsize;
+                setParameterExcludingListener(fontSize, note->x_fontsize);
             }
             updateFont();
             break;
         }
         case hash("underline"): {
             if (auto note = ptr.get<t_fake_note>()) {
-                underline = note->x_underline;
+                setParameterExcludingListener(underline, note->x_underline);
             }
             updateFont();
             break;
         }
         case hash("bold"): {
             if (auto note = ptr.get<t_fake_note>()) {
-                bold = note->x_bold;
+                setParameterExcludingListener(bold, note->x_bold);
             }
             updateFont();
             break;
@@ -517,26 +517,31 @@ public:
         }
         case hash("colors"):
             if (auto note = ptr.get<t_fake_note>()) {
-                secondaryColour = colourToVar(Colour(note->x_bg[0], note->x_bg[1], note->x_bg[2]));
+                setParameterExcludingListener(secondaryColour, colourToVar(Colour(note->x_bg[0], note->x_bg[1], note->x_bg[2])));
             }
             [[fallthrough]];
         case hash("textcolor"):
         case hash("color"): {
             if (auto note = ptr.get<t_fake_note>()) {
-                primaryColour = colourToVar(Colour(note->x_red, note->x_green, note->x_blue));
+                setParameterExcludingListener(primaryColour, colourToVar(Colour(note->x_red, note->x_green, note->x_blue)));
             }
+            noteEditor.applyColourToAllText(getValue<Colour>(primaryColour));
+            repaint();
             break;
         }
         case hash("bgcolor"): {
             if (auto note = ptr.get<t_fake_note>()) {
-                secondaryColour = colourToVar(Colour(note->x_bg[0], note->x_bg[1], note->x_bg[2]));
+                setParameterExcludingListener(secondaryColour, colourToVar(Colour(note->x_bg[0], note->x_bg[1], note->x_bg[2])));
             }
+            repaint();
             break;
         }
         case hash("just"): {
             if (auto note = ptr.get<t_fake_note>()) {
-                justification = note->x_textjust + 1;
+                setParameterExcludingListener(justification, note->x_textjust + 1);
             }
+            updateJustification();
+            updateFont();
             break;
         }
         case hash("width"): {
@@ -545,7 +550,7 @@ public:
         }
         case hash("outline"): {
             if (auto note = ptr.get<t_fake_note>()) {
-                outline = note->x_outline;
+                setParameterExcludingListener(outline, note->x_outline);
             }
             repaint();
         }
@@ -556,7 +561,8 @@ public:
         }
         case hash("transparent"): {
             if (auto note = ptr.get<t_fake_note>())
-                fillBackground = !note->x_transparent;
+                setParameterExcludingListener(fillBackground, !note->x_transparent);
+            repaint();
             break;
         }
         default:
