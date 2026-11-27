@@ -221,8 +221,8 @@ void runTests(PluginEditor* editor)
         VST3MultiInstanceTest vst3MultiInstanceTest;
         VST3BackupLoopTest vst3BackupLoopTest;
         VST3SuiteTest vst3SuiteTest;
-        // Only the standalone hosts the VST3. The suite runs last: if the plugin crashes, it takes this process with it
-        if (ProjectInfo::isStandalone) {
+        // Only the standalone hosts the VST3, unless PLUGDATA_TEST_SKIP_VST3=1. The suite runs last: if the plugin crashes, it takes this process with it
+        if (ProjectInfo::isStandalone && getTestSetting("PLUGDATA_TEST_SKIP_VST3", "Standalone") != "1") {
             UnitTest* hostTests[] = { &vst3ParameterTest, &vst3StateTest, &vst3MultiInstanceTest, &vst3BackupLoopTest };
             tests.insertArray(tests.indexOf(&helpfileFuzzer), hostTests, static_cast<int>(std::size(hostTests)));
             tests.add(&vst3SuiteTest);

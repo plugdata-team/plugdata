@@ -119,7 +119,11 @@ private:
 
         // The reload lambda queued by savePatch() is delivered before this one
         // (FIFO). Surviving its delivery is the actual test.
-        MessageManager::callAsync([this] {
+        MessageManager::callAsync([this, views = SmallArray<Component::SafePointer<Canvas>> { instanceCnv, abstractionCnv, parentCnv }] {
+            for (auto const& view : views) {
+                if (view)
+                    editor->getTabComponent().closeTab(view);
+            }
             abstractionFile.deleteFile();
             parentFile.deleteFile();
             signalDone(true);
