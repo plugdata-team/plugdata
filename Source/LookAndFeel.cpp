@@ -1090,7 +1090,7 @@ const String PlugDataLook::defaultThemesJSON = R"(
         "signal_colour": "ff000000",
         "gem_colour": "ff000000",
         "dialog_background": "ffffffff",
-        "sidebar_colour": "ffefefef",
+        "sidebar_colour": "ffffffff",
         "sidebar_text": "ff000000",
         "sidebar_background_active": "ffdedede",
         "levelmeter_active": "ff000000",
