@@ -907,7 +907,7 @@ public:
                         scopedStream = url.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress));
                     }
 #endif
-                    silhouette = OfflineObjectRenderer::getObjectBoundsForPatch(patchFile.loadFileAsString());
+                    silhouette = OfflineObjectRenderer::getObjectBoundsForPatch(patchFile.loadFileAsString(), 1000);
                     patchSilhouetteCache[patchFile.getFullPathName()] = silhouette;
                 }
             }

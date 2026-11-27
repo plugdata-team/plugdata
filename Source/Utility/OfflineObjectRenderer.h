@@ -26,7 +26,7 @@ struct PlugDataLook;
 class OfflineObjectRenderer {
 public:
     static ImageWithOffset patchToMaskedImage(PlugDataLook const& look, String const& patch, float scale, bool makeInvalidImage = false);
-    static SmallArray<Rectangle<int>> getObjectBoundsForPatch(String const& patch);
+    static SmallArray<Rectangle<int>> getObjectBoundsForPatch(String const& patch, int limit = -1);
 
     static std::pair<SmallArray<bool>, SmallArray<bool>> countIolets(String const& patch);
     static bool checkIfPatchIsValid(String const& patch);
@@ -46,5 +46,5 @@ private:
         GraphCoords
     };
 
-    static void parsePatch(String const& patch, std::function<void(PatchItemType, int, String const&)> callback);
+    static void parsePatch(String const& patch, int limit, std::function<void(PatchItemType, int, String const&)> callback);
 };

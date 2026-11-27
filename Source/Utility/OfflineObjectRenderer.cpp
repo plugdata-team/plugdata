@@ -73,7 +73,7 @@ bool OfflineObjectRenderer::parseGraphSize(String const& objectText, Rectangle<i
     return false;
 }
 
-void OfflineObjectRenderer::parsePatch(String const& patch, std::function<void(PatchItemType, int, String const&)> callback)
+void OfflineObjectRenderer::parsePatch(String const& patch, int limit, std::function<void(PatchItemType, int, String const&)> callback)
 {
     int canvasDepth = patch.startsWith("#N canvas") ? -1 : 0;
 
@@ -106,7 +106,9 @@ void OfflineObjectRenderer::parsePatch(String const& patch, std::function<void(P
     Rectangle<int> nextGraphCoords;
     String canvasName;
     bool hasGraphCoords = false;
+    int objectCount = 0;
     for (auto& line : StringArray::fromLines(patch)) {
+        if(limit > -1 && objectCount > limit) break;
 
         line = line.upToLastOccurrenceOf(";", false, false);
 
@@ -122,12 +124,16 @@ void OfflineObjectRenderer::parsePatch(String const& patch, std::function<void(P
 
         if (isComment(tokens)) {
             callback(Comment, canvasDepth, line);
+            objectCount++;
         } else if (isMessage(tokens)) {
             callback(Message, canvasDepth, line);
+            objectCount++;
         } else if (isObject(tokens)) {
             callback(Object, canvasDepth, line);
+            objectCount++;
         } else if (isConnection(tokens)) {
             callback(Connection, canvasDepth, line);
+            objectCount++;
         }
 
         if (isGraphCoords(tokens)) {
@@ -149,11 +155,11 @@ void OfflineObjectRenderer::parsePatch(String const& patch, std::function<void(P
     }
 }
 
-SmallArray<Rectangle<int>> OfflineObjectRenderer::getObjectBoundsForPatch(String const& patch)
+SmallArray<Rectangle<int>> OfflineObjectRenderer::getObjectBoundsForPatch(String const& patch, int limit)
 {
     SmallArray<Rectangle<int>> objectBounds;
 
-    parsePatch(patch, [&objectBounds](PatchItemType const type, int const depth, String const& text) {
+    parsePatch(patch, limit, [&objectBounds](PatchItemType const type, int const depth, String const& text) {
         if ((type != PatchItemType::Object && type != PatchItemType::Message && type != PatchItemType::Comment) || depth != 0)
             return;
 
@@ -373,7 +379,7 @@ std::pair<SmallArray<bool>, SmallArray<bool>> OfflineObjectRenderer::countIolets
                 return { { false }, { false } };
 
             auto const patchAsString = patchFile.loadFileAsString();
-            parsePatch(patchAsString, [&inlets, &outlets](PatchItemType const type, int const depth, String const& text) {
+            parsePatch(patchAsString, -1, [&inlets, &outlets](PatchItemType const type, int const depth, String const& text) {
                 if (type == Object && depth == 0) {
                     auto tokens = StringArray::fromTokens(text.trim(), true);
                     if (tokens.size() >= 5) {
@@ -391,7 +397,7 @@ std::pair<SmallArray<bool>, SmallArray<bool>> OfflineObjectRenderer::countIolets
             });
         }
     } else {
-        parsePatch(trimmedPatch, [&inlets, &outlets](PatchItemType const type, int const depth, String const& text) {
+        parsePatch(trimmedPatch, -1, [&inlets, &outlets](PatchItemType const type, int const depth, String const& text) {
             if (type == Object && depth == 1) {
                 auto tokens = StringArray::fromTokens(text.trim(), true);
                 if (tokens.size() >= 5) {
