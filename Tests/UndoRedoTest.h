@@ -275,10 +275,18 @@ private:
             select({ "osc~ 440" });
             cnv->removeSelection();
         });
+
+        addAction("curved connection", [this] {
+            if (auto* c = findConnection("i", "print d")) {
+                cnv->deselectAll();
+                cnv->setSelected(c, true);
+                editor->invokeDirectly(CommandIDs::ConnectionStyle, false);
+            }
+        });
         addAction("add connection corner", [this] {
             if (auto* c = findConnection("i", "print d")) {
                 cnv->deselectAll();
-                clickConnection(c, (c->getStartPoint() + c->getEndPoint()) / 2.0f, 2);
+                clickConnection(c, (c->getStartPoint() + c->getEndPoint()) / 2.5f, 2);
             }
         });
         addAction("drag connection segment", [this] {
@@ -298,16 +306,7 @@ private:
                 clickConnection(c, { (start.x + end.x) / 2.0f + 25.0f, start.y }, 2);
             }
         });
-        addAction("curved connection", [this] {
-            if (auto* c = findConnection("i", "print d")) {
-                cnv->deselectAll();
-                cnv->setSelected(c, true);
-                editor->invokeDirectly(CommandIDs::ConnectionStyle, false);
-            }
-        });
-        addAction("segmented connection", [this] {
-            editor->invokeDirectly(CommandIDs::ConnectionStyle, false);
-        });
+
         steps.add([this] {
             if (cnv->patch.getCanvasContent() == lastContent)
                 actionsWithoutEffect.add(previousAction);
