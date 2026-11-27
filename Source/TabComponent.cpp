@@ -1251,18 +1251,15 @@ void TabComponent::closeTab(Canvas* cnv, bool const sendVisMessage)
 
     cnv->setCachedComponentImage(nullptr); // Clear nanovg invalidation listener, just to be sure
 
-    if (splits[0] == cnv) {
-        if (auto* lastCnv = getLastShownTab(cnv, 0)) {
-            showTab(lastCnv, 0);
-        } else if (tabbars[0].indexOf(tab) >= 1) {
-            showTab(tabbars[0][tabbars[0].indexOf(tab) - 1]->cnv, 0);
-        }
-    }
-    if (splits[1] == cnv) {
-        if (auto* lastCnv = getLastShownTab(cnv, 1)) {
-            showTab(lastCnv, 1);
-        } else if (tabbars[1].indexOf(tab) >= 1) {
-            showTab(tabbars[1][tabbars[1].indexOf(tab) - 1]->cnv, 1);
+    for (int split = 0; split < 2; split++) {
+        if (splits[split] != cnv)
+            continue;
+
+        auto const index = tabbars[split].indexOf(tab);
+        if (auto* lastCnv = getLastShownTab(cnv, split)) {
+            showTab(lastCnv, split);
+        } else if (index >= 0 && tabbars[split].size() > 1) {
+            showTab(tabbars[split][index > 0 ? index - 1 : 1]->cnv, split);
         }
     }
 
@@ -1305,7 +1302,7 @@ Canvas* TabComponent::getLastShownTab(Canvas const* current, int const split)
             break;
         }
     }
-    return lastShownTab;
+    return lastShownTab == current ? nullptr : lastShownTab;
 }
 
 void TabComponent::sendTabUpdateToVisibleCanvases() const
