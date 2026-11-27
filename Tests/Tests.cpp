@@ -26,6 +26,7 @@
 #include "OnboardingTest.h"
 #include "CommandInputTest.h"
 #include "EditWorkflowTest.h"
+#include "UndoRedoTest.h"
 #include "LuaObjectTest.h"
 #include "StoreDekenTest.h"
 #include "DraggableNumberTest.h"
@@ -163,6 +164,7 @@ void runTests(PluginEditor* editor)
         OnboardingTest onboardingTest(editor);
         CommandInputTest commandInputTest(editor);
         EditWorkflowTest editWorkflowTest(editor);
+        UndoRedoTest undoRedoTest(editor);
         LuaObjectTest luaObjectTest(editor);
         StoreDekenTest storeDekenTest(editor);
         DraggableNumberTest draggableNumberTest(editor);
@@ -197,6 +199,7 @@ void runTests(PluginEditor* editor)
             &onboardingTest,
             &commandInputTest,
             &editWorkflowTest,
+            &undoRedoTest,
             &luaObjectTest,
             &storeDekenTest,
             &draggableNumberTest,

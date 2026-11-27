@@ -666,6 +666,8 @@ struct Interface {
     // Can probably be used as a general purpose undo action on an object?
     static void undoApply(t_canvas* cnv, t_gobj* obj)
     {
+        ScopedCurrentCanvas scopedCurrent(cnv);
+        canvas_create_editor(cnv); // Pd copies the object through the editor's selection
         canvas_undo_add(cnv, UNDO_APPLY, "props",
             canvas_undo_set_apply(cnv, glist_getindex(cnv, obj)));
     }

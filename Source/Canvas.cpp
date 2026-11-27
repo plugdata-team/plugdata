@@ -364,8 +364,11 @@ Canvas::~Canvas()
     editor->removeModifierKeyListener(this);
     pd->unregisterMessageListener(this);
 
-    if (getValue<bool>(isGraphChild) && isGraph)
-        patch.setVisible(false);
+    // The plugin mode canvas also counts as a graph, but its toplevel patch stays open
+    if (isGraph && getValue<bool>(isGraphChild)) {
+        if (auto p = patch.getPointer(); p && p->gl_owner)
+            patch.setVisible(false);
+    }
 
     selectedComponents.removeChangeListener(this);
 }
@@ -2206,6 +2209,7 @@ void Canvas::encapsulateSelection()
         patch.startUndoSequence("Encapsulate");
 
         pd::Interface::removeObjects(patchPtr.get(), encapsulatedPointers);
+        pd::Interface::finishRemove(patchPtr.get());
 
         auto replacement = copypasta.replace("$$_COPY_HERE_$$", copied);
 
