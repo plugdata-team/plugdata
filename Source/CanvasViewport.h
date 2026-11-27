@@ -766,7 +766,7 @@ public:
                 return;
             }
         } else {
-            scale = clampedScale;
+            scale = logicalScale = clampedScale;
         }
 
         float const oldScale = getViewScale();
