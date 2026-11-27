@@ -5,6 +5,44 @@
  */
 #pragma once
 
+// Text shaping is expensive and objects ask for their layout on every sync, so only redo it when the input changes
+struct CachedTextLayout {
+    // Returns false if the text and width are the same as last time
+    bool update(AttributedString const& text, float const width)
+    {
+        if (width == lastWidth && isSameText(text, lastText))
+            return false;
+
+        lastText = text;
+        lastWidth = width;
+        layout.createLayout(text, width);
+        return true;
+    }
+
+    void draw(Graphics& g, Rectangle<float> const area) const { layout.draw(g, area); }
+    float getHeight() const { return layout.getHeight(); }
+
+private:
+    static bool isSameText(AttributedString const& a, AttributedString const& b)
+    {
+        if (a.getText() != b.getText() || a.getNumAttributes() != b.getNumAttributes() || a.getJustification() != b.getJustification()
+            || a.getWordWrap() != b.getWordWrap() || a.getLineSpacing() != b.getLineSpacing() || a.getReadingDirection() != b.getReadingDirection())
+            return false;
+
+        for (int i = 0; i < a.getNumAttributes(); i++) {
+            auto const& x = a.getAttribute(i);
+            auto const& y = b.getAttribute(i);
+            if (x.range != y.range || x.font != y.font || x.colour != y.colour)
+                return false;
+        }
+        return true;
+    }
+
+    TextLayout layout;
+    AttributedString lastText;
+    float lastWidth = -1.0f;
+};
+
 struct TextObjectHelper {
 
     static int getWidthInChars(t_text* ptr)
@@ -151,7 +189,7 @@ protected:
     std::unique_ptr<TextEditor> editor;
     BorderSize<int> border = BorderSize<int>(1, 6, 1, 1);
 
-    TextLayout layout;
+    CachedTextLayout layout;
 
     Value sizeProperty = SynchronousValue();
     String objectText;
@@ -395,7 +433,7 @@ public:
         }
         attributedText.setJustification(Justification::centredLeft);
         attributedText.setWordWrap(AttributedString::byChar);
-        layout.createLayout(attributedText, getTextSize().getWidth() - 12);
+        layout.update(attributedText, getTextSize().getWidth() - 12);
     }
 
     void setPdBounds(Rectangle<int> const b) override

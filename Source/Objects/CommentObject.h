@@ -17,7 +17,7 @@ class CommentObject final : public ObjectBase
     BorderSize<int> border = BorderSize<int>(1, 0, 1, 0);
     String objectText;
 
-    TextLayout layout;
+    CachedTextLayout layout;
 
 public:
     CommentObject(pd::WeakReference const& obj, Object* object)
@@ -251,8 +251,8 @@ public:
         attributedText.setFont(Fonts::getDefaultFont().withHeight(14.5f).withHorizontalScale(calculateHorizontalScale()));
         attributedText.setJustification(Justification::centredLeft);
         attributedText.setWordWrap(AttributedString::byChar);
-        layout.createLayout(attributedText, textWidth);
-        repaint();
+        if (layout.update(attributedText, textWidth))
+            repaint();
     }
 
     std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override

@@ -14,7 +14,7 @@ class MessageObject final : public ObjectBase
     BorderSize<int> border = BorderSize<int>(1, 4, 1, 1);
 
     String objectText;
-    TextLayout layout;
+    CachedTextLayout layout;
 
     bool isDown = false;
     bool isLocked = false;
@@ -108,8 +108,8 @@ public:
         attributedText.setFont(Fonts::getDefaultFont().withHeight(15));
         attributedText.setJustification(Justification::centredLeft);
         attributedText.setWordWrap(AttributedString::byChar);
-        layout.createLayout(attributedText, textWidth);
-        repaint();
+        if (layout.update(attributedText, textWidth))
+            repaint();
     }
 
     void setPdBounds(Rectangle<int> const b) override
