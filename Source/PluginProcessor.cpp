@@ -1180,10 +1180,9 @@ void PluginProcessor::sendParameters()
 {
     ScopedLock lock(audioLock);
     for (auto* param : enabledParameters) {
-        if (EXPECT_UNLIKELY(param->wasChanged())) {
+        if (EXPECT_UNLIKELY(param->consumeChanged())) {
             auto title = param->getTitle();
             sendFloat(title.data(), param->getUnscaledValue());
-            param->setUnchanged();
         }
     }
 }

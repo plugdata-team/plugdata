@@ -303,9 +303,10 @@ public:
         }
     }
 
-    bool wasChanged() const
+    // Clears the flag before the value is read, so a value set meanwhile is sent next time instead of lost
+    bool consumeChanged()
     {
-        return valueChanged;
+        return valueChanged.exchange(false);
     }
 
     void setUnchanged()
@@ -356,7 +357,7 @@ private:
     float defaultValue;
     bool loadedFromDAW = false;
 
-    AtomicValue<bool> valueChanged;
+    AtomicValue<bool, Sequential> valueChanged;
     AtomicValue<float> gestureState = 0.0f;
     AtomicValue<int> index;
     AtomicValue<float> value;
