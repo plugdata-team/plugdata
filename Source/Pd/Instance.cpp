@@ -1057,10 +1057,12 @@ void Instance::moveWeakReference(void* ptr, pd_weak_reference const* from, pd_we
 void Instance::clearWeakReferences(void* ptr)
 {
     weakReferenceLock.enter();
-    for (auto* ref : pdWeakReferences[ptr]) {
-        *ref = false;
+    if (auto const it = pdWeakReferences.find(ptr); it != pdWeakReferences.end()) {
+        for (auto* ref : it->second) {
+            *ref = false;
+        }
+        pdWeakReferences.erase(it);
     }
-    pdWeakReferences.erase(ptr);
     weakReferenceLock.exit();
 }
 
