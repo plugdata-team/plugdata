@@ -5,8 +5,10 @@
  */
 
 #pragma once
+#include <algorithm>
 #include <utility>
 #include "Utility/CachedStringWidth.h"
+#include "Utility/SettingsFile.h"
 #include "Components/BouncingViewport.h"
 #include "Object.h"
 #include "Objects/ObjectBase.h"
@@ -378,7 +380,14 @@ public:
 
         void update()
         {
-            while (messages.size() > pd->getConsoleMessages().size() || messages.size() >= 800) {
+            auto const maxMessages = static_cast<size_t>(std::max(1, SettingsFile::getInstance()->getProperty<int>("console_history_size")));
+            auto& consoleMessages = pd->getConsoleMessages();
+
+            // Trim the message store too, so a lowered history size takes effect immediately
+            while (consoleMessages.size() > maxMessages)
+                consoleMessages.pop_front();
+
+            while (messages.size() > consoleMessages.size() || messages.size() >= maxMessages) {
                 messages.pop_front();
 
                 // Make sure we don't trigger a repaint for all messages when the console is full

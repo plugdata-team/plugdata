@@ -25,6 +25,7 @@
 #include "SmallUITest.h"
 #include "OnboardingTest.h"
 #include "CommandInputTest.h"
+#include "ConsoleHistoryTest.h"
 #include "EditWorkflowTest.h"
 #include "UndoRedoTest.h"
 #include "LuaObjectTest.h"
@@ -165,6 +166,7 @@ void runTests(PluginEditor* editor)
         SmallUITest smallUITest(editor);
         OnboardingTest onboardingTest(editor);
         CommandInputTest commandInputTest(editor);
+        ConsoleHistoryTest consoleHistoryTest(editor);
         EditWorkflowTest editWorkflowTest(editor);
         UndoRedoTest undoRedoTest(editor);
         LuaObjectTest luaObjectTest(editor);
@@ -201,6 +203,7 @@ void runTests(PluginEditor* editor)
             &smallUITest,
             &onboardingTest,
             &commandInputTest,
+            &consoleHistoryTest,
             &editWorkflowTest,
             &undoRedoTest,
             &luaObjectTest,
