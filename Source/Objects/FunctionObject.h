@@ -474,8 +474,12 @@ public:
             break;
         }
         case hash("init"):
+        case hash("savestate"):
+        case hash("resize"):
         case hash("fgcolor"):
         case hash("bgcolor"):
+        case hash("colors"):
+        case hash("theme"):
         case hash("set"): {
             updateProperties();
             break;

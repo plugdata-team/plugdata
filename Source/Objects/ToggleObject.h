@@ -216,7 +216,11 @@ public:
         } else if (value.refersToSameSourceAs(nonZero)) {
             float const val = nonZero.getValue();
             if (auto toggle = ptr.get<t_toggle>()) {
-                toggle->x_nonzero = val;
+                toggle->x_nonzero = val != 0.0f ? val : 1.0f;
+                if (toggle->x_on != 0.0f)
+                    toggle->x_on = toggle->x_nonzero;
+                this->value = toggle->x_on;
+                setParameterExcludingListener(nonZero, toggle->x_nonzero);
             }
         } else {
             iemHelper.valueChanged(value);

@@ -318,8 +318,17 @@ private:
         });
     }
 
+    // With an active window, encapsulate (and its redo) opens the new subpatch in a tab that takes over the commands
+    void closeOtherTabs()
+    {
+        for (auto* c : editor->getCanvases())
+            if (c != cnv)
+                editor->getTabComponent().closeTab(c);
+    }
+
     bool invoke(CommandID command)
     {
+        closeOtherTabs();
         return editor->invoke(ApplicationCommandTarget::InvocationInfo(command), false);
     }
 
@@ -368,6 +377,7 @@ private:
         }
         if (index >= steps.size())
             return;
+        closeOtherTabs();
         steps[index]();
         Timer::callAfterDelay(150, [this, index] { runStep(index + 1); });
     }

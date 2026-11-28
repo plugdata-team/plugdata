@@ -28,6 +28,7 @@
 #include "EditWorkflowTest.h"
 #include "UndoRedoTest.h"
 #include "LuaObjectTest.h"
+#include "GuiPropertyTest.h"
 #include "StoreDekenTest.h"
 #include "DraggableNumberTest.h"
 #include "CoverageSweepTest.h"
@@ -158,6 +159,7 @@ void runTests(PluginEditor* editor)
         DialogCoverageTest dialogCoverageTest(editor);
         ObjectInteractionTest objectInteractionTest(editor);
         InspectorTest inspectorTest(editor);
+        GuiPropertyTest guiPropertyTest(editor);
         TextEditorDialogTest textEditorDialogTest(editor);
         ExportProgressTest exportProgressTest(editor);
         SmallUITest smallUITest(editor);
@@ -193,6 +195,7 @@ void runTests(PluginEditor* editor)
             &dialogCoverageTest,
             &objectInteractionTest,
             &inspectorTest,
+            &guiPropertyTest,
             &textEditorDialogTest,
             &exportProgressTest,
             &smallUITest,

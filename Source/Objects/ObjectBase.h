@@ -96,8 +96,6 @@ class ObjectBase : public Component
     struct PropertyListener final : public Value::Listener {
         explicit PropertyListener(ObjectBase* parent);
 
-        void setNoCallback(bool skipCallback);
-
         void valueChanged(Value& v) override;
 
         Value lastValue;

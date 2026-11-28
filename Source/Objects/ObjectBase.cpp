@@ -125,6 +125,7 @@ void ObjectBase::ObjectSizeListener::valueChanged(Value& v)
         lastChange = Time::getMillisecondCounter();
 
         pd::Interface::moveObject(patch, obj.get(), x, y);
+        canvas_dirty(patch, 1);
         object->updateBounds();
     }
 }
@@ -134,11 +135,6 @@ ObjectBase::PropertyListener::PropertyListener(ObjectBase* p)
     lastChange = Time::getMillisecondCounter();
     parent = p;
     noCallback = false;
-}
-
-void ObjectBase::PropertyListener::setNoCallback(bool const skipCallback)
-{
-    noCallback = skipCallback;
 }
 
 void ObjectBase::PropertyListener::valueChanged(Value& v)
@@ -739,9 +735,8 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference const& ptr, Object* parent)
 
 void ObjectBase::updateProperties()
 {
-    propertyListener.setNoCallback(true);
+    ScopedValueSetter<bool> const noCallback(propertyListener.noCallback, true);
     update();
-    propertyListener.setNoCallback(false);
 }
 
 void ObjectBase::getMenuOptions(PopupMenu& menu)
@@ -820,29 +815,23 @@ void ObjectBase::receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& at
         break;
     }
 
+    // Pd messages only reflect state that Pd already has, so they must not send properties back or add undo steps
+    ScopedValueSetter<bool> const noCallback(propertyListener.noCallback, true);
     receiveObjectMessage(symHash, atoms);
 }
 
 void ObjectBase::setParameterExcludingListener(Value& parameter, var const& value)
 {
-    propertyListener.setNoCallback(true);
-
-    auto oldValue = parameter.getValue();
+    ScopedValueSetter<bool> const noCallback(propertyListener.noCallback, true);
     parameter.setValue(value);
-
-    propertyListener.setNoCallback(false);
 }
 
 void ObjectBase::setParameterExcludingListener(Value& parameter, var const& value, Value::Listener* otherListener)
 {
-    propertyListener.setNoCallback(true);
+    ScopedValueSetter<bool> const noCallback(propertyListener.noCallback, true);
     parameter.removeListener(otherListener);
-
-    auto oldValue = parameter.getValue();
     parameter.setValue(value);
-
     parameter.addListener(otherListener);
-    propertyListener.setNoCallback(false);
 }
 
 ObjectLabel* ObjectBase::getLabel(int const index)

@@ -318,24 +318,19 @@ public:
     void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
-        case hash("receive"): {
-            if (atoms.size() >= 1)
-                setParameterExcludingListener(receiveSymbol, atoms[0].toString());
-            break;
-        }
-        case hash("fgcolor"): {
-            if (atoms.size() == 3)
-                setParameterExcludingListener(primaryColour, colourToVar(Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat())));
-            break;
-        }
-        case hash("bgcolor"): {
-            if (atoms.size() == 3)
-                setParameterExcludingListener(secondaryColour, colourToVar(Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat())));
-            break;
-        }
-        case hash("gridcolor"): {
-            if (atoms.size() == 3)
-                setParameterExcludingListener(gridColour, colourToVar(Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat())));
+        case hash("receive"):
+        case hash("fgcolor"):
+        case hash("bgcolor"):
+        case hash("gridcolor"):
+        case hash("colors"):
+        case hash("theme"):
+        case hash("range"):
+        case hash("nsamples"):
+        case hash("nlines"):
+        case hash("rate"):
+        case hash("trigger"):
+        case hash("triglevel"): {
+            updateProperties();
             break;
         }
         default:

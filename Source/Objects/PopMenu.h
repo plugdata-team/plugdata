@@ -343,52 +343,20 @@ public:
             updateTextLayout();
             break;
         }
-        case hash("send"): {
-            if (atoms.size() >= 1 && atoms[0].isSymbol())
-                setParameterExcludingListener(sendSymbol, atoms[0].toString());
+        case hash("send"):
+        case hash("receive"):
+        case hash("fgcolor"):
+        case hash("bgcolor"):
+        case hash("colors"):
+        case hash("label"):
+        case hash("fontsize"):
+        case hash("var"):
+        case hash("param"):
+        case hash("savestate"):
+        case hash("lb"):
+        case hash("loadbang"): {
+            updateProperties();
             object->updateIolets();
-            break;
-        }
-        case hash("receive"): {
-            if (atoms.size() >= 1 && atoms[0].isSymbol())
-                setParameterExcludingListener(receiveSymbol, atoms[0].toString());
-            object->updateIolets();
-            break;
-        }
-        case hash("fgcolor"): {
-            if (atoms.size() >= 1 && atoms[0].isSymbol()) {
-                setParameterExcludingListener(primaryColour, colourToVar(convertTclColour(atoms[0].toString())));
-                updateColours();
-            }
-            break;
-        }
-        case hash("bgcolor"): {
-            if (atoms.size() >= 1 && atoms[0].isSymbol()) {
-                setParameterExcludingListener(secondaryColour, colourToVar(convertTclColour(atoms[0].toString())));
-                updateColours();
-            }
-            break;
-        }
-        case hash("colors"): {
-            if (atoms.size() >= 2 && atoms[0].isSymbol() && atoms[1].isSymbol()) {
-                setParameterExcludingListener(secondaryColour, colourToVar(convertTclColour(atoms[0].toString())));
-                setParameterExcludingListener(primaryColour, colourToVar(convertTclColour(atoms[1].toString())));
-                updateColours();
-            }
-            break;
-        }
-        case hash("label"): {
-            if (atoms.size() >= 1 && atoms[0].isSymbol()) {
-                setParameterExcludingListener(labelNoSelection, atoms[0].toString());
-                updateTextLayout();
-            }
-            break;
-        }
-        case hash("fontsize"): {
-            if (atoms.size() >= 1 && atoms[0].isFloat()) {
-                setParameterExcludingListener(fontSize, atoms[0].getFloat());
-            }
-            updateTextLayout();
             break;
         }
         default:

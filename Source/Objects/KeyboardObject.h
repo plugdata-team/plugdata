@@ -317,49 +317,22 @@ public:
             receiveNotesOn(atoms, false);
             break;
         }
-        case hash("lowc"): {
-            if (atoms.size() >= 1)
-                setParameterExcludingListener(lowC, static_cast<int>(atoms[0].getFloat()));
+        case hash("lowc"):
+        case hash("width"):
+        case hash("height"):
+        case hash("oct"):
+        case hash("8ves"):
+        case hash("send"):
+        case hash("receive"):
+        case hash("toggle"): {
+            updateProperties();
+            object->updateIolets();
             repaint();
             break;
         }
-        case hash("width"): {
-            if (atoms.size() >= 1)
-                setParameterExcludingListener(keyWidth, static_cast<int>(atoms[0].getFloat()));
-            object->updateBounds();
-            break;
-        }
-        case hash("oct"): {
-            if (atoms.size() >= 1)
-                setParameterExcludingListener(lowC, std::clamp<int>(getValue<int>(lowC) + static_cast<int>(atoms[0].getFloat()), -1, 9));
-            object->updateBounds();
-            break;
-        }
-        case hash("8ves"): {
-            if (atoms.size() >= 1)
-                setParameterExcludingListener(octaves, static_cast<int>(atoms[0].getFloat()));
-            object->updateBounds();
-            break;
-        }
-        case hash("send"): {
-            if (atoms.size() >= 1)
-                setParameterExcludingListener(sendSymbol, atoms[0].toString());
-            object->updateIolets();
-            break;
-        }
-        case hash("receive"): {
-            if (atoms.size() >= 1)
-                setParameterExcludingListener(receiveSymbol, atoms[0].toString());
-            object->updateIolets();
-            break;
-        }
-        case hash("toggle"): {
-            if (atoms.size() >= 1)
-                setParameterExcludingListener(toggleMode, atoms[0].getFloat());
-        }
         case hash("flush"): {
-
             resetToggledKeys();
+            break;
         }
         default:
             break;

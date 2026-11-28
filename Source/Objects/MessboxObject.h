@@ -147,7 +147,9 @@ public:
         case hash("bold"):
         case hash("fontsize"):
         case hash("fgcolor"):
-        case hash("bgcolor"): {
+        case hash("bgcolor"):
+        case hash("colors"):
+        case hash("theme"): {
             updateProperties();
             break;
         }

@@ -221,10 +221,10 @@ public:
             trigger();
             break;
         case hash("flashtime"): {
-            if (atoms.size() > 0)
-                setParameterExcludingListener(bangInterrupt, atoms[0].getFloat());
-            if (atoms.size() > 1)
-                setParameterExcludingListener(bangHold, atoms[1].getFloat());
+            if (auto bng = ptr.get<t_bng>()) {
+                setParameterExcludingListener(bangInterrupt, bng->x_flashtime_break);
+                setParameterExcludingListener(bangHold, bng->x_flashtime_hold);
+            }
             break;
         }
         case hash("pos"):

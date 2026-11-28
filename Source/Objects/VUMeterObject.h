@@ -175,6 +175,7 @@ public:
             }
 
             object->updateBounds();
+            updateSizeProperty();
         } else if (v.refersToSameSourceAs(showScale)) {
             if (auto vu = ptr.get<t_vu>()) {
                 auto const showVU = getValue<bool>(showScale);

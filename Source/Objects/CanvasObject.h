@@ -85,7 +85,10 @@ public:
     {
         switch (symbol) {
         case hash("size"):
+        case hash("vis_size"):
+            updateProperties();
             updateHitArea();
+            object->updateBounds();
             break;
         default:
             iemHelper.receiveObjectMessage(symbol, atoms);
@@ -197,6 +200,7 @@ public:
             }
 
             object->updateBounds();
+            updateSizeProperty();
         }
         if (v.refersToSameSourceAs(hitAreaSize)) {
             auto size = getValue<int>(hitAreaSize);

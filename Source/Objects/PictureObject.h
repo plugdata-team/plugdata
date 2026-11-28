@@ -14,7 +14,6 @@ class PictureObject final : public ObjectBase
     Value reportSize = SynchronousValue();
     Value sendSymbol = SynchronousValue();
     Value receiveSymbol = SynchronousValue();
-    Value sizeProperty = SynchronousValue();
 
     File imageFile;
     Image img;
@@ -26,7 +25,6 @@ public:
     PictureObject(pd::WeakReference const& ptr, Object* object)
         : ObjectBase(ptr, object)
     {
-        objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamString("File", cGeneral, &filename, "");
         objectParameters.addParamBool("Latch", cGeneral, &latch, { "No", "Yes" }, 0);
         objectParameters.addParamBool("Outline", cAppearance, &outline, { "No", "Yes" }, 0);
@@ -103,8 +101,6 @@ public:
 
             offsetX = pic->x_offset_x;
             offsetY = pic->x_offset_y;
-
-            sizeProperty = VarArray { var(pic->x_width), var(pic->x_height) };
         }
 
         repaint();
@@ -114,29 +110,14 @@ public:
     void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
-        case hash("latch"): {
-            if (auto pic = ptr.get<t_fake_pic>())
-                setParameterExcludingListener(latch, pic->x_latch);
-            break;
-        }
-        case hash("offset"): {
-            if (auto pic = ptr.get<t_fake_pic>()) {
-                offsetX = pic->x_offset_x;
-                offsetY = pic->x_offset_y;
-            }
-            repaint();
-            break;
-        }
-        case hash("outline"): {
-            if (auto pic = ptr.get<t_fake_pic>())
-                setParameterExcludingListener(outline, pic->x_outline);
-            break;
-        }
-        case hash("open"): {
-            if (atoms.size() >= 1) {
-                setParameterExcludingListener(filename, atoms[0].toString());
-                triggerAsyncUpdate();
-            }
+        case hash("latch"):
+        case hash("offset"):
+        case hash("outline"):
+        case hash("open"):
+        case hash("size"):
+        case hash("send"):
+        case hash("receive"): {
+            updateProperties();
             break;
         }
         default:
@@ -203,21 +184,7 @@ public:
 
     void propertyChanged(Value& value) override
     {
-        if (value.refersToSameSourceAs(sizeProperty)) {
-            auto const& arr = *sizeProperty.getValue().getArray();
-            auto const* constrainer = getConstrainer();
-            auto const width = std::max(static_cast<int>(arr[0]), constrainer->getMinimumWidth());
-            auto const height = std::max(static_cast<int>(arr[1]), constrainer->getMinimumHeight());
-
-            setParameterExcludingListener(sizeProperty, VarArray { var(width), var(height) });
-
-            if (auto pic = ptr.get<t_fake_pic>()) {
-                pic->x_width = width;
-                pic->x_height = height;
-            }
-
-            object->updateBounds();
-        } else if (value.refersToSameSourceAs(filename)) {
+        if (value.refersToSameSourceAs(filename)) {
             triggerAsyncUpdate();
         } else if (value.refersToSameSourceAs(latch)) {
             if (auto pic = ptr.get<t_fake_pic>())
@@ -275,10 +242,6 @@ public:
     void updateSizeProperty() override
     {
         setPdBounds(object->getObjectBounds());
-
-        if (auto pic = ptr.get<t_fake_pic>()) {
-            setParameterExcludingListener(sizeProperty, VarArray { var(pic->x_width), var(pic->x_height) });
-        }
     }
 
     void openFile(String const& location)
@@ -307,16 +270,13 @@ public:
         imageFile = findFile(location);
 
         auto const pathString = imageFile.getFullPathName();
-        auto const fileNameString = imageFile.getFileName();
-
-        auto* rawFileName = fileNameString.toRawUTF8();
         auto* rawPath = pathString.toRawUTF8();
 
         img = ImageFileFormat::loadFrom(imageFile).convertedToFormat(Image::ARGB);
         imageNeedsReload = true;
 
         if (auto pic = ptr.get<t_fake_pic>()) {
-            pic->x_filename = pd->generateSymbol(rawFileName);
+            pic->x_filename = pd->generateSymbol(location);
             pic->x_fullname = pd->generateSymbol(rawPath);
             pic->x_width = img.getWidth();
             pic->x_height = img.getHeight();

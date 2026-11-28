@@ -327,23 +327,10 @@ public:
             slider.setCurrentValue(value);
             break;
         }
-        case hash("lin"): {
-            setParameterExcludingListener(isLogarithmic, false);
-            updateRange();
-            break;
-        }
-        case hash("log"): {
-            setParameterExcludingListener(isLogarithmic, true);
-            updateRange();
-            break;
-        }
+        case hash("lin"):
+        case hash("log"):
         case hash("range"): {
-            if (atoms.size() >= 2) {
-                slider.setRangeFlipped(atoms[0].getFloat() > atoms[1].getFloat());
-                setParameterExcludingListener(min, atoms[0].getFloat());
-                setParameterExcludingListener(max, atoms[1].getFloat());
-                updateRange();
-            }
+            updateProperties();
             break;
         }
         case hash("steady"): {
@@ -508,6 +495,7 @@ public:
             }
 
             object->updateBounds();
+            updateSizeProperty();
         } else if (value.refersToSameSourceAs(min)) {
             setMinimum(::getValue<float>(min));
             updateRange();

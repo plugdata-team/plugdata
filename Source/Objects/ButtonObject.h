@@ -345,38 +345,15 @@ public:
     void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
-        case hash("bgcolor"): {
-            if (atoms.size() >= 3) {
-                setParameterExcludingListener(secondaryColour, colourToVar(Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat())));
-                updateColours();
-            }
-            break;
-        }
-        case hash("fgcolor"): {
-            if (atoms.size() >= 3) {
-                setParameterExcludingListener(primaryColour, colourToVar(Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat())));
-                updateColours();
-            }
-            break;
-        }
-        case hash("readonly"): {
-            if (atoms.size() >= 1) {
-                setParameterExcludingListener(readOnly, atoms[0].getFloat());
-            }
-            break;
-        }
-        case hash("transparent"): {
-            if (atoms.size() >= 1) {
-                setParameterExcludingListener(transparent, atoms[0].getFloat());
-                repaint();
-            }
-            break;
-        }
+        case hash("bgcolor"):
+        case hash("fgcolor"):
+        case hash("colors"):
+        case hash("theme"):
+        case hash("readonly"):
+        case hash("transparent"):
         case hash("oval"): {
-            if (atoms.size() >= 1) {
-                setParameterExcludingListener(oval, atoms[0].getFloat());
-                repaint();
-            }
+            updateProperties();
+            repaint();
             break;
         }
         case hash("float"): {

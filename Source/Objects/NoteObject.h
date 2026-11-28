@@ -518,6 +518,7 @@ public:
         case hash("colors"):
             if (auto note = ptr.get<t_fake_note>()) {
                 setParameterExcludingListener(secondaryColour, colourToVar(Colour(note->x_bg[0], note->x_bg[1], note->x_bg[2])));
+                setParameterExcludingListener(fillBackground, !note->x_transparent);
             }
             [[fallthrough]];
         case hash("textcolor"):
@@ -532,6 +533,7 @@ public:
         case hash("bgcolor"): {
             if (auto note = ptr.get<t_fake_note>()) {
                 setParameterExcludingListener(secondaryColour, colourToVar(Colour(note->x_bg[0], note->x_bg[1], note->x_bg[2])));
+                setParameterExcludingListener(fillBackground, !note->x_transparent);
             }
             repaint();
             break;
@@ -553,6 +555,7 @@ public:
                 setParameterExcludingListener(outline, note->x_outline);
             }
             repaint();
+            break;
         }
         case hash("receive"): {
             if (atoms.size() >= 1)

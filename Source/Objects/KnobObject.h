@@ -690,6 +690,8 @@ public:
         }
         case hash("range"): {
             if (atoms.size() >= 2) {
+                setParameterExcludingListener(min, getMinimum());
+                setParameterExcludingListener(max, getMaximum());
                 updateRange();
                 updateArcStart();
                 knob.setValue(getValue());
@@ -729,9 +731,10 @@ public:
             break;
         }
         case hash("circular"): {
-            setParameterExcludingListener(circular, atoms[0].getFloat());
-            knob.setCircular(atoms[0].getFloat() >= 2);
-            knob.setInfinite(atoms[0].getFloat() >= 3);
+            if (auto knb = ptr.get<t_fake_knob>())
+                setParameterExcludingListener(circular, knb->x_circular + 1);
+            knob.setCircular(::getValue<int>(circular) >= 2);
+            knob.setInfinite(::getValue<int>(circular) >= 3);
             break;
         }
         case hash("send"): {
@@ -760,7 +763,9 @@ public:
         case hash("colors"): {
             setParameterExcludingListener(primaryColour, colourToVar(getForegroundColour()));
             setParameterExcludingListener(secondaryColour, colourToVar(getBackgroundColour()));
+            setParameterExcludingListener(arcColour, colourToVar(getArcColour()));
             knob.setFgColour(getForegroundColour());
+            knob.setArcColour(getArcColour());
             updateColours();
             break;
         }
@@ -770,7 +775,8 @@ public:
             repaint();
             break;
         }
-        case hash("init"): {
+        case hash("init"):
+        case hash("load"): {
             if (auto knb = ptr.get<t_fake_knob>()) {
                 setParameterExcludingListener(initialValue, knb->x_load);
                 knob.setValue(getValue());
@@ -799,10 +805,9 @@ public:
             break;
         }
         case hash("numbersize"): {
-            if (atoms.size() > 0 && atoms[0].isFloat()) {
-                setParameterExcludingListener(numberSize, static_cast<int>(atoms[0].getFloat()));
-                updateLabel();
-            }
+            if (auto knb = ptr.get<t_fake_knob>())
+                setParameterExcludingListener(numberSize, knb->n_size);
+            updateLabel();
             break;
         }
         case hash("numberpos"): {
@@ -854,25 +859,22 @@ public:
             }
             break;
         }
-        case hash("exp"): {
-            if (atoms.size() >= 1) {
-                setParameterExcludingListener(exponential, atoms[0].getFloat());
-            }
-            break;
-        }
+        case hash("exp"):
         case hash("log"): {
-            if (atoms.size() > 0 && atoms[0].isFloat()) {
-                setParameterExcludingListener(logMode, atoms[0].getFloat() + 1);
+            if (auto knb = ptr.get<t_fake_knob>()) {
+                setParameterExcludingListener(exponential, knb->x_exp);
+                setParameterExcludingListener(logMode, knb->x_expmode + 1);
             }
             break;
         }
-        case hash("ticks"): {
-            if (atoms.size() > 0 && atoms[0].isFloat()) {
-                setParameterExcludingListener(showTicks, static_cast<bool>(atoms[0].getFloat()));
-                setParameterExcludingListener(steps, static_cast<int>(atoms[0].getFloat()));
-                updateRotaryParameters();
-                updateRange();
+        case hash("ticks"):
+        case hash("steps"): {
+            if (auto knb = ptr.get<t_fake_knob>()) {
+                setParameterExcludingListener(showTicks, knb->x_ticks);
+                setParameterExcludingListener(steps, knb->x_steps);
             }
+            updateRotaryParameters();
+            updateRange();
             break;
         }
         case hash("transparent"): {
