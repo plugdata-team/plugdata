@@ -2345,12 +2345,17 @@ inline Transaction Transaction::accountingForSpecialCharacters(TextDocument cons
         t.content = "    ";
     }
     if (content.getLastCharacter() == KeyPress::backspaceKey) {
-        if (s.head.y == s.tail.y) {
+        // Only nudge the caret when nothing is selected. With a selection the
+        // deletion itself is the whole effect; the old test compared columns
+        // instead of rows, so a selection spanning rows collapsed onto its
+        // first row and could wipe the first line (leaving an empty line on
+        // top) instead of the selected one.
+        if (s.isSingular()) {
             document.prev(s.head);
         }
         t.content.clear();
     } else if (content.getLastCharacter() == KeyPress::deleteKey) {
-        if (s.head.y == s.tail.y) {
+        if (s.isSingular()) {
             document.next(s.head);
         }
         t.content.clear();
