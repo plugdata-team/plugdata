@@ -277,16 +277,17 @@ private:
         });
 
         addAction("curved connection", [this] {
-            if (auto* c = findConnection("i", "print d")) {
+            if (auto* c = findConnection("metro 500", "print d")) {
                 cnv->deselectAll();
                 cnv->setSelected(c, true);
                 editor->invokeDirectly(CommandIDs::ConnectionStyle, false);
             }
         });
+        // Corners go on an unrouted connection, so their shape doesn't depend on the router
         addAction("add connection corner", [this] {
             if (auto* c = findConnection("i", "print d")) {
                 cnv->deselectAll();
-                clickConnection(c, (c->getStartPoint() + c->getEndPoint()) / 2.5f, 2);
+                clickConnection(c, (c->getStartPoint() + c->getEndPoint()) / 2.0f, 2);
             }
         });
         addAction("drag connection segment", [this] {
