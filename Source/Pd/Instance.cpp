@@ -419,8 +419,9 @@ void Instance::initialisePd(String& pdlua_version)
                     if (auto const* pd = static_cast<PluginProcessor*>(inst.get())) {
                         for (auto* editor : pd->getEditors()) {
                             for (auto* canvas : editor->getCanvases()) {
+                                // By now, Pd may have deleted the canvas, or opened it again
                                 auto canvasPtr = canvas->patch.getPointer();
-                                if (canvasPtr && canvasPtr.get() == glist) {
+                                if (canvas->patch.getUncheckedPointer() == glist && (!canvasPtr || !canvasPtr->gl_havewindow)) {
                                     canvas->editor->getTabComponent().closeTab(canvas, false);
                                     break;
                                 }

@@ -1259,7 +1259,8 @@ void TabComponent::closeTab(Canvas* cnv, bool const sendVisMessage)
         if (auto* lastCnv = getLastShownTab(cnv, split)) {
             showTab(lastCnv, split);
         } else if (index >= 0 && tabbars[split].size() > 1) {
-            showTab(tabbars[split][index > 0 ? index - 1 : 1]->cnv, split);
+            if (auto* next = tabbars[split][index > 0 ? index - 1 : 1]->cnv.getComponent(); canvases.contains(next))
+                showTab(next, split);
         }
     }
 
@@ -1296,13 +1297,14 @@ Canvas* TabComponent::getLastShownTab(Canvas const* current, int const split)
         if (lastShownTab == current)
             continue;
 
+        // Closing a tab can close the tabs inside it, while it is being deleted
         auto const index = std::distance(it, lastShownTabs[split].rend()) - 1;
-        if (lastShownTab) {
+        if (lastShownTab && canvases.contains(lastShownTab)) {
             lastShownTabs[split].remove_range(index, lastShownTabs[split].size() - 1);
             break;
         }
     }
-    return lastShownTab == current ? nullptr : lastShownTab;
+    return lastShownTab == current || !canvases.contains(lastShownTab) ? nullptr : lastShownTab;
 }
 
 void TabComponent::sendTabUpdateToVisibleCanvases() const
