@@ -38,6 +38,7 @@
 #include "PluginHostTest.h"
 #include "BackupLoopTest.h"
 #include "StackGuardTest.h"
+#include "WheelZoomFactorTest.h"
 
 // Settings come from environment variables, or from TestConfig.json in the app data directory,
 // because an AUv3 extension never sees our environment. "<NAME>_<wrapper>" (e.g.
@@ -177,6 +178,7 @@ void runTests(PluginEditor* editor)
         ObjectFuzzTest objectFuzzer(editor);
         HelpFileFuzzTest helpfileFuzzer(editor);
         HelpFileErrorTest helpfileErrorTest(editor);
+        WheelZoomFactorTest wheelZoomFactorTest(editor);
 
         PlugDataTestRunner runner(logFile);
 
@@ -211,6 +213,7 @@ void runTests(PluginEditor* editor)
             &editActionStressTest,
             &tabSplitStressTest,
             &helpfileFuzzer,
+            &wheelZoomFactorTest,
             &objectFuzzer };
 
         // Only plugin builds use PDINSTANCE. A second processor in the standalone
