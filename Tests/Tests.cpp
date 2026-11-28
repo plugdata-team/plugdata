@@ -27,6 +27,7 @@
 #include "CommandInputTest.h"
 #include "EditWorkflowTest.h"
 #include "UndoRedoTest.h"
+#include "AutopatchTest.h"
 #include "LuaObjectTest.h"
 #include "GuiPropertyTest.h"
 #include "StoreDekenTest.h"
@@ -35,6 +36,7 @@
 #include "AddObjectMenuTest.h"
 #include "SaveOverwriteTest.h"
 #include "SubpatchTabTest.h"
+#include "NestedPatchTest.h"
 #include "PluginHostTest.h"
 #include "BackupLoopTest.h"
 #include "StackGuardTest.h"
@@ -167,6 +169,7 @@ void runTests(PluginEditor* editor)
         CommandInputTest commandInputTest(editor);
         EditWorkflowTest editWorkflowTest(editor);
         UndoRedoTest undoRedoTest(editor);
+        AutopatchTest autopatchTest(editor);
         LuaObjectTest luaObjectTest(editor);
         StoreDekenTest storeDekenTest(editor);
         DraggableNumberTest draggableNumberTest(editor);
@@ -174,6 +177,7 @@ void runTests(PluginEditor* editor)
         AddObjectMenuTest addObjectMenuTest(editor);
         SaveOverwriteTest saveOverwriteTest(editor);
         SubpatchTabTest subpatchTabTest(editor);
+        NestedPatchTest nestedPatchTest(editor);
         ObjectFuzzTest objectFuzzer(editor);
         HelpFileFuzzTest helpfileFuzzer(editor);
         HelpFileErrorTest helpfileErrorTest(editor);
@@ -182,6 +186,7 @@ void runTests(PluginEditor* editor)
 
         Array<UnitTest*> tests = { &saveOverwriteTest,
             &subpatchTabTest,
+            &nestedPatchTest,
             &saveCloseRaceTest,
             &abstractionReloadRaceTest,
             &synchroniseDeletionStressTest,
@@ -203,6 +208,7 @@ void runTests(PluginEditor* editor)
             &commandInputTest,
             &editWorkflowTest,
             &undoRedoTest,
+            &autopatchTest,
             &luaObjectTest,
             &storeDekenTest,
             &draggableNumberTest,

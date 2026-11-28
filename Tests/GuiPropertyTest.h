@@ -203,6 +203,7 @@ private:
         editor->pd->flushConsoleMessages();
         editor->getSidebarForPanel(Sidebar::ConsolePanel)->clearConsole();
         auto const undos = undoSize();
+        markSaved();
         sendTo(obj, message);
 
         after(30, [this, undos, message] {
@@ -221,6 +222,8 @@ private:
             }
             expect(errors.isEmpty(), "'" + message + "' printed errors: " + errors.joinIntoString(" | "));
             expect(undoSize() == undos, "'" + message + "' must not add an undo step");
+            if (message != "dirty") // [knob]'s dirty method is there to dirty the patch
+                expect(dirtyState() == "Pd clean, tab clean", "'" + message + "' must not dirty the patch: " + dirtyState());
 
             auto const names = namesOf(target);
             auto const before = valuesOf(target);
@@ -246,6 +249,7 @@ private:
         auto const undos = undoSize();
         auto const before = content();
         auto const value = nextValue(param, "gui_" + String(objIndex) + "_" + String(index));
+        markSaved();
         param.valuePtr->setValue(value);
 
         after(30, [this, index, undos, before, value, name] {
@@ -259,6 +263,7 @@ private:
             auto const edited = content();
             expect(undoSize() == undos + 1, name + " must add exactly one undo step, the count went from " + String(undos) + " to " + String(undoSize()));
             expect(edited != before, name + " must change the patch");
+            expect(dirtyState() == "Pd dirty, tab dirty", name + " must dirty the patch: " + dirtyState());
 
             auto const shown = valuesOf(target)[index];
             target->gui->updateProperties();
@@ -270,16 +275,34 @@ private:
                 if (content() != before)
                     logDifference(before, content());
                 expect(content() == before, name + " undo must restore the previous patch");
+                // Skips subpatches and graphs until pure-data branch undo-apply-clean-state is merged: undo pastes them back as dirty
+                if (auto* ptr = objectAt(objIndex) ? objectAt(objIndex)->getPointer() : nullptr; ptr && pd_class(&ptr->g_pd) != canvas_class)
+                    expect(dirtyState() == "Pd clean, tab clean", name + " undo must return to the saved state: " + dirtyState());
 
                 editor->invokeDirectly(CommandIDs::Redo, false);
                 after(30, [this, edited, name] {
                     if (content() != edited)
                         logDifference(edited, content());
                     expect(content() == edited, name + " redo must reapply the change");
+                    expect(dirtyState() == "Pd dirty, tab dirty", name + " redo must dirty the patch again: " + dirtyState());
                     advance();
                 });
             });
         });
+    }
+
+    void markSaved()
+    {
+        editor->pd->lockAudioThread();
+        canvas_dirty(cnv->patch.getRawPointer(), 0);
+        editor->pd->unlockAudioThread();
+    }
+
+    // Pd's flag, and the one the tab shows
+    String dirtyState() const
+    {
+        auto const* x = cnv->patch.getRawPointer();
+        return String("Pd ") + (x && x->gl_dirty ? "dirty" : "clean") + ", tab " + (cnv->patch.isDirty() ? "dirty" : "clean");
     }
 
     static Array<var> valuesOf(Object* obj)

@@ -143,10 +143,10 @@ private:
     void addAction(String const& name, std::function<void()> action)
     {
         steps.add([this, name, action] {
-            if (previousAction.isNotEmpty() && cnv->patch.getCanvasContent() == lastContent)
-                actionsWithoutEffect.add(previousAction);
+            checkPreviousAction();
             previousAction = name;
             lastContent = cnv->patch.getCanvasContent();
+            markSaved();
             action();
         });
     }
@@ -231,9 +231,9 @@ private:
             cnv->encapsulateSelection();
         });
         addAction("shift-drag into connection", [this] {
-            auto* settings = SettingsFile::getInstance();
-            auto const gridWas = settings->getProperty<int>("grid_enabled");
-            settings->setProperty("grid_enabled", 0);
+            // Dragging also reads shift from the global modifiers, which turns grid snapping off
+            auto const modifiersWere = ModifierKeys::currentModifiers;
+            ModifierKeys::currentModifiers = ModifierKeys::shiftModifier;
 
             auto* obj = find("+ 1");
             auto* connection = findConnection("t b", "print e");
@@ -244,7 +244,7 @@ private:
                 auto const centre = obj->getLocalBounds().getCentre().toFloat();
                 drag(obj, centre, centre + offset, ModifierKeys::leftButtonModifier | ModifierKeys::shiftModifier);
             }
-            settings->setProperty("grid_enabled", gridWas);
+            ModifierKeys::currentModifiers = modifiersWere;
         });
         addAction("change order", [this] {
             // Same steps as the "To Front" item in the object's right-click menu
@@ -308,14 +308,39 @@ private:
         });
 
         steps.add([this] {
-            if (cnv->patch.getCanvasContent() == lastContent)
-                actionsWithoutEffect.add(previousAction);
+            checkPreviousAction();
             expect(actionsWithoutEffect.isEmpty(), "these actions didn't change the patch: " + actionsWithoutEffect.joinIntoString(", "));
+            expect(actionsNotDirtying.isEmpty(), "these actions didn't dirty the patch: " + actionsNotDirtying.joinIntoString(", "));
 
             cnv->deselectAll();
             edited = cnv->patch.getCanvasContent();
+            markSaved();
             undoAll();
         });
+    }
+
+    void checkPreviousAction()
+    {
+        if (previousAction.isEmpty())
+            return;
+        if (cnv->patch.getCanvasContent() == lastContent)
+            actionsWithoutEffect.add(previousAction);
+        else if (dirtyState() != "Pd dirty, tab dirty")
+            actionsNotDirtying.add(previousAction + " (" + dirtyState() + ")");
+    }
+
+    void markSaved()
+    {
+        editor->pd->lockAudioThread();
+        canvas_dirty(cnv->patch.getRawPointer(), 0);
+        editor->pd->unlockAudioThread();
+    }
+
+    // Pd's flag, and the one the tab shows
+    String dirtyState() const
+    {
+        auto const* x = cnv->patch.getRawPointer();
+        return String("Pd ") + (x && x->gl_dirty ? "dirty" : "clean") + ", tab " + (cnv->patch.isDirty() ? "dirty" : "clean");
     }
 
     // With an active window, encapsulate (and its redo) opens the new subpatch in a tab that takes over the commands
@@ -340,6 +365,7 @@ private:
             return;
         }
         expectContent(original, "undoing all " + String(numUndos) + " steps must restore the original patch");
+        expect(dirtyState() == "Pd dirty, tab dirty", "undoing past the saved state must dirty the patch: " + dirtyState());
         redoAll();
     }
 
@@ -352,6 +378,8 @@ private:
         }
         expectEquals(numRedos, numUndos, "every undone step must be redoable");
         expectContent(edited, "redoing all steps must restore the edited patch");
+        // Pd treats the subpatches that redo recreates as dirty, so only check that the tab agrees with Pd
+        expect(dirtyState() == "Pd dirty, tab dirty" || dirtyState() == "Pd clean, tab clean", "the tab must show Pd's dirty state after redoing: " + dirtyState());
 
         editor->getTabComponent().closeTab(cnv);
         signalDone(true);
@@ -385,6 +413,6 @@ private:
     HeapArray<std::function<void()>> steps;
     Component::SafePointer<Canvas> cnv;
     String original, edited, lastContent, previousAction;
-    StringArray actionsWithoutEffect;
+    StringArray actionsWithoutEffect, actionsNotDirtying;
     int numUndos = 0, numRedos = 0;
 };
