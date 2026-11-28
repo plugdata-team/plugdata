@@ -990,6 +990,14 @@ pd::Patch::Ptr Canvas::getPatchToSave() const
             if (openedPatch->getRawPointer() == root)
                 return openedPatch;
         }
+        // The abstraction around it isn't open, like when the subpatch was opened from search
+        if (auto p = patch.getPointer()) {
+            if (auto* abstraction = canvas_getrootfor(p.get()); canvas_isabstraction(abstraction)) {
+                pd::Patch::Ptr abstractionPatch = new pd::Patch(pd::WeakReference(abstraction, pd), pd, false);
+                abstractionPatch->setCurrentFile(URL(abstractionPatch->getPatchFile()));
+                return abstractionPatch;
+            }
+        }
     }
 
     return refCountedPatch;

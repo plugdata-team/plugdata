@@ -2148,7 +2148,10 @@ Object* PluginEditor::highlightSearchTarget(void* target, bool const openNewTabI
         }
         // Do nothing, the current canvas is already active
     } else if (openNewTabIfNeeded) {
-        cnv = tabComponent.openPatch(new pd::Patch(pd::WeakReference(targetCanvas, pd), pd, false));
+        pd::Patch::Ptr const patch = new pd::Patch(pd::WeakReference(targetCanvas, pd), pd, false);
+        if (auto p = patch->getPointer(); p && canvas_isabstraction(p.get()))
+            patch->setCurrentFile(URL(patch->getPatchFile()));
+        cnv = tabComponent.openPatch(patch);
 
         for (auto* object : cnv->objects) {
             if (object->getPointer() == target) {
