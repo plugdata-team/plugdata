@@ -11,7 +11,7 @@
 // from anywhere in the (GPU-rendered) app UI
 class Eyedropper final : public Timer
     , public MouseListener {
-    class EyedropperDisplayComponnent final : public Component {
+    class EyedropperDisplayComponent final : public Component {
         Colour colour;
         Image pixelImage;
 
@@ -21,7 +21,7 @@ class Eyedropper final : public Timer
     public:
         std::function<void(bool setColour)> onDismiss = [](bool) { };
 
-        EyedropperDisplayComponnent()
+        EyedropperDisplayComponent()
         {
             setVisible(true);
             setAlwaysOnTop(true);
@@ -155,7 +155,7 @@ private:
             stopTimer();
             return;
         }
-        
+
         auto const positionInTopLevel = topLevel->getMouseXYRelative();
         colourDisplayer.setCentrePosition(topLevel->localPointToGlobal(positionInTopLevel));
 
@@ -188,7 +188,7 @@ private:
     int timerCount = 0;
     Component::SafePointer<Component> topLevel = nullptr;
 
-    EyedropperDisplayComponnent colourDisplayer;
+    EyedropperDisplayComponent colourDisplayer;
     Colour currentColour;
     PluginEditor* editor = nullptr;
 };

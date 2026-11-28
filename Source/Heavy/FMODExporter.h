@@ -67,6 +67,7 @@ public:
         auto const outputFile = File(outdir);
         outputFile.getChildFile("ir").deleteRecursively();
         outputFile.getChildFile("hv").deleteRecursively();
+        outputFile.getChildFile("c").deleteRecursively();
 
         // Delay to get correct exit code
         Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
